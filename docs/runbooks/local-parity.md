@@ -65,6 +65,19 @@ Run backend checks:
 docker compose exec web python3 manage.py check
 ```
 
+Run the host-side production-parity check with Redis/Postgres-backed settings:
+
+```bash
+cd ..
+REDIS_URL=redis://localhost:6379/1 \
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mihas_local \
+scripts/check-backend-production-parity.sh
+```
+
+Do not set `TESTING=1` for readiness checks. That mode is for selected tests
+only and is not acceptable evidence for Redis-backed auth, cache, or rate-limit
+readiness.
+
 Run tests from the host against local Postgres:
 
 ```bash

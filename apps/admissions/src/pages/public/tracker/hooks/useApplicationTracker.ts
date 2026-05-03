@@ -5,15 +5,12 @@ import { logger } from '@/lib/logger'
 import { normalizeSearchTerm, validateSearchTerm } from '../utils/trackerUtils'
 
 export interface PublicApplicationStatus {
-  id?: string | null
   public_tracking_code?: string | null
   application_number: string | null
   status: string
-  payment_status: string | null
   program_name: string | null
   intake_name: string | null
   institution: string | null
-  email: string | null
   submitted_at: string | null
   updated_at: string | null
   feedback_summary: string | null
@@ -22,15 +19,12 @@ export interface PublicApplicationStatus {
 }
 
 interface TrackerApplicationPayload {
-  id?: string | null
   public_tracking_code?: string | null
   application_number?: string | null
   status?: string
-  payment_status?: string | null
   program_name?: string | null
   intake_name?: string | null
   institution?: string | null
-  email?: string | null
   submitted_at?: string | null
   updated_at?: string | null
   created_at?: string | null
@@ -80,18 +74,15 @@ export const useApplicationTracker = () => {
       }
 
       setApplication({
-        id: data.id ?? null,
         public_tracking_code: data.public_tracking_code ?? null,
         application_number: data.application_number ?? null,
         status: data.status ?? 'submitted',
-        payment_status: data.payment_status ?? null,
         feedback_summary: data.feedback_summary ?? null,
         submitted_at: data.submitted_at ?? data.created_at ?? null,
         updated_at: data.updated_at ?? null,
         program_name: data.program_name ?? data.program ?? null,
         intake_name: data.intake_name ?? data.intake ?? null,
         institution: data.institution ?? null,
-        email: data.email ?? null,
         admin_feedback: data.feedback_summary ?? null,
         admin_feedback_date: null
       })

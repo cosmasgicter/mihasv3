@@ -114,11 +114,10 @@ export default function PublicApplicationTracker() {
   const buildSlipPayload = useCallback((email: string, userId?: string) => {
     if (!application) return null
     return {
-      application_id: application.id || undefined,
       public_tracking_code: application.public_tracking_code || application.application_number || '',
       application_number: application.application_number || '',
       status: application.status,
-      payment_status: application.payment_status,
+      payment_status: null,
       submitted_at: application.submitted_at,
       updated_at: application.updated_at,
       program_name: application.program_name,
@@ -168,8 +167,7 @@ export default function PublicApplicationTracker() {
         return
       }
 
-      const slipEmail = application.email?.trim() || 'no-email@mihas.local'
-      const payload = buildSlipPayload(slipEmail)
+      const payload = buildSlipPayload('no-email@mihas.local')
       if (!payload) {
         toast.error('Slip unavailable', 'Missing application details for slip generation.')
         return
@@ -254,16 +252,10 @@ export default function PublicApplicationTracker() {
   const handleEmailSlip = useCallback(async () => {
     if (!application) return
 
-    const existingEmail = application.email?.trim() || ''
-    if (!existingEmail) {
-      setEmailDraftAddress('')
-      setEmailPromptError('')
-      setEmailPromptOpen(true)
-      return
-    }
-
-    await sendSlipToEmail(existingEmail)
-  }, [application, sendSlipToEmail])
+    setEmailDraftAddress('')
+    setEmailPromptError('')
+    setEmailPromptOpen(true)
+  }, [application])
 
   const handleEmailPromptSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

@@ -134,15 +134,12 @@ vi.mock('@/lib/applicationSlip', () => ({
 // -- Django API response shape for application tracking --
 const MOCK_DJANGO_TRACK_RESPONSE = {
   application: {
-    id: 'app-uuid-001',
     public_tracking_code: 'TRK-2025-ABC123',
     application_number: 'MIHAS202500042',
     status: 'under_review',
-    payment_status: 'paid',
     program_name: 'Diploma in Clinical Medicine',
     intake_name: 'January 2025',
     institution: 'mihas',
-    email: 'applicant@example.com',
     submitted_at: '2025-01-15T10:30:00Z',
     updated_at: '2025-02-01T14:00:00Z',
     created_at: '2025-01-15T10:30:00Z',
@@ -253,10 +250,10 @@ describe('Public tracker page verification', () => {
 
     const text = container.textContent || ''
     expect(text).toContain('Application Details')
-    expect(text).toContain('applicant@example.com')
     expect(text).toContain('Application Number')
     expect(text).toContain('Program')
-    expect(text).toContain('Payment Status')
+    expect(text).not.toContain('applicant@example.com')
+    expect(text).not.toContain('Payment Status')
   })
 
   it('renders action buttons when application is found', async () => {

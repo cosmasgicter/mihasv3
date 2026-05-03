@@ -110,7 +110,7 @@ describe('Preloader slow-load message', () => {
     vi.useRealTimers()
   })
 
-  it('shows #preloader-slow after 10 seconds', () => {
+  it('shows #preloader-slow after 5 seconds', () => {
     document.body.innerHTML = `
       <div id="root">
         <div id="preloader" class="preloader">
@@ -126,17 +126,17 @@ describe('Preloader slow-load message', () => {
     expect(slowEl).not.toBeNull()
     expect(slowEl!.hidden).toBe(true)
 
-    // Mirror index.html inline script
+    // Mirror public/preloader.js
     setTimeout(() => {
       const el = document.getElementById('preloader-slow')
       if (el) el.hidden = false
-    }, 10_000)
+    }, 5_000)
 
-    // Not visible before 10s
-    vi.advanceTimersByTime(9_999)
+    // Not visible before 5s
+    vi.advanceTimersByTime(4_999)
     expect(document.getElementById('preloader-slow')!.hidden).toBe(true)
 
-    // Visible after 10s
+    // Visible after 5s
     vi.advanceTimersByTime(1)
     expect(document.getElementById('preloader-slow')!.hidden).toBe(false)
   })
@@ -168,18 +168,18 @@ describe('Preloader slow-load message', () => {
       </div>
     `
 
-    // Mirror index.html: set up the 10s timeout
+    // Mirror public/preloader.js: set up the 5s timeout
     const t = setTimeout(() => {
       const el = document.getElementById('preloader-slow')
       if (el) el.hidden = false
-    }, 10_000)
+    }, 5_000)
 
-    // Mirror main.tsx: React mounts at ~3s, clears the timeout
+    // Mirror main.tsx: React mounts before the slow-load timer, clears the timeout
     vi.advanceTimersByTime(3_000)
     clearTimeout(t)
 
-    // Advance well past 10s
-    vi.advanceTimersByTime(15_000)
+    // Advance well past 5s
+    vi.advanceTimersByTime(10_000)
 
     // Message should still be hidden because the timeout was cleared
     expect(document.getElementById('preloader-slow')!.hidden).toBe(true)
