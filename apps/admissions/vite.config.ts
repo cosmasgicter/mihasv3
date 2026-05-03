@@ -20,9 +20,12 @@ function envValidationPlugin(): Plugin {
             'VITE_API_BASE_URL',
             'VITE_APP_BASE_URL',
             'VITE_APP_VERSION',
-            'VITE_SITE_URL',
-            'VITE_LENCO_PUBLIC_KEY',
             'VITE_GLITCHTIP_DSN',
+          ]
+        : []
+      const requiredAlternatives: string[][] = isProd
+        ? [
+            ['VITE_SITE_URL', 'VITE_APP_BASE_URL'],
           ]
         : []
 
@@ -37,9 +40,19 @@ function envValidationPlugin(): Plugin {
         const value = getEnvValue(v)
         return !value || value.trim().length === 0
       })
+      const missingAlternativeGroups = requiredAlternatives.filter((keys) => (
+        !keys.some((key) => {
+          const value = getEnvValue(key)
+          return value && value.trim().length > 0
+        })
+      ))
 
-      if (missing.length > 0) {
-        const msg = `Missing required VITE_* environment variables: ${missing.join(', ')}`
+      if (missing.length > 0 || missingAlternativeGroups.length > 0) {
+        const missingAlternativeLabels = missingAlternativeGroups.map((keys) => `${keys.join(' or ')}`)
+        const msg = `Missing required VITE_* environment variables: ${[
+          ...missing,
+          ...missingAlternativeLabels,
+        ].join(', ')}`
         if (isProd) {
           throw new Error(`[env-validation] ${msg}`)
         }

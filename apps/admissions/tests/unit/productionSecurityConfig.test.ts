@@ -35,19 +35,20 @@ describe('production security config', () => {
     expect(note).toContain('style-src unsafe-inline remains')
   })
 
-  it('requires all production VITE variables used by the admissions deployment', () => {
+  it('requires production VITE variables used by the admissions deployment', () => {
     const viteConfig = fs.readFileSync(path.join(ADMISSIONS_ROOT, 'vite.config.ts'), 'utf-8')
     const required = [
       'VITE_API_BASE_URL',
       'VITE_APP_BASE_URL',
       'VITE_APP_VERSION',
-      'VITE_SITE_URL',
-      'VITE_LENCO_PUBLIC_KEY',
       'VITE_GLITCHTIP_DSN',
     ]
 
     for (const key of required) {
       expect(viteConfig).toContain(`'${key}'`)
     }
+
+    expect(viteConfig).toContain(`'VITE_SITE_URL', 'VITE_APP_BASE_URL'`)
+    expect(viteConfig).not.toContain(`'VITE_LENCO_PUBLIC_KEY'`)
   })
 })
