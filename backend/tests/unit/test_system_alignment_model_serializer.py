@@ -30,7 +30,6 @@ class TestApplicationTrackingSerializerFields:
             "application_number",
             "public_tracking_code",
             "status",
-            "payment_status",
             "program",
             "intake",
             "institution",

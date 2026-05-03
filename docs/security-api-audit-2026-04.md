@@ -53,13 +53,13 @@ Weighted score: 84/100 — Grade: B+ (up from 83)
   3. Add `.kiro/settings/mcp.json` to `.gitignore` (or use env var references)
   4. Store real keys in a local-only file or secrets manager
 
-#### H2: CSP Allows `unsafe-inline` for Scripts (STILL OPEN)
+#### H2: CSP Allows `unsafe-inline` for Scripts (FIXED)
 
 - File: `apps/admissions/vercel.json`
-- Evidence: `script-src 'self' 'unsafe-inline' ...`
-- Impact: Weakens XSS protection — inline scripts can execute if HTML injection is achieved
+- Evidence: `script-src 'self' blob: ...`; the preloader script was moved to `apps/admissions/public/preloader.js`.
+- Impact: Inline script execution is no longer allowed by production CSP.
 - CVSS: 6.1
-- Remediation: Replace with nonce-based CSP. Vite supports `html.cspNonce` config.
+- Residual: `style-src 'unsafe-inline'` remains for Radix/runtime styles and must be revalidated separately before removal.
 
 ### MEDIUM Severity (New)
 
@@ -81,10 +81,10 @@ Weighted score: 84/100 — Grade: B+ (up from 83)
 
 ### MEDIUM Severity (Still Open)
 
-#### M1: Application Track Endpoint Exposes Data Without Authentication (STILL OPEN)
+#### M1: Application Track Endpoint Exposes Data Without Authentication (FIXED)
 
-- Tracking codes have ~48 bits of entropy. Rate limit is 120/10m via catch-all.
-- Remediation: Add dedicated rate limit for track endpoint. Remove `payment_status` from tracking response.
+- Tracking codes have ~48 bits of entropy. The endpoint now has a dedicated `20/10m` rate limit scope.
+- Remediation completed: `payment_status` and applicant/payment fields are excluded from `ApplicationTrackingSerializer`.
 
 #### M2: Application Export May Leak Sensitive Data (STILL OPEN)
 
@@ -151,11 +151,11 @@ Weighted score: 84/100 — Grade: B+ (up from 83)
 | Finding | Severity | Effort | Priority | Status |
 |---------|----------|--------|----------|--------|
 | H1: Hardcoded secrets in MCP config | HIGH | Low | Fix immediately | OPEN |
-| H2: CSP unsafe-inline | HIGH | Medium | Fix this sprint | OPEN |
+| H2: CSP unsafe-inline | HIGH | Medium | Fix this sprint | FIXED |
 | N1: Analytics endpoints public with real data | MEDIUM | Low | Fix this sprint | NEW |
 | H4: Error reporter spam | HIGH | Low | Fix this sprint | OPEN |
 | N2: SQL injection in migration script | MEDIUM | Low | Fix this sprint | NEW |
-| M1: Track endpoint data exposure | MEDIUM | Medium | Next sprint | OPEN |
+| M1: Track endpoint data exposure | MEDIUM | Medium | Next sprint | FIXED |
 | L2: Django admin exposure | LOW | Medium | Next sprint | OPEN |
 | L3: OpenAPI public access | LOW | Low | Next sprint | OPEN |
 | M5: Priority scoring performance | MEDIUM | High | Backlog | OPEN |

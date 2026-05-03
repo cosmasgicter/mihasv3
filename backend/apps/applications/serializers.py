@@ -531,13 +531,17 @@ class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.Mode
 
 
 class ApplicationTrackingSerializer(serializers.ModelSerializer):
-    """Public tracking serializer — no auth required."""
+    """Public tracking serializer — no auth required.
+
+    Keep this response intentionally small: it is exposed to anyone who knows
+    an application number or tracking code.
+    """
 
     class Meta:
         model = Application
         fields = [
             "application_number", "public_tracking_code", "status",
-            "payment_status", "program", "intake", "institution",
+            "program", "intake", "institution",
             "created_at", "submitted_at",
         ]
 

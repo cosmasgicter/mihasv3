@@ -85,6 +85,23 @@ Tasks:
 - Stand up minimal staging if cost allows
 - Add rollback verification checklist
 
+## Admissions/Backend Security Gates
+
+Status: `IN PROGRESS`
+
+Implemented:
+- Removed `script-src 'unsafe-inline'` from the admissions production CSP
+- Moved the admissions preloader behavior into same-origin `/preloader.js`
+- Tightened production admissions build env requirements for API URL, app/site URL, version, Lenco public key, and GlitchTip DSN
+- Minimized public application tracking data and removed public payment status exposure
+- Added a dedicated `/api/v1/applications/track/` rate-limit scope
+- Added a public endpoint classification guard for `AllowAny` backend views
+- Added a Redis/Postgres-backed backend parity check script
+
+Remaining:
+- Run the full required frontend and backend gates in CI or an equivalent production-parity environment
+- Capture the first production release tag, deploy record, smoke result, and Neon restore drill evidence before declaring production-ready
+
 ## Recommended Operating Model
 
 1. Tag every production release.
@@ -92,4 +109,3 @@ Tasks:
 3. Take a Neon safety branch before risky DB changes.
 4. Use the rollback runbook instead of ad-hoc rollback.
 5. Run a restore drill at least once per quarter.
-

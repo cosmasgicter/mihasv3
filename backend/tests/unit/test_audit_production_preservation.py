@@ -212,7 +212,6 @@ class TestPreservationTrackingValidCode:
         mock_app.application_number = "APP-20250101-ABCD1234"
         mock_app.public_tracking_code = "TRK-ABCDEF123456"
         mock_app.status = "submitted"
-        mock_app.payment_status = "paid"
         mock_app.program = "Computer Science"
         mock_app.intake = "January 2026"
         mock_app.created_at = datetime.now(timezone.utc)
@@ -232,6 +231,7 @@ class TestPreservationTrackingValidCode:
         assert "application_number" in inner or "status" in inner, (
             f"Expected tracking data in response, got: {body}"
         )
+        assert "payment_status" not in inner
 
 
 # ---------------------------------------------------------------------------

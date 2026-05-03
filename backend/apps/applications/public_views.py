@@ -54,6 +54,7 @@ from ._view_helpers import ApplicationTrackingResponseSerializer
     )
 )
 class ApplicationTrackView(APIView):
+    public_endpoint_category = "public_tracking_minimized"
     permission_classes = [AllowAny]
     authentication_classes = [OptionalJWTCookieAuthentication]
     serializer_class = ApplicationTrackingSerializer

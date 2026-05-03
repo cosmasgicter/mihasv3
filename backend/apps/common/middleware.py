@@ -154,6 +154,7 @@ class RateLimitMiddleware:
       /api/v1/auth/                → 60/5m
       /api/v1/admin/               → 60/10m
       /api/v1/documents/           → 20/10m
+      /api/v1/applications/track/  → 20/10m
       /api/v1/sessions/            → 30/10m
       /api/v1/notifications/       → 50/10m
       /api/v1/errors/              → 10/5m
@@ -179,6 +180,7 @@ class RateLimitMiddleware:
         # Existing scopes
         ("/api/v1/admin/", "60/10m"),
         ("/api/v1/documents/", "20/10m"),
+        ("/api/v1/applications/track/", "20/10m"),
         ("/api/v1/sessions/", "30/10m"),
         ("/api/v1/notifications/", "50/10m"),
         ("/api/v1/errors/", "10/5m"),

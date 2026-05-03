@@ -20,6 +20,9 @@ function envValidationPlugin(): Plugin {
             'VITE_API_BASE_URL',
             'VITE_APP_BASE_URL',
             'VITE_APP_VERSION',
+            'VITE_SITE_URL',
+            'VITE_LENCO_PUBLIC_KEY',
+            'VITE_GLITCHTIP_DSN',
           ]
         : []
 

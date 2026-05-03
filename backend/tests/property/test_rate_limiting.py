@@ -37,6 +37,7 @@ _scope_configs = [
     ("/api/v1/auth/test/", "60/5m", 60, 300),
     ("/api/v1/admin/test/", "60/10m", 60, 600),
     ("/api/v1/documents/test/", "20/10m", 20, 600),
+    ("/api/v1/applications/track/", "20/10m", 20, 600),
     ("/api/v1/sessions/test/", "30/10m", 30, 600),
     ("/api/v1/notifications/test/", "50/10m", 50, 600),
     ("/api/v1/errors/test/", "10/5m", 10, 300),
