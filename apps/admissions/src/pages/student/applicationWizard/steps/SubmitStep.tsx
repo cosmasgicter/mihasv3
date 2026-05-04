@@ -109,6 +109,11 @@ const SubmitStep = ({
 }: SubmitStepProps) => {
   const formValues = form.watch()
   const programLabel = selectedProgramName?.trim() || formValues.program
+  const uniqueValidSubjectCount = useMemo(() => new Set(
+    selectedGrades
+      .filter(grade => grade.subject_id && Number(grade.grade) >= 1 && Number(grade.grade) <= 9)
+      .map(grade => grade.subject_id)
+  ).size, [selectedGrades])
 
   // AI-powered personalized summary
   const [aiSummary, setAiSummary] = useState<string | null>(null)
@@ -120,9 +125,9 @@ const SubmitStep = ({
     program: programLabel,
     intake: selectedIntakeLabel || ((formValues as Record<string, unknown>).intake_name as string | undefined) || formValues.intake,
     institution: selectedInstitutionLabel,
-    subjectsCount: selectedGrades.length,
+    subjectsCount: uniqueValidSubjectCount,
     paymentStatus,
-  }), [formValues.full_name, formValues.intake, paymentStatus, programLabel, selectedGrades.length, selectedInstitutionLabel, selectedIntakeLabel])
+  }), [formValues.full_name, formValues.intake, paymentStatus, programLabel, uniqueValidSubjectCount, selectedInstitutionLabel, selectedIntakeLabel])
 
   const loadAiSummary = useCallback(async () => {
     if (!applicationId) return
@@ -133,10 +138,10 @@ const SubmitStep = ({
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
-        const data = await apiClient.request<{ summary: string | null }>(`/applications/${applicationId}/preview-summary/`)
+        const data = await apiClient.request<{ summary: string | null; source?: string }>(`/applications/${applicationId}/preview-summary/`)
         const summary = data?.summary?.trim() || ''
         const looksComplete = summary.length >= 50 && /[.!?]$/.test(summary)
-        if (looksComplete) {
+        if (looksComplete && data?.source === 'ai') {
           setAiSummary(summary)
           setAiError(null)
           setAiLoading(false)
@@ -179,8 +184,8 @@ const SubmitStep = ({
     },
     {
       label: 'Minimum Grade 12 subjects added',
-      detail: `${selectedGrades.length}/5 subjects recorded`,
-      completed: isRequirementComplete('grades', selectedGrades.length >= 5),
+      detail: `${uniqueValidSubjectCount}/5 unique subjects recorded`,
+      completed: isRequirementComplete('grades', uniqueValidSubjectCount >= 5),
       stepKey: 'education' as StepKey,
     },
     {
@@ -229,10 +234,15 @@ const SubmitStep = ({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-wide text-primary/70">Application Preview</p>
-                {/* Always show the summary text — fallback first, AI replaces it */}
                 <p className="mt-1.5 text-sm leading-relaxed text-foreground" role="status">
-                  {aiSummary || fallbackSummary}
+                  {fallbackSummary}
                 </p>
+                {aiSummary && (
+                  <div className="mt-3 rounded-md border border-primary/15 bg-background/60 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary/70">Personalized note</p>
+                    <p className="mt-1 text-sm leading-relaxed text-foreground">{aiSummary}</p>
+                  </div>
+                )}
                 {aiLoading && (
                   <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                     <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary/40 border-t-primary" />
@@ -347,7 +357,7 @@ const SubmitStep = ({
             </dl>
 
             <div className="rounded-lg border border-border/70 bg-card px-4 py-4">
-              <p className="text-sm font-semibold text-foreground">Subjects ({selectedGrades.length})</p>
+              <p className="text-sm font-semibold text-foreground">Subjects ({uniqueValidSubjectCount} unique)</p>
               <ul className="mt-3 space-y-2 text-sm text-foreground">
                 {selectedGrades.map((grade, index) => {
                   const subject = subjects.find(subjectItem => subjectItem.id === grade.subject_id)

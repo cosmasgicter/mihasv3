@@ -155,7 +155,7 @@ export async function syncGradesWithRecovery(
       Number.isInteger(grade.grade) &&
       grade.grade >= 1 &&
       grade.grade <= 9
-  )
+  ).map(grade => ({ subject_id: grade.subject_id, grade: grade.grade }))
 
   if (syncableGrades.length === 0) {
     return { grades: [] }

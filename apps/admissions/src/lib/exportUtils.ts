@@ -13,6 +13,7 @@ export interface ApplicationData {
   application_fee: number
   paid_amount: number
   submitted_at: string
+  updated_at?: string
   created_at: string
   grades_summary: string
   total_subjects: number

@@ -13,7 +13,7 @@ import { sanitizeForLog, sanitizeForDisplay } from '@/lib/sanitize'
 import { getUserMetadata, getBestValue, calculateProfileCompletion, getProfileMissingFields } from '@/hooks/useProfileAutoPopulation'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
 import { clearAllDraftData } from '@/lib/draftManager'
-import { applicationService } from '@/services/applications'
+import { applicationService, sortApplicationsByActivity } from '@/services/applications'
 import { catalogService } from '@/services/catalog'
 import { DashboardStatusOverview } from '@/components/student/DashboardStatusOverview'
 import { ApplicationTimeline } from '@/components/student/ApplicationTimeline'
@@ -100,10 +100,10 @@ export default function StudentDashboard() {
   const syncApplicationsFromPolling = useCallback((data: StudentDashboardData) => {
     setApplications((previousApplications) => {
       const previousById = new Map(previousApplications.map((application) => [application.id, application]))
-      return data.applications.map((application) => ({
+      return sortApplicationsByActivity(data.applications.map((application) => ({
         ...(previousById.get(application.id) ?? {}),
         ...application,
-      })) as Application[]
+      })) as Application[])
     })
 
     const hasServerDraft = data.applications.some((application) => application.status === 'draft')
@@ -321,7 +321,7 @@ export default function StudentDashboard() {
       // --- Process applications result ---
       if (applicationsResult.status === 'fulfilled') {
         const applicationsResponse = applicationsResult.value
-        const loadedApplications = (applicationsResponse?.applications || []) as Application[]
+        const loadedApplications = sortApplicationsByActivity((applicationsResponse?.applications || []) as Application[])
         setApplications(loadedApplications)
         setApplicationsError('')
 
@@ -421,12 +421,12 @@ export default function StudentDashboard() {
     hasPendingPayment
   } = useMemo(() => {
     const draftApps = applications.filter(app => app.status === 'draft')
-    const submittedApps = applications.filter(app => app.status !== 'draft')
+    const submittedApps = sortApplicationsByActivity(applications.filter(app => app.status !== 'draft'))
     const hasLocalOnly = hasDraft && draftApps.length === 0
     const draftCount = draftApps.length + (hasLocalOnly ? 1 : 0)
 
     const pendingPayment = applications.some(app =>
-      app.status !== 'draft' && requiresStudentPaymentAction(app.payment_status)
+      requiresStudentPaymentAction(app.payment_status)
     )
 
     return {

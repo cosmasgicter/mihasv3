@@ -20,7 +20,8 @@ export function normalizeDraftResumeGrades(grades: unknown[] | null | undefined)
 
   return grades
     .filter((grade): grade is { subject_id?: unknown; grade?: unknown } => Boolean(grade) && typeof grade === 'object')
-    .map((grade) => ({
+    .map((grade, index) => ({
+      row_id: `restored-${index}-${typeof grade.subject_id === 'string' ? grade.subject_id.trim() : 'empty'}`,
       subject_id: typeof grade.subject_id === 'string' ? grade.subject_id.trim() : '',
       grade: Number(grade.grade) || 0,
     }))
@@ -53,4 +54,3 @@ export function resolveDraftResumeStepId(
 
   return hasEducationComplete ? 3 : 2
 }
-

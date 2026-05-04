@@ -86,6 +86,8 @@ class TestApplicationSubmitView:
             "post",
             f"/api/v1/applications/{app_id}/submit/",
             student,
+            data={"confirm_submission": True},
+            format="json",
         )
         response = self.view(request, application_id=app_id)
 
@@ -116,12 +118,72 @@ class TestApplicationSubmitView:
             "post",
             f"/api/v1/applications/{app_id}/submit/",
             student,
+            data={"confirm_submission": True},
+            format="json",
         )
         response = self.view(request, application_id=app_id)
 
         assert response.status_code == 400
         assert response.data["success"] is False
         assert response.data["code"] == "PAYMENT_REQUIRED"
+
+    @patch("apps.applications.student_views.submit_application")
+    @patch("apps.applications.student_views.Application.objects")
+    def test_submit_requires_final_confirmation(self, mock_app_objects, mock_submit_application):
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, user_id=user_id)
+
+        mock_app_objects.select_related.return_value.get.return_value = application
+
+        request = _auth_request(
+            self.factory,
+            "post",
+            f"/api/v1/applications/{app_id}/submit/",
+            student,
+            data={"confirm_submission": False},
+            format="json",
+        )
+        response = self.view(request, application_id=app_id)
+
+        assert response.status_code == 400
+        assert response.data["code"] == "CONFIRM_SUBMISSION_REQUIRED"
+        mock_submit_application.assert_not_called()
+
+    @patch("apps.applications.student_views.ApplicationSerializer")
+    @patch("apps.applications.student_views.submit_application")
+    @patch("apps.applications.student_views.Application.objects")
+    def test_repeated_submit_returns_current_submitted_application(
+        self,
+        mock_app_objects,
+        mock_submit_application,
+        mock_application_serializer,
+    ):
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, status="submitted", user_id=user_id)
+
+        mock_app_objects.select_related.return_value.get.return_value = application
+        mock_application_serializer.return_value.data = {
+            "id": str(app_id),
+            "status": "submitted",
+        }
+
+        request = _auth_request(
+            self.factory,
+            "post",
+            f"/api/v1/applications/{app_id}/submit/",
+            student,
+            data={"confirm_submission": True},
+            format="json",
+        )
+        response = self.view(request, application_id=app_id)
+
+        assert response.status_code == 200
+        assert response.data["data"]["status"] == "submitted"
+        mock_submit_application.assert_not_called()
 
 
 class TestApplicationInterviewListView:
@@ -313,6 +375,67 @@ class TestStudentPostSubmissionMutationGuards:
         assert response.status_code == 403
         assert response.data["code"] == "APPLICATION_NOT_EDITABLE"
 
+    @patch("apps.catalog.models.Subject.objects")
+    @patch("apps.applications.student_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_views.Application.objects")
+    def test_duplicate_grade_subjects_are_rejected(self, mock_app_objects, mock_permission, mock_subject_objects):
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        subject_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, status="draft", user_id=user_id)
+
+        mock_app_objects.get.return_value = application
+        mock_permission.return_value.has_object_permission.return_value = True
+        mock_subject_objects.filter.return_value.exists.return_value = True
+
+        request = _auth_request(
+            self.factory,
+            "post",
+            f"/api/v1/applications/{app_id}/grades/",
+            student,
+            data={
+                "grades": [
+                    {"subject_id": str(subject_id), "grade": 1},
+                    {"subject_id": str(subject_id), "grade": 2},
+                    {"subject_id": str(uuid.uuid4()), "grade": 3},
+                    {"subject_id": str(uuid.uuid4()), "grade": 4},
+                    {"subject_id": str(uuid.uuid4()), "grade": 5},
+                ]
+            },
+            format="json",
+        )
+        response = ApplicationGradesView.as_view()(request, application_id=app_id)
+
+        assert response.status_code == 400
+        assert response.data["code"] == "DUPLICATE_SUBJECT"
+
+    @patch("apps.catalog.models.Subject.objects")
+    @patch("apps.applications.student_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_views.Application.objects")
+    def test_batch_grade_sync_requires_five_unique_subjects(self, mock_app_objects, mock_permission, mock_subject_objects):
+        user_id = uuid.uuid4()
+        app_id = uuid.uuid4()
+        student = _student_user(user_id=user_id)
+        application = _make_application(app_id=app_id, status="draft", user_id=user_id)
+
+        mock_app_objects.get.return_value = application
+        mock_permission.return_value.has_object_permission.return_value = True
+        mock_subject_objects.filter.return_value.exists.return_value = True
+
+        request = _auth_request(
+            self.factory,
+            "post",
+            f"/api/v1/applications/{app_id}/grades/",
+            student,
+            data={"grades": [{"subject_id": str(uuid.uuid4()), "grade": 1} for _ in range(4)]},
+            format="json",
+        )
+        response = ApplicationGradesView.as_view()(request, application_id=app_id)
+
+        assert response.status_code == 400
+        assert response.data["code"] == "MINIMUM_SUBJECTS_REQUIRED"
+
     @patch("apps.applications.models.Application.objects")
     def test_student_cannot_upload_document_after_submission(self, mock_app_objects):
         user_id = uuid.uuid4()
@@ -412,7 +535,7 @@ class TestSubmitAfterDeferRegression:
         mock_submit.return_value = (application, "TRK-TESTCODE123")
         mock_serializer.return_value.data = {"id": str(app_id), "status": "submitted"}
 
-        request = _auth_request(self.factory, "post", f"/api/v1/applications/{app_id}/submit/", student)
+        request = _auth_request(self.factory, "post", f"/api/v1/applications/{app_id}/submit/", student, data={"confirm_submission": True}, format="json")
         response = ApplicationSubmitView.as_view()(request, application_id=app_id)
 
         assert response.status_code == 200
@@ -441,7 +564,7 @@ class TestSubmitAfterDeferRegression:
             "An NRC or Passport document must be uploaded before submission.",
         )
 
-        request = _auth_request(self.factory, "post", f"/api/v1/applications/{app_id}/submit/", student)
+        request = _auth_request(self.factory, "post", f"/api/v1/applications/{app_id}/submit/", student, data={"confirm_submission": True}, format="json")
         response = ApplicationSubmitView.as_view()(request, application_id=app_id)
 
         assert response.status_code == 400

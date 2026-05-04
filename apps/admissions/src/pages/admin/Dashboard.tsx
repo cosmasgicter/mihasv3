@@ -326,7 +326,7 @@ export default function AdminDashboard() {
       maxWidth="7xl"
       tone="admin"
       metrics={[
-        { label: 'Applications', value: stats.totalApplications, helper: `${stats.todayApplications} arrived today` },
+        { label: 'Applications', value: stats.totalApplications, helper: `${stats.todayApplications} active today` },
         { label: 'Decision queue', value: stats.pendingApplications, helper: 'Applications currently awaiting admin action' },
         { label: 'Approved', value: stats.approvedApplications, helper: `${stats.rejectedApplications} rejected so far` },
         { label: 'System health', value: stats.systemHealth, helper: `${stats.activeUsers} active users online` },

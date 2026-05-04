@@ -457,7 +457,7 @@ export const adminDashboardService = {
           toNumber(applicationStatusBreakdown?.under_review),
         approved_applications: applicationStatusBreakdown?.approved,
         rejected_applications: applicationStatusBreakdown?.rejected,
-        today_applications: applications?.today,
+        today_applications: applications?.today_activity ?? applications?.today,
         week_applications: applications?.this_week,
         month_applications: applications?.this_month,
         total_students: users?.total,

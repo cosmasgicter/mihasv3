@@ -19,4 +19,32 @@ describe('buildApplicationsOverview', () => {
     expect(overview.pendingReview).toBeGreaterThan(0)
     expect(overview.approved).toBeGreaterThan(0)
   })
+
+  it('counts updated drafts and submitted applications as active today', () => {
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    const overview = buildApplicationsOverview([
+      {
+        status: 'draft',
+        payment_status: 'verified',
+        updated_at: today.toISOString(),
+        created_at: yesterday.toISOString(),
+      },
+      {
+        status: 'submitted',
+        payment_status: 'verified',
+        submitted_at: today.toISOString(),
+        created_at: yesterday.toISOString(),
+      },
+      {
+        status: 'draft',
+        payment_status: 'not_paid',
+        created_at: yesterday.toISOString(),
+      },
+    ])
+
+    expect(overview.todaySubmissions).toBe(2)
+  })
 })

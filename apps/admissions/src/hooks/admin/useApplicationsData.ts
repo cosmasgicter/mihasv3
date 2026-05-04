@@ -31,6 +31,7 @@ interface ApplicationSummary {
   application_fee: number
   paid_amount: number
   submitted_at: string
+  updated_at?: string
   created_at: string
   result_slip_url: string
   extra_kyc_url: string
@@ -103,6 +104,7 @@ const mapApplicationRow = (row: any): ApplicationSummary => ({
   application_fee: Number(row.application_fee ?? 0),
   paid_amount: Number(row.paid_amount ?? 0),
   submitted_at: row.submitted_at ?? row.created_at ?? '',
+  updated_at: row.updated_at ?? '',
   created_at: row.created_at ?? row.submitted_at ?? '',
   result_slip_url: row.result_slip_url ?? '',
   extra_kyc_url: row.extra_kyc_url ?? '',

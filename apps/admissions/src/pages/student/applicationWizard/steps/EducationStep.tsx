@@ -139,6 +139,17 @@ const EducationStep = ({
   const identityStatus = getUploadStatus(extraKycFile, uploadStates.extra_kyc, uploadedFiles.extra_kyc)
   const resultSlipPreview = useFilePreview(resultSlipFile, uploadedFiles.result_slip)
   const identityPreview = useFilePreview(extraKycFile, uploadedFiles.extra_kyc)
+  const subjectCounts = selectedGrades.reduce((counts, grade) => {
+    if (grade.subject_id) {
+      counts.set(grade.subject_id, (counts.get(grade.subject_id) ?? 0) + 1)
+    }
+    return counts
+  }, new Map<string, number>())
+  const uniqueValidSubjectCount = new Set(
+    selectedGrades
+      .filter(grade => grade.subject_id && Number(grade.grade) >= 1 && Number(grade.grade) <= 9)
+      .map(grade => grade.subject_id)
+  ).size
 
   // Subject options for CanonicalSelect
   const getSubjectOptions = (currentSubjectId: string) => {
@@ -262,7 +273,7 @@ const EducationStep = ({
         <fieldset className="border-none p-0 m-0">
           <legend className="sr-only">Education Details</legend>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-            <h3 className="text-md font-medium text-foreground">Grade 12 Subjects (<span className={selectedGrades.length < 5 ? 'text-red-500' : 'text-green-600'}>{selectedGrades.length}/5 minimum</span>)</h3>
+            <h3 className="text-md font-medium text-foreground">Grade 12 Subjects (<span className={uniqueValidSubjectCount < 5 ? 'text-red-500' : 'text-green-600'}>{uniqueValidSubjectCount}/5 unique minimum</span>)</h3>
             {selectedGrades.length === 0 && (
               <span className="sr-only">No subjects added yet</span>
             )}
@@ -286,7 +297,7 @@ const EducationStep = ({
             </div>
           )}
 
-          {eligibilityCheck && selectedGrades.length >= 5 && (
+          {eligibilityCheck && uniqueValidSubjectCount >= 5 && (
             <div className="mb-4">
               <EligibilityNotification 
                 eligibility={eligibilityCheck} 
@@ -321,11 +332,13 @@ const EducationStep = ({
           )}
 
           <div className="space-y-3">
-            {selectedGrades.map((grade, index) => (
+            {selectedGrades.map((grade, index) => {
+              const isDuplicate = Boolean(grade.subject_id && (subjectCounts.get(grade.subject_id) ?? 0) > 1)
+              return (
               <div
-                key={index}
+                key={grade.row_id || `${grade.subject_id || 'empty'}-${index}`}
                 ref={index === selectedGrades.length - 1 ? lastSubjectRef : undefined}
-                className={`flex flex-col sm:grid sm:grid-cols-12 items-stretch sm:items-center gap-3 p-3 sm:p-4 bg-muted rounded-lg ${animateClasses.slideUp}`}
+                className={`flex flex-col sm:grid sm:grid-cols-12 items-stretch sm:items-center gap-3 p-3 sm:p-4 bg-muted rounded-lg ${isDuplicate ? 'ring-1 ring-destructive/60' : ''} ${animateClasses.slideUp}`}
                 style={staggerChild(index)}
               >
                 {/* Subject Select */}
@@ -340,7 +353,13 @@ const EducationStep = ({
                     disabled={subjects.length === 0}
                     placeholder={subjects.length === 0 ? 'Loading subjects...' : 'Select subject'}
                     aria-label={`Subject ${index + 1}`}
+                    error={isDuplicate}
                   />
+                  {isDuplicate && (
+                    <p className="mt-1 text-xs font-medium text-destructive" role="alert">
+                      This subject is already selected in another row.
+                    </p>
+                  )}
                 </div>
 
                 {/* Grade Select */}
@@ -389,7 +408,8 @@ const EducationStep = ({
                   )}
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
 
           {selectedGrades.length > 0 && selectedGrades.length < 10 && (

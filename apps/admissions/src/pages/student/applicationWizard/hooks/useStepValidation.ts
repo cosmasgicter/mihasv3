@@ -77,10 +77,12 @@ export const useStepValidation = (
             ? selectedGrades
             : values.grades ?? []
         ).filter(g => g.subject_id && g.grade >= 1 && g.grade <= 9)
-        const hasEnoughGrades = validGrades.length >= 5
+        const uniqueGradeCount = new Set(validGrades.map(g => g.subject_id)).size
+        const hasDuplicateGrades = validGrades.length !== uniqueGradeCount
+        const hasEnoughGrades = uniqueGradeCount >= 5 && !hasDuplicateGrades
         const hasAnyGrades = validGrades.length > 0
         const fields = [
-          { label: 'At least 5 subjects', complete: hasEnoughGrades },
+          { label: 'At least 5 unique subjects', complete: hasEnoughGrades },
           { label: 'Result slip', complete: hasResultSlip },
           { label: 'Identity document', complete: hasIdentityDocument },
           { label: 'Uploads finished', complete: !uploading },
@@ -94,8 +96,10 @@ export const useStepValidation = (
           totalFields: fields.length,
           missingFields: hasEnoughGrades
             ? missingFields
-            : hasAnyGrades
-              ? [`${5 - validGrades.length} more subject${5 - validGrades.length > 1 ? 's' : ''} needed`, ...missingFields.slice(1)]
+            : hasDuplicateGrades
+              ? ['Remove duplicate subjects', ...missingFields.slice(1)]
+              : hasAnyGrades
+                ? [`${5 - uniqueGradeCount} more unique subject${5 - uniqueGradeCount > 1 ? 's' : ''} needed`, ...missingFields.slice(1)]
               : missingFields
         }
       },

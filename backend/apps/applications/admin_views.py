@@ -26,7 +26,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
 from apps.applications.document_intelligence import DocumentIntelligence
-from apps.applications.filters import ApplicationFilter
+from apps.applications.filters import ApplicationFilter, annotate_activity_at
 from apps.applications.models import (
     Application,
     ApplicationCondition,
@@ -65,6 +65,33 @@ from ._view_helpers import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _is_super_admin(user) -> bool:
+    return getattr(user, "role", None) == "super_admin"
+
+
+def _redact_name(value: str | None) -> str:
+    value = (value or "").strip()
+    if not value:
+        return ""
+    parts = value.split()
+    return " ".join(f"{part[:1]}***" for part in parts)
+
+
+def _redact_email(value: str | None) -> str:
+    value = (value or "").strip()
+    if "@" not in value:
+        return "***"
+    local, domain = value.split("@", 1)
+    return f"{local[:1]}***@{domain}"
+
+
+def _redact_phone(value: str | None) -> str:
+    digits = "".join(ch for ch in (value or "") if ch.isdigit())
+    if len(digits) <= 4:
+        return "***"
+    return f"***{digits[-4:]}"
 
 
 # ---------------------------------------------------------------------------
@@ -125,8 +152,8 @@ class ApplicationListCreateView(APIView):
         sort_param = request.query_params.get("sort")
         is_priority_sort = sort_param == "priority" and role in ("admin", "super_admin")
 
-        if not sort_param:
-            queryset = queryset.order_by("-created_at")
+        if not sort_param and not request.query_params.get("sortBy"):
+            queryset = annotate_activity_at(queryset).order_by("-activity_at", "-created_at", "-id")
 
         paginator = StandardPagination()
         page = paginator.paginate_queryset(queryset, request)
@@ -681,15 +708,41 @@ class ApplicationExportView(APIView):
     def get(self, request):
         from django.http import HttpResponse
 
+        full_export = _is_super_admin(request.user)
         queryset = _with_payment_summary(Application.objects.all()).order_by("-created_at")
         filterset = ApplicationFilter(request.query_params, queryset=queryset)
         queryset = filterset.qs
         queryset = queryset[:10000]  # Cap export at 10,000 rows
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow(["Application Number", "Full Name", "Email", "Phone", "Program", "Intake", "Institution", "Status", "Created At"])
+        writer.writerow([
+            "Application Number",
+            "Full Name",
+            "Email",
+            "Phone",
+            "Program",
+            "Intake",
+            "Institution",
+            "Status",
+            "Created At",
+            "Export Scope",
+        ])
         for app in queryset:
-            writer.writerow([app.application_number, app.full_name, app.email, app.phone, app.program, app.intake, app.institution, app.status, app.created_at.isoformat() if app.created_at else ""])
+            full_name = app.full_name if full_export else _redact_name(app.full_name)
+            email = app.email if full_export else _redact_email(app.email)
+            phone = app.phone if full_export else _redact_phone(app.phone)
+            writer.writerow([
+                app.application_number,
+                full_name,
+                email,
+                phone,
+                app.program,
+                app.intake,
+                app.institution,
+                app.status,
+                app.created_at.isoformat() if app.created_at else "",
+                "full" if full_export else "redacted",
+            ])
         response = HttpResponse(output.getvalue(), content_type="text/csv")
         response["Content-Disposition"] = 'attachment; filename="applications_export.csv"'
         return response

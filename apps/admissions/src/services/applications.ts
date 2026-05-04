@@ -113,6 +113,27 @@ function normalizeApplicationRecord(value: unknown): Application | null {
   return null
 }
 
+export function getApplicationActivityTime(application: Pick<Application, 'submitted_at' | 'updated_at' | 'created_at'>): number {
+  const value = application.submitted_at || application.updated_at || application.created_at || ''
+  const timestamp = value ? new Date(value).getTime() : 0
+  return Number.isFinite(timestamp) ? timestamp : 0
+}
+
+export function sortApplicationsByActivity<T extends Pick<Application, 'submitted_at' | 'updated_at' | 'created_at' | 'id'>>(
+  applications: T[]
+): T[] {
+  return [...applications].sort((left, right) => {
+    const activityDelta = getApplicationActivityTime(right) - getApplicationActivityTime(left)
+    if (activityDelta !== 0) return activityDelta
+
+    const createdDelta =
+      new Date(right.created_at || 0).getTime() - new Date(left.created_at || 0).getTime()
+    if (createdDelta !== 0) return createdDelta
+
+    return String(right.id || '').localeCompare(String(left.id || ''))
+  })
+}
+
 /**
  * Map Django pagination response `{results}` → `{applications}`.
  * Handles both Django `results` field and legacy `applications` field.
@@ -129,15 +150,16 @@ export function normalizePaginatedApplications(response: BackendPaginatedApplica
   }
 
   if (Array.isArray(response)) {
+    const applications = sortApplicationsByActivity(response)
     return {
-      applications: response,
-      totalCount: response.length,
+      applications,
+      totalCount: applications.length,
       page: 1,
-      pageSize: response.length,
+      pageSize: applications.length,
     }
   }
 
-  const applications = response?.results ?? response?.applications ?? []
+  const applications = sortApplicationsByActivity(response?.results ?? response?.applications ?? [])
   const totalCount = response?.totalCount ?? response?.count ?? applications.length
   const page = response?.page ?? 1
   const pageSize = response?.pageSize ?? response?.limit ?? applications.length
@@ -280,6 +302,8 @@ export const applicationService = {
   submit: async (id: string, options?: { headers?: Record<string, string> }) => {
     const response = await apiClient.request<unknown>(`/applications/${encodeURIComponent(id)}/submit/`, {
       method: 'POST',
+      body: JSON.stringify({ confirm_submission: true }),
+      retries: 0,
       ...(options?.headers ? { headers: options.headers } : {}),
     })
 

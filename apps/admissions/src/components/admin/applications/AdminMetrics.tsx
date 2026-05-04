@@ -6,6 +6,7 @@ interface ApplicationSummary {
   status: string
   payment_status: string
   submitted_at: string
+  updated_at?: string
   created_at: string
 }
 
@@ -21,13 +22,14 @@ export function AdminMetrics({ applications }: AdminMetricsProps) {
     
     const todayStr = today.toDateString()
     const yesterdayStr = yesterday.toDateString()
+    const getActivityDate = (app: ApplicationSummary) => app.submitted_at || app.updated_at || app.created_at
     
     const todaySubmissions = applications.filter(app => 
-      new Date(app.submitted_at || app.created_at).toDateString() === todayStr
+      new Date(getActivityDate(app)).toDateString() === todayStr
     ).length
     
     const yesterdaySubmissions = applications.filter(app => 
-      new Date(app.submitted_at || app.created_at).toDateString() === yesterdayStr
+      new Date(getActivityDate(app)).toDateString() === yesterdayStr
     ).length
     
     const pendingReview = applications.filter(app => app.status === 'submitted').length

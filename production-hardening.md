@@ -97,10 +97,19 @@ Implemented:
 - Added a dedicated `/api/v1/applications/track/` rate-limit scope
 - Added a public endpoint classification guard for `AllowAny` backend views
 - Added a Redis/Postgres-backed backend parity check script
+- Added repeatable admissions production E2E modes in `scripts/e2e-production-admissions.sh`
+- Added role-aware CSV export hardening: super-admin receives full exports; regular admin receives redacted direct identifiers
+- Added authenticated API `no-store` cache headers for bearer-token and auth-cookie requests
+- Added optional `LENCO_WEBHOOK_ALLOWED_IPS` source allowlisting for Lenco webhooks
+- Added [docs/production-readiness-status-2026-05-04.md](docs/production-readiness-status-2026-05-04.md)
+- Hardened the student application wizard contract: unique grade subjects, explicit submit confirmation, no automatic submit retries, safe repeat-submit response, and stable preview/OCR fallback behavior
 
 Remaining:
 - Run the full required frontend and backend gates in CI or an equivalent production-parity environment
+- Capture E2E evidence for the hardened wizard path: 5 unique subjects, result slip/NRC upload, payment success or deferment, confirmation checkbox, first submit, repeat submit, and OCR/manual-entry fallback
 - Capture the first production release tag, deploy record, smoke result, and Neon restore drill evidence before declaring production-ready
+- Rotate/document any historical secrets referenced by `.kiro`/Context7/Supabase-style findings and re-run secret scanning
+- Revalidate whether frontend `style-src 'unsafe-inline'` can be removed without breaking runtime styles
 
 ## Recommended Operating Model
 

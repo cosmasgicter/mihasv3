@@ -76,10 +76,10 @@ class TestCamelCaseFilterParams(SimpleTestCase):
         )
 
         field_map = {
-            "date": "created_at",
+            "date": "activity_at",
             "name": "full_name",
             "status": "status",
-            "created_at": "created_at",
+            "created_at": "activity_at",
             "full_name": "full_name",
         }
         expected_field = field_map[sort_by]
