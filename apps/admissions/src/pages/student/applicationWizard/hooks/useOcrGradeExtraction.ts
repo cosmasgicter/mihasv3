@@ -30,6 +30,8 @@ interface DocumentInfo {
   extracted_text: boolean
   ai_analysis: AiAnalysis | null
   verification_status?: string | null
+  ocr_state?: string | null
+  ai_analysis_available?: boolean
 }
 
 interface CatalogSubject {
@@ -140,13 +142,21 @@ export function useOcrGradeExtraction(
       }
 
       // Stop early if backend reports permanent OCR failure
-      const vStatus = info.verification_status
+      const vStatus = info.ocr_state || info.verification_status
       if (vStatus === 'ocr_failed' || vStatus === 'ocr_skipped') {
         if (mountedRef.current) {
           setFailureReason(vStatus === 'ocr_skipped' ? 'skipped' : 'server_failed')
           setStatus('failed')
         }
         logger.info('[OCR] Backend reported permanent failure', { status: vStatus })
+        return
+      }
+      if (vStatus === 'ocr_no_text' || vStatus === 'ocr_no_grades') {
+        if (mountedRef.current) {
+          setFailureReason(vStatus === 'ocr_no_grades' ? 'no_grades_matched' : 'no_text')
+          setStatus('failed')
+        }
+        logger.info('[OCR] Backend reported no usable grades', { status: vStatus })
         return
       }
 

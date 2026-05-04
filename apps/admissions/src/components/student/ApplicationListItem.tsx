@@ -39,6 +39,8 @@ function areApplicationListItemPropsEqual(
     prev.application.status === next.application.status &&
     prev.application.payment_status === next.application.payment_status &&
     prev.application.submitted_at === next.application.submitted_at &&
+    prev.application.updated_at === next.application.updated_at &&
+    prev.application.created_at === next.application.created_at &&
     prev.application.application_number === next.application.application_number &&
     prev.application.enrollment_confirmation_deadline === next.application.enrollment_confirmation_deadline &&
     prev.index === next.index

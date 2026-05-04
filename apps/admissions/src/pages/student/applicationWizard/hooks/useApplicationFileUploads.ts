@@ -30,8 +30,8 @@ export interface UseApplicationFileUploadsResult {
   uploadProgress: Record<string, number>
   uploadStates: Record<string, ApplicationUploadState>
   uploadedFiles: Record<string, boolean>
-  handleResultSlipUpload: (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => void
-  handleExtraKycUpload: (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => void
+  handleResultSlipUpload: (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string, documentId?: string) => void) => void
+  handleExtraKycUpload: (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string, documentId?: string) => void) => void
   /** File-based handlers for canonical FileUpload component (react-dropzone) */
   handleResultSlipFile: (file: File | null) => void
   handleExtraKycFile: (file: File | null) => void
@@ -136,6 +136,7 @@ export function useApplicationFileUploads({
   const [activeTasks, setActiveTasks] = useState(0)
   const progressCleanupTimeouts = useRef<Record<string, NodeJS.Timeout | undefined>>({})
   const uploadPromises = useRef<Record<string, Promise<string> | null>>({})
+  const uploadedDocumentIds = useRef<Record<string, string | undefined>>({})
 
   const uploading = activeTasks > 0
 
@@ -341,6 +342,7 @@ export function useApplicationFileUploads({
           clearProgressEntry(fileType)
           setUploadStates(prev => ({ ...prev, [fileType]: 'uploaded' }))
           setUploadedFiles(prev => ({ ...prev, [fileType]: true }))
+          uploadedDocumentIds.current[fileType] = result.path
 
           return result.url!
         } catch (error) {
@@ -383,7 +385,7 @@ export function useApplicationFileUploads({
   )
 
   const createFileHandler = useCallback(
-    (fileType: ApplicationFileType, setter: (file: File | null) => void, onUploadComplete?: (file: File, url: string) => void) =>
+    (fileType: ApplicationFileType, setter: (file: File | null) => void, onUploadComplete?: (file: File, url: string, documentId?: string) => void) =>
       async (event: ChangeEvent<HTMLInputElement>) => {
         const target = event.target
         const file = target.files?.[0] ?? null
@@ -398,7 +400,7 @@ export function useApplicationFileUploads({
         if (file && applicationId) {
           try {
             const url = await startUpload(file, fileType)
-            onUploadComplete?.(file, url)
+            onUploadComplete?.(file, url, uploadedDocumentIds.current[fileType])
           } catch (error) {
             console.error('Auto-upload failed:', error)
             onValidationError?.(error instanceof Error ? error.message : 'Upload failed')
@@ -409,14 +411,14 @@ export function useApplicationFileUploads({
   )
 
   const handleResultSlipUpload = useCallback(
-    (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => {
+    (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string, documentId?: string) => void) => {
       createFileHandler('result_slip', setResultSlipFile, onUploadComplete)(event)
     },
     [createFileHandler]
   )
 
   const handleExtraKycUpload = useCallback(
-    (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string) => void) => {
+    (event: ChangeEvent<HTMLInputElement>, onUploadComplete?: (file: File, url: string, documentId?: string) => void) => {
       createFileHandler('extra_kyc', setExtraKycFile, onUploadComplete)(event)
     },
     [createFileHandler]

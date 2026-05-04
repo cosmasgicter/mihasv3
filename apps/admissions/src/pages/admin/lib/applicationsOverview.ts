@@ -3,8 +3,9 @@ import { normalizePaymentStatus } from '@/lib/paymentStatus'
 interface ApplicationSummary {
   status: string
   payment_status: string
-  submitted_at: string
-  created_at: string
+  submitted_at?: string | null
+  updated_at?: string | null
+  created_at?: string | null
 }
 
 export interface ApplicationsOverview {
@@ -48,7 +49,7 @@ export function buildApplicationsOverview(
     total: totalCount && totalCount > 0 ? totalCount : loadedCount,
     loadedCount,
     todaySubmissions: applications.filter(app =>
-      new Date(app.submitted_at || app.created_at).toDateString() === today
+      new Date(app.submitted_at || app.updated_at || app.created_at || 0).toDateString() === today
     ).length,
     pendingReview,
     underReview,

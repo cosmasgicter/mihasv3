@@ -5,6 +5,7 @@ Requirements: 2.1, 2.2, 2.3, 3.1–3.5, 4.1, 4.2, 4.7, 6.1–6.3, 10.1, 13.1–1
 """
 
 import hashlib
+import ipaddress
 import json
 import logging
 import uuid
@@ -44,6 +45,30 @@ from apps.common.metrics import emit_metric
 from django.http import HttpResponseRedirect
 
 logger = logging.getLogger(__name__)
+
+
+def _client_ip(request) -> str:
+    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    if forwarded_for:
+        return forwarded_for.split(",", 1)[0].strip()
+    return request.META.get("REMOTE_ADDR", "")
+
+
+def _ip_allowed(ip_address: str, allowed_ranges: list[str]) -> bool:
+    if not allowed_ranges:
+        return True
+    try:
+        candidate = ipaddress.ip_address(ip_address)
+    except ValueError:
+        return False
+    for allowed in allowed_ranges:
+        try:
+            if candidate in ipaddress.ip_network(allowed, strict=False):
+                return True
+        except ValueError:
+            if ip_address == allowed:
+                return True
+    return False
 
 
 def _parse_ai_analysis(verification_notes: str | None) -> dict | None:
@@ -1040,6 +1065,15 @@ class LencoWebhookView(APIView):
 
     @extend_schema(request=OpenApiTypes.ANY, responses={200: OpenApiTypes.ANY})
     def post(self, request):
+        allowed_ips = getattr(settings, "LENCO_WEBHOOK_ALLOWED_IPS", [])
+        client_ip = _client_ip(request)
+        if not _ip_allowed(client_ip, allowed_ips):
+            logger.warning("Rejected Lenco webhook from disallowed IP: %s", client_ip)
+            return Response(
+                {"success": False, "error": "Webhook source not allowed"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         raw_body = request.body
         signature = request.META.get("HTTP_X_LENCO_SIGNATURE", "")
 
@@ -1311,16 +1345,27 @@ class DocumentInfoView(APIView):
         if error_response is not None:
             return error_response
 
+        ai_analysis = _parse_ai_analysis(document.verification_notes) if document.extracted_text else None
+        ocr_state = document.verification_status if document.verification_status in {
+            "ocr_processing",
+            "ocr_complete",
+            "ocr_no_text",
+            "ocr_no_grades",
+            "ocr_failed",
+            "ocr_skipped",
+        } else None
         data = {
             "id": str(document.id),
             "document_name": document.document_name,
             "document_type": document.document_type,
             "verification_status": document.verification_status,
+            "ocr_state": ocr_state,
             "uploaded_at": document.uploaded_at.isoformat() if document.uploaded_at else None,
             "file_size": document.file_size,
             "mime_type": document.mime_type,
             "extracted_text": bool(document.extracted_text),
-            "ai_analysis": _parse_ai_analysis(document.verification_notes) if document.extracted_text else None,
+            "ai_analysis": ai_analysis,
+            "ai_analysis_available": bool(ai_analysis),
         }
 
         return Response({"success": True, "data": data})

@@ -6,7 +6,7 @@
  * - Uses a ref-based isSubmitting guard to prevent duplicate clicks (Req 3.1, 3.2)
  * - Generates an idempotency key via crypto.randomUUID() (Req 3.3)
  * - Sends X-Idempotency-Key header in the PUT request (Req 3.3)
- * - Preserves the same idempotency key on network failure for retry (Req 3.5)
+ * - Rotates the idempotency key after failures so retries are user-controlled
  * - Resets the idempotency key on successful submission (Req 3.3)
  *
  * Also verifies server-side idempotency helpers exist in api-src/applications.ts.
@@ -81,19 +81,17 @@ describe('useApplicationSubmit idempotency key lifecycle (Req 3.3, 3.5)', () => 
     expect(hookSource).toContain('resetIdempotencyKey');
   });
 
-  it('should NOT reset the idempotency key on error (preserve for retry)', () => {
-    // The main catch block (the one with "Error submitting application") should not call resetIdempotencyKey
+  it('should reset the idempotency key on error', () => {
     const marker = 'Error submitting application';
     const markerIdx = hookSource.indexOf(marker);
     expect(markerIdx).toBeGreaterThan(-1);
-    // Find the finally block after this catch
     const finallyIdx = hookSource.indexOf('} finally {', markerIdx);
     expect(finallyIdx).toBeGreaterThan(markerIdx);
     const catchBlock = hookSource.slice(markerIdx, finallyIdx);
-    expect(catchBlock).not.toContain('resetIdempotencyKey');
+    expect(catchBlock).toContain('resetIdempotencyKey');
   });
 
-  it('should handle network errors specifically and preserve key for retry', () => {
+  it('should handle network errors specifically', () => {
     expect(hookSource).toContain('network');
     expect(hookSource).toContain('Failed to fetch');
   });

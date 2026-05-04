@@ -219,11 +219,15 @@ const ApplicationWizardContent = () => {
 
     if (currentStepConfig.key === 'education') {
       if (!gradesHydrating) {
-        const gradeCount = selectedGrades.filter(
+        const validGrades = selectedGrades.filter(
           grade => grade.subject_id && Number(grade.grade) >= 1 && Number(grade.grade) <= 9
-        ).length
+        )
+        const gradeCount = new Set(validGrades.map(grade => grade.subject_id)).size
         if (gradeCount < 5) {
-          errors.push({ field: 'grades', label: 'Subject Grades', message: `Minimum 5 subjects required (${gradeCount} added)` })
+          errors.push({ field: 'grades', label: 'Subject Grades', message: `Minimum 5 unique subjects required (${gradeCount} selected)` })
+        }
+        if (validGrades.length !== gradeCount) {
+          errors.push({ field: 'grades', label: 'Subject Grades', message: 'Each subject can only be selected once' })
         }
       }
       if (!resultSlipFile && !uploadedFiles.result_slip) {
@@ -424,6 +428,11 @@ const ApplicationWizardContent = () => {
         return {}
       }
     })()
+    const uniqueGradeCount = new Set(
+      selectedGrades
+        .filter(grade => grade.subject_id && Number(grade.grade) >= 1 && Number(grade.grade) <= 9)
+        .map(grade => grade.subject_id)
+    ).size
     switch (currentStepIndex) {
       case 0:
         return [
@@ -435,7 +444,7 @@ const ApplicationWizardContent = () => {
         ]
       case 1:
         return [
-          { label: `${selectedGrades.length} subjects added (min 5)`, completed: selectedGrades.length >= 5 },
+          { label: `${uniqueGradeCount} unique subjects added (min 5)`, completed: uniqueGradeCount >= 5 },
           { label: 'Result slip uploaded', completed: !!resultSlipFile || !!uploadedFiles.result_slip },
           { label: 'Identity document uploaded (NRC or Passport)', completed: !!extraKycFile || !!uploadedFiles.extra_kyc }
         ]

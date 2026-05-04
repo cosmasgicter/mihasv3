@@ -92,6 +92,7 @@ const mapRecordToApplication = (record: any): ApplicationData => {
     application_fee: Number(record.application_fee ?? 0),
     paid_amount: Number(record.paid_amount ?? 0),
     submitted_at: record.submitted_at || record.created_at || '',
+    updated_at: record.updated_at || '',
     created_at: record.created_at || record.submitted_at || '',
     grades_summary: record.grades_summary ?? '',
     total_subjects: Number(record.total_subjects ?? 0),

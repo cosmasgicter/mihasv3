@@ -8,9 +8,15 @@ from datetime import datetime, time
 
 import django_filters
 from django.db.models import Q
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from apps.applications.models import Application
+
+
+def annotate_activity_at(queryset):
+    """Annotate applications with the operational recency timestamp."""
+    return queryset.annotate(activity_at=Coalesce("submitted_at", "updated_at", "created_at"))
 
 
 class ApplicationFilter(django_filters.FilterSet):
@@ -49,11 +55,11 @@ class ApplicationFilter(django_filters.FilterSet):
         )
 
     def filter_sort(self, queryset, name, value):
-        """Sort by created_at or full_name, ASC or DESC.
+        """Sort by activity date or full_name, ASC or DESC.
 
         Format: field_name or -field_name (prefix - for DESC).
         """
-        allowed_fields = {"created_at", "full_name"}
+        allowed_fields = {"date", "activity_at", "created_at", "full_name"}
         if not value:
             return queryset
 
@@ -63,8 +69,13 @@ class ApplicationFilter(django_filters.FilterSet):
         if field not in allowed_fields:
             return queryset
 
-        order = f"-{field}" if desc else field
-        return queryset.order_by(order)
+        if field in {"date", "activity_at", "created_at"}:
+            queryset = annotate_activity_at(queryset)
+            if desc:
+                return queryset.order_by("-activity_at", "-created_at", "-id")
+            return queryset.order_by("activity_at", "created_at", "id")
+
+        return queryset.order_by(f"-{field}" if desc else field)
 
     def filter_sort_by(self, queryset, name, value):
         """Handle camelCase sortBy/sortOrder params from the frontend.
@@ -79,16 +90,23 @@ class ApplicationFilter(django_filters.FilterSet):
             return queryset
 
         field_map = {
-            "date": "created_at",
+            "date": "activity_at",
             "name": "full_name",
             "status": "status",
-            "created_at": "created_at",
+            "created_at": "activity_at",
+            "activity_at": "activity_at",
             "full_name": "full_name",
         }
 
         field = field_map.get(sort_by)
         if not field:
             return queryset
+
+        if field == "activity_at":
+            queryset = annotate_activity_at(queryset)
+            if sort_order.lower() == "desc":
+                return queryset.order_by("-activity_at", "-created_at", "-id")
+            return queryset.order_by("activity_at", "created_at", "id")
 
         prefix = "-" if sort_order.lower() == "desc" else ""
         return queryset.order_by(f"{prefix}{field}")

@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { animateClasses, staggerChild } from '@/lib/animations';
 import type { Application } from '@/types/database';
+import { sortApplicationsByActivity } from '@/services/applications';
 import { requiresStudentPaymentAction } from '@/lib/paymentStatus';
 import { computeApplicationStats } from '@/lib/applicationStats';
 
@@ -167,16 +168,7 @@ export function DashboardStatusOverview({
   // Latest non-draft application for the status card
   const submittedApplications = applications.filter(app => app.status !== 'draft');
   const latestApplication = submittedApplications.length > 0 
-    ? [...submittedApplications]
-        .sort((a, b) => {
-          const getRelevantDate = (app: Application) => {
-            if (app.submitted_at) {
-              return new Date(app.submitted_at).getTime();
-            }
-            return new Date(app.created_at ?? 0).getTime();
-          };
-          return getRelevantDate(b) - getRelevantDate(a);
-        })[0]
+    ? sortApplicationsByActivity(submittedApplications)[0]
     : null;
   
   const latestApplicationRequiresPayment = latestApplication

@@ -11,6 +11,7 @@ from datetime import timedelta
 
 from django.db import transaction
 from django.db.models import Count, Q
+from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from django.utils import timezone
 from drf_spectacular.utils import (
@@ -43,6 +44,25 @@ logger = logging.getLogger(__name__)
 
 def _role_level(role: str | None) -> int:
     return ROLE_HIERARCHY.get(role or "", 0)
+
+
+def _is_super_admin(user) -> bool:
+    return getattr(user, "role", None) == "super_admin"
+
+
+def _redact_name(value: str | None) -> str:
+    value = (value or "").strip()
+    if not value:
+        return ""
+    return f"{value[:1]}***"
+
+
+def _redact_email(value: str | None) -> str:
+    value = (value or "").strip()
+    if "@" not in value:
+        return "***"
+    local, domain = value.split("@", 1)
+    return f"{local[:1]}***@{domain}"
 
 
 # ---------------------------------------------------------------------------
@@ -473,10 +493,14 @@ class AdminDashboardView(APIView):
                 .values_list("status", "count")
             )
 
-            # Period totals
-            today_count = Application.objects.filter(created_at__gte=today_start).count()
-            week_count = Application.objects.filter(created_at__gte=week_start).count()
-            month_count = Application.objects.filter(created_at__gte=month_start).count()
+            activity_queryset = Application.objects.annotate(
+                activity_at=Coalesce("submitted_at", "updated_at", "created_at")
+            )
+            today_created_count = Application.objects.filter(created_at__gte=today_start).count()
+            today_submitted_count = Application.objects.filter(submitted_at__gte=today_start).count()
+            today_count = activity_queryset.filter(activity_at__gte=today_start).count()
+            week_count = activity_queryset.filter(activity_at__gte=week_start).count()
+            month_count = activity_queryset.filter(activity_at__gte=month_start).count()
 
             # Recent activity (status changes + payment completions)
             try:
@@ -534,6 +558,9 @@ class AdminDashboardView(APIView):
                     "applications": {
                         "by_status": status_counts,
                         "today": today_count,
+                        "today_activity": today_count,
+                        "today_created": today_created_count,
+                        "today_submitted": today_submitted_count,
                         "this_week": week_count,
                         "this_month": month_count,
                         "total": Application.objects.count(),
@@ -857,6 +884,7 @@ class AdminUserExportView(APIView):
     serializer_class = AdminUserSerializer
 
     def get(self, request):
+        full_export = _is_super_admin(request.user)
         queryset = Profile.objects.all().order_by("-created_at")
 
         # Apply same filters as list view
@@ -872,17 +900,21 @@ class AdminUserExportView(APIView):
         response["Content-Disposition"] = 'attachment; filename="users_export.csv"'
 
         writer = csv.writer(response)
-        writer.writerow(["ID", "Email", "First Name", "Last Name", "Role", "Active", "Created At"])
+        writer.writerow(["ID", "Email", "First Name", "Last Name", "Role", "Active", "Created At", "Export Scope"])
 
         for user in queryset.iterator():
+            email = user.email if full_export else _redact_email(user.email)
+            first_name = user.first_name if full_export else _redact_name(user.first_name)
+            last_name = user.last_name if full_export else _redact_name(user.last_name)
             writer.writerow([
                 str(user.id),
-                user.email,
-                user.first_name,
-                user.last_name,
+                email,
+                first_name,
+                last_name,
                 user.role,
                 user.is_active,
                 user.created_at.isoformat() if user.created_at else "",
+                "full" if full_export else "redacted",
             ])
 
         # Audit log the export

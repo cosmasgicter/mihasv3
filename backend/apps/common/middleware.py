@@ -64,11 +64,30 @@ class SecurityHeadersMiddleware:
             "object-src 'none'; "
             "base-uri 'self'"
         )
-        if hasattr(request, "user") and request.user.is_authenticated:
+        if self._is_authenticated_api_request(request):
             response["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
             response["Pragma"] = "no-cache"
             response["Expires"] = "0"
         return response
+
+    @staticmethod
+    def _is_authenticated_api_request(request) -> bool:
+        """Detect authenticated API traffic before or after DRF auth runs."""
+        user = getattr(request, "user", None)
+        if bool(user and getattr(user, "is_authenticated", False)):
+            return True
+
+        if not getattr(request, "path", "").startswith("/api/v1/"):
+            return False
+
+        auth_header = request.META.get("HTTP_AUTHORIZATION", "")
+        if auth_header.lower().startswith("bearer "):
+            return True
+
+        return bool(
+            request.COOKIES.get("access_token")
+            or request.COOKIES.get("refresh_token")
+        )
 
 
 # ---------------------------------------------------------------------------

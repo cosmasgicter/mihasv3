@@ -99,6 +99,7 @@ export interface Grade12Subject {
 }
 
 export interface SubjectGrade {
+  row_id?: string
   subject_id: string
   grade: number
 }

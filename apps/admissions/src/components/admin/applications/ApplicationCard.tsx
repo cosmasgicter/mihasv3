@@ -46,6 +46,7 @@ export interface ApplicationSummary {
   application_fee: number
   paid_amount: number
   submitted_at: string
+  updated_at?: string
   created_at: string
   result_slip_url: string
   extra_kyc_url: string
@@ -80,6 +81,8 @@ function areApplicationCardPropsEqual(
     prev.application.status === next.application.status &&
     prev.application.payment_status === next.application.payment_status &&
     prev.application.submitted_at === next.application.submitted_at &&
+    prev.application.updated_at === next.application.updated_at &&
+    prev.application.created_at === next.application.created_at &&
     prev.application.lastUpdated === next.application.lastUpdated &&
     prev.application.completionPercentage === next.application.completionPercentage &&
     prev.application.points === next.application.points &&
@@ -213,7 +216,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
             <span className="truncate font-mono">#{app.application_number}</span>
             <span>•</span>
             <Calendar className="h-3 w-3" />
-            <span className="truncate">{formatDate(app.submitted_at || app.created_at)}</span>
+            <span className="truncate">{formatDate(app.submitted_at || app.updated_at || app.created_at)}</span>
           </div>
         </div>
         <div className="flex max-w-[52%] flex-col items-end gap-2">

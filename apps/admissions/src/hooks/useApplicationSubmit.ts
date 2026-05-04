@@ -58,24 +58,6 @@ export async function triggerSubmissionNotifications(data: NotificationData): Pr
   }
 }
 
-// Retry helper for large file uploads
-const retryWithBackoff = async <T>(
-  fn: () => Promise<T>,
-  maxRetries = 3,
-  baseDelay = 1000
-): Promise<T> => {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await fn()
-    } catch (error) {
-      if (i === maxRetries - 1) throw error
-      const delay = baseDelay * Math.pow(2, i)
-      await new Promise(resolve => setTimeout(resolve, delay))
-    }
-  }
-  throw new Error('Max retries exceeded')
-}
-
 /**
  * Generate a unique idempotency key for submission deduplication.
  * Uses crypto.randomUUID() when available, falls back to a timestamp-based key.
@@ -95,7 +77,7 @@ function generateIdempotencyKey(): string {
  * - Generates a `crypto.randomUUID()` idempotency key retained across retries
  * - On submit: checks isSubmitting ref, sets it true, and calls the dedicated submit endpoint
  * - On success: resets state and generates a new idempotency key
- * - On network failure: re-enables button but preserves the same idempotency key for retry bookkeeping
+ * - On failure: re-enables button and rotates the idempotency key so retry is user-controlled
  *
  * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5
  */
@@ -109,7 +91,7 @@ export function useApplicationSubmit() {
   // Ref-based submitting flag to avoid stale closures (Req 3.2)
   const isSubmittingRef = useRef(false)
 
-  // Idempotency key: generated once, preserved across retries on network failure (Req 3.3, 3.5)
+  // Idempotency key for the current user-controlled submission attempt.
   const idempotencyKeyRef = useRef<string>(generateIdempotencyKey())
 
   /**
@@ -141,17 +123,16 @@ export function useApplicationSubmit() {
       // Submit through the dedicated backend endpoint so payment/document checks
       // and double-submit protection are enforced server-side.
       const cleanId = applicationId.replace(/^applications-/, '')
-      const updatedApp = await retryWithBackoff(
-        async () => {
-          const response = await applicationService.submit(cleanId)
-          if (!response?.id) {
-            throw new Error('Application not found or access denied')
-          }
-          return response
+      const response = await applicationService.submit(cleanId, {
+        headers: {
+          'Idempotency-Key': idempotencyKeyRef.current,
+          'X-Idempotency-Key': idempotencyKeyRef.current,
         },
-        3,
-        1000
-      )
+      })
+      if (!response?.id) {
+        throw new Error('Application not found or access denied')
+      }
+      const updatedApp = response
 
       if (!updatedApp) {
         throw new Error('Application not found or access denied')
@@ -205,11 +186,15 @@ export function useApplicationSubmit() {
       let errorMessage = 'Failed to submit application'
 
       if (error instanceof Error) {
+        const errorCode = (error as Error & { data?: { code?: string }; code?: string })?.data?.code || (error as Error & { code?: string }).code
         if (error.message?.includes('auth') || error.message?.includes('JWT') || error.message?.includes('session')) {
           errorMessage = 'Authentication error. Please sign in again and try submitting.'
+        } else if (errorCode === 'IDEMPOTENCY_PENDING') {
+          errorMessage = 'Your submission is still being processed. Please refresh your application status before trying again.'
+        } else if (errorCode === 'ALREADY_SUBMITTED') {
+          errorMessage = 'This application has already been submitted.'
         } else if (error.message?.includes('network') || error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
-          // Network failure: re-enable button but keep same idempotency key (Req 3.5)
-          errorMessage = 'Network error. Please check your connection and try again.'
+          errorMessage = 'Network error. Please refresh your application status before trying again.'
         } else if (error.message?.includes('403') || error.message?.includes('permission')) {
           errorMessage = 'Permission denied. Please ensure you are signed in and try again.'
         } else {
@@ -217,8 +202,9 @@ export function useApplicationSubmit() {
         }
       }
 
-      // NOTE: On error, we do NOT reset the idempotency key.
-      // This ensures retries use the same key for server-side deduplication (Req 3.5).
+      // NOTE: On error, we reset the idempotency key. Submit is never auto-retried;
+      // a user-controlled retry must start from a fresh status check and payload.
+      resetIdempotencyKey()
       setError(errorMessage)
     } finally {
       isSubmittingRef.current = false

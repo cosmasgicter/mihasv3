@@ -260,7 +260,14 @@ def extract_document_text_task(self, document_id, force=False):
             document.extracted_text = extracted_text.strip()
         if ai_analysis:
             document.verification_notes = _json.dumps({"ai_analysis": ai_analysis})
-        document.verification_status = "ocr_complete" if extracted_text else "ocr_no_text"
+        subjects = ai_analysis.get("subjects") if isinstance(ai_analysis, dict) else None
+        if not extracted_text:
+            document.verification_status = "ocr_no_text"
+        elif document.document_type == "result_slip" and not subjects:
+            document.verification_status = "ocr_no_grades"
+            logger.info("OCR found text but no grade subjects for document %s", document_id)
+        else:
+            document.verification_status = "ocr_complete"
         document.save()
         logger.info("OCR completed for document %s (%d chars)", document_id, len(document.extracted_text or ""))
 

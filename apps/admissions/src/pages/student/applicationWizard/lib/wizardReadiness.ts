@@ -90,7 +90,9 @@ export const buildWizardReadiness = ({
   paymentStatus = null,
   confirmSubmission = false,
 }: BuildWizardReadinessInput): WizardReadiness => {
-  const validGradeCount = selectedGrades.filter(isValidGrade).length
+  const validGrades = selectedGrades.filter(isValidGrade)
+  const validGradeCount = new Set(validGrades.map(grade => grade.subject_id)).size
+  const hasDuplicateGrades = validGrades.length !== validGradeCount
   const hasNrcOrPassport = isCompleteValue(values.nrc_number) || isCompleteValue(values.passport_number)
   const hasResultSlip = hasResultSlipFile || uploadedFiles.result_slip === true
   const hasIdentityDocument = hasIdentityFile || uploadedFiles.extra_kyc === true
@@ -118,8 +120,10 @@ export const buildWizardReadiness = ({
       'education',
       'grades',
       'Grade 12 subjects',
-      validGradeCount >= 5,
-      `Add at least 5 valid Grade 12 subjects (${validGradeCount}/5 added).`
+      validGradeCount >= 5 && !hasDuplicateGrades,
+      hasDuplicateGrades
+        ? 'Each subject can only be selected once.'
+        : `Add at least 5 unique Grade 12 subjects (${validGradeCount}/5 selected).`
     ),
     createItem('education', 'result_slip', 'Result slip', hasResultSlip, 'Upload your result slip.'),
     createItem('education', 'extra_kyc', 'Identity document', hasIdentityDocument, 'Upload your NRC or passport document.'),

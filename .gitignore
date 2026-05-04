@@ -215,3 +215,7 @@ node_modules
 
 # KATC audit files
 katc/
+
+# Cost accounting assignment
+cost_report/
+Cost_Accounting_*.docx

@@ -64,6 +64,13 @@ import {
 } from '../types'
 import { getStepIndexById, wizardSteps } from '../steps/config'
 
+function createGradeRowId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `grade-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
 interface UseWizardControllerResult {
   authLoading: boolean
   restoringDraft: boolean
@@ -603,7 +610,7 @@ const useWizardController = (): UseWizardControllerResult => {
       return
     }
 
-    baseHandleResultSlipUpload({ target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>, async (uploadedFile, url) => {
+    baseHandleResultSlipUpload({ target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>, async (_uploadedFile, url, uploadedDocumentId) => {
       if (!applicationId) return
       
       showInfo('Processing document...', 'Extracting grades from your result slip')
@@ -634,19 +641,21 @@ const useWizardController = (): UseWizardControllerResult => {
         // Trigger backend OCR extraction (async Celery task)
         // The document ID is available from the upload response stored in uploadedFiles
         try {
-          // Find the document ID from the most recent upload
-          const docs = await apiClient.request<{ results?: UploadedApplicationDocument[] } | UploadedApplicationDocument[]>(
-            `/applications/${applicationId}/documents/`
-          )
-          const docList = Array.isArray(docs) ? docs : (docs?.results ?? [])
-          const resultSlipDoc = selectLatestDocumentByType(docList, 'result_slip')
+          let resultSlipDocId = uploadedDocumentId
+          if (!resultSlipDocId) {
+            const docs = await apiClient.request<{ results?: UploadedApplicationDocument[] } | UploadedApplicationDocument[]>(
+              `/applications/${applicationId}/documents/`
+            )
+            const docList = Array.isArray(docs) ? docs : (docs?.results ?? [])
+            resultSlipDocId = selectLatestDocumentByType(docList, 'result_slip')?.id
+          }
 
-          if (resultSlipDoc?.id) {
+          if (resultSlipDocId) {
             // Fire OCR extraction — this is async (Celery task), don't await completion
-            apiClient.request(`/documents/${resultSlipDoc.id}/extract/`, { method: 'POST' }).catch(() => {})
+            apiClient.request(`/documents/${resultSlipDocId}/extract/`, { method: 'POST' }).catch(() => {})
             // Start polling for AI grade extraction results
-            setOcrDocumentId(resultSlipDoc.id)
-            startOcrPollingRef.current?.(resultSlipDoc.id)
+            setOcrDocumentId(resultSlipDocId)
+            startOcrPollingRef.current?.(resultSlipDocId)
             showInfo('Analyzing your result slip...', 'AI is extracting grades — they will auto-populate shortly.')
           }
         } catch {
@@ -1605,7 +1614,7 @@ const useWizardController = (): UseWizardControllerResult => {
   // No redundant setInterval needed here — useSmartAutoSave calls saveDraft every 8 seconds.
 
   const addGrade = useCallback(() => {
-    setSelectedGrades(prev => (prev.length < 10 ? [...prev, { subject_id: '', grade: 1 }] : prev))
+    setSelectedGrades(prev => (prev.length < 10 ? [...prev, { row_id: createGradeRowId(), subject_id: '', grade: 1 }] : prev))
   }, [])
 
   const removeGrade = useCallback((index: number) => {
@@ -1655,7 +1664,9 @@ const useWizardController = (): UseWizardControllerResult => {
 
     // Merge: OCR fills empty slots, never overwrites manually entered grades
     const manualSubjectIds = new Set(currentGrades.map(g => g.subject_id))
-    const newGrades = grades.filter(g => !manualSubjectIds.has(g.subject_id))
+    const newGrades = grades
+      .filter(g => !manualSubjectIds.has(g.subject_id))
+      .map(g => ({ ...g, row_id: createGradeRowId() }))
     const merged = [...currentGrades, ...newGrades]
     setSelectedGrades(merged)
 
@@ -1948,9 +1959,10 @@ const useWizardController = (): UseWizardControllerResult => {
       // have flushed yet if the user's last dropdown selection was very recent.
       const latestGrades = selectedGradesRef.current
       const normalizedLatestGrades = normalizeSelectedGrades(latestGrades)
-      const validGradeCount = normalizedLatestGrades.filter(
+      const validGrades = normalizedLatestGrades.filter(
         g => g.subject_id && Number(g.grade) >= 1 && Number(g.grade) <= 9
-      ).length
+      )
+      const validGradeCount = new Set(validGrades.map(g => g.subject_id)).size
 
       if (!applicationId) {
         const errorMessage = 'Application not created. Returning to Basic Information step.'
@@ -1963,7 +1975,12 @@ const useWizardController = (): UseWizardControllerResult => {
       if (validGradeCount < 5) {
         const emptyRows = latestGrades.length - normalizedLatestGrades.length
         const hint = emptyRows > 0 ? ` — ${emptyRows} row${emptyRows > 1 ? 's have' : ' has'} no subject selected` : ''
-        const errorMessage = `Minimum 5 subjects required (${validGradeCount} added${hint})`
+        const errorMessage = `Minimum 5 unique subjects required (${validGradeCount} selected${hint})`
+        setError(errorMessage)
+        return
+      }
+      if (validGrades.length !== validGradeCount) {
+        const errorMessage = 'Each subject can only be selected once. Please remove or change duplicate subjects.'
         setError(errorMessage)
         return
       }
@@ -2116,7 +2133,7 @@ const useWizardController = (): UseWizardControllerResult => {
       const idempotencyKey = crypto.randomUUID()
       const updatedApp = await submitApplicationMutation.mutateAsync({
         id: applicationId,
-        headers: { 'Idempotency-Key': idempotencyKey },
+        headers: { 'Idempotency-Key': idempotencyKey, 'X-Idempotency-Key': idempotencyKey },
       })
       
 
@@ -2188,10 +2205,19 @@ const useWizardController = (): UseWizardControllerResult => {
       
       // Handle 404 for unavailable programs/intakes (Req 6.5)
       const errorStatus = (error as { status?: number })?.status
+      const errorCode = (error as { data?: { code?: string }; code?: string })?.data?.code || (error as { code?: string })?.code
       if (applicationId && isApplicationMissingError(error)) {
         clearStaleApplicationReference(applicationId)
         message = 'Your online draft was no longer available. Your details are still saved on this device; please continue from Basic Information to refresh the draft.'
         goToStep(0)
+      } else if (errorCode === 'IDEMPOTENCY_PENDING') {
+        message = 'Your submission is still being processed. Please wait a moment, refresh the application status, and try again only if it is not submitted.'
+      } else if (errorCode === 'ALREADY_SUBMITTED') {
+        message = 'This application has already been submitted. Refreshing your dashboard will show the current status.'
+      } else if (errorStatus && errorStatus >= 500) {
+        void queryClient.invalidateQueries({ queryKey: ['applications'] })
+        void queryClient.invalidateQueries({ queryKey: ['student-dashboard-polling'] })
+        message = 'We could not confirm submission because the server had a temporary issue. Please refresh your application status before trying again.'
       } else if (errorStatus === 404) {
         message = 'The selected program or intake is no longer available. Please go back and select a different option.'
       } else if (message.includes('Bad Request')) {

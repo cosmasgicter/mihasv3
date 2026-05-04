@@ -356,15 +356,55 @@ class ApplicationGradesView(APIView):
             )
         batch = request.data.get("grades") if isinstance(request.data, dict) else None
         if isinstance(batch, list):
-            created = []
-            for item in batch:
+            normalized = []
+            seen_subjects: dict[str, int] = {}
+            duplicate_details: dict[str, list[str]] = {}
+
+            for index, item in enumerate(batch):
                 serializer = ApplicationGradeSerializer(data=item)
                 if not serializer.is_valid():
-                    return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": {f"grades.{index}": serializer.errors}}, status=status.HTTP_400_BAD_REQUEST)
+
+                subject_id = str(serializer.validated_data["subject_id"])
+                if subject_id in seen_subjects:
+                    duplicate_details[f"grades.{index}.subject_id"] = [
+                        f"Duplicate subject also selected in row {seen_subjects[subject_id] + 1}."
+                    ]
+                    continue
+
+                seen_subjects[subject_id] = index
+                normalized.append(serializer.validated_data)
+
+            if duplicate_details:
+                return Response(
+                    {
+                        "success": False,
+                        "error": "Each subject can only be selected once.",
+                        "code": "DUPLICATE_SUBJECT",
+                        "details": duplicate_details,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if len(normalized) < 5:
+                return Response(
+                    {
+                        "success": False,
+                        "error": f"At least 5 unique valid subjects are required; received {len(normalized)}.",
+                        "code": "MINIMUM_SUBJECTS_REQUIRED",
+                        "details": {"grades": [f"Add {5 - len(normalized)} more unique subject{'s' if 5 - len(normalized) != 1 else ''}."]},
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            created = []
+            requested_subject_ids = [item["subject_id"] for item in normalized]
+            ApplicationGrade.objects.filter(application_id=application_id).exclude(subject_id__in=requested_subject_ids).delete()
+            for item in normalized:
                 grade, _created = ApplicationGrade.objects.update_or_create(
                     application_id=application_id,
-                    subject_id=serializer.validated_data["subject_id"],
-                    defaults={"grade": serializer.validated_data["grade"]},
+                    subject_id=item["subject_id"],
+                    defaults={"grade": item["grade"]},
                 )
                 created.append({"id": str(grade.id), "subject_id": str(grade.subject_id), "grade": grade.grade})
             return Response({"success": True, "data": {"grades": created}}, status=status.HTTP_200_OK)
@@ -511,7 +551,7 @@ class ApplicationPreviewSummaryView(APIView):
         if cached:
             return Response({"success": True, "data": {"summary": cached, "source": "ai"}})
 
-        subjects_count = ApplicationGrade.objects.filter(application_id=app.id).count()
+        subjects_count = ApplicationGrade.objects.filter(application_id=app.id).values("subject_id").distinct().count()
         first_name = (app.full_name or "").split()[0] or "Student"
         program = app.program or "your chosen programme"
         intake = getattr(app, "intake", "") or ""
@@ -577,7 +617,7 @@ class SubmitRateThrottle(UserRateThrottle):
         parameters=[
             OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Application UUID."),
         ],
-        request=None,
+        request=OpenApiTypes.OBJECT,
         responses={
             200: OpenApiResponse(response=ApplicationResponseSerializer),
             400: OpenApiResponse(response=ErrorResponseSerializer),
@@ -607,12 +647,35 @@ class ApplicationSubmitView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        if isinstance(request.data, dict) and request.data.get("confirm_submission") is True:
+            confirmed = True
+        else:
+            confirmed = False
+
+        if not confirmed:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Final submission confirmation is required.",
+                    "code": "CONFIRM_SUBMISSION_REQUIRED",
+                    "details": {"confirm_submission": ["Set confirm_submission to true before submitting."]},
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if app.status == "submitted":
+            return Response({"success": True, "data": ApplicationSerializer(app).data}, status=status.HTTP_200_OK)
+
         try:
             submitted_app, _old_status = submit_application(
                 application=app,
                 changed_by=str(request.user.id),
             )
         except ApplicationSubmissionError as exc:
+            if exc.code == "ALREADY_SUBMITTED":
+                current_app = _with_payment_summary(Application.objects.select_related("user")).get(id=application_id)
+                if current_app.status == "submitted" and IsOwnerOrAdmin().has_object_permission(request, self, current_app):
+                    return Response({"success": True, "data": ApplicationSerializer(current_app).data}, status=status.HTTP_200_OK)
             return Response(
                 {"success": False, "error": exc.message, "code": exc.code},
                 status=status.HTTP_400_BAD_REQUEST,
