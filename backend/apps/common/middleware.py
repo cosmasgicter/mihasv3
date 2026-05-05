@@ -285,6 +285,7 @@ class AuditMiddleware:
 
     For POST, PUT, PATCH, DELETE requests that return a 2xx status:
     - Record actor_id, action (HTTP method), entity_type (from URL path).
+    - Extract entity_id from URL path segments (UUID-like hex-with-dashes pattern).
     - Hash IP address and user-agent with SHA-256 (never store PII).
     - Assign retention_category: 'security' for auth/session paths, 'standard' otherwise.
     """
@@ -292,6 +293,8 @@ class AuditMiddleware:
     STATE_CHANGING_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
     SECURITY_PREFIXES = ("/api/v1/auth/", "/api/v1/sessions/")
+
+    ENTITY_ID_PATTERN = re.compile(r"/api/v1/\w+/([0-9a-f-]+)/", re.IGNORECASE)
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -321,6 +324,7 @@ class AuditMiddleware:
             actor_id = getattr(request.user, "pk", None)
 
         entity_type = self._extract_entity_type(request.path)
+        entity_id = self._extract_entity_id(request.path)
         retention = self._retention_category(request.path)
         network_fields = build_audit_network_fields(request)
 
@@ -328,6 +332,7 @@ class AuditMiddleware:
             actor_id=actor_id,
             action=request.method,
             entity_type=entity_type,
+            entity_id=entity_id,
             ip_address=network_fields["ip_address"],
             user_agent=network_fields["user_agent"],
             ip_address_encrypted=network_fields["ip_address_encrypted"],
@@ -349,6 +354,18 @@ class AuditMiddleware:
                 return parts[i + 1]
         # Fallback: return the last meaningful segment.
         return parts[-1] if parts else "unknown"
+
+    def _extract_entity_id(self, path: str) -> str | None:
+        """Extract a UUID-like entity ID from the URL path.
+
+        Matches the second segment after /api/v1/{resource}/ when it looks
+        like a UUID (hex characters and dashes).
+
+        E.g. /api/v1/applications/550e8400-e29b-41d4-a716-446655440000/ → '550e8400-...'
+             /api/v1/auth/login/ → None
+        """
+        match = self.ENTITY_ID_PATTERN.search(path)
+        return match.group(1) if match else None
 
     @staticmethod
     def _retention_category(path: str) -> str:

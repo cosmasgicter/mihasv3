@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { formatDateTime, labelize } from '@/lib/format'
@@ -43,6 +45,12 @@ export function AuditLogPage() {
     queryKey: ['daily-digest'],
     queryFn: getDailyDigest,
   })
+
+  const isLoading = metaQuery.isLoading || applicationsQuery.isLoading || runsQuery.isLoading || assetsQuery.isLoading || sourcesQuery.isLoading || digestQuery.isLoading
+  const errorQuery = metaQuery.isError ? metaQuery : applicationsQuery.isError ? applicationsQuery : runsQuery.isError ? runsQuery : assetsQuery.isError ? assetsQuery : sourcesQuery.isError ? sourcesQuery : digestQuery.isError ? digestQuery : null
+
+  if (isLoading) return <PageSkeleton />
+  if (errorQuery) return <ErrorDisplay message={errorQuery.error?.message ?? 'Failed to load data'} onRetry={() => errorQuery.refetch()} />
 
   const now = Date.now()
   const events: AuditEvent[] = [

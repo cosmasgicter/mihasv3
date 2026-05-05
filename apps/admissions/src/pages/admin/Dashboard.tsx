@@ -17,6 +17,8 @@ import { sanitizeForDisplay } from '@/lib/sanitize'
 import { getAdminDisplayName, shouldLoadAdminDashboard } from '@/pages/admin/lib/dashboardBootstrap'
 import { PageShell } from '@/components/ui/PageShell'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+import { reportError } from '@/lib/errorReporter'
 
 import { DashboardActivityFeed } from '@/components/admin/dashboard/DashboardActivityFeed'
 import { DashboardQuickActions } from '@/components/admin/dashboard/DashboardQuickActions'
@@ -346,6 +348,7 @@ export default function AdminDashboard() {
       }
     >
         {/* System Status Bar */}
+        <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.SystemStatus', ...errorInfo })}>
         <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
           <div className="rounded-lg border border-border/60 bg-card p-4 sm:p-6 shadow-sm">
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
@@ -373,8 +376,10 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+        </ErrorBoundary>
 
         {/* Needs Attention */}
+        <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.NeedsAttention', ...errorInfo })}>
         <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Needs attention</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -420,6 +425,7 @@ export default function AdminDashboard() {
             </Link>
           </div>
         </div>
+        </ErrorBoundary>
 
         {/* Error Display */}
           {error && (
@@ -474,6 +480,7 @@ export default function AdminDashboard() {
 
         {/* Real-time Metrics Display with Animated Counters */}
         {/* Requirements: 6.2, 6.4 - Real-time metrics display with animated counters and visual indicators */}
+        <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.RealtimeMetrics', ...errorInfo })}>
         <div 
           className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}
         >
@@ -491,7 +498,9 @@ export default function AdminDashboard() {
             isRefreshing={isRefreshing || isManualRefreshing}
           />
         </div>
+        </ErrorBoundary>
 
+        <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.ActivityAndActions', ...errorInfo })}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           <div className="lg:col-span-2">
             <DashboardActivityFeed items={recentActivity} />
@@ -505,7 +514,9 @@ export default function AdminDashboard() {
             />
           </div>
         </div>
+        </ErrorBoundary>
         {/* Weekly Overview */}
+        <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.WeeklyOverview', ...errorInfo })}>
         <div 
           className={`mt-8 rounded-lg border border-border/60 bg-card shadow-sm ${animateClasses.slideUp}`}
         >
@@ -535,6 +546,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+        </ErrorBoundary>
 
     </PageShell>
     </>

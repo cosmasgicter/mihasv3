@@ -678,7 +678,7 @@ class SessionView(APIView):
     def get(self, request):
         user = request.user
         if not getattr(user, "is_authenticated", False):
-            return Response({"success": True, "data": None})
+            return Response({"success": True, "data": {"authenticated": False}})
 
         serializer = SessionSerializer({
             "id": user.id,

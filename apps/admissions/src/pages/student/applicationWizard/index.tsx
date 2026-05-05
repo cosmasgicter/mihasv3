@@ -12,6 +12,7 @@ import { AutoSaveIndicator } from '@/components/ui/AutoSaveIndicator'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageShell } from '@/components/ui/PageShell'
+import { reportError } from '@/lib/errorReporter'
 
 import SubmissionSuccess from './components/SubmissionSuccess'
 import { StepChecklist } from './components/StepChecklist'
@@ -787,6 +788,7 @@ const ApplicationWizardContent = () => {
               </div>
             )}
             {currentStepConfig.key === 'basicKyc' && (
+              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'basicKyc' })}>
               <BasicKycStep
                 form={form}
                 hasAutoPopulatedData={hasAutoPopulatedData}
@@ -799,9 +801,11 @@ const ApplicationWizardContent = () => {
                 title={currentStepConfig.title}
                 getFieldAriaDescribedBy={getFieldAriaDescribedBy}
               />
+              </ErrorBoundary>
             )}
 
             {currentStepConfig.key === 'education' && (
+              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'education' })}>
               <EducationStep
                 title={currentStepConfig.title}
                 subjects={subjects}
@@ -825,9 +829,11 @@ const ApplicationWizardContent = () => {
                 ocrFailureReason={ocrFailureReason}
                 onRetryOcr={retryOcr}
               />
+              </ErrorBoundary>
             )}
 
             {currentStepConfig.key === 'payment' && (
+              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'payment' })}>
               <PaymentStep
                 title={currentStepConfig.title}
                 form={form}
@@ -837,9 +843,11 @@ const ApplicationWizardContent = () => {
                 onPaymentStatusChange={setPaymentStatus}
                 onPaymentStatusRefresh={refetchPaymentStatus}
               />
+              </ErrorBoundary>
             )}
 
             {currentStepConfig.key === 'submit' && (
+              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'submit' })}>
               <SubmitStep
                 title={currentStepConfig.title}
                 form={form}
@@ -863,6 +871,7 @@ const ApplicationWizardContent = () => {
                 applicationId={applicationId}
                 onNavigateToStep={handleNavigateToStep}
               />
+              </ErrorBoundary>
             )}
             </div>
 

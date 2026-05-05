@@ -7,125 +7,43 @@
  * @module client
  */
 
-import { getApiBaseUrl } from '@/lib/apiConfig';
 import { ApiErrorHandler } from '@/lib/apiErrorHandler';
 import { logger } from '@/lib/logger';
 import { getCsrfToken, setCsrfToken } from '@/lib/csrfToken';
 import { TIMEOUT_ERROR_MESSAGE } from '@/lib/errorMessages';
-import { shouldDispatchAuthFailure, isPermissionDenial, dispatchAuthRecovered } from '@/lib/sessionHardening';
+import { shouldDispatchAuthFailure, isPermissionDenial } from '@/lib/sessionHardening';
 
 import { toApiV1Path, getServiceName } from './apiHelpers';
 import { isRetryableFailure, MAX_RETRIES, RETRY_DELAYS, createTimeoutController, getTimeoutForEndpoint } from './retry';
 import { recoverCsrfAndRetry } from './csrf';
+import { API_BASE, parseJsonSafely, normalizeHeaders, getBaseHeaders, unwrapApiResponse, type ApiRequestOptions } from './httpClient';
+import {
+  AuthenticationError,
+  configureApiClientAuthFailure,
+  getOnAuthFailure,
+  isAuthExcludedEndpoint,
+  isSessionEndpoint,
+  attemptRefresh,
+  refreshAuthSession,
+} from './authInterceptor';
+export type { ApiRequestOptions } from './httpClient';
 
 // Re-export moved items so existing import sites don't break
 export { toApiV1Path, buildQueryString, type QueryParams, type QueryParamValue, API_V1_PREFIX } from './apiHelpers';
 export { syncApiClientCsrfToken } from './csrf';
+export { AuthenticationError, configureApiClientAuthFailure, getOnAuthFailure } from './authInterceptor';
 
-/**
- * Error thrown when the ApiClient encounters an unrecoverable 401
- * (token refresh failed or second 401 after retry).
- * Callers can catch this to handle UI cleanup if needed.
- */
-export class AuthenticationError extends Error {
-  public readonly status = 401;
-  constructor(message: string = 'Authentication required. Please sign in again.') {
-    super(message);
-    this.name = 'AuthenticationError';
-  }
-}
 
-const API_BASE = getApiBaseUrl();
 
 class ApiClient {
-  /**
-   * Promise-lock for token refresh deduplication.
-   * When the first 401 triggers a refresh, subsequent 401s await the same promise
-   * instead of initiating parallel refresh requests.
-   */
-  private refreshPromise: Promise<boolean> | null = null;
 
   /**
-   * Perform the actual token refresh call to the server.
-   * Sends a POST to /api/v1/auth/refresh/ with credentials and CSRF token.
-   * Captures the rotated CSRF token from the response header.
-   */
-  private async performRefresh(): Promise<boolean> {
-    const csrfToken = getCsrfToken();
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (csrfToken) {
-      headers['X-CSRF-Token'] = csrfToken;
-    }
-
-    try {
-      const refreshEndpoint = toApiV1Path('/auth/refresh/');
-      const response = await fetch(`${API_BASE}${refreshEndpoint}`, {
-        method: 'POST',
-        credentials: 'include',
-        headers,
-      });
-
-      // Capture rotated CSRF token from refresh response
-      const newCsrfToken = response.headers.get('X-CSRF-Token');
-      if (newCsrfToken) {
-        setCsrfToken(newCsrfToken);
-      }
-
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Deduplicated token refresh. If a refresh is already in-flight, returns the
-   * existing promise. Otherwise starts a new refresh and clears the lock on
-   * completion (success or failure).
-   */
-  private async attemptRefresh(): Promise<boolean> {
-    if (this.refreshPromise) return this.refreshPromise;
-    this.refreshPromise = this.performRefresh();
-    try {
-      const result = await this.refreshPromise;
-      if (result) {
-        dispatchAuthRecovered();
-      }
-      return result;
-    } finally {
-      this.refreshPromise = null;
-    }
-  }
-
-  /**
-   * Public refresh entrypoint for auth bootstrap code. It uses the same
-   * promise-lock as the 401 interceptor so explicit session recovery cannot
-   * race with data-request recovery and invalidate a rotating refresh token.
+   * Public refresh entrypoint for auth bootstrap code. Delegates to the
+   * standalone `refreshAuthSession` from authInterceptor so the same
+   * promise-lock is shared with the 401 interceptor.
    */
   async refreshAuthSession(): Promise<boolean> {
-    return this.attemptRefresh();
-  }
-
-  /**
-   * Check if an endpoint should be excluded from 401 intercept-refresh-retry.
-   * Auth endpoints like refresh, login, and register are excluded to prevent
-   * infinite loops (e.g., a failed refresh triggering another refresh).
-   */
-  private isAuthExcludedEndpoint(endpoint: string): boolean {
-    const excludedPatterns = [
-      '/api/v1/auth/refresh/',
-      '/api/v1/auth/login/',
-      '/api/v1/auth/register/',
-    ];
-    if (excludedPatterns.some(pattern => endpoint.includes(pattern))) return true;
-    // Don't attempt refresh on auth pages — the user is logged out
-    if (typeof window !== 'undefined' && /^\/auth\//i.test(window.location.pathname)) return true;
-    return false;
-  }
-
-  private isSessionEndpoint(endpoint: string): boolean {
-    return endpoint.includes('/api/v1/auth/session/');
+    return refreshAuthSession();
   }
 
   /**
@@ -151,60 +69,11 @@ class ApiClient {
     service: string,
     endpoint: string
   ): Promise<TResponse | null> {
-    if (response.status === 204 || response.status === 205) {
-      return null;
-    }
-
-    const contentLengthHeader = response.headers.get('content-length');
-    if (contentLengthHeader !== null) {
-      const contentLength = Number.parseInt(contentLengthHeader, 10);
-      if (!Number.isNaN(contentLength) && contentLength === 0) {
-        return null;
-      }
-    }
-
-    const bodyText = await response.text();
-    const trimmedBody = bodyText.trim();
-
-    if (!trimmedBody) {
-      return null;
-    }
-
-    const contentType = response.headers.get('content-type') ?? '';
-    const shouldParseJson =
-      contentType.includes('application/json') ||
-      trimmedBody.startsWith('{') ||
-      trimmedBody.startsWith('[');
-
-    if (!shouldParseJson) {
-      return bodyText as TResponse;
-    }
-
-    try {
-      return JSON.parse(bodyText) as TResponse;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Failed to parse JSON response from ${endpoint}: ${message}`);
-    }
+    return parseJsonSafely<TResponse>(response, service, endpoint);
   }
 
   private normalizeHeaders(headers?: HeadersInit): Record<string, string> {
-    if (!headers) {
-      return {};
-    }
-
-    if (headers instanceof Headers) {
-      return Object.fromEntries(headers.entries());
-    }
-
-    if (Array.isArray(headers)) {
-      return headers.reduce((acc, [key, value]) => {
-        acc[key] = value;
-        return acc;
-      }, {} as Record<string, string>);
-    }
-
-    return headers;
+    return normalizeHeaders(headers);
   }
 
   /**
@@ -212,9 +81,7 @@ class ApiClient {
    * NO Authorization header - we use HTTP-only cookies
    */
   private getBaseHeaders(): Record<string, string> {
-    return {
-      'Content-Type': 'application/json',
-    };
+    return getBaseHeaders();
   }
 
   /**
@@ -230,23 +97,7 @@ class ApiClient {
    * Requirements: 8.3, 8.4
    */
   private unwrapApiResponse<TResponse>(response: TResponse | null, contentType?: string): TResponse | null {
-    if (response === null || response === undefined) return null;
-
-    // If Content-Type is known and not JSON, skip envelope unwrapping entirely
-    if (contentType && !contentType.includes('application/json')) {
-      return response;
-    }
-
-    // Non-JSON responses (strings, buffers) pass through without unwrapping
-    if (typeof response !== 'object' || Array.isArray(response)) {
-      return response;
-    }
-    const obj = response as Record<string, unknown>;
-    if ('success' in obj && 'data' in obj && obj.success === true) {
-      return (obj.data ?? null) as TResponse | null;
-    }
-    // Error envelope or non-envelope object — return as-is
-    return response;
+    return unwrapApiResponse<TResponse>(response, contentType);
   }
 
   /**
@@ -529,9 +380,9 @@ class ApiClient {
 
         // 401 intercept-refresh-retry: attempt a single token refresh and retry
         // Exclude auth endpoints that would cause infinite loops
-        if (response.status === 401 && !this.isAuthExcludedEndpoint(normalizedEndpoint)) {
+        if (response.status === 401 && !isAuthExcludedEndpoint(normalizedEndpoint)) {
           console.debug('[API Client] 401 Unauthorized - attempting token refresh');
-          const refreshed = await this.attemptRefresh();
+          const refreshed = await attemptRefresh();
 
           if (refreshed) {
             // Refresh succeeded — retry the original request once
@@ -763,10 +614,10 @@ class ApiClient {
       if (
         errorStatus === 401 &&
         method === 'GET' &&
-        !this.isAuthExcludedEndpoint(normalizedEndpoint)
+        !isAuthExcludedEndpoint(normalizedEndpoint)
       ) {
         console.debug('[API Client] auth error on GET (via cache layer) - attempting token refresh');
-        const refreshed = await this.attemptRefresh();
+        const refreshed = await attemptRefresh();
 
         if (refreshed) {
           // Refresh succeeded — retry the GET request directly (bypass cache)
@@ -806,7 +657,7 @@ class ApiClient {
                 throw ApiErrorHandler.enhanceError({ endpoint: normalizedEndpoint, method, statusCode: 403, originalError: permErr });
               }
             }
-            if (this.isSessionEndpoint(normalizedEndpoint)) {
+            if (isSessionEndpoint(normalizedEndpoint)) {
               throw new AuthenticationError();
             }
             const authFailure = getOnAuthFailure();
@@ -834,7 +685,7 @@ class ApiClient {
         }
 
         // Refresh failed — invoke onAuthFailure and throw
-        if (this.isSessionEndpoint(normalizedEndpoint)) {
+        if (isSessionEndpoint(normalizedEndpoint)) {
           throw error;
         }
         const authFailure = getOnAuthFailure();
@@ -865,40 +716,4 @@ class ApiClient {
 
 export const apiClient = new ApiClient();
 
-/**
- * Callback invoked when the ApiClient encounters an unrecoverable 401
- * (token refresh failed). Configured by AuthProvider on mount to clear
- * auth state, caches, and redirect to sign-in.
- *
- * Replaces `configureAuthController` from the old authController.ts.
- */
-let onAuthFailure: (() => void) | null = null;
-
-/**
- * Configure the auth failure callback for the ApiClient.
- * Called once from AuthProvider on mount. When the ApiClient detects
- * an unrecoverable 401 (refresh failed), it invokes this callback
- * to clear auth state and redirect.
- *
- * Replaces `configureAuthController` from authController.ts.
- */
-export function configureApiClientAuthFailure(callback: () => void): void {
-  onAuthFailure = callback;
-}
-
-/**
- * Get the current auth failure callback (used internally by ApiClient).
- * @internal
- */
-export function getOnAuthFailure(): (() => void) | null {
-  return onAuthFailure;
-}
-
 export type ApiClientRequest = ApiClient['request'];
-
-export interface ApiRequestOptions extends Omit<RequestInit, 'cache'> {
-  /** Request timeout in milliseconds. Defaults to 30s (10s for health/session). */
-  timeout?: number;
-  /** Max retry attempts for network/5xx errors. Defaults to 3. Set 0 to disable. */
-  retries?: number;
-}

@@ -157,7 +157,7 @@ class JobScoreView(JobActionBaseView):
     )
     def post(self, request, job_id):
         try:
-            job = JobPosting.objects.get(id=job_id)
+            job = JobPosting.objects.select_related('company', 'source').get(id=job_id)
         except JobPosting.DoesNotExist:
             return Response({"success": False, "error": "Job not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -200,7 +200,7 @@ class JobTailorDocumentsView(JobActionBaseView):
     )
     def post(self, request, job_id):
         try:
-            job = JobPosting.objects.get(id=job_id)
+            job = JobPosting.objects.select_related('company', 'source').get(id=job_id)
         except JobPosting.DoesNotExist:
             return Response({"success": False, "error": "Job not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -253,6 +253,18 @@ class JobApplicationListCreateView(PublicReadWriteProtectedMixin, APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = JobApplicationSerializer
 
+    def get_queryset(self):
+        """Return optimised queryset for job applications.
+
+        Uses select_related on FK fields (job_posting, candidate) to avoid
+        N+1 queries when the view transitions from scaffold data to real
+        database queries.
+        """
+        from apps.jobs.models import JobApplication
+        return JobApplication.objects.select_related(
+            'job_posting', 'candidate',
+        ).order_by('-created_at')
+
     def get(self, request):
         applications = sample_job_applications()
         status_filter = request.query_params.get("status")
@@ -284,6 +296,18 @@ class JobApplicationListCreateView(PublicReadWriteProtectedMixin, APIView):
 class JobApplicationDetailView(PublicReadWriteProtectedMixin, APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = JobApplicationSerializer
+
+    def get_queryset(self):
+        """Return optimised queryset for a single job application.
+
+        Uses select_related on FK fields (job_posting, candidate) to avoid
+        N+1 queries when the view transitions from scaffold data to real
+        database queries.
+        """
+        from apps.jobs.models import JobApplication
+        return JobApplication.objects.select_related(
+            'job_posting', 'candidate',
+        )
 
     def get(self, request, application_id):
         applications = sample_job_applications()

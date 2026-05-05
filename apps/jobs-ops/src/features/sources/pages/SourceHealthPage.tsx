@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -12,6 +14,9 @@ export function SourceHealthPage() {
     queryKey: ['source-analytics'],
     queryFn: listSourceAnalytics,
   })
+
+  if (sourceAnalyticsQuery.isLoading) return <PageSkeleton />
+  if (sourceAnalyticsQuery.isError) return <ErrorDisplay message={sourceAnalyticsQuery.error?.message ?? 'Failed to load data'} onRetry={() => sourceAnalyticsQuery.refetch()} />
 
   const sources = sourceAnalyticsQuery.data ?? []
 

@@ -14,13 +14,13 @@ factory = APIRequestFactory()
 
 
 class TestSessionEnvelope(SimpleTestCase):
-    def test_unauthenticated_returns_envelope_with_null_data(self):
+    def test_unauthenticated_returns_envelope_with_authenticated_false(self):
         request = factory.get("/api/v1/auth/session/")
         request.user = MagicMock(is_authenticated=False)
         response = SessionView().get(request)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["success"])
-        self.assertIsNone(response.data["data"])
+        self.assertEqual(response.data["data"], {"authenticated": False})
 
     @patch("apps.accounts.views._has_recent_csrf_token", return_value=True)
     def test_authenticated_returns_envelope_with_user_data(self, _mock_csrf):

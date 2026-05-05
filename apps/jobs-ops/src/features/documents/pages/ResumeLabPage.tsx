@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { formatDateTime, labelize } from '@/lib/format'
@@ -17,6 +19,9 @@ export function ResumeLabPage() {
     queryKey: ['resume-assets'],
     queryFn: listResumeAssets,
   })
+
+  if (assetsQuery.isLoading) return <PageSkeleton />
+  if (assetsQuery.isError) return <ErrorDisplay message={assetsQuery.error?.message ?? 'Failed to load data'} onRetry={() => assetsQuery.refetch()} />
 
   const assets = assetsQuery.data ?? []
 

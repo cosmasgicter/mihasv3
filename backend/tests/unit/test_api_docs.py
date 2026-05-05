@@ -1,8 +1,8 @@
 """Regression tests for the API documentation surface.
 
 After Bug 5 fix (audit-security-remediation), OpenAPI docs require
-authentication when DEBUG=False. In dev mode (DEBUG=True) they remain
-freely accessible via the IsAuthenticatedOrDebug permission.
+authentication when DEBUG=False. The IsAuthenticatedOrDebug permission
+class has been removed and replaced with IsAuthenticated.
 """
 
 import os

@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -34,6 +36,12 @@ export function AutomationRunsPage() {
     queryKey: ['automation-runs'],
     queryFn: listAutomationRuns,
   })
+
+  const isLoading = rulesQuery.isLoading || runsQuery.isLoading
+  const errorQuery = rulesQuery.isError ? rulesQuery : runsQuery.isError ? runsQuery : null
+
+  if (isLoading) return <PageSkeleton />
+  if (errorQuery) return <ErrorDisplay message={errorQuery.error?.message ?? 'Failed to load data'} onRetry={() => errorQuery.refetch()} />
 
   const rules = rulesQuery.data?.results ?? []
   const runs = runsQuery.data?.results ?? []

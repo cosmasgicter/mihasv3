@@ -28,14 +28,14 @@ factory = APIRequestFactory()
 class TestSessionViewCsrfHeader(SimpleTestCase):
     """SessionView should reissue a CSRF token for 403 recovery."""
 
-    def test_session_view_returns_null_user_for_anonymous_request(self):
+    def test_session_view_returns_unauthenticated_envelope_for_anonymous_request(self):
         request = factory.get("/api/v1/auth/session/")
         request.user = MagicMock(is_authenticated=False)
 
         response = SessionView().get(request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, {"success": True, "data": None})
+        self.assertEqual(response.data, {"success": True, "data": {"authenticated": False}})
         self.assertNotIn("X-CSRF-Token", response)
 
     @patch("apps.accounts.views._generate_csrf_token", return_value="session-csrf-token")

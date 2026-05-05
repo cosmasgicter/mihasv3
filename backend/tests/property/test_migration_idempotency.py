@@ -36,7 +36,7 @@ from hypothesis import strategies as st  # noqa: E402
 # ---------------------------------------------------------------------------
 
 MIGRATION_SCRIPT_PATH = (
-    Path(__file__).resolve().parents[2] / "scripts" / "lenco_payment_integration.sql"
+    Path(__file__).resolve().parents[2] / "scripts" / "archive" / "lenco_payment_integration.sql"
 )
 
 MIGRATION_SQL = MIGRATION_SCRIPT_PATH.read_text(encoding="utf-8")

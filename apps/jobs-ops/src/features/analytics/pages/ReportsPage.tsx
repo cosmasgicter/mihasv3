@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -29,6 +31,12 @@ export function ReportsPage() {
     queryKey: ['source-analytics'],
     queryFn: listSourceAnalytics,
   })
+
+  const isLoading = funnelQuery.isLoading || outreachQuery.isLoading || digestQuery.isLoading || sourceQuery.isLoading
+  const errorQuery = funnelQuery.isError ? funnelQuery : outreachQuery.isError ? outreachQuery : digestQuery.isError ? digestQuery : sourceQuery.isError ? sourceQuery : null
+
+  if (isLoading) return <PageSkeleton />
+  if (errorQuery) return <ErrorDisplay message={errorQuery.error?.message ?? 'Failed to load data'} onRetry={() => errorQuery.refetch()} />
 
   const funnel = funnelQuery.data
   const outreach = outreachQuery.data

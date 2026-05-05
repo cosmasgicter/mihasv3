@@ -4,9 +4,35 @@ import type { ApiEnvelope } from '@/services/api/contracts'
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown
   retries?: number
+  /** Internal flag — prevents infinite CSRF recovery loops. */
+  csrfRecovered?: boolean
 }
 
+/**
+ * In-memory CSRF token store.
+ *
+ * The token is received from the server in the X-CSRF-Token response header
+ * and attached to all state-changing requests (POST, PUT, PATCH, DELETE).
+ * Stored in a module-level variable — never persisted to localStorage or
+ * sessionStorage. Cleared on logout.
+ */
 let csrfToken: string | null = null
+
+/** Get the current CSRF token (may be null before bootstrap). */
+export function getCsrfToken(): string | null {
+  return csrfToken
+}
+
+/** Store the CSRF token received from the server. */
+export function setCsrfToken(token: string): void {
+  csrfToken = token
+}
+
+/** Clear the CSRF token (called on logout). */
+export function clearCsrfToken(): void {
+  csrfToken = null
+}
+
 let refreshPromise: Promise<boolean> | null = null
 let onAuthFailure: (() => void) | null = null
 
@@ -32,6 +58,42 @@ async function refreshSession(): Promise<boolean> {
     .catch(() => false)
     .finally(() => { refreshPromise = null })
   return refreshPromise
+}
+
+/**
+ * Recover from a 403 CSRF error by fetching a fresh CSRF token from the
+ * session endpoint. Uses the `?refresh_csrf=1` query parameter (not a custom
+ * header) to avoid CORS preflight issues on cross-origin requests.
+ */
+async function recoverCsrf(): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${env.apiBaseUrl}/api/v1/auth/session/?refresh_csrf=1`,
+      { method: 'GET', credentials: 'include' },
+    )
+    const freshToken = res.headers.get('X-CSRF-Token')
+    if (freshToken) {
+      csrfToken = freshToken
+      return true
+    }
+    return false
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Check whether an error payload indicates a CSRF-related failure.
+ * The backend may return error codes like CSRF_INVALID, CSRF_MISSING, or
+ * CSRF_VALIDATION_FAILED, or include "csrf" in the error message.
+ */
+function isCsrfError(payload: unknown): boolean {
+  if (typeof payload !== 'object' || payload === null) return false
+  const obj = payload as Record<string, unknown>
+  const code = typeof obj.code === 'string' ? obj.code.toLowerCase() : ''
+  const error = typeof obj.error === 'string' ? obj.error.toLowerCase() : ''
+  const message = typeof obj.message === 'string' ? obj.message.toLowerCase() : ''
+  return code.includes('csrf') || error.includes('csrf') || message.includes('csrf')
 }
 
 export class ApiRequestError extends Error {
@@ -122,6 +184,19 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
           }
           onAuthFailure?.()
           throw new ApiRequestError('Session expired', path, 401)
+        }
+
+        // 403 with CSRF error → recover token and retry once
+        if (
+          response.status === 403 &&
+          !options.csrfRecovered &&
+          ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) &&
+          isCsrfError(payload)
+        ) {
+          const recovered = await recoverCsrf()
+          if (recovered) {
+            return request<T>(path, { ...options, retries: 0, csrfRecovered: true })
+          }
         }
 
         if (typeof payload === 'object' && payload && 'error' in payload) {

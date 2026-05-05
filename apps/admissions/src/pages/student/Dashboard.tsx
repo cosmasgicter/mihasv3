@@ -44,6 +44,8 @@ import { logApiError } from '@/lib/apiErrorLogger'
 
 import { DashboardSkeleton } from '@/components/ui'
 import { onDashboardMount } from '@/lib/speculativePrefetch'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+import { reportError } from '@/lib/errorReporter'
 
 /** Check if a rejected promise reason is a 403 Forbidden error */
 function is403Error(error: unknown): boolean {
@@ -557,6 +559,7 @@ export default function StudentDashboard() {
               </Banner>
             )}
 
+            <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.NextActionCards', ...errorInfo })}>
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.75fr)]">
               <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                 <p className="text-xs font-semibold uppercase text-primary">Next action</p>
@@ -599,10 +602,14 @@ export default function StudentDashboard() {
                 </div>
               </div>
             </div>
+            </ErrorBoundary>
 
             {/* Applications first — most important on mobile */}
+            <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.ContinueApplication', ...errorInfo })}>
             <ContinueApplication />
+            </ErrorBoundary>
 
+            <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.ApplicationsGrid', ...errorInfo })}>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
               <SectionCard
                 className="lg:col-span-2"
@@ -749,12 +756,16 @@ export default function StudentDashboard() {
                 />
               </div>
             </div>
+            </ErrorBoundary>
 
             {/* Status overview and action cards after the main content */}
+            <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.StatusOverview', ...errorInfo })}>
             <DashboardStatusOverview
               applications={applications}
             />
+            </ErrorBoundary>
 
+            <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.NextActionCard', ...errorInfo })}>
             <StudentNextActionCard
               applications={applications}
               draftCount={totalDraftCount}
@@ -762,6 +773,7 @@ export default function StudentDashboard() {
               hasScheduledInterview={hasScheduledInterview}
               profileCompletion={profileCompletion}
             />
+            </ErrorBoundary>
           </div>
         )}
       <ConfirmAlertDialog
