@@ -4,8 +4,9 @@ import { useDeferredValue, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { EmptyState } from '@/components/ui/EmptyState'
-import { LoadingState } from '@/components/ui/LoadingState'
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -50,15 +51,12 @@ export function JobsInboxPage() {
     return accumulator
   }, {})
 
-  if (jobsQuery.isLoading && jobs.length === 0) {
-    return (
-      <div className="px-6 py-6">
-        <LoadingState
-          title="Loading jobs inbox"
-          message="Fetching opportunities, recommendation states, and fit scores for the operator queue."
-        />
-      </div>
-    )
+  if (jobsQuery.isLoading) {
+    return <PageSkeleton />
+  }
+
+  if (jobsQuery.isError) {
+    return <ErrorDisplay message={jobsQuery.error?.message ?? 'Failed to load data'} onRetry={() => jobsQuery.refetch()} />
   }
 
   if (jobs.length === 0) {

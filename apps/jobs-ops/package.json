@@ -9,7 +9,8 @@
     "build": "tsc -p tsconfig.build.json --noEmit && bunx --bun vite build",
     "preview": "bunx --bun vite preview",
     "type-check": "tsc -p tsconfig.build.json --noEmit",
-    "lint": "bunx eslint . --ext ts,tsx --max-warnings 0"
+    "lint": "bunx eslint . --ext ts,tsx --max-warnings 0",
+    "test": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "5.2.2",
@@ -30,6 +31,8 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
     "@types/node": "^22.18.12",
     "@types/react": "^18.3.17",
     "@types/react-dom": "^18.3.5",
@@ -39,7 +42,10 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.12.0",
-    "typescript-eslint": "^8.18.1"
+    "jsdom": "27.4.0",
+    "msw": "^2.12.14",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "4.0.18"
   }
 }
 

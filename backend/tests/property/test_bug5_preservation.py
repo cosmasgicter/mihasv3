@@ -111,7 +111,7 @@ class TestOpenAPIDocsAccessibleInDebugMode:
         should NOT be denied (status code should not be 403).
 
         On unfixed code: docs are public, so this passes trivially.
-        After fix: IsAuthenticatedOrDebug allows access when DEBUG=True.
+        After fix: IsAuthenticated requires auth; DEBUG mode no longer bypasses.
 
         **Validates: Requirements 3.8**
         """

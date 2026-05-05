@@ -63,7 +63,9 @@ class ApplicationVerifyDocumentView(APIView):
         from apps.common.audit_network import build_audit_network_fields
 
         try:
-            application = Application.objects.get(id=application_id)
+            application = Application.objects.select_related(
+                'user'
+            ).get(id=application_id)
         except Application.DoesNotExist:
             return Response(
                 {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
@@ -87,7 +89,9 @@ class ApplicationVerifyDocumentView(APIView):
         notes = serializer.validated_data.get("notes", "")
 
         try:
-            document = ApplicationDocument.objects.get(
+            document = ApplicationDocument.objects.select_related(
+                'application', 'verified_by'
+            ).get(
                 id=document_id, application_id=application.id
             )
         except ApplicationDocument.DoesNotExist:
@@ -177,7 +181,9 @@ class AcceptanceLetterView(APIView):
     )
     def post(self, request, application_id):
         try:
-            application = Application.objects.get(id=application_id)
+            application = Application.objects.select_related(
+                'user'
+            ).get(id=application_id)
         except Application.DoesNotExist:
             return Response(
                 {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
@@ -232,7 +238,9 @@ class FinanceReceiptView(APIView):
     )
     def post(self, request, application_id):
         try:
-            application = Application.objects.get(id=application_id)
+            application = Application.objects.select_related(
+                'user'
+            ).get(id=application_id)
         except Application.DoesNotExist:
             return Response(
                 {"success": False, "error": "Application not found", "code": "NOT_FOUND"},

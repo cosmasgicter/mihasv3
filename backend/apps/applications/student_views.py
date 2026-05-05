@@ -272,7 +272,7 @@ class ApplicationDocumentsView(APIView):
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
-        docs = ApplicationDocument.objects.select_related('application').filter(application_id=application_id).exclude(
+        docs = ApplicationDocument.objects.select_related('application', 'verified_by').filter(application_id=application_id).exclude(
             verification_status='deleted'
         )
         return Response({"success": True, "data": DocumentSerializer(docs, many=True).data})
@@ -445,7 +445,7 @@ class ApplicationSummaryView(APIView):
 
     def get(self, request, application_id):
         try:
-            app = Application.objects.get(id=application_id)
+            app = Application.objects.select_related('user').get(id=application_id)
         except Application.DoesNotExist:
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):

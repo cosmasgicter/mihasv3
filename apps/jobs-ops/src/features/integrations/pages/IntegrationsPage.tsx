@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { env } from '@/lib/env'
@@ -41,6 +43,9 @@ export function IntegrationsPage() {
     queryKey: ['platform-meta'],
     queryFn: getPlatformMeta,
   })
+
+  if (platformQuery.isLoading) return <PageSkeleton />
+  if (platformQuery.isError) return <ErrorDisplay message={platformQuery.error?.message ?? 'Failed to load data'} onRetry={() => platformQuery.refetch()} />
 
   const platform = platformQuery.data
 

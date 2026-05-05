@@ -139,8 +139,8 @@ class TestApplicationVerifyDocument:
         application = _make_application(app_id=app_id)
         document = _make_document(doc_id=doc_id, application_id=app_id)
 
-        mock_app_qs.get.return_value = application
-        mock_doc_qs.get.return_value = document
+        mock_app_qs.select_related.return_value.get.return_value = application
+        mock_doc_qs.select_related.return_value.get.return_value = document
 
         request = _auth_request(
             self.factory, "post",
@@ -162,7 +162,7 @@ class TestApplicationVerifyDocument:
     def test_missing_application_returns_404(self, mock_app_qs):
         """Returns 404 when application does not exist."""
         from apps.applications.models import Application
-        mock_app_qs.get.side_effect = Application.DoesNotExist
+        mock_app_qs.select_related.return_value.get.side_effect = Application.DoesNotExist
 
         app_id = uuid.uuid4()
         request = _auth_request(
@@ -185,8 +185,8 @@ class TestApplicationVerifyDocument:
         from apps.documents.models import ApplicationDocument
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
-        mock_app_qs.get.return_value = application
-        mock_doc_qs.get.side_effect = ApplicationDocument.DoesNotExist
+        mock_app_qs.select_related.return_value.get.return_value = application
+        mock_doc_qs.select_related.return_value.get.side_effect = ApplicationDocument.DoesNotExist
 
         request = _auth_request(
             self.factory, "post",
@@ -220,7 +220,7 @@ class TestApplicationVerifyDocument:
         """Returns 400 when request body is invalid (missing required fields)."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
-        mock_app_qs.get.return_value = application
+        mock_app_qs.select_related.return_value.get.return_value = application
 
         request = _auth_request(
             self.factory, "post",
@@ -245,8 +245,8 @@ class TestApplicationVerifyDocument:
         application = _make_application(app_id=app_id)
         document = _make_document(doc_id=doc_id, application_id=app_id)
 
-        mock_app_qs.get.return_value = application
-        mock_doc_qs.get.return_value = document
+        mock_app_qs.select_related.return_value.get.return_value = application
+        mock_doc_qs.select_related.return_value.get.return_value = document
 
         request = _auth_request(
             self.factory, "post",
@@ -272,8 +272,8 @@ class TestApplicationVerifyDocument:
         application = _make_application(app_id=app_id)
         document = _make_document(doc_id=doc_id, application_id=app_id)
 
-        mock_app_qs.get.return_value = application
-        mock_doc_qs.get.return_value = document
+        mock_app_qs.select_related.return_value.get.return_value = application
+        mock_doc_qs.select_related.return_value.get.return_value = document
 
         request = _auth_request(
             self.factory, "post",
@@ -319,7 +319,7 @@ class TestAcceptanceLetter:
         """Admin gets 202 for approved application."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status="approved")
-        mock_app_qs.get.return_value = application
+        mock_app_qs.select_related.return_value.get.return_value = application
 
         # No existing idempotency key
         mock_idem_qs.filter.return_value.first.return_value = None
@@ -348,7 +348,7 @@ class TestAcceptanceLetter:
     def test_missing_application_returns_404(self, mock_app_qs):
         """Returns 404 when application does not exist."""
         from apps.applications.models import Application
-        mock_app_qs.get.side_effect = Application.DoesNotExist
+        mock_app_qs.select_related.return_value.get.side_effect = Application.DoesNotExist
 
         app_id = uuid.uuid4()
         request = _auth_request(
@@ -367,7 +367,7 @@ class TestAcceptanceLetter:
         """Returns 400 when application is not in approved status."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status="draft")
-        mock_app_qs.get.return_value = application
+        mock_app_qs.select_related.return_value.get.return_value = application
 
         request = _auth_request(
             self.factory, "post",
@@ -398,7 +398,7 @@ class TestAcceptanceLetter:
         """Duplicate request within TTL returns cached response without new task."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status="approved")
-        mock_app_qs.get.return_value = application
+        mock_app_qs.select_related.return_value.get.return_value = application
 
         cached_response = {
             "task_id": "cached-task-id",
@@ -427,7 +427,7 @@ class TestAcceptanceLetter:
         """Audit log entry is created with correct entity_type and actor_id."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status="approved")
-        mock_app_qs.get.return_value = application
+        mock_app_qs.select_related.return_value.get.return_value = application
         mock_idem_qs.filter.return_value.first.return_value = None
 
         mock_result = MagicMock()
@@ -477,7 +477,7 @@ class TestFinanceReceipt:
         """Admin gets 202 for application with verified payment."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status="approved")
-        mock_app_qs.get.return_value = application
+        mock_app_qs.select_related.return_value.get.return_value = application
         mock_pay_qs.filter.return_value.exists.return_value = True
         mock_idem_qs.filter.return_value.first.return_value = None
 
@@ -504,7 +504,7 @@ class TestFinanceReceipt:
     def test_missing_application_returns_404(self, mock_app_qs):
         """Returns 404 when application does not exist."""
         from apps.applications.models import Application
-        mock_app_qs.get.side_effect = Application.DoesNotExist
+        mock_app_qs.select_related.return_value.get.side_effect = Application.DoesNotExist
 
         app_id = uuid.uuid4()
         request = _auth_request(
@@ -524,7 +524,7 @@ class TestFinanceReceipt:
         """Returns 400 when no verified payment exists."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status="approved")
-        mock_app_qs.get.return_value = application
+        mock_app_qs.select_related.return_value.get.return_value = application
         mock_pay_qs.filter.return_value.exists.return_value = False
 
         request = _auth_request(
@@ -557,7 +557,7 @@ class TestFinanceReceipt:
         """Duplicate request within TTL returns cached response without new task."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status="approved")
-        mock_app_qs.get.return_value = application
+        mock_app_qs.select_related.return_value.get.return_value = application
         mock_pay_qs.filter.return_value.exists.return_value = True
 
         cached_response = {
@@ -588,7 +588,7 @@ class TestFinanceReceipt:
         """Audit log entry is created with correct entity_type and actor_id."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status="approved")
-        mock_app_qs.get.return_value = application
+        mock_app_qs.select_related.return_value.get.return_value = application
         mock_pay_qs.filter.return_value.exists.return_value = True
         mock_idem_qs.filter.return_value.first.return_value = None
 

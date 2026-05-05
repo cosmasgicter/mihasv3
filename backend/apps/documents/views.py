@@ -19,7 +19,6 @@ from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiType
 from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
@@ -33,6 +32,7 @@ from apps.documents.serializers import (
     PaymentVerifySerializer,
     ProgramFeeSerializer,
 )
+from apps.documents.throttles import MobileMoneyThrottle, PaymentInitiateThrottle, PaymentVerifyThrottle
 from apps.documents.validators import validate_file_magic_bytes
 from apps.common.openapi_helpers import (
     ErrorResponseSerializer,
@@ -180,9 +180,9 @@ class PaymentListView(APIView):
         role = getattr(user, "role", "student")
 
         if role in ("admin", "super_admin"):
-            queryset = Payment.objects.all()
+            queryset = Payment.objects.select_related('application', 'user').all()
         else:
-            queryset = Payment.objects.filter(user_id=str(user.id))
+            queryset = Payment.objects.select_related('application', 'user').filter(user_id=str(user.id))
 
         application_id = request.query_params.get("application_id")
         if application_id:
@@ -466,13 +466,6 @@ class PaymentReceiptView(APIView):
         return Response({"success": True, "data": receipt})
 
 
-class PaymentVerifyThrottle(UserRateThrottle):
-    scope = "payment_verify"
-    # Keep the view independent from malformed deployment overrides. DRF rate
-    # strings must use a period token such as "min", not values like "1min".
-    rate = "10/min"
-
-
 @extend_schema_view(
     post=extend_schema(
         operation_id="payments_verify",
@@ -563,6 +556,7 @@ class PaymentInitiateView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [PaymentInitiateThrottle]
 
     @extend_schema(
         request=inline_serializer('PaymentInitiateRequest', fields={
@@ -730,6 +724,7 @@ class MobileMoneyInitiateView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [MobileMoneyThrottle]
 
     @staticmethod
     def _mask_phone(phone: str) -> str:

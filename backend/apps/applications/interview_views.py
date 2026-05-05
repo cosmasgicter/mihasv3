@@ -69,7 +69,7 @@ class ApplicationInterviewListView(APIView):
         mine_only = mine_param in {"1", "true", "yes"}
         application_id = request.query_params.get("application_id")
 
-        queryset = ApplicationInterview.objects.select_related("application")
+        queryset = ApplicationInterview.objects.select_related("application", "application__user")
 
         if mine_only or not IsAdmin().has_permission(request, self):
             queryset = queryset.filter(application__user_id=request.user.id)
@@ -171,7 +171,7 @@ class ApplicationInterviewView(APIView):
         if not IsOwnerOrAdmin().has_object_permission(request, self, application):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
 
-        interviews = ApplicationInterview.objects.filter(application_id=application_id).order_by("-scheduled_at")
+        interviews = ApplicationInterview.objects.select_related("application", "application__user").filter(application_id=application_id).order_by("-scheduled_at")
         return Response({"success": True, "data": ApplicationInterviewSerializer(interviews, many=True).data})
 
     def post(self, request, application_id):
@@ -227,7 +227,8 @@ class ApplicationInterviewView(APIView):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
 
         interview = (
-            ApplicationInterview.objects.filter(application_id=application_id)
+            ApplicationInterview.objects.select_related("application", "application__user")
+            .filter(application_id=application_id)
             .order_by("-scheduled_at", "-created_at")
             .first()
         )
@@ -321,7 +322,8 @@ class ApplicationInterviewView(APIView):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
 
         interview = (
-            ApplicationInterview.objects.filter(application_id=application_id)
+            ApplicationInterview.objects.select_related("application", "application__user")
+            .filter(application_id=application_id)
             .order_by("-scheduled_at", "-created_at")
             .first()
         )

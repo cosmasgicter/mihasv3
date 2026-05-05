@@ -10,12 +10,9 @@ The bug condition (from design isBugCondition_Bug5):
 
 Expected behavior after fix:
   - reverse("admin:index") resolves to a non-standard path (NOT /admin/)
-  - IsAuthenticatedOrDebug permission class exists and:
-      DEBUG=False + anonymous → deny
-      DEBUG=False + authenticated → allow
-      DEBUG=True → always allow
+  - OpenAPI docs use IsAuthenticated (IsAuthenticatedOrDebug was removed)
   - Unauthenticated requests to /api/v1/schema/, /api/v1/docs/, /api/v1/redoc/
-    with DEBUG=False return 403
+    with DEBUG=False return 401/403
 """
 
 import os
@@ -28,7 +25,6 @@ import django
 django.setup()
 
 import pytest
-from unittest.mock import MagicMock
 from django.test import SimpleTestCase, RequestFactory, override_settings
 from django.urls import reverse
 
@@ -58,73 +54,37 @@ class TestAdminURLNotPredictable(SimpleTestCase):
 
 
 # ---------------------------------------------------------------------------
-# Test 2: IsAuthenticatedOrDebug permission class
+# Test 2: OpenAPI docs use IsAuthenticated (IsAuthenticatedOrDebug removed)
 # ---------------------------------------------------------------------------
 
-class TestIsAuthenticatedOrDebugPermission(SimpleTestCase):
-    """The IsAuthenticatedOrDebug permission class must exist and work correctly.
+class TestOpenAPIDocsUseIsAuthenticated(SimpleTestCase):
+    """OpenAPI docs must use IsAuthenticated, not the removed IsAuthenticatedOrDebug.
 
     **Validates: Requirements 2.14**
     """
 
-    def _get_permission_class(self):
-        """Try to import IsAuthenticatedOrDebug; fail if it doesn't exist yet."""
-        try:
-            from apps.common.permissions import IsAuthenticatedOrDebug
-            return IsAuthenticatedOrDebug
-        except (ImportError, ModuleNotFoundError):
-            self.fail(
-                "IsAuthenticatedOrDebug permission class does not exist yet — "
-                "expected at apps.common.permissions.IsAuthenticatedOrDebug"
-            )
-
-    def _make_request(self, authenticated=False):
-        """Create a mock request object."""
-        request = MagicMock()
-        if authenticated:
-            request.user.is_authenticated = True
-        else:
-            request.user.is_authenticated = False
-        return request
-
-    @override_settings(DEBUG=False)
-    def test_debug_false_anonymous_denied(self):
-        """DEBUG=False + anonymous user → deny access."""
-        perm_class = self._get_permission_class()
-        perm = perm_class()
-        request = self._make_request(authenticated=False)
+    def test_is_authenticated_or_debug_class_removed(self):
+        """IsAuthenticatedOrDebug should no longer exist in permissions module."""
+        import apps.common.permissions as perms_module
         self.assertFalse(
-            perm.has_permission(request, None),
-            "IsAuthenticatedOrDebug should deny anonymous users when DEBUG=False",
+            hasattr(perms_module, "IsAuthenticatedOrDebug"),
+            "IsAuthenticatedOrDebug still exists in apps.common.permissions — "
+            "it should have been removed and replaced with IsAuthenticated",
         )
 
-    @override_settings(DEBUG=False)
-    def test_debug_false_authenticated_allowed(self):
-        """DEBUG=False + authenticated user → allow access."""
-        perm_class = self._get_permission_class()
-        perm = perm_class()
-        request = self._make_request(authenticated=True)
-        self.assertTrue(
-            perm.has_permission(request, None),
-            "IsAuthenticatedOrDebug should allow authenticated users when DEBUG=False",
-        )
+    def test_schema_view_uses_is_authenticated(self):
+        """The schema view should use IsAuthenticated permission."""
+        from django.urls import resolve
+        from rest_framework.permissions import IsAuthenticated
 
-    @override_settings(DEBUG=True)
-    def test_debug_true_always_allows(self):
-        """DEBUG=True → always allow, regardless of auth status."""
-        perm_class = self._get_permission_class()
-        perm = perm_class()
-
-        anon_request = self._make_request(authenticated=False)
-        self.assertTrue(
-            perm.has_permission(anon_request, None),
-            "IsAuthenticatedOrDebug should allow anonymous users when DEBUG=True",
-        )
-
-        auth_request = self._make_request(authenticated=True)
-        self.assertTrue(
-            perm.has_permission(auth_request, None),
-            "IsAuthenticatedOrDebug should allow authenticated users when DEBUG=True",
+        match = resolve("/api/v1/schema/")
+        view_cls = getattr(match.func, "cls", None) or getattr(match.func, "view_class", None)
+        initkwargs = getattr(match.func, "initkwargs", {})
+        permission_classes = initkwargs.get("permission_classes", getattr(view_cls, "permission_classes", []))
+        self.assertIn(
+            IsAuthenticated,
+            permission_classes,
+            f"Schema view permission_classes={permission_classes} — expected IsAuthenticated",
         )
 
 

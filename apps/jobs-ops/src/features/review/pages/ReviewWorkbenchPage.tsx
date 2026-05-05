@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { labelize } from '@/lib/format'
@@ -34,6 +36,12 @@ export function ReviewWorkbenchPage() {
     queryKey: ['email-messages'],
     queryFn: listEmailMessages,
   })
+
+  const isLoading = applicationsQuery.isLoading || runsQuery.isLoading || assetsQuery.isLoading || messagesQuery.isLoading
+  const errorQuery = applicationsQuery.isError ? applicationsQuery : runsQuery.isError ? runsQuery : assetsQuery.isError ? assetsQuery : messagesQuery.isError ? messagesQuery : null
+
+  if (isLoading) return <PageSkeleton />
+  if (errorQuery) return <ErrorDisplay message={errorQuery.error?.message ?? 'Failed to load data'} onRetry={() => errorQuery.refetch()} />
 
   const tasks: ReviewTask[] = [
     ...(applicationsQuery.data?.results

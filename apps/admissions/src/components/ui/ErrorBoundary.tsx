@@ -12,6 +12,7 @@ export interface ErrorBoundaryProps {
   children: ReactNode
   fallback?: ReactNode
   onReset?: () => void
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void
   level?: 'page' | 'section'
 }
 
@@ -32,6 +33,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught:', error, errorInfo)
+    this.props.onError?.(error, errorInfo)
   }
 
   private handleReset = () => {

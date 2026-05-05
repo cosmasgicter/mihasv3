@@ -8,9 +8,10 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { MetricCard } from '@/components/ui/MetricCard'
-import { LoadingState } from '@/components/ui/LoadingState'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -78,16 +79,11 @@ export function OverviewPage() {
   const approvalQueue = applications.filter((application) => application.status === 'awaiting_approval')
   const bestSource = [...sourceAnalytics].sort((left, right) => right.successRate - left.successRate)[0]
 
-  if (jobsQuery.isLoading && jobs.length === 0) {
-    return (
-      <div className="px-6 py-6">
-        <LoadingState
-          title="Loading command center"
-          message="Assembling jobs, applications, automation state, outreach analytics, and source health."
-        />
-      </div>
-    )
-  }
+  const isLoading = jobsQuery.isLoading || applicationsQuery.isLoading || automationRunsQuery.isLoading || sourceAnalyticsQuery.isLoading || funnelQuery.isLoading || outreachAnalyticsQuery.isLoading || outreachCampaignsQuery.isLoading || dailyDigestQuery.isLoading
+  const errorQuery = jobsQuery.isError ? jobsQuery : applicationsQuery.isError ? applicationsQuery : automationRunsQuery.isError ? automationRunsQuery : sourceAnalyticsQuery.isError ? sourceAnalyticsQuery : funnelQuery.isError ? funnelQuery : outreachAnalyticsQuery.isError ? outreachAnalyticsQuery : outreachCampaignsQuery.isError ? outreachCampaignsQuery : dailyDigestQuery.isError ? dailyDigestQuery : null
+
+  if (isLoading) return <PageSkeleton />
+  if (errorQuery) return <ErrorDisplay message={errorQuery.error?.message ?? 'Failed to load data'} onRetry={() => errorQuery.refetch()} />
 
   return (
     <div className="min-h-full">

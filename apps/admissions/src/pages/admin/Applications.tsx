@@ -18,6 +18,8 @@ import { applicationService } from '@/services/applications'
 import { documentService } from '@/services/documents'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+import { reportError } from '@/lib/errorReporter'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { PageShell } from '@/components/ui/PageShell'
@@ -735,7 +737,9 @@ export default function Applications() {
             </div>
           </div>
         </div>
+        <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'Applications.AdminMetrics', ...errorInfo })}>
         <AdminMetrics applications={applications} />
+        </ErrorBoundary>
         
         {/* Quick Stats Cards - Mobile First */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
@@ -894,7 +898,9 @@ export default function Applications() {
             <h3 className="text-lg font-semibold text-foreground mb-1">No applications found</h3>
             <p className="text-sm text-muted-foreground max-w-md">No applications match your current filters. Try adjusting your search criteria or clearing filters.</p>
           </div>
-        ) : viewMode === 'table' ? (
+        ) : (
+          <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'Applications.ReviewPanel', ...errorInfo })}>
+          {viewMode === 'table' ? (
           <ApplicationsTableView
             applications={applications}
             onViewDetails={handleViewDetails}
@@ -928,6 +934,8 @@ export default function Applications() {
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
           />
+        )}
+          </ErrorBoundary>
         )}
 
         <BulkActionsBar

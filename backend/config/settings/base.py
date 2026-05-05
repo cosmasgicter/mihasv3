@@ -213,7 +213,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=10, minute=0),
     },
     "cleanup-idempotency-keys": {
-        "task": "cleanup_idempotency_keys",
+        "task": "apps.common.tasks.cleanup_idempotency_keys",
         "schedule": crontab(hour=3, minute=0),
     },
     "process-pending-emails": {
@@ -336,7 +336,9 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {
         "error_report": "5/min",
+        "payment_initiate": "5/min",
         "payment_verify": "10/min",
+        "mobile_money_initiate": "5/min",
     },
     "DEFAULT_PAGINATION_CLASS": "apps.common.pagination.StandardPagination",
     "PAGE_SIZE": 20,

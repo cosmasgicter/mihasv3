@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { formatRelativeTime, labelize } from '@/lib/format'
@@ -24,6 +26,12 @@ export function JobApplicationsPage() {
     queryKey: ['automation-runs'],
     queryFn: listAutomationRuns,
   })
+
+  const isLoading = applicationsQuery.isLoading || automationRunsQuery.isLoading
+  const errorQuery = applicationsQuery.isError ? applicationsQuery : automationRunsQuery.isError ? automationRunsQuery : null
+
+  if (isLoading) return <PageSkeleton />
+  if (errorQuery) return <ErrorDisplay message={errorQuery.error?.message ?? 'Failed to load data'} onRetry={() => errorQuery.refetch()} />
 
   const applications = applicationsQuery.data?.results ?? []
   const runs = automationRunsQuery.data?.results ?? []

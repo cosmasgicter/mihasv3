@@ -148,7 +148,7 @@ class TestDocumentVerificationStatusUpdate:
              patch(_DOC) as mock_doc_qs, \
              patch(_AUDIT):
             mock_app_qs.get.return_value = application
-            mock_doc_qs.get.return_value = document
+            mock_doc_qs.select_related.return_value.get.return_value = document
 
             request = _auth_request(
                 factory, "post",
@@ -271,7 +271,7 @@ class TestAuditLogCreation:
              patch(_DOC) as mock_doc_qs, \
              patch(_AUDIT) as mock_audit:
             mock_app_qs.get.return_value = application
-            mock_doc_qs.get.return_value = document
+            mock_doc_qs.select_related.return_value.get.return_value = document
 
             request = _auth_request(
                 factory, "post",

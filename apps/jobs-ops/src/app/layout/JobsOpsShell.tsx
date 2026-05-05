@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { Command, PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react'
-import { startTransition, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { Command, PanelLeftClose, PanelLeftOpen, Search, X } from 'lucide-react'
+import { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 
 import { navigationItems, pinnedArtifacts } from '@/app/layout/navigation'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { env } from '@/lib/env'
 import { labelize } from '@/lib/format'
@@ -24,6 +25,8 @@ export function JobsOpsShell() {
   const location = useLocation()
   const [commandQuery, setCommandQuery] = useState('')
   const deferredCommandQuery = useDeferredValue(commandQuery)
+  const triggerButtonRef = useRef<HTMLButtonElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
   const {
     commandPaletteOpen,
     openCommandPalette,
@@ -82,12 +85,16 @@ export function JobsOpsShell() {
     openCommandPalette()
   }
 
-  const dismissPalette = () => {
+  const dismissPalette = useCallback(() => {
     startTransition(() => {
       setCommandQuery('')
     })
     closeCommandPalette()
-  }
+    // Return focus to the trigger button
+    requestAnimationFrame(() => {
+      triggerButtonRef.current?.focus()
+    })
+  }, [closeCommandPalette])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -110,10 +117,48 @@ export function JobsOpsShell() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [commandPaletteOpen])
 
+  // Focus trap: Tab cycles within the command palette when open
+  useEffect(() => {
+    if (!commandPaletteOpen) return
+
+    const onTabKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return
+
+      const dialog = dialogRef.current
+      if (!dialog) return
+
+      const focusableElements = dialog.querySelectorAll<HTMLElement>(
+        'input, button, [href], [tabindex]:not([tabindex="-1"])',
+      )
+      if (focusableElements.length === 0) return
+
+      const first = focusableElements[0]
+      const last = focusableElements[focusableElements.length - 1]
+
+      if (event.shiftKey) {
+        // Shift+Tab: wrap from first to last
+        if (document.activeElement === first) {
+          event.preventDefault()
+          last.focus()
+        }
+      } else {
+        // Tab: wrap from last to first
+        if (document.activeElement === last) {
+          event.preventDefault()
+          first.focus()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', onTabKeyDown)
+    return () => window.removeEventListener('keydown', onTabKeyDown)
+  }, [commandPaletteOpen])
+
   return (
     <div className="min-h-screen">
       <div className="mx-auto grid min-h-screen max-w-[1720px] grid-cols-1 gap-4 px-4 py-4 lg:grid-cols-[auto_minmax(0,1fr)_340px]">
-        <aside
+        <nav
+          aria-label="Main navigation"
           className={`panel animate-rise flex min-h-[calc(100vh-2rem)] flex-col gap-6 overflow-hidden px-4 py-5 transition-all duration-200 ${
             sidebarCollapsed ? 'lg:w-[104px]' : 'lg:w-[308px]'
           }`}
@@ -130,8 +175,9 @@ export function JobsOpsShell() {
                 </p>
               </div>
               <button
+                aria-expanded={!sidebarCollapsed}
                 aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                className="rounded-2xl border border-line/80 bg-white/80 p-2 text-muted transition hover:border-primary/50 hover:text-primary"
+                className="rounded-2xl border border-line/80 bg-white/80 p-2 text-muted transition hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 onClick={toggleSidebar}
                 type="button"
               >
@@ -145,15 +191,15 @@ export function JobsOpsShell() {
 
             {!sidebarCollapsed ? (
               <div className="mt-4 grid gap-3 md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-                <div className="rounded-2xl border border-white/70 bg-white/70 px-3 py-3">
+                <div aria-label={`Review queue: ${reviewCount} items awaiting approval`} className="rounded-2xl border border-white/70 bg-white/70 px-3 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">Review</p>
                   <p className="mt-2 font-display text-2xl font-semibold text-ink">{reviewCount}</p>
                 </div>
-                <div className="rounded-2xl border border-white/70 bg-white/70 px-3 py-3">
+                <div aria-label={`Blocked runs: ${blockedRuns.length} automation runs blocked`} className="rounded-2xl border border-white/70 bg-white/70 px-3 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">Blocked</p>
                   <p className="mt-2 font-display text-2xl font-semibold text-ink">{blockedRuns.length}</p>
                 </div>
-                <div className="rounded-2xl border border-white/70 bg-white/70 px-3 py-3">
+                <div aria-label={`Open threads: ${openThreads} email threads active`} className="rounded-2xl border border-white/70 bg-white/70 px-3 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">Threads</p>
                   <p className="mt-2 font-display text-2xl font-semibold text-ink">{openThreads}</p>
                 </div>
@@ -168,7 +214,7 @@ export function JobsOpsShell() {
                 <NavLink
                   key={item.to}
                   className={({ isActive }) =>
-                    `rounded-2xl border px-3 py-3 transition ${
+                    `rounded-2xl border px-3 py-3 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                       isActive
                         ? 'border-primary/25 bg-[linear-gradient(135deg,rgba(13,91,215,0.12),rgba(255,255,255,0.92))] text-primary'
                         : 'border-transparent text-ink hover:border-line/80 hover:bg-white/70'
@@ -200,7 +246,7 @@ export function JobsOpsShell() {
               </p>
             </div>
           ) : null}
-        </aside>
+        </nav>
 
         <div className="grid min-h-[calc(100vh-2rem)] grid-rows-[auto_minmax(0,1fr)] gap-4">
           <header className="panel animate-rise flex flex-wrap items-center justify-between gap-4 px-5 py-4">
@@ -219,6 +265,7 @@ export function JobsOpsShell() {
                 {blockedRuns.length} blocked runs
               </StatusBadge>
               <button
+                ref={triggerButtonRef}
                 className="inline-flex min-h-[44px] items-center gap-2 rounded-2xl border border-line/80 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-primary/50 hover:text-primary"
                 onClick={openPalette}
                 type="button"
@@ -233,12 +280,14 @@ export function JobsOpsShell() {
             </div>
           </header>
 
-          <main className="panel animate-rise overflow-hidden">
-            <Outlet />
+          <main id="main-content" role="main" className="panel animate-rise overflow-hidden">
+            <ErrorBoundary level="page">
+              <Outlet />
+            </ErrorBoundary>
           </main>
         </div>
 
-        <aside className="panel animate-rise hidden min-h-[calc(100vh-2rem)] flex-col gap-6 px-5 py-5 lg:flex">
+        <aside aria-label="Platform info" className="panel animate-rise hidden min-h-[calc(100vh-2rem)] flex-col gap-6 px-5 py-5 lg:flex">
           <div>
             <span className="eyebrow">Runtime</span>
             <div className="mt-3 grid gap-3">
@@ -303,8 +352,17 @@ export function JobsOpsShell() {
       </div>
 
       {commandPaletteOpen ? (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-ink/25 px-4 py-12 backdrop-blur-sm">
-          <div className="panel w-full max-w-2xl p-5">
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center bg-ink/25 px-4 py-12 backdrop-blur-sm"
+          onClick={(event) => {
+            // Close when clicking the backdrop (not the dialog itself)
+            if (event.target === event.currentTarget) dismissPalette()
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Command palette"
+        >
+          <div ref={dialogRef} className="panel w-full max-w-2xl p-5">
             <div className="flex items-center gap-3 rounded-2xl border border-line/80 bg-white px-4 py-3">
               <Search className="h-4 w-4 text-muted" />
               <input
@@ -319,6 +377,14 @@ export function JobsOpsShell() {
                 placeholder="Search jobs, automation, reports, or review surfaces."
                 value={commandQuery}
               />
+              <button
+                aria-label="Close command palette"
+                className="rounded-xl p-1 text-muted transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                onClick={dismissPalette}
+                type="button"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
 
             <div className="mt-4 grid gap-2">

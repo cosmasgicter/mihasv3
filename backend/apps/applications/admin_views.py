@@ -131,9 +131,11 @@ class ApplicationListCreateView(APIView):
         role = getattr(user, "role", "student")
         if role in ("admin", "super_admin"):
             queryset = Application.objects.select_related(
-                'user', 'payment_verified_by', 'reviewed_by', 'admin_feedback_by'
+                'user', 'payment_verified_by', 'reviewed_by', 'admin_feedback_by',
+                'assigned_reviewer_id',
             ).prefetch_related(
-                'applicationdocument_set', 'applicationgrade_set', 'payment_set'
+                'applicationdocument_set', 'applicationgrade_set', 'payment_set',
+                'applicationcondition_set', 'applicationamendment_set',
             ).all()
             queryset = _with_payment_summary(queryset)
         else:

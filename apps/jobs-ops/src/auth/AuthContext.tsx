@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { env } from '@/lib/env'
 import { configureAuthFailure } from '@/services/api/client'
+import { useVisibilityRevalidation } from '@/hooks/useVisibilityRevalidation'
 
 type User = {
   id: string
@@ -32,13 +33,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const queryClient = useQueryClient()
 
+  const handleSessionInvalid = useCallback(() => {
+    setUser(null)
+    queryClient.clear()
+  }, [queryClient])
+
   useEffect(() => {
     let mounted = true
 
-    configureAuthFailure(() => {
-      setUser(null)
-      queryClient.clear()
-    })
+    configureAuthFailure(handleSessionInvalid)
 
     async function bootstrap() {
       try {
@@ -62,7 +65,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     bootstrap()
     return () => { mounted = false }
-  }, [queryClient])
+  }, [queryClient, handleSessionInvalid])
+
+  // Re-validate session when the browser tab regains visibility.
+  // If the session is stale, clear auth state so the user is redirected to sign-in.
+  useVisibilityRevalidation(handleSessionInvalid)
 
   return (
     <AuthContext.Provider value={{ user, isLoading, isAuthenticated: Boolean(user) }}>

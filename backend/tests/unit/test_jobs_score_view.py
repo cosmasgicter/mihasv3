@@ -16,10 +16,10 @@ class JobScoreViewTests(SimpleTestCase):
 
     @patch("apps.jobs.views.JobMatchScore.objects.update_or_create")
     @patch("apps.jobs.ai_service.score_job_match")
-    @patch("apps.jobs.views.JobPosting.objects.get")
+    @patch("apps.jobs.views.JobPosting.objects")
     def test_score_view_persists_against_candidate_and_canonical_fields(
         self,
-        mock_get_job,
+        mock_job_qs,
         mock_score_job_match,
         mock_update_or_create,
     ):
@@ -32,7 +32,7 @@ class JobScoreViewTests(SimpleTestCase):
             description="Clinical role",
             requirements="Registered clinician",
         )
-        mock_get_job.return_value = job
+        mock_job_qs.select_related.return_value.get.return_value = job
         mock_score_job_match.return_value = {
             "score": 82,
             "recommendation": "apply_now",
