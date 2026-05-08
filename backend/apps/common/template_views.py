@@ -9,6 +9,7 @@ import logging
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from apps.common.models import CommunicationTemplate
 
@@ -40,6 +41,7 @@ class CommunicationTemplateListView(APIView):
     def get_permissions(self):
         return [_get_admin_permission()()]
 
+    @extend_schema(tags=["admin"], summary="List communication templates")
     def get(self, request):
         templates = CommunicationTemplate.objects.all().order_by("template_key")
         data = CommunicationTemplateSerializer(templates, many=True).data
@@ -52,6 +54,7 @@ class CommunicationTemplateUpdateView(APIView):
     def get_permissions(self):
         return [_get_admin_permission()()]
 
+    @extend_schema(tags=["admin"], summary="Update a communication template")
     def put(self, request, key):
         try:
             template = CommunicationTemplate.objects.get(template_key=key)

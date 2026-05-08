@@ -312,6 +312,7 @@ _PROTECTED = {
     "apps.common.notification_views.NotificationListView",
     "apps.common.notification_views.NotificationMarkReadView",
     "apps.common.notification_views.NotificationMarkAllReadView",
+    "apps.common.notification_views.NotificationMarkAllReadAliasView",
     "apps.common.notification_views.NotificationDeleteView",
     "apps.common.notification_views.NotificationPreferenceView",
     "apps.common.notification_views.NotificationSendView",
