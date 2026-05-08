@@ -12,7 +12,6 @@ import { BulkActionsBar } from '@/components/admin/applications/BulkActionsBar'
 import { AdminMetrics } from '@/components/admin/applications/AdminMetrics'
 import { APPLICATION_FILTER_KEYS, useApplicationsData, useApplicationFilters } from '@/hooks/admin'
 import { Button } from '@/components/ui/Button'
-import { Container } from '@/components/ui/Container'
 import { useToastStore } from '@/hooks/useToast'
 import { applicationService } from '@/services/applications'
 import { documentService } from '@/services/documents'
@@ -41,18 +40,12 @@ import {
   FileDown, 
   FileSpreadsheet, 
   FileText, 
-  Search, 
   Filter, 
   RefreshCw, 
-  Users, 
-  TrendingUp, 
   Clock, 
-  CheckCircle,
   XCircle,
   AlertCircle,
   CreditCard,
-  Eye,
-  Send,
   Download,
   LayoutGrid,
   Table,

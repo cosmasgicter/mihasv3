@@ -82,6 +82,12 @@ _LENCO_STATUS_MAP: dict[str, str] = {
 # Lenco API timeout in seconds
 _LENCO_TIMEOUT = 15
 
+PROVIDER_STATUS_NOT_STARTED = "not_started"
+PROVIDER_STATUS_SENT = "sent"
+PROVIDER_STATUS_ACCEPTED = "accepted"
+PROVIDER_STATUS_REJECTED = "rejected"
+PROVIDER_STATUS_UNKNOWN = "unknown"
+
 
 # ---------------------------------------------------------------------------
 # Service
@@ -348,7 +354,10 @@ class PaymentService:
                 template = 'payment_verified' if target_payment_status == 'successful' else 'payment_rejected'
                 CommunicationService.send(template, application)
             except Exception:
-                pass
+                logger.exception(
+                    "Failed to send payment review notification for application %s",
+                    application_id,
+                )
 
             return application
 
@@ -424,7 +433,11 @@ class PaymentService:
                     str(application_id), resolved.amount,
                 )
             except Exception:
-                pass
+                logger.warning(
+                    "Fee waiver check failed for deferred payment %s, using full fee",
+                    application_id,
+                    exc_info=True,
+                )
 
             reference = _generate_reference(application.application_number)
 
@@ -692,6 +705,15 @@ class PaymentService:
                         locked.amount,
                         lenco_amount,
                     )
+                    self._record_payment_risk(
+                        locked,
+                        risk_type="amount_mismatch",
+                        details={
+                            "expected": str(locked.amount),
+                            "received": str(lenco_amount),
+                            "source": "lenco_status_update",
+                        },
+                    )
                     return
 
                 lenco_currency = str(lenco_data.get('currency', '')).upper()
@@ -702,6 +724,15 @@ class PaymentService:
                         locked.id,
                         locked.currency,
                         lenco_currency,
+                    )
+                    self._record_payment_risk(
+                        locked,
+                        risk_type="currency_mismatch",
+                        details={
+                            "expected": locked.currency,
+                            "received": lenco_currency,
+                            "source": "lenco_status_update",
+                        },
                     )
                     return
 
@@ -768,6 +799,85 @@ class PaymentService:
                 self._update_application_payment_status(
                     payment.application_id, app_status
                 )
+
+    def mark_provider_initiation(
+        self,
+        payment_id: UUID,
+        *,
+        status: str,
+        provider_data: dict | None = None,
+        operator: str | None = None,
+        phone_hash: str | None = None,
+        phone_last4: str | None = None,
+        error: str | None = None,
+    ) -> None:
+        """Record provider-initiation state without changing payment status.
+
+        This deliberately keeps uncertain mobile-money calls as ``pending`` so
+        reconciliation through webhooks and polling can settle the payment.
+        """
+        from django.db import transaction
+
+        with transaction.atomic():
+            payment = Payment.objects.select_for_update().get(id=payment_id)
+            meta = payment.metadata or {}
+            initiation = dict(meta.get("provider_initiation") or {})
+            initiation.update(
+                {
+                    "status": status,
+                    "updated_at": timezone.now().isoformat(),
+                }
+            )
+            if provider_data is not None:
+                initiation["provider_data"] = provider_data
+            if operator:
+                initiation["operator"] = operator
+            if phone_hash:
+                initiation["phone_hash"] = phone_hash
+            if phone_last4:
+                initiation["phone_last4"] = phone_last4
+            if error:
+                initiation["error"] = str(error)[:500]
+            meta["provider_initiation"] = initiation
+            payment.metadata = meta
+            if provider_data:
+                payment.lenco_reference = (
+                    provider_data.get("lencoReference")
+                    or provider_data.get("lenco_reference")
+                    or payment.lenco_reference
+                )
+                payment.payment_method = provider_data.get("type") or payment.payment_method
+            payment.updated_at = timezone.now()
+            payment.save(
+                update_fields=[
+                    "metadata",
+                    "lenco_reference",
+                    "payment_method",
+                    "updated_at",
+                ]
+            )
+
+    def _record_payment_risk(
+        self,
+        payment: Payment,
+        *,
+        risk_type: str,
+        details: dict,
+    ) -> None:
+        """Persist a structured risk flag while leaving status unchanged."""
+        meta = payment.metadata or {}
+        risks = list(meta.get("risk_flags") or [])
+        risks.append(
+            {
+                "type": risk_type,
+                "details": details,
+                "recorded_at": timezone.now().isoformat(),
+            }
+        )
+        meta["risk_flags"] = risks
+        payment.metadata = meta
+        payment.updated_at = timezone.now()
+        payment.save(update_fields=["metadata", "updated_at"])
 
     def _update_application_payment_status(
         self, application_id: UUID, status: str

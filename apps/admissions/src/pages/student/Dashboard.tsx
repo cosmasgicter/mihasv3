@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
@@ -6,28 +7,24 @@ import type { Application, Intake, ApplicationInterview } from '@/types/database
 import { interviewsService } from '@/services/interviews'
 import { Button } from '@/components/ui/Button'
 import { ContinueApplication } from '@/components/application/ContinueApplication'
-import { DocumentButtons } from '@/components/student/DocumentButtons'
-import { formatDate, getStatusColor } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
 import { draftManager } from '@/lib/draftManager'
 import { sanitizeForLog, sanitizeForDisplay } from '@/lib/sanitize'
 import { getUserMetadata, getBestValue, calculateProfileCompletion, getProfileMissingFields } from '@/hooks/useProfileAutoPopulation'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
 import { clearAllDraftData } from '@/lib/draftManager'
-import { applicationService, sortApplicationsByActivity } from '@/services/applications'
+import { applicationService, sortApplicationsByActivity, type PaginatedApplicationsResponse } from '@/services/applications'
 import { catalogService } from '@/services/catalog'
 import { DashboardStatusOverview } from '@/components/student/DashboardStatusOverview'
 import { ApplicationTimeline } from '@/components/student/ApplicationTimeline'
 import { QuickActions } from '@/components/student/QuickActions'
 import { ApplicationListItem } from '@/components/student/ApplicationListItem'
-import { StudentNextActionCard } from '@/components/student/StudentNextActionCard'
 import { User, FileText, Clock, RefreshCw, Calendar } from 'lucide-react'
 
-import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { useToastStore } from '@/hooks/useToast'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
-import { Container } from '@/components/ui/Container'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { Banner } from '@/components/ui/Banner'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -62,6 +59,7 @@ export default function StudentDashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { profile } = useProfileQuery()
+  const queryClient = useQueryClient()
 
   // Speculative prefetch: preload catalog data + wizard chunk during idle time
   useEffect(() => {
@@ -86,7 +84,62 @@ export default function StudentDashboard() {
   const loadDashboardDataRef = useRef<() => Promise<void>>(async () => {})
   const initialLoadCompleteRef = useRef(false)
   const scheduledRefreshRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const deletedDraftIdsRef = useRef(new Set<string>())
+  const deletedDraftSuppressionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const confirmDialog = useConfirmDialog()
+
+  const suppressDeletedDraftIds = useCallback((ids: string[]) => {
+    const cleanIds = ids.filter((id) => typeof id === 'string' && id.length > 0)
+    if (cleanIds.length === 0) return
+
+    cleanIds.forEach((id) => deletedDraftIdsRef.current.add(id))
+    if (deletedDraftSuppressionTimerRef.current) {
+      clearTimeout(deletedDraftSuppressionTimerRef.current)
+    }
+    deletedDraftSuppressionTimerRef.current = setTimeout(() => {
+      deletedDraftIdsRef.current.clear()
+      deletedDraftSuppressionTimerRef.current = null
+    }, 30_000)
+  }, [])
+
+  const filterSuppressedDrafts = useCallback((items: Application[]) => (
+    items.filter((application) => !deletedDraftIdsRef.current.has(application.id))
+  ), [])
+
+  const removeDraftsFromApplicationCaches = useCallback((ids: string[]) => {
+    const idsToRemove = new Set(ids.filter((id) => typeof id === 'string' && id.length > 0))
+    if (idsToRemove.size === 0) return
+
+    queryClient.setQueriesData<PaginatedApplicationsResponse>(
+      { queryKey: ['applications'] },
+      (current) => {
+        if (!current || !Array.isArray(current.applications)) {
+          return current
+        }
+
+        const applications = current.applications.filter((application) => !idsToRemove.has(application.id))
+        return {
+          ...current,
+          applications,
+          totalCount: Math.max(0, (current.totalCount ?? current.applications.length) - (current.applications.length - applications.length)),
+        }
+      },
+    )
+
+    idsToRemove.forEach((id) => {
+      queryClient.removeQueries({ queryKey: ['applications', 'detail', id] })
+      queryClient.removeQueries({ queryKey: ['application-detail', id] })
+    })
+  }, [queryClient])
+
+  const applyDeletedDraftRemoval = useCallback((ids: string[]) => {
+    const cleanIds = ids.filter((id) => typeof id === 'string' && id.length > 0)
+    if (cleanIds.length === 0) return
+
+    suppressDeletedDraftIds(cleanIds)
+    removeDraftsFromApplicationCaches(cleanIds)
+    setApplications(prev => prev.filter(app => !cleanIds.includes(app.id)))
+  }, [removeDraftsFromApplicationCaches, suppressDeletedDraftIds])
 
   const scheduleDashboardReload = useCallback((delay = 150) => {
     if (scheduledRefreshRef.current) {
@@ -102,13 +155,13 @@ export default function StudentDashboard() {
   const syncApplicationsFromPolling = useCallback((data: StudentDashboardData) => {
     setApplications((previousApplications) => {
       const previousById = new Map(previousApplications.map((application) => [application.id, application]))
-      return sortApplicationsByActivity(data.applications.map((application) => ({
+      return filterSuppressedDrafts(sortApplicationsByActivity(data.applications.map((application) => ({
         ...(previousById.get(application.id) ?? {}),
         ...application,
-      })) as Application[])
+      })) as Application[]))
     })
 
-    const hasServerDraft = data.applications.some((application) => application.status === 'draft')
+    const hasServerDraft = filterSuppressedDrafts(data.applications as Application[]).some((application) => application.status === 'draft')
     if (hasServerDraft) {
       setHasDraft(true)
     } else if (user?.id) {
@@ -120,7 +173,7 @@ export default function StudentDashboard() {
     }
 
     setApplicationsError('')
-  }, [user?.id])
+  }, [filterSuppressedDrafts, user?.id])
 
 
   // Manual refresh hook for React Query cache invalidation
@@ -155,6 +208,9 @@ export default function StudentDashboard() {
       if (scheduledRefreshRef.current) {
         clearTimeout(scheduledRefreshRef.current)
       }
+      if (deletedDraftSuppressionTimerRef.current) {
+        clearTimeout(deletedDraftSuppressionTimerRef.current)
+      }
     }
   }, [user])
 
@@ -175,9 +231,24 @@ export default function StudentDashboard() {
       setHasDraft(false)
     }
 
-    const handleDraftCleared = async () => {
-      setHasDraft(false)
-      setApplications(prev => prev.filter(app => app.status !== 'draft'))
+    const handleDraftCleared = async (event?: Event) => {
+      const detail = (event as CustomEvent<{ deletedIds?: string[]; blockedIds?: string[] }> | undefined)?.detail
+      const deletedIds = detail?.deletedIds ?? []
+      const blockedIds = detail?.blockedIds ?? []
+      if (deletedIds.length > 0) {
+        applyDeletedDraftRemoval(deletedIds)
+      }
+
+      setHasDraft(blockedIds.length > 0)
+      setApplications(prev => {
+        if (deletedIds.length > 0) {
+          return prev.filter(app => !deletedIds.includes(app.id))
+        }
+        if (detail) {
+          return prev
+        }
+        return prev.filter(app => app.status !== 'draft')
+      })
       scheduleDashboardReload()
     }
 
@@ -239,7 +310,7 @@ export default function StudentDashboard() {
       window.removeEventListener('applicationUpdated', handleApplicationUpdated)
       window.removeEventListener('applicationCreated', handleApplicationCreated)
     }
-  }, [scheduleDashboardReload, user])
+  }, [applyDeletedDraftRemoval, scheduleDashboardReload, user])
 
   const loadDashboardData = async () => {
     const requestId = loadRequestIdRef.current + 1
@@ -323,7 +394,7 @@ export default function StudentDashboard() {
       // --- Process applications result ---
       if (applicationsResult.status === 'fulfilled') {
         const applicationsResponse = applicationsResult.value
-        const loadedApplications = sortApplicationsByActivity((applicationsResponse?.applications || []) as Application[])
+        const loadedApplications = filterSuppressedDrafts(sortApplicationsByActivity((applicationsResponse?.applications || []) as Application[]))
         setApplications(loadedApplications)
         setApplicationsError('')
 
@@ -456,9 +527,28 @@ export default function StudentDashboard() {
         throw new Error('You must be signed in to clear drafts')
       }
 
+      const draftIdsBeforeDelete = applications
+        .filter((application) => application.status === 'draft')
+        .map((application) => application.id)
       const deleteResult = await draftManager.clearAllDrafts(user.id)
+      const deletedIds = deleteResult.deletedIds?.length ? deleteResult.deletedIds : (
+        deleteResult.success ? draftIdsBeforeDelete : []
+      )
+
+      if (deletedIds.length > 0) {
+        applyDeletedDraftRemoval(deletedIds)
+      }
 
       if (!deleteResult.success) {
+        if (deleteResult.code === 'DRAFT_HAS_PAYMENT_ACTIVITY') {
+          const message = 'Some drafts have payment activity and cannot be deleted. Continue the application or contact admissions for help.'
+          setApplicationsError('')
+          setHasDraft(true)
+          useToastStore.getState().warning('Draft protected', message)
+          await loadDashboardDataRef.current()
+          return
+        }
+
         const errorMessage = deleteResult.error || 'Failed to clear all drafts from the server'
         setApplicationsError(errorMessage)
         useToastStore.getState().addToast('error', errorMessage)
@@ -468,7 +558,9 @@ export default function StudentDashboard() {
       }
 
       // Clear local state BEFORE reloading so the reload doesn't re-set hasDraft from stale storage
-      setApplications(prev => prev.filter(app => app.status !== 'draft'))
+      if (deletedIds.length === 0) {
+        setApplications(prev => prev.filter(app => app.status !== 'draft'))
+      }
       setHasDraft(false)
       setApplicationsError('')
       useToastStore.getState().addToast('success', 'All drafts cleared successfully')
@@ -483,7 +575,7 @@ export default function StudentDashboard() {
     } finally {
       setIsClearingAllDrafts(false)
     }
-  }, [user, applications, confirmDialog])
+  }, [applyDeletedDraftRemoval, user, applications, confirmDialog])
 
   return (
     <>
@@ -765,15 +857,6 @@ export default function StudentDashboard() {
             />
             </ErrorBoundary>
 
-            <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.NextActionCard', ...errorInfo })}>
-            <StudentNextActionCard
-              applications={applications}
-              draftCount={totalDraftCount}
-              hasPendingPayment={hasPendingPayment}
-              hasScheduledInterview={hasScheduledInterview}
-              profileCompletion={profileCompletion}
-            />
-            </ErrorBoundary>
           </div>
         )}
       <ConfirmAlertDialog

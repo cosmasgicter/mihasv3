@@ -92,8 +92,8 @@ export function ApplicationsCards({
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-foreground truncate">{application.full_name}</h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground font-mono">#{application.application_number}</p>
+                        <h3 className="break-words font-bold text-foreground">{application.full_name}</h3>
+                        <p className="break-all font-mono text-xs text-muted-foreground sm:text-sm">#{application.application_number}</p>
                       </div>
                     </div>
                     <div className="flex flex-col items-end space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
@@ -103,7 +103,7 @@ export function ApplicationsCards({
                       <div className="hidden sm:block">
                         {getStatusIcon(application.status)}
                       </div>
-                      <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
+                      <span className={`max-w-full rounded-md px-2 py-1 text-center text-xs font-bold leading-tight sm:px-3 ${
                         getStatusColor(application.status)
                       }`}>
                         {application.status.replace('_', ' ').toUpperCase()}
@@ -115,19 +115,19 @@ export function ApplicationsCards({
                   <div className="space-y-2 sm:space-y-3">
                     <div className="flex items-center space-x-2 text-xs sm:text-sm text-foreground-secondary">
                       <Mail className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                      <span className="truncate">{application.email}</span>
+                      <span className="min-w-0 break-all">{application.email}</span>
                     </div>
                     <div className="flex items-center space-x-2 text-xs sm:text-sm text-foreground-secondary">
                       <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                      <span className="truncate">{application.program}</span>
+                      <span className="min-w-0 break-words">{application.program}</span>
                     </div>
                     <div className="flex items-center space-x-2 text-xs sm:text-sm text-foreground-secondary">
                       <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                      <span className="truncate">{application.intake}</span>
+                      <span className="min-w-0 break-words">{application.intake}</span>
                     </div>
                     <div className="flex items-center space-x-2 text-xs sm:text-sm text-foreground-secondary">
                       <Clock className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                      <span>Submitted {formatDate(application.submitted_at)}</span>
+                      <span className="min-w-0 break-words">Submitted {formatDate(application.submitted_at)}</span>
                     </div>
                     
                     {/* Documents - Mobile Optimized */}

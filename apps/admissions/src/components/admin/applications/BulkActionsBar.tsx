@@ -36,8 +36,8 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
   return (
     <>
     <div className="fixed bottom-0 left-0 right-0 z-50 animate-in slide-in-from-bottom duration-300">
-      <div className=" bg-background/90 border-t border-border shadow-sm px-4 py-3 sm:px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      <div className="border-t border-border bg-background/95 px-4 py-3 shadow-sm backdrop-blur sm:px-6" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}>
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center justify-center h-7 min-w-[28px] rounded-full bg-primary text-primary-foreground text-xs font-bold px-2">
               {selectedIds.length}
@@ -47,7 +47,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
             </span>
           </div>
         
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
             <Button
               size="sm"
               variant="outline"
@@ -81,13 +81,13 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
               Review
             </Button>
 
-            <div className="h-5 w-px bg-border mx-1" />
+            <div className="mx-1 hidden h-5 w-px bg-border sm:block" />
         
             <Button
               size="sm"
               variant="ghost"
               onClick={onClearSelection}
-              className="text-muted-foreground hover:text-foreground rounded-lg"
+              className="rounded-lg text-muted-foreground hover:text-foreground"
             >
               Clear
             </Button>

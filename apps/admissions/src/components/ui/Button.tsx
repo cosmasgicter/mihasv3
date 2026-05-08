@@ -15,7 +15,7 @@ import { ButtonSpinner } from './ButtonSpinner'
 
 const buttonVariants = cva(
   // Base styles with focus-visible ring and touch-manipulation for mobile
-  'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-semibold ring-offset-background transition-all duration-200 ease-smooth-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'relative inline-flex min-w-0 items-center justify-center gap-2 whitespace-normal break-words rounded-lg text-center font-semibold leading-tight ring-offset-background transition-all duration-200 ease-smooth-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -32,12 +32,12 @@ const buttonVariants = cva(
         gradient: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-[0.98]',
       },
       size: {
-        default: 'h-11 px-4 text-sm',           // 44px - meets touch target minimum
-        xs: 'h-9 px-2 text-xs',                  // 36px - small contexts, still accessible
-        sm: 'h-10 px-3 text-sm',                 // 40px - small
-        md: 'h-11 px-4 text-base',               // 44px - medium (meets touch target)
-        lg: 'h-12 px-6 text-lg',                 // 48px - large
-        xl: 'h-12 px-8 text-xl',                 // 48px - extra large
+        default: 'min-h-11 h-auto px-4 py-2 text-sm',           // 44px - meets touch target minimum
+        xs: 'min-h-9 h-auto px-2 py-1.5 text-xs',               // 36px - compact contexts
+        sm: 'min-h-10 h-auto px-3 py-2 text-sm',                // 40px - compact
+        md: 'min-h-11 h-auto px-4 py-2 text-base',              // 44px - medium
+        lg: 'min-h-12 h-auto px-6 py-2.5 text-lg',              // 48px - large
+        xl: 'min-h-12 h-auto px-8 py-2.5 text-xl',              // 48px - extra large
         icon: 'h-11 w-11 p-0',                   // 44px - icon only, meets touch target
       },
     },

@@ -56,6 +56,11 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
                 onPaste={onPaste}
                 onKeyPress={onKeyPress}
                 placeholder="Enter application number..."
+                autoComplete="off"
+                inputMode="text"
+                aria-describedby={error ? 'tracker-search-error' : undefined}
+                aria-invalid={Boolean(error)}
+                disabled={loading}
                 className="h-14 w-full rounded-lg border border-slate-300 bg-white pl-12 pr-4 text-base shadow-sm focus:border-primary"
               />
             </div>
@@ -63,7 +68,8 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               onClick={onSearch}
               loading={loading}
               size="lg"
-              className="h-14 rounded-lg bg-primary px-8 font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+              disabled={loading || searchTerm.trim().length === 0}
+              className="h-14 w-full rounded-lg bg-primary px-8 font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 sm:w-auto"
             >
               <Search className="h-5 w-5 mr-2" aria-hidden="true" />
               {loading ? 'Searching...' : 'Search'}
@@ -72,6 +78,8 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
           
           {error && (
             <div
+              id="tracker-search-error"
+              role="alert"
               className={`mt-4 rounded-lg bg-error/10 border border-error/30 p-4 transition-all duration-300 ease-out ${
                 errorVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
               }`}

@@ -29,6 +29,15 @@ export interface SessionWarning {
   canExtend: boolean
 }
 
+export interface DraftDeleteResult {
+  success: boolean
+  error?: string
+  code?: string
+  deletedIds?: string[]
+  blockedIds?: string[]
+  failedIds?: string[]
+}
+
 // Constants for configuration
 const AUTO_SAVE_INTERVAL = 8000 // 8 seconds
 const SESSION_WARNING_TIME = 25 * 60 * 1000 // 25 minutes
@@ -57,6 +66,24 @@ export function isApplicationMissingError(error: unknown): boolean {
     message.includes('application not found') ||
     message.includes('not found or access denied')
   )
+}
+
+function getApiErrorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== 'object') {
+    return undefined
+  }
+
+  const directCode = (error as { code?: unknown }).code
+  if (typeof directCode === 'string') {
+    return directCode
+  }
+
+  const dataCode = (error as { data?: { code?: unknown } }).data?.code
+  return typeof dataCode === 'string' ? dataCode : undefined
+}
+
+export function isProtectedDraftPaymentError(error: unknown): boolean {
+  return getApiErrorCode(error) === 'DRAFT_HAS_PAYMENT_ACTIVITY'
 }
 
 function clearStorageDraftApplicationId(storage: Storage, key: string, staleApplicationId?: string | null) {
@@ -121,7 +148,7 @@ class ApplicationSessionManager {
   private saveInterval: NodeJS.Timeout | null = null
   private warningTimeout: NodeJS.Timeout | null = null
   private expiryTimeout: NodeJS.Timeout | null = null
-  private deleteDraftPromises = new Map<string, Promise<{ success: boolean; error?: string }>>()
+  private deleteDraftPromises = new Map<string, Promise<DraftDeleteResult>>()
   private onWarning?: (warning: SessionWarning) => void
   private onExpiry?: () => void
 
@@ -447,7 +474,7 @@ class ApplicationSessionManager {
   }
 
   // Delete draft with comprehensive cleanup
-  async deleteDraft(userId: string): Promise<{ success: boolean; error?: string }> {
+  async deleteDraft(userId: string): Promise<DraftDeleteResult> {
     const existingDelete = this.deleteDraftPromises.get(userId)
     if (existingDelete) {
       return existingDelete
@@ -463,10 +490,14 @@ class ApplicationSessionManager {
     }
   }
 
-  private async performDeleteDraft(userId: string): Promise<{ success: boolean; error?: string }> {
+  private async performDeleteDraft(userId: string): Promise<DraftDeleteResult> {
     try {
       // Step 1: Clear intervals to stop auto-save before server deletion.
       this.cleanup()
+
+      const deletedIds: string[] = []
+      const blockedIds: string[] = []
+      const failedIds: string[] = []
 
       // Step 2: Database cleanup via API (delete actual draft application ids, not the user id)
       try {
@@ -480,23 +511,52 @@ class ApplicationSessionManager {
           .filter((id): id is string => typeof id === 'string' && id.length > 0)
 
         if (draftIds.length > 0) {
-          const failedDeletes: string[] = []
           for (const id of draftIds) {
             try {
               await applicationService.delete(id)
             } catch (deleteError) {
+              if (isProtectedDraftPaymentError(deleteError)) {
+                blockedIds.push(id)
+                continue
+              }
+
               if (!isApplicationMissingError(deleteError)) {
-                failedDeletes.push(id)
+                failedIds.push(id)
                 continue
               }
             }
+            deletedIds.push(id)
             clearStaleApplicationDraftReference(id)
           }
 
-          if (failedDeletes.length > 0) {
+          if (failedIds.length > 0) {
             return {
               success: false,
-              error: `Failed to delete ${failedDeletes.length} draft${failedDeletes.length > 1 ? 's' : ''} from the server`
+              code: 'DRAFT_DELETE_PARTIAL_FAILURE',
+              deletedIds,
+              blockedIds,
+              failedIds,
+              error: `Failed to delete ${failedIds.length} draft${failedIds.length > 1 ? 's' : ''} from the server`
+            }
+          }
+
+          if (blockedIds.length > 0) {
+            this.clearAllLocalStorage()
+            try {
+              window.dispatchEvent(new CustomEvent('draftCleared', {
+                detail: { deletedIds, blockedIds }
+              }))
+            } catch {
+              // best effort UI sync
+            }
+
+            return {
+              success: false,
+              code: 'DRAFT_HAS_PAYMENT_ACTIVITY',
+              deletedIds,
+              blockedIds,
+              failedIds,
+              error: 'Some drafts have payment activity and cannot be deleted.'
             }
           }
         }
@@ -516,7 +576,15 @@ class ApplicationSessionManager {
       } catch (storageError) {
       }
 
-      return { success: true }
+      try {
+        window.dispatchEvent(new CustomEvent('draftCleared', {
+          detail: { deletedIds, blockedIds }
+        }))
+      } catch {
+        // best effort UI sync
+      }
+
+      return { success: true, deletedIds, blockedIds, failedIds }
     } catch (error) {
       console.error('Draft deletion failed:', sanitizeForLog(error))
       return {

@@ -163,6 +163,7 @@ const mockCatalogServiceGetIntakes = vi.fn()
 const mockInterviewsServiceList = vi.fn()
 
 vi.mock('@/services/applications', () => ({
+  sortApplicationsByActivity: (applications: unknown[]) => applications,
   applicationService: {
     list: (...args: unknown[]) => mockApplicationServiceList(...args),
     delete: vi.fn().mockResolvedValue({ success: true }),

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
 import { exportUsersToPDF, type UserPDFFieldDefinition } from '@/lib/exportUtils'
+import { downloadXlsx } from '@/lib/xlsxWriter'
 import { UserProfile } from '@/types/database'
 import { Download, FileText, FileSpreadsheet, Filter, Users, CheckSquare, Square } from 'lucide-react'
 import { toast } from '@/hooks/useToast'
@@ -251,13 +252,18 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
   }
 
   const exportToExcel = async (data: UserProfile[]) => {
-    // @ts-ignore -- xlsx is an optional peer dependency, may not have type declarations in CI
-    const XLSX = await import('xlsx')
     const exportRows = buildExportRows(data)
-    const worksheet = XLSX.utils.json_to_sheet(exportRows)
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Users')
-    XLSX.writeFile(workbook, `${buildExportFileStem()}.xlsx`)
+    const headers = exportOptions.fields.map(fieldId => (
+      AVAILABLE_FIELDS.find(item => item.id === fieldId)?.label || fieldId
+    ))
+    const rows = [
+      headers,
+      ...exportRows.map(row => headers.map(header => {
+        const value = row[header]
+        return typeof value === 'number' || typeof value === 'boolean' ? value : String(value ?? '')
+      }))
+    ]
+    downloadXlsx({ name: 'Users', rows }, `${buildExportFileStem()}.xlsx`)
   }
 
   const handleExport = async () => {

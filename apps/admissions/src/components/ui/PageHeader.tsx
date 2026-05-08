@@ -72,8 +72,8 @@ export function PageHeader({
  )}
  >
  {statIcon && <span className="shrink-0 text-lg">{statIcon}</span>}
- <div className="space-y-1">
- <p className={cn('text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-muted-foreground' : 'text-foreground')}>
+ <div className="min-w-0 space-y-1">
+ <p className={cn('break-words text-xs font-semibold uppercase tracking-wide', isGradient ? 'text-muted-foreground' : 'text-foreground')}>
  {label}
  </p>
  <p className={cn('text-lg sm:text-xl md:text-2xl font-bold break-words', isGradient ? 'text-foreground' : '')}>{value}</p>
@@ -98,7 +98,7 @@ export function PageHeader({
 					 )}
 				 </div>
 				 <div className={cn('relative flex flex-col gap-6 sm:flex-row sm:justify-between', alignmentStyles[align])}>
-					 <div className="space-y-4 sm:max-w-2xl">
+					 <div className="min-w-0 space-y-4 sm:max-w-2xl">
 						 {eyebrow && (
 							 <p className={cn('font-semibold uppercase tracking-wide', isGradient ? 'text-white/90' : 'text-primary')} style={{ fontSize: 'var(--type-xs)' }}>
 								 {eyebrow}
@@ -116,10 +116,10 @@ export function PageHeader({
 									 {icon}
 								 </div>
 							 )}
-							 <div className="space-y-3">
-								 <h1 style={{ fontSize: 'clamp(1.25rem, 1.8vw + 0.9rem, 2.5rem)', fontWeight: 700 }} className="tracking-tight break-words">{title}</h1>
+							 <div className="min-w-0 space-y-3">
+								 <h1 style={{ fontSize: 'var(--text-3xl)', fontWeight: 700 }} className="tracking-tight break-words">{title}</h1>
 								 {description && (
-									 <p className={cn('', isGradient ? 'text-white/90' : 'text-foreground')} style={{ fontSize: 'var(--type-base)' }}>{description}</p>
+									 <p className={cn('break-words', isGradient ? 'text-white/90' : 'text-foreground')} style={{ fontSize: 'var(--type-base)' }}>{description}</p>
 								 )}
 								 {children}
 							 </div>
@@ -127,10 +127,10 @@ export function PageHeader({
 					 </div>
 
 					 {(actions || (stats && stats.length > 0)) && (
-						 <div className="flex flex-col gap-4 sm:items-end">
-							 {actions && <div className="flex flex-wrap justify-end gap-3">{actions}</div>}
+						 <div className="flex min-w-0 flex-col gap-4 sm:items-end">
+							 {actions && <div className="flex min-w-0 flex-wrap justify-end gap-3">{actions}</div>}
 							 {stats && stats.length > 0 && (
-								 <div className="flex flex-wrap justify-end gap-3">{stats.map(renderStat)}</div>
+								 <div className="flex min-w-0 flex-wrap justify-end gap-3">{stats.map(renderStat)}</div>
 							 )}
 						 </div>
 					 )}

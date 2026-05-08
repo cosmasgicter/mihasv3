@@ -11,7 +11,7 @@
  * `moderate` and `minor` violations are logged but do NOT fail the test.
  *
  * Requires the dev server running at http://localhost:5173
- * Run with: bunx playwright test tests/e2e/accessibility.spec.ts
+ * Run with: bun x playwright test tests/e2e/accessibility.spec.ts
  */
 
 import { test, expect, type Page } from '@playwright/test';

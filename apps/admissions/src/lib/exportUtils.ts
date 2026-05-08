@@ -1,4 +1,5 @@
 import { formatDate as _fmtDate, formatTimestamp as _fmtTimestamp } from '@/lib/dateFormat'
+import { downloadXlsx } from '@/lib/xlsxWriter'
 
 export interface ApplicationData {
   application_number: string
@@ -221,17 +222,12 @@ export async function exportToExcel(
   source: ApplicationDataSource,
   filename: string = 'applications.xlsx'
 ) {
-  // @ts-ignore -- xlsx is an optional peer dependency, may not have type declarations in CI
-  const XLSX = await import('xlsx')
-  const workbook = XLSX.utils.book_new()
-  const worksheet = XLSX.utils.aoa_to_sheet([[...HEADERS]])
-
-  let batch: Array<Array<string | number>> = []
+  const rows: Array<Array<string | number>> = [[...HEADERS]]
   let processed = 0
 
   for await (const record of iterateApplicationData(source)) {
     const row = mapToRowValues(record)
-    batch.push([
+    rows.push([
       row.application_number,
       row.full_name,
       row.email,
@@ -258,22 +254,12 @@ export async function exportToExcel(
 
     processed += 1
 
-    if (batch.length >= 200) {
-      XLSX.utils.sheet_add_aoa(worksheet, batch, { origin: -1 })
-      batch = []
-    }
-
     if (processed % YIELD_INTERVAL === 0) {
       await delayForStreaming()
     }
   }
 
-  if (batch.length) {
-    XLSX.utils.sheet_add_aoa(worksheet, batch, { origin: -1 })
-  }
-
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Applications')
-  XLSX.writeFileXLSX(workbook, filename, { compression: true })
+  downloadXlsx({ name: 'Applications', rows }, filename)
 }
 
 export async function exportToPDF(

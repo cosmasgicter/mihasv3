@@ -66,30 +66,30 @@ export function PageShell({
   return (
     <div
       ref={shellRef}
-      className={cn('relative min-h-screen scroll-smooth bg-slate-50 pb-20 md:pb-0', className)}
+      className={cn('bottom-nav-content-padding relative min-h-screen overflow-x-hidden scroll-smooth bg-slate-50 md:pb-0', className)}
     >
       <div className={cn('mx-auto px-4 sm:px-6 lg:px-8', containerClass)}>
         <header className="py-3 sm:py-6">
           <div className={cn('overflow-hidden rounded-lg border bg-white shadow-sm', accentClass)}>
             <div className="border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
-              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                <div className="max-w-3xl">
+              <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div className="min-w-0 max-w-3xl">
                   {eyebrow && (
-                    <p className="mb-2 text-xs font-semibold uppercase text-primary">
+                    <p className="mb-2 break-words text-xs font-semibold uppercase text-primary">
                       {eyebrow}
                     </p>
                   )}
-                  <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+                  <h1 className="break-words text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
                     {title}
                   </h1>
                   {subtitle && (
-                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    <p className="mt-2 max-w-2xl break-words text-sm leading-6 text-slate-600">
                       {subtitle}
                     </p>
                   )}
                 </div>
                 {actions && (
-                  <div className="flex flex-col gap-2 md:min-w-[12rem] md:items-end md:justify-start md:self-start">
+                  <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap md:min-w-[12rem] md:items-end md:justify-end md:self-start">
                     {actions}
                   </div>
                 )}
@@ -102,14 +102,14 @@ export function PageShell({
                     key={metric.label}
                     className="bg-slate-50 px-4 py-3 sm:px-5"
                   >
-                    <p className="text-xs font-medium uppercase text-slate-500">
+                    <p className="break-words text-xs font-medium uppercase text-slate-500">
                       {metric.label}
                     </p>
-                    <div className="mt-1 text-lg font-semibold text-slate-950">
+                    <div className="mt-1 min-w-0 break-words text-lg font-semibold text-slate-950">
                       {metric.value}
                     </div>
                     {metric.helper && (
-                      <p className="mt-1 text-xs leading-5 text-slate-500">{metric.helper}</p>
+                      <p className="mt-1 break-words text-xs leading-5 text-slate-500">{metric.helper}</p>
                     )}
                   </div>
                 ))}

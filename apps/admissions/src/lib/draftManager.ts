@@ -1,4 +1,4 @@
-import { applicationSessionManager } from './applicationSession'
+import { applicationSessionManager, type DraftDeleteResult } from './applicationSession'
 import { KNOWN_DRAFT_STORAGE_KEYS, removeDraftStorageEntries } from './draftStorageKeys'
 import { sanitizeForLog } from './sanitize'
 
@@ -19,7 +19,7 @@ function isDraftContentKey(key: string): boolean {
 
 export class DraftManager {
   private static instance: DraftManager
-  private clearPromise: Promise<{ success: boolean; error?: string }> | null = null
+  private clearPromise: Promise<DraftDeleteResult> | null = null
 
   static getInstance(): DraftManager {
     if (!DraftManager.instance) {
@@ -43,7 +43,7 @@ export class DraftManager {
     }
   }
 
-  async clearAllDrafts(userId: string): Promise<{ success: boolean; error?: string }> {
+  async clearAllDrafts(userId: string): Promise<DraftDeleteResult> {
     // Return existing promise if already clearing (prevents race condition)
     if (this.clearPromise) {
       return this.clearPromise

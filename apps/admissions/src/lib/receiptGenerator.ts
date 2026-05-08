@@ -1,6 +1,13 @@
 // Dynamic import for jsPDF
 import QRCode from 'qrcode'
 import { formatDate } from './utils'
+import {
+  drawPdfFooters,
+  drawPdfQrCode,
+  ensurePdfSpace,
+  fillPageBackground,
+  type PdfDocument,
+} from './pdfLayout'
 
 // Brand constants
 const NAVY = { r: 26, g: 54, b: 93 } // #1a365d
@@ -35,14 +42,17 @@ function getFullInstitutionName(code: string): string {
 
 export async function generatePaymentReceipt(data: ReceiptData): Promise<Blob> {
   const { jsPDF } = await import('jspdf')
-  const doc = new jsPDF()
+  const doc = new jsPDF() as PdfDocument
   const pageWidth = doc.internal.pageSize.getWidth()
-  const pageHeight = doc.internal.pageSize.getHeight()
   const institutionName = getFullInstitutionName(data.institution)
   const contentWidth = pageWidth - MARGIN * 2
+  let y = 60
 
-  doc.setFillColor(SOFT_SURFACE.r, SOFT_SURFACE.g, SOFT_SURFACE.b)
-  doc.rect(0, 0, pageWidth, pageHeight, 'F')
+  const ensureSpace = (required: number) => {
+    y = ensurePdfSpace(doc, y, required, { background: SOFT_SURFACE })
+  }
+
+  fillPageBackground(doc, SOFT_SURFACE)
 
   // --- Header band ---
   doc.setFillColor(NAVY.r, NAVY.g, NAVY.b)
@@ -67,7 +77,6 @@ export async function generatePaymentReceipt(data: ReceiptData): Promise<Blob> {
   doc.text('PAYMENT RECEIPT', pageWidth / 2, 42, { align: 'center' })
 
   // --- Receipt meta ---
-  let y = 60
   doc.setTextColor(0, 0, 0)
   doc.setFillColor(255, 255, 255)
   doc.roundedRect(MARGIN, y - 4, contentWidth, 20, 4, 4, 'F')
@@ -104,15 +113,18 @@ export async function generatePaymentReceipt(data: ReceiptData): Promise<Blob> {
     ['Programme:', data.program],
   ]
   studentFields.forEach(([label, value]) => {
+    const valueLines = doc.splitTextToSize(value, contentWidth - 48)
+    ensureSpace(Math.max(7, valueLines.length * 6))
     doc.setFont('helvetica', 'bold')
     doc.text(label, MARGIN, y)
     doc.setFont('helvetica', 'normal')
-    doc.text(value, MARGIN + 42, y)
-    y += 7
+    doc.text(valueLines, MARGIN + 42, y)
+    y += Math.max(7, valueLines.length * 6)
   })
 
   // --- Payment Details ---
   y += 6
+  ensureSpace(50)
   doc.setFillColor(255, 255, 255)
   doc.roundedRect(pageWidth - MARGIN - 64, y - 18, 64, 24, 4, 4, 'F')
   doc.setDrawColor(223, 231, 239)
@@ -145,15 +157,18 @@ export async function generatePaymentReceipt(data: ReceiptData): Promise<Blob> {
     ['Verified By:', data.verifiedBy],
   ]
   paymentFields.forEach(([label, value]) => {
+    const valueLines = doc.splitTextToSize(value, contentWidth - 48)
+    ensureSpace(Math.max(7, valueLines.length * 6))
     doc.setFont('helvetica', 'bold')
     doc.text(label, MARGIN, y)
     doc.setFont('helvetica', 'normal')
-    doc.text(value, MARGIN + 42, y)
-    y += 7
+    doc.text(valueLines, MARGIN + 42, y)
+    y += Math.max(7, valueLines.length * 6)
   })
 
   // --- Status badge ---
   y += 8
+  ensureSpace(24)
   doc.setFillColor(34, 120, 74)
   doc.roundedRect(MARGIN, y - 5, pageWidth - MARGIN * 2, 16, 3, 3, 'F')
   doc.setTextColor(255, 255, 255)
@@ -172,23 +187,16 @@ export async function generatePaymentReceipt(data: ReceiptData): Promise<Blob> {
     verified: data.verifiedDate,
   })
   const qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 200, errorCorrectionLevel: 'M' })
-  const qrY = pageHeight - 48
-  doc.addImage(qrDataUrl, 'PNG', pageWidth - 48, qrY, 28, 28)
-  doc.setFontSize(7)
-  doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
-  doc.text('Scan to verify', pageWidth - 34, qrY + 31, { align: 'center' })
+  drawPdfQrCode(doc, qrDataUrl, y + 14, {
+    background: SOFT_SURFACE,
+    labelColor: GREY_TEXT,
+  })
 
-  // --- Footer ---
-  const footerY = pageHeight - 14
-  doc.setDrawColor(NAVY.r, NAVY.g, NAVY.b)
-  doc.setLineWidth(0.3)
-  doc.line(MARGIN, footerY - 4, pageWidth - MARGIN, footerY - 4)
-
-  doc.setFontSize(8)
-  doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
-  doc.text('This is a computer-generated document. No signature is required.', MARGIN, footerY)
-  doc.text(`Generated: ${formatDate(new Date().toISOString())}`, pageWidth / 2, footerY, { align: 'center' })
-  doc.text('Page 1 of 1', pageWidth - MARGIN, footerY, { align: 'right' })
+  drawPdfFooters(doc, {
+    borderColor: NAVY,
+    textColor: GREY_TEXT,
+    generatedLabel: `Generated: ${formatDate(new Date().toISOString())}`,
+  })
 
   return doc.output('blob')
 }

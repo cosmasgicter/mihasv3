@@ -647,11 +647,11 @@ const ApplicationWizardContent = () => {
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-xs font-semibold text-foreground whitespace-nowrap">
+                  <div className="flex min-w-[3rem] flex-col items-end">
+                    <span className="text-xs font-semibold text-foreground">
                       {progressPercent}%
                     </span>
-                    <span className="text-xs text-foreground/70 whitespace-nowrap hidden sm:block">
+                    <span className="hidden text-right text-xs text-foreground/70 sm:block">
                       {formattedTime}
                     </span>
                   </div>
@@ -663,7 +663,7 @@ const ApplicationWizardContent = () => {
                     ) : (
                       <div className="h-3.5 w-3.5 rounded-full border-2 border-muted-foreground" />
                     )}
-                    <span className={`font-medium ${
+                    <span className={`min-w-0 break-words font-medium ${
                       currentStepReadiness.isComplete ? 'text-success' : 'text-foreground/80'
                     }`}>
                       {currentStepReadiness.completed}/{currentStepReadiness.total} requirements complete

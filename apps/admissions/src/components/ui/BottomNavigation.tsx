@@ -107,7 +107,7 @@ function BottomNavLink({
   const prefetch = usePrefetch(routeImports[item.href] ?? noopImport)
   const prefetchProps = hasImport ? prefetch : {}
   const baseClassName = cn(
-    'flex flex-col items-center justify-center',
+    'flex min-w-0 flex-1 flex-col items-center justify-center',
     'min-h-[44px] min-w-[44px] px-3 py-2',
     'rounded-lg',
     'transition-colors duration-150',
@@ -150,7 +150,7 @@ function BottomNavLink({
           )}
         </div>
         {!iconOnly && (
-          <span className={cn('mt-1 text-[10px] font-semibold', isActive ? 'text-primary' : 'text-muted-foreground')}>
+          <span className={cn('mt-1 max-w-full truncate text-[10px] font-semibold', isActive ? 'text-primary' : 'text-muted-foreground')}>
             {item.label}
           </span>
         )}
@@ -186,7 +186,7 @@ function BottomNavLink({
         )}
       </div>
       {!iconOnly && (
-        <span className={cn('mt-1 text-[10px] font-semibold', isActive ? 'text-primary' : 'text-muted-foreground')}>
+        <span className={cn('mt-1 max-w-full truncate text-[10px] font-semibold', isActive ? 'text-primary' : 'text-muted-foreground')}>
           {item.label}
         </span>
       )}
@@ -280,7 +280,7 @@ export function BottomNavigation({
         </>
       )}
 
-      <div className="flex items-center justify-around gap-1 px-2 pt-2">
+      <div className="flex min-w-0 items-center justify-around gap-1 px-2 pt-2">
         {primaryItems.map((item) => (
           <BottomNavLink key={item.href} item={item} isActive={isItemActive(item)} iconOnly={isNarrowViewport} />
         ))}
@@ -290,7 +290,7 @@ export function BottomNavigation({
             ref={moreButtonRef}
             onClick={() => setIsMoreOpen((prev) => !prev)}
             className={cn(
-              'flex flex-col items-center justify-center rounded-lg',
+              'flex min-w-0 flex-1 flex-col items-center justify-center rounded-lg',
               'min-h-[44px] min-w-[44px] px-3 py-2',
               'touch-manipulation select-none [-webkit-tap-highlight-color:transparent]',
               'transition-colors duration-150',
@@ -304,7 +304,7 @@ export function BottomNavigation({
           >
             <MoreHorizontal className={cn('h-5 w-5', isMoreActive || isMoreOpen ? 'text-primary' : 'text-muted-foreground')} />
             {!isNarrowViewport && (
-              <span className={cn('mt-1 text-[10px] font-semibold', isMoreActive || isMoreOpen ? 'text-primary' : 'text-muted-foreground')}>
+              <span className={cn('mt-1 max-w-full truncate text-[10px] font-semibold', isMoreActive || isMoreOpen ? 'text-primary' : 'text-muted-foreground')}>
                 More
               </span>
             )}
