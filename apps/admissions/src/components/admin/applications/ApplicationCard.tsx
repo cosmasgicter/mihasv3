@@ -130,8 +130,8 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
     const Icon = config.icon
 
     return (
-      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${config.color}`}>
-        <Icon className="h-3 w-3" />
+      <span className={`inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium leading-tight ${config.color}`}>
+        <Icon className="h-3 w-3 shrink-0" />
         {status.replace('_', ' ').toUpperCase()}
       </span>
     )
@@ -152,8 +152,8 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
     const Icon = config.icon
 
     return (
-      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${config.color}`}>
-        <Icon className="h-3 w-3" />
+      <span className={`inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium leading-tight ${config.color}`}>
+        <Icon className="h-3 w-3 shrink-0" />
         {getPaymentStatusLabel(normalizedStatus)}
       </span>
     )

@@ -1,6 +1,13 @@
 // Dynamic import
 import QRCode from 'qrcode'
 import { formatDate } from './utils'
+import {
+  drawPdfFooters,
+  drawPdfQrCode,
+  ensurePdfSpace,
+  fillPageBackground,
+  type PdfDocument,
+} from './pdfLayout'
 
 // Brand constants
 const NAVY = { r: 26, g: 54, b: 93 } // #1a365d
@@ -31,23 +38,18 @@ function getFullInstitutionName(code: string): string {
 
 export async function generateAcceptanceLetter(data: AcceptanceLetterData): Promise<Blob> {
   const { jsPDF } = await import('jspdf')
-  const doc = new jsPDF()
+  const doc = new jsPDF() as PdfDocument
   const pageWidth = doc.internal.pageSize.getWidth()
-  const pageHeight = doc.internal.pageSize.getHeight()
   const contentWidth = pageWidth - MARGIN * 2
   const institutionName = getFullInstitutionName(data.institution)
   const isConditional = data.conditional && data.conditions?.length
+  let y = 62
 
   const ensureSpace = (required: number) => {
-    if (y + required <= pageHeight - 28) return
-    doc.addPage()
-    doc.setFillColor(SOFT_SURFACE.r, SOFT_SURFACE.g, SOFT_SURFACE.b)
-    doc.rect(0, 0, pageWidth, pageHeight, 'F')
-    y = 24
+    y = ensurePdfSpace(doc, y, required, { background: SOFT_SURFACE })
   }
 
-  doc.setFillColor(SOFT_SURFACE.r, SOFT_SURFACE.g, SOFT_SURFACE.b)
-  doc.rect(0, 0, pageWidth, pageHeight, 'F')
+  fillPageBackground(doc, SOFT_SURFACE)
 
   // --- Header band ---
   doc.setFillColor(NAVY.r, NAVY.g, NAVY.b)
@@ -77,7 +79,6 @@ export async function generateAcceptanceLetter(data: AcceptanceLetterData): Prom
   )
 
   // --- Date line ---
-  let y = 62
   doc.setTextColor(0, 0, 0)
   doc.setFillColor(255, 255, 255)
   doc.roundedRect(MARGIN, y - 6, contentWidth, 18, 4, 4, 'F')
@@ -173,12 +174,12 @@ export async function generateAcceptanceLetter(data: AcceptanceLetterData): Prom
     y += 8
 
     data.conditions.forEach((cond, i) => {
-      ensureSpace(18)
+      const condLines = doc.splitTextToSize(cond.description, contentWidth - 12)
+      ensureSpace(condLines.length * 6 + (cond.deadline ? 8 : 2))
       doc.setFont('helvetica', 'bold')
       const prefix = `${i + 1}. `
       doc.text(prefix, MARGIN + 2, y)
       doc.setFont('helvetica', 'normal')
-      const condLines = doc.splitTextToSize(cond.description, contentWidth - 12)
       doc.text(condLines, MARGIN + 10, y)
       y += condLines.length * 6
       if (cond.deadline) {
@@ -225,6 +226,7 @@ export async function generateAcceptanceLetter(data: AcceptanceLetterData): Prom
   ]
   steps.forEach((step, i) => {
     const stepLines = doc.splitTextToSize(`${i + 1}. ${step}`, contentWidth - 10)
+    ensureSpace(stepLines.length * 6 + 2)
     doc.text(stepLines, MARGIN + 5, y)
     y += stepLines.length * 6 + 1
   })
@@ -254,23 +256,16 @@ export async function generateAcceptanceLetter(data: AcceptanceLetterData): Prom
     approved: data.approvedDate,
   })
   const qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 200, errorCorrectionLevel: 'M' })
-  const qrY = pageHeight - 48
-  doc.addImage(qrDataUrl, 'PNG', pageWidth - 48, qrY, 28, 28)
-  doc.setFontSize(7)
-  doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
-  doc.text('Scan to verify', pageWidth - 34, qrY + 31, { align: 'center' })
+  drawPdfQrCode(doc, qrDataUrl, y, {
+    background: SOFT_SURFACE,
+    labelColor: GREY_TEXT,
+  })
 
-  // --- Footer ---
-  const footerY = pageHeight - 14
-  doc.setDrawColor(NAVY.r, NAVY.g, NAVY.b)
-  doc.setLineWidth(0.3)
-  doc.line(MARGIN, footerY - 4, pageWidth - MARGIN, footerY - 4)
-
-  doc.setFontSize(8)
-  doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
-  doc.text('This is a computer-generated document. No signature is required.', MARGIN, footerY)
-  doc.text(`Generated: ${formatDate(new Date().toISOString())}`, pageWidth / 2, footerY, { align: 'center' })
-  doc.text('Page 1 of 1', pageWidth - MARGIN, footerY, { align: 'right' })
+  drawPdfFooters(doc, {
+    borderColor: NAVY,
+    textColor: GREY_TEXT,
+    generatedLabel: `Generated: ${formatDate(new Date().toISOString())}`,
+  })
 
   return doc.output('blob')
 }

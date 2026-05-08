@@ -270,7 +270,9 @@ class TestAmountMismatchBlocks(SimpleTestCase):
             f"Amount mismatch (expected={expected_amount}, got={lenco_amount}) "
             f"should block transition to successful",
         )
-        locked_payment.save.assert_not_called()
+        locked_payment.save.assert_called_once()
+        self.assertIn("risk_flags", locked_payment.metadata)
+        self.assertEqual(locked_payment.metadata["risk_flags"][0]["type"], "amount_mismatch")
 
     @given(
         payment_id=uuids,

@@ -2,7 +2,7 @@ import React from 'react'
 import { GraduationCap, Calendar, Clock, Share2, Copy, Download, Mail, Trophy, XCircle, Target, Rocket } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PublicApplicationStatus } from '../hooks/useApplicationTracker'
-import { getStatusEmoji, formatDisplayDate } from '../utils/trackerUtils'
+import { formatDisplayDate } from '../utils/trackerUtils'
 import { animateClasses } from '@/lib/animations'
 
 interface ApplicationStatusHeaderProps {
@@ -77,8 +77,8 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
         <div className="flex-1 space-y-4">
           <div className={animateClasses.fadeIn}>
             <p className="text-xs font-medium uppercase tracking-widest text-white/50 mb-2">Application</p>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-              <span className="text-2xl">{getStatusEmoji(application.status)}</span>
+            <h2 className="flex items-center gap-3 break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              <span className={getStatusColor(application.status)} aria-hidden="true">{getStatusIcon(application.status)}</span>
               <span className="break-all font-mono">#{application.application_number}</span>
             </h2>
           </div>
@@ -116,7 +116,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
           </p>
           
           {/* Action Buttons */}
-          <div className="flex flex-wrap justify-center lg:justify-end gap-2">
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-center lg:justify-end">
             <Button variant="outline" size="sm" onClick={onShare} className="rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/20">
               <Share2 className="h-4 w-4 mr-1.5" />
               Share
@@ -127,7 +127,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
             </Button>
           </div>
           
-          <div className="flex flex-wrap justify-center lg:justify-end gap-2">
+          <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-center lg:justify-end">
             <Button variant="outline" size="sm" onClick={onDownloadSlip} loading={slipLoading} className="rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/20">
               <Download className="h-4 w-4 mr-1.5" />
               Download Slip

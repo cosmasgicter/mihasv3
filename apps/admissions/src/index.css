@@ -54,6 +54,7 @@
     -moz-osx-font-smoothing: grayscale;
     font-size: 16px; /* Base for accessible text */
     line-height: 1.5;
+    overflow-x: hidden;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -151,6 +152,7 @@
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
   --safe-area-inset-left: env(safe-area-inset-left, 0);
   --safe-area-inset-right: env(safe-area-inset-right, 0);
+  --bottom-nav-safe-offset: calc(var(--mobile-bottom-nav-height) + max(0.5rem, var(--safe-area-inset-bottom)));
   
   /* Mobile-specific adjustments */
   --mobile-header-height: 56px;
@@ -183,15 +185,25 @@
 .container-max-lg{ max-width: var(--max-content-width); }
 
 
-/* Fluid responsive headings using clamp for better legibility */
-h1{font-size:clamp(1.5rem, 2.2vw + 1rem, 3rem)}
-h2{font-size:clamp(1.25rem, 1.8vw + 0.9rem, 2.25rem)}
-h3{font-size:clamp(1.125rem, 1.4vw + 0.8rem, 1.5rem)}
+/* Stable heading scale. Breakpoint steps avoid viewport-width text overlap. */
+h1{font-size:2rem}
+h2{font-size:1.5rem}
+h3{font-size:1.25rem}
+
+@media (min-width: 768px){
+  h1{font-size:2.5rem}
+  h2{font-size:2rem}
+  h3{font-size:1.5rem}
+}
+
+@media (min-width: 1280px){
+  h1{font-size:3rem}
+}
 
 /* App-level helper for safe areas and unified spacing */
 .app-safe-area {
-  padding-top: env(safe-area-inset-top, 0);
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-top: var(--safe-area-inset-top);
+  padding-bottom: var(--safe-area-inset-bottom);
 }
 
 /* Ensure form inputs on iOS don't trigger zoom */
@@ -463,26 +475,30 @@ input, textarea, select {
   }
   
   .safe-area-top {
-    padding-top: env(safe-area-inset-top);
+    padding-top: var(--safe-area-inset-top);
   }
   
   .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: var(--safe-area-inset-bottom);
   }
   
   .safe-area-left {
-    padding-left: env(safe-area-inset-left);
+    padding-left: var(--safe-area-inset-left);
   }
   
   .safe-area-right {
-    padding-right: env(safe-area-inset-right);
+    padding-right: var(--safe-area-inset-right);
   }
   
   .safe-area-all {
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
+  }
+
+  .bottom-nav-content-padding {
+    padding-bottom: var(--bottom-nav-safe-offset);
   }
   
   .mobile-scroll {

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import json
 import logging
 
 from django.conf import settings
@@ -70,38 +71,37 @@ class WebhookProcessor:
 
         reference = self._extract_reference(payload)
 
-        # Atomic dedup check: use get_or_create inside a transaction to prevent
-        # concurrent duplicate processing.
+        payload_hash = self._payload_hash(payload)
+        event_identity = self._event_identity(event_type, reference, payload, payload_hash)
+
         if reference and signature_valid:
             with transaction.atomic():
-                _, created = WebhookEventLog.objects.select_for_update().get_or_create(
-                    reference=reference,
-                    event_type=event_type,
-                    processed=True,
-                    defaults={
-                        'payload': payload,
-                        'signature_valid': signature_valid,
-                        'processing_error': None,
-                        'created_at': timezone.now(),
-                    },
+                duplicate = (
+                    WebhookEventLog.objects.select_for_update()
+                    .filter(reference=reference, event_type=event_type, processed=True)
+                    .first()
                 )
-                if not created:
+                if duplicate:
+                    duplicate_payload = dict(payload)
+                    duplicate_payload["_webhook_identity"] = event_identity
                     WebhookEventLog.objects.create(
                         event_type=event_type,
                         reference=reference,
-                        payload=payload,
+                        payload=duplicate_payload,
                         signature_valid=signature_valid,
-                        processed=True,
-                        processing_error='Duplicate event \u2014 already processed',
+                        processed=False,
+                        processing_error='Duplicate event already processed',
                         created_at=timezone.now(),
                     )
                     logger.info("Duplicate webhook skipped: ref=%s event=%s", reference, event_type)
                     return
 
+        payload_to_store = dict(payload)
+        payload_to_store["_webhook_identity"] = event_identity
         log_entry = WebhookEventLog.objects.create(
             event_type=event_type,
             reference=reference,
-            payload=payload,
+            payload=payload_to_store,
             signature_valid=signature_valid,
             processed=False,
             processing_error=None,
@@ -156,3 +156,23 @@ class WebhookProcessor:
         if isinstance(data, dict):
             return data.get('reference', '') or ''
         return ''
+
+    @staticmethod
+    def _payload_hash(payload: dict) -> str:
+        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _event_identity(event_type: str, reference: str, payload: dict, payload_hash: str) -> dict:
+        data = payload.get("data", {})
+        provider_event_id = ""
+        if isinstance(data, dict):
+            provider_event_id = (
+                str(data.get("id") or data.get("eventId") or data.get("event_id") or "")
+            )
+        return {
+            "provider_event_id": provider_event_id,
+            "event_type": event_type,
+            "reference": reference,
+            "payload_hash": payload_hash,
+        }

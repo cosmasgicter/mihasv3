@@ -132,11 +132,6 @@ export default defineConfig(({ mode, command }) => {
          */
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            // Excel libraries - dynamically imported
-            if (id.includes('/xlsx/') || id.includes('/exceljs/')) {
-              return 'vendor-excel'
-            }
-            
             // PDF libraries - dynamically imported
             if (id.includes('/jspdf/') || id.includes('/jspdf-autotable/') || id.includes('/pdf-lib/')) {
               return 'vendor-pdf'

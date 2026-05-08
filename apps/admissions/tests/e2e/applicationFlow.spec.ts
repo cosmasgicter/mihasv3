@@ -7,10 +7,10 @@
  * Uses placeholder Zambian test data — no real PII.
  *
  * Run against local dev server:
- *   cd apps/admissions && bunx playwright test tests/e2e/applicationFlow.spec.ts --headed
+ *   cd apps/admissions && bun x playwright test tests/e2e/applicationFlow.spec.ts --headed
  *
  * Run against production:
- *   PLAYWRIGHT_BASE_URL=https://apply.mihas.edu.zm bunx playwright test tests/e2e/applicationFlow.spec.ts --headed
+ *   PLAYWRIGHT_BASE_URL=https://apply.mihas.edu.zm bun x playwright test tests/e2e/applicationFlow.spec.ts --headed
  */
 
 import { test, expect, type Page } from '@playwright/test';

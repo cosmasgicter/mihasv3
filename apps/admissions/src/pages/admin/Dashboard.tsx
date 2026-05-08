@@ -8,7 +8,7 @@ import { DashboardSkeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useAdminDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useToastStore } from '@/hooks/useToast'
-import { AlertTriangle, BarChart3, Activity, RefreshCw, ClipboardList, FileCheck, CreditCard, Video } from 'lucide-react'
+import { AlertTriangle, BarChart3, Activity, RefreshCw, ClipboardList, FileCheck, CreditCard, Video, ArrowRight } from 'lucide-react'
 import { animateClasses } from '@/lib/animations'
 import { Seo } from '@/components/seo/Seo'
 import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
@@ -383,45 +383,45 @@ export default function AdminDashboard() {
         <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Needs attention</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link to="/admin/applications?status=under_review" className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 hover:bg-amber-500/10 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-amber-500/10 p-2"><ClipboardList className="h-5 w-5 text-amber-600" /></div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.pendingApplications}</p>
-                  <p className="text-xs text-muted-foreground">Pending review</p>
+            <Link to="/admin/applications?status=under_review" className="group rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 transition-colors hover:bg-amber-500/10">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="shrink-0 rounded-lg bg-amber-500/10 p-2"><ClipboardList className="h-5 w-5 text-amber-600" /></div>
+                <div className="min-w-0">
+                  <p className="break-words text-2xl font-bold text-foreground">{stats.pendingApplications}</p>
+                  <p className="break-words text-xs text-muted-foreground">Pending review</p>
                 </div>
               </div>
-              <p className="mt-2 text-xs font-medium text-amber-600">Review now →</p>
+              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-600">Review now <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
-            <Link to="/admin/applications?tab=documents" className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 hover:bg-blue-500/10 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-blue-500/10 p-2"><FileCheck className="h-5 w-5 text-blue-600" /></div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.pendingDocuments}</p>
-                  <p className="text-xs text-muted-foreground">Documents to verify</p>
+            <Link to="/admin/applications?tab=documents" className="group rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 transition-colors hover:bg-blue-500/10">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="shrink-0 rounded-lg bg-blue-500/10 p-2"><FileCheck className="h-5 w-5 text-blue-600" /></div>
+                <div className="min-w-0">
+                  <p className="break-words text-2xl font-bold text-foreground">{stats.pendingDocuments}</p>
+                  <p className="break-words text-xs text-muted-foreground">Documents to verify</p>
                 </div>
               </div>
-              <p className="mt-2 text-xs font-medium text-blue-600">Verify documents →</p>
+              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600">Verify documents <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
-            <Link to="/admin/applications?tab=payments" className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-4 hover:bg-rose-500/10 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-rose-500/10 p-2"><CreditCard className="h-5 w-5 text-rose-600" /></div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.pendingPayments}</p>
-                  <p className="text-xs text-muted-foreground">Payments pending</p>
+            <Link to="/admin/applications?tab=payments" className="group rounded-lg border border-rose-500/30 bg-rose-500/5 p-4 transition-colors hover:bg-rose-500/10">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="shrink-0 rounded-lg bg-rose-500/10 p-2"><CreditCard className="h-5 w-5 text-rose-600" /></div>
+                <div className="min-w-0">
+                  <p className="break-words text-2xl font-bold text-foreground">{stats.pendingPayments}</p>
+                  <p className="break-words text-xs text-muted-foreground">Payments pending</p>
                 </div>
               </div>
-              <p className="mt-2 text-xs font-medium text-rose-600">Review payments →</p>
+              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-rose-600">Review payments <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
-            <Link to="/admin/applications?tab=interviews" className="rounded-lg border border-violet-500/30 bg-violet-500/5 p-4 hover:bg-violet-500/10 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-violet-500/10 p-2"><Video className="h-5 w-5 text-violet-600" /></div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.upcomingInterviews}</p>
-                  <p className="text-xs text-muted-foreground">Upcoming interviews</p>
+            <Link to="/admin/applications?tab=interviews" className="group rounded-lg border border-violet-500/30 bg-violet-500/5 p-4 transition-colors hover:bg-violet-500/10">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="shrink-0 rounded-lg bg-violet-500/10 p-2"><Video className="h-5 w-5 text-violet-600" /></div>
+                <div className="min-w-0">
+                  <p className="break-words text-2xl font-bold text-foreground">{stats.upcomingInterviews}</p>
+                  <p className="break-words text-xs text-muted-foreground">Upcoming interviews</p>
                 </div>
               </div>
-              <p className="mt-2 text-xs font-medium text-violet-600">View schedule →</p>
+              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-violet-600">View schedule <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
           </div>
         </div>

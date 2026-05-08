@@ -2,6 +2,13 @@ import type { ApplicationSlipData } from './applicationSlip.types'
 import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { formatTimestamp } from './dateFormat'
 import { sanitizeForLog } from './security'
+import {
+  drawPdfFooters,
+  drawPdfQrCode,
+  ensurePdfSpace,
+  fillPageBackground,
+  type PdfDocument,
+} from './pdfLayout'
 
 // Brand constants
 const NAVY = { r: 26, g: 54, b: 93 } // #1a365d
@@ -58,13 +65,11 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
         recoveryMessage: 'A newer version of the slip generator is loading. Please wait a moment and try again.',
       }),
     ])
-    const doc = new jsPDF() as InstanceType<typeof jsPDF> & { lastAutoTable?: { finalY: number } }
+    const doc = new jsPDF() as PdfDocument & { lastAutoTable?: { finalY: number } }
     const institutionName = getFullInstitutionName(data.institution)
     const pageWidth = doc.internal.pageSize.getWidth()
-    const pageHeight = doc.internal.pageSize.getHeight()
 
-    doc.setFillColor(SOFT_SURFACE.r, SOFT_SURFACE.g, SOFT_SURFACE.b)
-    doc.rect(0, 0, pageWidth, pageHeight, 'F')
+    fillPageBackground(doc, SOFT_SURFACE)
 
     // --- Header band ---
     doc.setFillColor(NAVY.r, NAVY.g, NAVY.b)
@@ -170,6 +175,8 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
 
     finalY = (doc.lastAutoTable?.finalY ?? 0) + 10
 
+    finalY = ensurePdfSpace(doc, finalY, 46, { background: SOFT_SURFACE })
+
     // --- Important Notice ---
     doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
@@ -201,23 +208,16 @@ export async function generateApplicationSlip(data: ApplicationSlipData): Promis
       student: data.full_name,
     })
     const qrDataUrl = await QRCode.toDataURL(qrData, { margin: 1, width: 240, errorCorrectionLevel: 'M' })
-    const qrY = pageHeight - 48
-    doc.addImage(qrDataUrl, 'PNG', pageWidth - 48, qrY, 28, 28)
-    doc.setFontSize(7)
-    doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
-    doc.text('Scan to verify', pageWidth - 34, qrY + 31, { align: 'center' })
+    drawPdfQrCode(doc, qrDataUrl, finalY, {
+      background: SOFT_SURFACE,
+      labelColor: GREY_TEXT,
+    })
 
-    // --- Footer ---
-    const footerY = pageHeight - 14
-    doc.setDrawColor(NAVY.r, NAVY.g, NAVY.b)
-    doc.setLineWidth(0.3)
-    doc.line(MARGIN, footerY - 4, pageWidth - MARGIN, footerY - 4)
-
-    doc.setFontSize(8)
-    doc.setTextColor(GREY_TEXT.r, GREY_TEXT.g, GREY_TEXT.b)
-    doc.text('This is a computer-generated document. No signature is required.', MARGIN, footerY)
-    doc.text(`Generated: ${formatDateTime(new Date().toISOString())}`, pageWidth / 2, footerY, { align: 'center' })
-    doc.text('Page 1 of 1', pageWidth - MARGIN, footerY, { align: 'right' })
+    drawPdfFooters(doc, {
+      borderColor: NAVY,
+      textColor: GREY_TEXT,
+      generatedLabel: `Generated: ${formatDateTime(new Date().toISOString())}`,
+    })
 
     return new Blob([doc.output('blob')], { type: 'application/pdf' })
   } catch (error) {

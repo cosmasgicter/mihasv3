@@ -200,6 +200,9 @@ run-*.sh
 run-*.js
 *.bat
 *.sql
+!backend/scripts/payment_hardening_preflight.sql
+!backend/scripts/payment_hardening_indexes.sql
+!backend/scripts/payment_hardening_indexes_rollback.sql
 supabase-helper.bat
 
 # Keep important documentation

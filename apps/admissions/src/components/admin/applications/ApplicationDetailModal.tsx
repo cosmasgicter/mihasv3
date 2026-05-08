@@ -426,14 +426,14 @@ export function ApplicationDetailModal({
  document.getElementById(`tab-${ids[next]}`)?.focus()
  }
  }}
- className={`flex min-h-[40px] items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
+ className={`flex min-h-[40px] min-w-0 items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium leading-tight transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
  activeTab === tab.id
  ? 'bg-slate-950 text-white'
  : 'text-foreground hover:bg-slate-50 hover:text-slate-950'
  }`}
  >
  <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
- <span className="hidden sm:inline">{tab.label}</span>
+ <span className="hidden min-w-0 break-words sm:inline">{tab.label}</span>
  </button>
  )
  })}

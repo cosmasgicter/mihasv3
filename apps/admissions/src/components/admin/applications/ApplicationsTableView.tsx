@@ -84,14 +84,14 @@ export function ApplicationsTableView({
       sortable: true,
       filterable: true,
       render: (value: unknown, row: ApplicationSummary) => (
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <User className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="font-medium text-foreground">{String(value)}</span>
+        <div className="flex min-w-0 flex-col">
+          <div className="flex min-w-0 items-center gap-2">
+            <User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="min-w-0 break-words font-medium text-foreground">{String(value)}</span>
           </div>
-          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Mail className="h-3 w-3" />
+          <div className="mt-1 flex min-w-0 items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex min-w-0 items-center gap-1 break-all">
+              <Mail className="h-3 w-3 shrink-0" />
               {row.email}
             </span>
           </div>
@@ -104,9 +104,9 @@ export function ApplicationsTableView({
       sortable: true,
       filterable: true,
       render: (value: unknown, row: ApplicationSummary) => (
-        <div className="flex flex-col">
-          <span className="font-medium text-sm">{String(value)}</span>
-          <span className="text-xs text-muted-foreground">{row.intake}</span>
+        <div className="flex min-w-0 flex-col">
+          <span className="break-words text-sm font-medium">{String(value)}</span>
+          <span className="break-words text-xs text-muted-foreground">{row.intake}</span>
         </div>
       ),
     },
@@ -142,7 +142,7 @@ export function ApplicationsTableView({
         };
         const config = statusConfig[strValue] || { color: 'bg-gray-100 text-foreground border-gray-300', label: strValue?.toUpperCase() || 'UNKNOWN' };
         return (
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${config.color}`}>
+          <span className={`inline-flex max-w-full min-w-0 items-center rounded-md border px-2 py-0.5 text-center text-xs font-medium leading-tight ${config.color}`}>
             {config.label}
           </span>
         );
@@ -165,7 +165,7 @@ export function ApplicationsTableView({
         };
 
         return (
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${badgeStyles[normalized]}`}>
+          <span className={`inline-flex max-w-full min-w-0 items-center rounded-md border px-2 py-0.5 text-center text-xs font-medium leading-tight ${badgeStyles[normalized]}`}>
             {getPaymentStatusLabel(normalized)}
           </span>
         );

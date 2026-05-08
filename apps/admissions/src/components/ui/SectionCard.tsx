@@ -49,30 +49,30 @@ export function SectionCard({
 
   return (
     <section
-      className={cn('interactive-surface motion-card rounded-lg border border-border/45 bg-card shadow-sm', className)}
+      className={cn('interactive-surface motion-card min-w-0 overflow-hidden rounded-lg border border-border/45 bg-card shadow-sm', className)}
       {...props}
     >
       {hasHeader && (
         <div
           className={cn(
-            'flex flex-col gap-3 border-b border-border/45 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5',
+            'flex min-w-0 flex-col gap-3 border-b border-border/45 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5',
             headerVariantStyles[headerVariant],
             stickyHeader && 'sticky top-[4.25rem] z-10 bg-card/95',
             headerClassName
           )}
         >
-          <div className="flex flex-1 items-start gap-3">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
             {icon && (
-              <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 {icon}
               </div>
             )}
-            <div className="space-y-1">
-              {title && <h2 className="text-lg font-semibold text-foreground">{title}</h2>}
-              {description && <p className="text-sm text-foreground">{description}</p>}
+            <div className="min-w-0 space-y-1">
+              {title && <h2 className="break-words text-lg font-semibold text-foreground">{title}</h2>}
+              {description && <p className="break-words text-sm text-foreground">{description}</p>}
             </div>
           </div>
-          {actions && <div className="mt-2 flex shrink-0 flex-wrap gap-2 sm:mt-0 sm:justify-end">{actions}</div>}
+          {actions && <div className="mt-2 flex min-w-0 flex-wrap gap-2 sm:mt-0 sm:justify-end">{actions}</div>}
         </div>
       )}
 
