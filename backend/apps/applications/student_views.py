@@ -37,6 +37,12 @@ from apps.applications.serializers import (
     ApplicationSerializer,
     build_grades_payload,
     build_grades_summary,
+    # T15 API remediation
+    ApplicationAmendmentRequestSerializer,
+    ApplicationConfirmEnrollmentRequestSerializer,
+    ApplicationEnvelopeResponseSerializer,
+    ApplicationAiSummaryResponseSerializer,
+    ApplicationWaitlistPositionResponseSerializer,
 )
 from apps.applications.services import (
     ApplicationSubmissionError,
@@ -44,6 +50,7 @@ from apps.applications.services import (
 )
 from apps.common.idempotency import idempotent
 from apps.common.openapi_helpers import ErrorResponseSerializer
+from apps.documents.models import Payment
 from rest_framework.throttling import UserRateThrottle
 
 from ._view_helpers import (
@@ -189,6 +196,18 @@ class ApplicationDetailView(APIView):
             return Response(
                 {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
                 status=status.HTTP_403_FORBIDDEN,
+            )
+        if Payment.objects.filter(application_id=app.id).exists():
+            return Response(
+                {
+                    "success": False,
+                    "error": (
+                        "This draft has payment activity and cannot be deleted. "
+                        "Continue the application or contact admissions for help."
+                    ),
+                    "code": "DRAFT_HAS_PAYMENT_ACTIVITY",
+                },
+                status=status.HTTP_409_CONFLICT,
             )
 
         try:
@@ -527,7 +546,17 @@ class ApplicationPreviewSummaryView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = ApplicationAiSummaryResponseSerializer
 
+    @extend_schema(
+        request=None,
+        responses={
+            200: OpenApiResponse(response=ApplicationAiSummaryResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["applications"],
+        summary="Get AI-generated application summary (student preview)",
+    )
     def get(self, request, application_id):
         from django.core.cache import cache
 
@@ -832,7 +861,18 @@ class ApplicationConfirmEnrollmentView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = ApplicationConfirmEnrollmentRequestSerializer
 
+    @extend_schema(
+        request=ApplicationConfirmEnrollmentRequestSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationEnvelopeResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["applications"],
+        summary="Confirm enrollment (owner-only)",
+    )
     def post(self, request, application_id):
         from apps.applications.enrollment_service import EnrollmentError, EnrollmentService
 
@@ -884,7 +924,19 @@ class ApplicationAmendmentView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = ApplicationAmendmentRequestSerializer
 
+    @extend_schema(
+        request=ApplicationAmendmentRequestSerializer,
+        responses={
+            201: OpenApiResponse(response=ApplicationEnvelopeResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["applications"],
+        summary="Request an amendment to a submitted application",
+    )
     def post(self, request, application_id):
         from apps.applications.amendment_service import AmendmentError, AmendmentService
 
@@ -963,7 +1015,18 @@ class ApplicationWaitlistPositionView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = ApplicationWaitlistPositionResponseSerializer
 
+    @extend_schema(
+        request=None,
+        responses={
+            200: OpenApiResponse(response=ApplicationWaitlistPositionResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["applications"],
+        summary="Get waitlist position and total",
+    )
     def get(self, request, application_id):
         from apps.applications.waitlist_manager import WaitlistError, WaitlistManager
 

@@ -622,3 +622,124 @@ class ApplicationBulkStatusSerializer(serializers.Serializer):
     application_ids = serializers.ListField(child=serializers.UUIDField())
     new_status = serializers.CharField(max_length=50)
     notes = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+# ---------------------------------------------------------------------------
+# Applications remediation serializers (T15 — API remediation Phase 3)
+# ---------------------------------------------------------------------------
+
+
+class ApplicationAmendmentRequestSerializer(serializers.Serializer):
+    """POST /api/v1/applications/{id}/amendments/ request body."""
+
+    field_name = serializers.CharField(
+        max_length=100,
+        help_text="Name of the application field being amended (e.g. phone, email, address)",
+    )
+    new_value = serializers.CharField(
+        help_text="Proposed new value for the field",
+    )
+    reason = serializers.CharField(
+        help_text="Student-provided explanation for the amendment",
+    )
+
+
+class ApplicationAmendmentReviewRequestSerializer(serializers.Serializer):
+    """POST /api/v1/applications/{id}/amendments/{aid}/review/ request body."""
+
+    status = serializers.ChoiceField(
+        choices=[("approved", "Approved"), ("rejected", "Rejected")],
+        help_text="Review decision",
+    )
+
+
+class ApplicationAssignRequestSerializer(serializers.Serializer):
+    """POST /api/v1/applications/{id}/assign/ request body."""
+
+    reviewer_id = serializers.UUIDField(
+        help_text="Profile ID of the reviewer to assign (must have admin/reviewer/super_admin role)"
+    )
+
+
+class ApplicationFeeWaiverRequestSerializer(serializers.Serializer):
+    """POST /api/v1/applications/{id}/fee-waiver/ request body."""
+
+    waiver_type = serializers.ChoiceField(
+        choices=[("full", "Full"), ("partial", "Partial"), ("scholarship", "Scholarship")],
+        help_text="Waiver type. 'full' sets payment to force_approved.",
+    )
+    reason_code = serializers.CharField(
+        max_length=50,
+        help_text="Short code identifying the waiver reason (e.g. 'need_based', 'scholarship')",
+    )
+    discount_percentage = serializers.IntegerField(
+        min_value=0,
+        max_value=100,
+        required=False,
+        default=100,
+        help_text="Discount percentage (0-100). Full waivers default to 100.",
+    )
+    notes = serializers.CharField(
+        required=False, allow_blank=True, default="",
+        help_text="Optional admin notes explaining the waiver decision",
+    )
+
+
+class ApplicationConfirmEnrollmentRequestSerializer(serializers.Serializer):
+    """POST /api/v1/applications/{id}/confirm-enrollment/ request body.
+
+    Body is intentionally empty — this endpoint is idempotent and takes no
+    user-supplied data. We declare an empty serializer so drf-spectacular
+    generates an explicit (empty) request schema rather than fallback text.
+    """
+
+
+class ApplicationAutoAssignRequestSerializer(serializers.Serializer):
+    """POST /api/v1/applications/auto-assign/ request body (empty)."""
+
+
+class ApplicationEnvelopeResponseSerializer(serializers.Serializer):
+    """Generic {success, data} envelope for application business-logic responses.
+
+    The `data` field is kept as an unconstrained dict because each endpoint
+    returns a different payload shape (amendment, assignment, waitlist position,
+    enrollment deadline, AI summary text). The envelope contract is what matters
+    for frontend consumers; per-endpoint detail shapes are documented in view
+    docstrings and response examples.
+    """
+
+    success = serializers.BooleanField()
+    data = serializers.DictField(required=False)
+
+
+class ApplicationWaitlistPositionDataSerializer(serializers.Serializer):
+    """Shape of `data` for GET /applications/{id}/waitlist-position/."""
+
+    position = serializers.IntegerField(allow_null=True)
+    total = serializers.IntegerField()
+    application_id = serializers.UUIDField()
+
+
+class ApplicationWaitlistPositionResponseSerializer(serializers.Serializer):
+    success = serializers.BooleanField()
+    data = ApplicationWaitlistPositionDataSerializer()
+
+
+class ApplicationAiSummaryDataSerializer(serializers.Serializer):
+    """Shape of `data` for preview-summary and admin-summary AI endpoints."""
+
+    summary = serializers.CharField()
+    cached = serializers.BooleanField(required=False)
+    generated_at = serializers.DateTimeField(required=False)
+
+
+class ApplicationAiSummaryResponseSerializer(serializers.Serializer):
+    """Envelope for the AI-generated summary endpoints.
+
+    Note: This is distinct from ``ApplicationSummaryResponseSerializer`` defined
+    in ``_view_helpers.py``, which wraps the full application review summary
+    (structured data, not freeform text).
+    """
+
+    success = serializers.BooleanField()
+    data = ApplicationAiSummaryDataSerializer()

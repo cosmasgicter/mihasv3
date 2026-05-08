@@ -119,3 +119,88 @@ class ProgramFeeSerializer(serializers.ModelSerializer):
         if value not in ("local", "international"):
             raise serializers.ValidationError("residency_category must be 'local' or 'international'.")
         return value
+
+
+# ---------------------------------------------------------------------------
+# Payment serializers (T14 — API remediation Phase 3)
+# ---------------------------------------------------------------------------
+
+
+class MobileMoneyInitiateRequestSerializer(serializers.Serializer):
+    """Validates POST /api/v1/payments/mobile-money/ request body.
+
+    Mirrors the fields the view was previously reading via
+    ``request.data.get(...)``: application_id (UUID), phone (string, Zambian
+    format), operator (airtel|mtn).
+    """
+
+    application_id = serializers.UUIDField(
+        help_text="Application ID to collect payment for"
+    )
+    phone = serializers.CharField(
+        max_length=20,
+        min_length=9,
+        help_text=(
+            "Zambian mobile phone number. Accepted formats: "
+            "+260XXXXXXXXX, 260XXXXXXXXX, 0XXXXXXXXX, XXXXXXXXX"
+        ),
+    )
+    operator = serializers.ChoiceField(
+        choices=[("airtel", "Airtel"), ("mtn", "MTN")],
+        help_text="Mobile money operator",
+    )
+
+    def validate_phone(self, value: str) -> str:
+        """Require at least 9 digits after cleaning."""
+        digits = "".join(c for c in value if c.isdigit())
+        if len(digits) < 9:
+            raise serializers.ValidationError(
+                "Phone number must contain at least 9 digits."
+            )
+        return value
+
+
+class MobileMoneyInitiateDataSerializer(serializers.Serializer):
+    """Shape of the `data` field in MobileMoneyInitiateView 201 response."""
+
+    payment_id = serializers.CharField()
+    reference = serializers.CharField(required=False, allow_blank=True)
+    amount = serializers.CharField()
+    currency = serializers.CharField()
+    status = serializers.CharField()
+    provider_status = serializers.CharField(required=False, allow_blank=True)
+    operator = serializers.CharField(required=False, allow_blank=True)
+    masked_phone = serializers.CharField(required=False, allow_blank=True)
+    message = serializers.CharField(required=False, allow_blank=True)
+
+
+class MobileMoneyInitiateResponseSerializer(serializers.Serializer):
+    """Envelope wrapper for MobileMoneyInitiateView success response."""
+
+    success = serializers.BooleanField()
+    data = MobileMoneyInitiateDataSerializer()
+
+
+class DeferPaymentRequestSerializer(serializers.Serializer):
+    """Validates POST /api/v1/payments/defer/ request body."""
+
+    application_id = serializers.UUIDField(
+        help_text="Application ID to mark as deferred"
+    )
+
+
+class DeferPaymentDataSerializer(serializers.Serializer):
+    """Shape of the `data` field in DeferPaymentView 201 response."""
+
+    payment_id = serializers.CharField()
+    reference = serializers.CharField()
+    amount = serializers.CharField()
+    currency = serializers.CharField()
+    status = serializers.CharField()
+
+
+class DeferPaymentResponseSerializer(serializers.Serializer):
+    """Envelope wrapper for DeferPaymentView success response."""
+
+    success = serializers.BooleanField()
+    data = DeferPaymentDataSerializer()

@@ -31,6 +31,10 @@ from apps.documents.serializers import (
     PaymentSerializer,
     PaymentVerifySerializer,
     ProgramFeeSerializer,
+    MobileMoneyInitiateRequestSerializer,
+    MobileMoneyInitiateResponseSerializer,
+    DeferPaymentRequestSerializer,
+    DeferPaymentResponseSerializer,
 )
 from apps.documents.throttles import MobileMoneyThrottle, PaymentInitiateThrottle, PaymentVerifyThrottle
 from apps.documents.validators import validate_file_magic_bytes
@@ -41,6 +45,7 @@ from apps.common.openapi_helpers import (
     envelope_serializer,
 )
 from apps.common.metrics import emit_metric
+from apps.common.idempotency import idempotent
 
 from django.http import HttpResponseRedirect
 
@@ -569,6 +574,7 @@ class PaymentInitiateView(APIView):
             'currency': serializers.CharField(),
         })},
     )
+    @idempotent
     def post(self, request):
         application_id = request.data.get("application_id")
         if not application_id:
@@ -656,14 +662,31 @@ class DeferPaymentView(APIView):
     """POST /api/v1/payments/defer/ — create a deferred payment record."""
 
     permission_classes = [IsAuthenticated]
+    serializer_class = DeferPaymentRequestSerializer
 
+    @extend_schema(
+        request=DeferPaymentRequestSerializer,
+        responses={
+            201: OpenApiResponse(response=DeferPaymentResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            500: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["payments"],
+        summary="Defer payment — submit application without paying upfront",
+    )
+    @idempotent
     def post(self, request):
-        application_id = request.data.get("application_id")
-        if not application_id:
+        # Validate via serializer but preserve the {success: false, error, code} envelope.
+        serializer = DeferPaymentRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            first_error = next(iter(serializer.errors.values()))[0]
             return Response(
-                {"success": False, "error": "application_id is required", "code": "VALIDATION_ERROR"},
+                {"success": False, "error": str(first_error), "code": "VALIDATION_ERROR"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        application_id = serializer.validated_data["application_id"]
 
         from apps.applications.models import Application
 
@@ -725,6 +748,7 @@ class MobileMoneyInitiateView(APIView):
 
     permission_classes = [IsAuthenticated]
     throttle_classes = [MobileMoneyThrottle]
+    serializer_class = MobileMoneyInitiateRequestSerializer
 
     @staticmethod
     def _mask_phone(phone: str) -> str:
@@ -745,16 +769,37 @@ class MobileMoneyInitiateView(APIView):
         # Already has + prefix or unknown format — return cleaned
         return f"+{digits}" if not raw.startswith("+") else raw.strip()
 
+    @extend_schema(
+        request=MobileMoneyInitiateRequestSerializer,
+        responses={
+            200: OpenApiResponse(response=MobileMoneyInitiateResponseSerializer),
+            201: OpenApiResponse(response=MobileMoneyInitiateResponseSerializer),
+            202: OpenApiResponse(response=MobileMoneyInitiateResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            500: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["payments"],
+        summary="Initiate mobile money payment collection (Airtel/MTN)",
+    )
+    @idempotent
     def post(self, request):
-        application_id = request.data.get("application_id")
-        phone_raw = request.data.get("phone", "").strip()
-        operator = request.data.get("operator", "").strip().lower()
-
-        if not application_id or not phone_raw or operator not in ("airtel", "mtn"):
+        # Validate via serializer; keep the legacy envelope on validation error.
+        serializer = MobileMoneyInitiateRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            # Preserve the previous legacy error message for existing frontend consumers.
             return Response(
-                {"success": False, "error": "application_id, phone, and operator (airtel/mtn) are required", "code": "VALIDATION_ERROR"},
+                {
+                    "success": False,
+                    "error": "application_id, phone, and operator (airtel/mtn) are required",
+                    "code": "VALIDATION_ERROR",
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        application_id = serializer.validated_data["application_id"]
+        phone_raw = serializer.validated_data["phone"].strip()
+        operator = serializer.validated_data["operator"].strip().lower()
 
         phone = self._normalize_phone_e164(phone_raw)
 
@@ -800,6 +845,25 @@ class MobileMoneyInitiateView(APIView):
                 amount = existing_pending.amount
                 reference = existing_pending.transaction_reference
                 currency = existing_pending.currency
+                provider_state = ((existing_pending.metadata or {}).get("provider_initiation") or {}).get("status")
+                if provider_state in {"accepted", "unknown", "sent"}:
+                    return Response(
+                        {
+                            "success": True,
+                            "data": {
+                                "payment_id": str(payment_id),
+                                "reference": reference,
+                                "amount": str(amount),
+                                "currency": currency,
+                                "status": "pending",
+                                "provider_status": provider_state,
+                                "operator": operator,
+                                "masked_phone": self._mask_phone(phone),
+                                "message": "Payment is still being confirmed. Please do not start another payment yet.",
+                            },
+                        },
+                        status=status.HTTP_202_ACCEPTED,
+                    )
             else:
                 # Only create a new payment record if none is pending
                 try:
@@ -840,6 +904,17 @@ class MobileMoneyInitiateView(APIView):
         base_url = getattr(settings, "LENCO_API_BASE_URL", "")
 
         if not api_secret or not base_url:
+            try:
+                service.mark_provider_initiation(
+                    payment_id,
+                    status="not_started",
+                    operator=operator,
+                    phone_hash=hashlib.sha256(phone.encode("utf-8")).hexdigest(),
+                    phone_last4=phone[-4:],
+                    error="Payment provider credentials are not configured.",
+                )
+            except Exception:
+                logger.exception("Failed to mark provider unavailable for payment %s", payment_id)
             return Response(
                 {"success": False, "error": "Payment processing is unavailable.", "code": "PAYMENT_UNAVAILABLE"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -866,10 +941,33 @@ class MobileMoneyInitiateView(APIView):
             lenco_data = resp.json() if resp.content else {}
             if not resp.ok:
                 lenco_error = lenco_data.get("message") or lenco_data.get("error") or resp.reason
+                provider_data = {
+                    **(lenco_data.get("data", {}) or {}),
+                    "type": (lenco_data.get("data", {}) or {}).get("type") or "mobile-money",
+                }
                 logger.error(
                     "Lenco mobile money API returned %s for payment %s: %s",
                     resp.status_code, payment_id, lenco_error,
                 )
+                try:
+                    service.mark_provider_initiation(
+                        payment_id,
+                        status="rejected",
+                        provider_data=provider_data,
+                        operator=operator,
+                        phone_hash=hashlib.sha256(phone.encode("utf-8")).hexdigest(),
+                        phone_last4=phone[-4:],
+                        error=lenco_error,
+                    )
+                except Exception:
+                    logger.exception("Failed to mark provider rejection for payment %s", payment_id)
+                try:
+                    Payment.objects.filter(id=payment_id, status="pending").update(
+                        status="failed",
+                        updated_at=timezone.now(),
+                    )
+                except Exception:
+                    logger.exception("Failed to mark rejected provider payment %s as failed", payment_id)
                 emit_metric('payment.initiation_failed', method='mobile_money', reason='provider_rejected', application_id=str(application_id))
                 return Response(
                     {"success": False, "error": f"Payment provider error: {lenco_error}", "code": "PROVIDER_ERROR"},
@@ -877,10 +975,34 @@ class MobileMoneyInitiateView(APIView):
                 )
         except http_requests.RequestException:
             logger.exception("Lenco mobile money API failed for payment %s", payment_id)
+            try:
+                service.mark_provider_initiation(
+                    payment_id,
+                    status="unknown",
+                    operator=operator,
+                    phone_hash=hashlib.sha256(phone.encode("utf-8")).hexdigest(),
+                    phone_last4=phone[-4:],
+                    error="Provider request failed before a definitive response was received.",
+                )
+            except Exception:
+                logger.exception("Failed to mark provider uncertainty for payment %s", payment_id)
             emit_metric('payment.initiation_failed', method='mobile_money', reason='provider_error', application_id=str(application_id))
             return Response(
-                {"success": False, "error": "Unable to reach payment provider. Please try again.", "code": "PROVIDER_ERROR"},
-                status=status.HTTP_502_BAD_GATEWAY,
+                {
+                    "success": True,
+                    "data": {
+                        "payment_id": str(payment_id),
+                        "reference": reference,
+                        "amount": str(amount),
+                        "currency": currency,
+                        "status": "pending",
+                        "provider_status": "unknown",
+                        "operator": operator,
+                        "masked_phone": self._mask_phone(phone),
+                        "message": "Payment is still being confirmed. Please do not start another payment yet.",
+                    },
+                },
+                status=status.HTTP_202_ACCEPTED,
             )
         except Exception:
             logger.exception("Unexpected error during Lenco mobile money call for payment %s", payment_id)
@@ -891,21 +1013,20 @@ class MobileMoneyInitiateView(APIView):
 
         lenco_status = lenco_data.get("data", {}).get("status", "")
         lenco_ref = lenco_data.get("data", {}).get("lencoReference", "")
+        provider_data = {
+            **(lenco_data.get("data", {}) or {}),
+            "type": (lenco_data.get("data", {}) or {}).get("type") or "mobile-money",
+        }
 
-        # Update payment with Lenco reference
+        # Update payment with Lenco reference/provider status.
         try:
-            payment_obj = Payment.objects.get(id=payment_id)
-            existing_meta = payment_obj.metadata or {}
-            Payment.objects.filter(id=payment_id).update(
-                lenco_reference=lenco_ref,
-                payment_method="mobile-money",
-                metadata={
-                    **existing_meta,
-                    "lenco_initiation": lenco_data.get("data", {}),
-                    "operator": operator,
-                    "phone_hash": hashlib.sha256(phone.encode("utf-8")).hexdigest(),
-                    "phone_last4": phone[-4:],
-                },
+            service.mark_provider_initiation(
+                payment_id,
+                status="accepted",
+                provider_data=provider_data,
+                operator=operator,
+                phone_hash=hashlib.sha256(phone.encode("utf-8")).hexdigest(),
+                phone_last4=phone[-4:],
             )
         except Exception:
             logger.exception("Failed to update payment %s with Lenco reference", payment_id)
@@ -921,6 +1042,7 @@ class MobileMoneyInitiateView(APIView):
                     "currency": currency,
                     "lenco_status": lenco_status,
                     "lenco_reference": lenco_ref,
+                    "provider_status": "accepted",
                     "operator": operator,
                     "masked_phone": self._mask_phone(phone),
                 },

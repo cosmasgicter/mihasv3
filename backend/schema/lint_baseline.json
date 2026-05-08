@@ -1,28 +1,14 @@
 {
   "summary": {
     "total_endpoints": 178,
-    "endpoints_with_issues": 133,
-    "total_issues": 913,
+    "endpoints_with_issues": 122,
+    "total_issues": 755,
     "errors": 1,
-    "warnings": 810,
-    "info": 102,
-    "score": 85.72
+    "warnings": 659,
+    "info": 95,
+    "score": 88.3
   },
   "issues": [
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing recommended info field: contact",
-      "path": "/info/contact",
-      "suggestion": "Consider adding a 'contact' field to improve API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/admin/audit-logs/",
-      "path": "/paths//api/v1/admin/audit-logs//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
     {
       "severity": "warning",
       "category": "responses",
@@ -60,13 +46,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/admin/dashboard/",
-      "path": "/paths//api/v1/admin/dashboard//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/admin/dashboard/",
       "path": "/paths//api/v1/admin/dashboard//get/responses",
@@ -74,45 +53,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/admin/settings/",
-      "path": "/paths//api/v1/admin/settings//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/admin/settings/",
       "path": "/paths//api/v1/admin/settings//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/admin/settings/",
-      "path": "/paths//api/v1/admin/settings//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/admin/settings/{id}/",
-      "path": "/paths//api/v1/admin/settings/{id}//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PATCH /api/v1/admin/settings/{id}/",
-      "path": "/paths//api/v1/admin/settings/{id}//patch/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for DELETE /api/v1/admin/settings/{id}/",
-      "path": "/paths//api/v1/admin/settings/{id}//delete/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -136,27 +80,6 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "info",
-      "category": "rest_conventions",
-      "message": "PUT request typically should have request body: PUT /api/v1/admin/templates/{key}/",
-      "path": "/paths//api/v1/admin/templates/{key}//put",
-      "suggestion": "Consider adding requestBody for PUT operation or use GET if no data is being sent"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for PUT /api/v1/admin/templates/{key}/",
-      "path": "/paths//api/v1/admin/templates/{key}//put/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/admin/users/",
-      "path": "/paths//api/v1/admin/users//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/admin/users/",
@@ -171,53 +94,11 @@
       "suggestion": "Use camelCase (e.g., 'pageSize') or kebab-case (e.g., 'page-size')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/admin/users/",
-      "path": "/paths//api/v1/admin/users//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/admin/users/{id}/",
-      "path": "/paths//api/v1/admin/users/{id}//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PATCH /api/v1/admin/users/{id}/",
-      "path": "/paths//api/v1/admin/users/{id}//patch/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/admin/users/batch-import/",
       "path": "/paths//api/v1/admin/users/batch-import//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "rest_conventions",
-      "message": "POST request typically should have request body: POST /api/v1/admin/users/batch-import/",
-      "path": "/paths//api/v1/admin/users/batch-import//post",
-      "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/admin/users/batch-import/",
-      "path": "/paths//api/v1/admin/users/batch-import//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/admin/users/export/",
-      "path": "/paths//api/v1/admin/users/export//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -234,13 +115,6 @@
       "suggestion": "Use camelCase (e.g., 'pageSize') or kebab-case (e.g., 'page-size')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/analytics/funnel/",
-      "path": "/paths//api/v1/analytics/funnel//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/analytics/funnel/",
@@ -253,13 +127,6 @@
       "message": "Missing error responses for GET /api/v1/analytics/funnel/",
       "path": "/paths//api/v1/analytics/funnel//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/analytics/outreach/",
-      "path": "/paths//api/v1/analytics/outreach//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -276,13 +143,6 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/analytics/sources/",
-      "path": "/paths//api/v1/analytics/sources//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/analytics/sources/",
@@ -295,13 +155,6 @@
       "message": "Missing error responses for GET /api/v1/analytics/sources/",
       "path": "/paths//api/v1/analytics/sources//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/",
-      "path": "/paths//api/v1/applications//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -318,13 +171,6 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/",
-      "path": "/paths//api/v1/applications//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/applications/",
@@ -339,13 +185,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/{application_id}/",
-      "path": "/paths//api/v1/applications/{application_id}//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/applications/{application_id}/",
@@ -358,13 +197,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in GET /api/v1/applications/{application_id}/",
       "path": "/paths//api/v1/applications/{application_id}//get/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PUT /api/v1/applications/{application_id}/",
-      "path": "/paths//api/v1/applications/{application_id}//put/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -388,13 +220,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PATCH /api/v1/applications/{application_id}/",
-      "path": "/paths//api/v1/applications/{application_id}//patch/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for PATCH /api/v1/applications/{application_id}/",
@@ -407,13 +232,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in PATCH /api/v1/applications/{application_id}/",
       "path": "/paths//api/v1/applications/{application_id}//patch/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for DELETE /api/v1/applications/{application_id}/",
-      "path": "/paths//api/v1/applications/{application_id}//delete/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -442,13 +260,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/applications/{application_id}/acceptance-letter/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/acceptance-letter/",
-      "path": "/paths//api/v1/applications/{application_id}/acceptance-letter//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -487,20 +298,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/{application_id}/admin-summary/",
-      "path": "/paths//api/v1/applications/{application_id}/admin-summary//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/applications/{application_id}/admin-summary/",
-      "path": "/paths//api/v1/applications/{application_id}/admin-summary//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in GET /api/v1/applications/{application_id}/admin-summary/",
       "path": "/paths//api/v1/applications/{application_id}/admin-summary//get/parameters[0]/name",
@@ -512,27 +309,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/applications/{application_id}/amendments/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/amendments/",
-      "path": "/paths//api/v1/applications/{application_id}/amendments//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "info",
-      "category": "rest_conventions",
-      "message": "POST request typically should have request body: POST /api/v1/applications/{application_id}/amendments/",
-      "path": "/paths//api/v1/applications/{application_id}/amendments//post",
-      "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/applications/{application_id}/amendments/",
-      "path": "/paths//api/v1/applications/{application_id}/amendments//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -564,27 +340,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/amendments/{amendment_id}/review/",
-      "path": "/paths//api/v1/applications/{application_id}/amendments/{amendment_id}/review//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "info",
-      "category": "rest_conventions",
-      "message": "POST request typically should have request body: POST /api/v1/applications/{application_id}/amendments/{amendment_id}/review/",
-      "path": "/paths//api/v1/applications/{application_id}/amendments/{amendment_id}/review//post",
-      "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/applications/{application_id}/amendments/{amendment_id}/review/",
-      "path": "/paths//api/v1/applications/{application_id}/amendments/{amendment_id}/review//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'amendment_id' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/amendments/{amendment_id}/review/",
       "path": "/paths//api/v1/applications/{application_id}/amendments/{amendment_id}/review//post/parameters[0]/name",
@@ -606,27 +361,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/assign/",
-      "path": "/paths//api/v1/applications/{application_id}/assign//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "info",
-      "category": "rest_conventions",
-      "message": "POST request typically should have request body: POST /api/v1/applications/{application_id}/assign/",
-      "path": "/paths//api/v1/applications/{application_id}/assign//post",
-      "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/applications/{application_id}/assign/",
-      "path": "/paths//api/v1/applications/{application_id}/assign//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/assign/",
       "path": "/paths//api/v1/applications/{application_id}/assign//post/parameters[0]/name",
@@ -638,13 +372,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/applications/{application_id}/conditions/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/{application_id}/conditions/",
-      "path": "/paths//api/v1/applications/{application_id}/conditions//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -683,13 +410,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/conditions/{condition_id}/verify/",
-      "path": "/paths//api/v1/applications/{application_id}/conditions/{condition_id}/verify//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for POST /api/v1/applications/{application_id}/conditions/{condition_id}/verify/",
       "path": "/paths//api/v1/applications/{application_id}/conditions/{condition_id}/verify//post/responses",
@@ -718,20 +438,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/confirm-enrollment/",
-      "path": "/paths//api/v1/applications/{application_id}/confirm-enrollment//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/applications/{application_id}/confirm-enrollment/",
-      "path": "/paths//api/v1/applications/{application_id}/confirm-enrollment//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/confirm-enrollment/",
       "path": "/paths//api/v1/applications/{application_id}/confirm-enrollment//post/parameters[0]/name",
@@ -746,24 +452,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/{application_id}/details/",
-      "path": "/paths//api/v1/applications/{application_id}/details//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in GET /api/v1/applications/{application_id}/details/",
       "path": "/paths//api/v1/applications/{application_id}/details//get/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PUT /api/v1/applications/{application_id}/details/",
-      "path": "/paths//api/v1/applications/{application_id}/details//put/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -781,24 +473,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PATCH /api/v1/applications/{application_id}/details/",
-      "path": "/paths//api/v1/applications/{application_id}/details//patch/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in PATCH /api/v1/applications/{application_id}/details/",
       "path": "/paths//api/v1/applications/{application_id}/details//patch/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for DELETE /api/v1/applications/{application_id}/details/",
-      "path": "/paths//api/v1/applications/{application_id}/details//delete/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -820,13 +498,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/applications/{application_id}/documents/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/{application_id}/documents/",
-      "path": "/paths//api/v1/applications/{application_id}/documents//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -851,13 +522,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/email-slip/",
-      "path": "/paths//api/v1/applications/{application_id}/email-slip//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/email-slip/",
       "path": "/paths//api/v1/applications/{application_id}/email-slip//post/parameters[0]/name",
@@ -872,27 +536,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/fee-waiver/",
-      "path": "/paths//api/v1/applications/{application_id}/fee-waiver//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "info",
-      "category": "rest_conventions",
-      "message": "POST request typically should have request body: POST /api/v1/applications/{application_id}/fee-waiver/",
-      "path": "/paths//api/v1/applications/{application_id}/fee-waiver//post",
-      "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/applications/{application_id}/fee-waiver/",
-      "path": "/paths//api/v1/applications/{application_id}/fee-waiver//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/fee-waiver/",
       "path": "/paths//api/v1/applications/{application_id}/fee-waiver//post/parameters[0]/name",
@@ -904,13 +547,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/applications/{application_id}/finance-receipt/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/finance-receipt/",
-      "path": "/paths//api/v1/applications/{application_id}/finance-receipt//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -948,13 +584,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/{application_id}/grades/",
-      "path": "/paths//api/v1/applications/{application_id}/grades//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/applications/{application_id}/grades/",
@@ -967,13 +596,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in GET /api/v1/applications/{application_id}/grades/",
       "path": "/paths//api/v1/applications/{application_id}/grades//get/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/grades/",
-      "path": "/paths//api/v1/applications/{application_id}/grades//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -997,13 +619,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/{application_id}/interviews/",
-      "path": "/paths//api/v1/applications/{application_id}/interviews//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/applications/{application_id}/interviews/",
@@ -1016,13 +631,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in GET /api/v1/applications/{application_id}/interviews/",
       "path": "/paths//api/v1/applications/{application_id}/interviews//get/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/interviews/",
-      "path": "/paths//api/v1/applications/{application_id}/interviews//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -1040,13 +648,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PUT /api/v1/applications/{application_id}/interviews/",
-      "path": "/paths//api/v1/applications/{application_id}/interviews//put/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in PUT /api/v1/applications/{application_id}/interviews/",
       "path": "/paths//api/v1/applications/{application_id}/interviews//put/parameters[0]/name",
@@ -1054,24 +655,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PATCH /api/v1/applications/{application_id}/interviews/",
-      "path": "/paths//api/v1/applications/{application_id}/interviews//patch/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in PATCH /api/v1/applications/{application_id}/interviews/",
       "path": "/paths//api/v1/applications/{application_id}/interviews//patch/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for DELETE /api/v1/applications/{application_id}/interviews/",
-      "path": "/paths//api/v1/applications/{application_id}/interviews//delete/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -1089,20 +676,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/{application_id}/preview-summary/",
-      "path": "/paths//api/v1/applications/{application_id}/preview-summary//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/applications/{application_id}/preview-summary/",
-      "path": "/paths//api/v1/applications/{application_id}/preview-summary//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in GET /api/v1/applications/{application_id}/preview-summary/",
       "path": "/paths//api/v1/applications/{application_id}/preview-summary//get/parameters[0]/name",
@@ -1114,13 +687,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/applications/{application_id}/review/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/review/",
-      "path": "/paths//api/v1/applications/{application_id}/review//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -1135,13 +701,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/review/",
       "path": "/paths//api/v1/applications/{application_id}/review//post/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PATCH /api/v1/applications/{application_id}/review/",
-      "path": "/paths//api/v1/applications/{application_id}/review//patch/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -1165,13 +724,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/submit/",
-      "path": "/paths//api/v1/applications/{application_id}/submit//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/applications/{application_id}/submit/",
@@ -1191,13 +743,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/applications/{application_id}/summary/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/{application_id}/summary/",
-      "path": "/paths//api/v1/applications/{application_id}/summary//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -1222,13 +767,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/verify-document/",
-      "path": "/paths//api/v1/applications/{application_id}/verify-document//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/verify-document/",
       "path": "/paths//api/v1/applications/{application_id}/verify-document//post/parameters[0]/name",
@@ -1240,20 +778,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/applications/{application_id}/waitlist-position/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/{application_id}/waitlist-position/",
-      "path": "/paths//api/v1/applications/{application_id}/waitlist-position//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/applications/{application_id}/waitlist-position/",
-      "path": "/paths//api/v1/applications/{application_id}/waitlist-position//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -1271,24 +795,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/{application_id}/withdraw/",
-      "path": "/paths//api/v1/applications/{application_id}/withdraw//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/withdraw/",
       "path": "/paths//api/v1/applications/{application_id}/withdraw//post/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/auto-assign/",
-      "path": "/paths//api/v1/applications/auto-assign//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -1298,39 +808,11 @@
       "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/applications/auto-assign/",
-      "path": "/paths//api/v1/applications/auto-assign//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/bulk-status/",
-      "path": "/paths//api/v1/applications/bulk-status//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/draft/",
-      "path": "/paths//api/v1/applications/draft//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/applications/draft/",
       "path": "/paths//api/v1/applications/draft//get/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/applications/draft/",
-      "path": "/paths//api/v1/applications/draft//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -1345,13 +827,6 @@
       "message": "Missing error responses for POST /api/v1/applications/draft/",
       "path": "/paths//api/v1/applications/draft//post/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/export/",
-      "path": "/paths//api/v1/applications/export//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -1369,24 +844,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/history/",
-      "path": "/paths//api/v1/applications/history//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Query parameter 'user_id' should use camelCase or kebab-case in GET /api/v1/applications/history/",
       "path": "/paths//api/v1/applications/history//get/parameters[2]/name",
       "suggestion": "Use camelCase (e.g., 'pageSize') or kebab-case (e.g., 'page-size')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/interviews/",
-      "path": "/paths//api/v1/applications/interviews//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -1396,13 +857,6 @@
       "suggestion": "Use camelCase (e.g., 'pageSize') or kebab-case (e.g., 'page-size')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/applications/track/",
-      "path": "/paths//api/v1/applications/track//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/applications/track/",
@@ -1410,39 +864,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/auth/login/",
-      "path": "/paths//api/v1/auth/login//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/auth/logout/",
-      "path": "/paths//api/v1/auth/logout//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "rest_conventions",
       "message": "POST request typically should have request body: POST /api/v1/auth/logout/",
       "path": "/paths//api/v1/auth/logout//post",
       "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/auth/password-reset/",
-      "path": "/paths//api/v1/auth/password-reset//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/auth/password-reset/confirm/",
-      "path": "/paths//api/v1/auth/password-reset/confirm//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -1459,13 +885,6 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/auth/refresh/",
-      "path": "/paths//api/v1/auth/refresh//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "rest_conventions",
       "message": "POST request typically should have request body: POST /api/v1/auth/refresh/",
@@ -1474,31 +893,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/auth/register/",
-      "path": "/paths//api/v1/auth/register//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/auth/session/",
-      "path": "/paths//api/v1/auth/session//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/auth/session/",
       "path": "/paths//api/v1/auth/session//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/automation/rules/",
-      "path": "/paths//api/v1/automation/rules//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -1515,13 +913,6 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/automation/rules/",
-      "path": "/paths//api/v1/automation/rules//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/automation/rules/",
@@ -1536,13 +927,6 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/automation/runs/",
-      "path": "/paths//api/v1/automation/runs//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/automation/runs/",
@@ -1555,13 +939,6 @@
       "message": "Missing error responses for GET /api/v1/automation/runs/",
       "path": "/paths//api/v1/automation/runs//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/automation/runs/",
-      "path": "/paths//api/v1/automation/runs//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -1592,13 +969,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/automation/runs/{run_id}/",
-      "path": "/paths//api/v1/automation/runs/{run_id}//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/automation/runs/{run_id}/",
@@ -1625,13 +995,6 @@
       "message": "Path parameter 'run_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/automation/runs/{run_id}/approve/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/automation/runs/{run_id}/approve/",
-      "path": "/paths//api/v1/automation/runs/{run_id}/approve//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -1662,13 +1025,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/automation/runs/{run_id}/cancel/",
-      "path": "/paths//api/v1/automation/runs/{run_id}/cancel//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/automation/runs/{run_id}/cancel/",
@@ -1691,24 +1047,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/catalog/institutions/",
-      "path": "/paths//api/v1/catalog/institutions//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/catalog/institutions/",
       "path": "/paths//api/v1/catalog/institutions//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/catalog/institutions/",
-      "path": "/paths//api/v1/catalog/institutions//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -1719,13 +1061,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/catalog/institutions/{institution_id}/",
-      "path": "/paths//api/v1/catalog/institutions/{institution_id}//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'institution_id' should use camelCase or kebab-case in GET /api/v1/catalog/institutions/{institution_id}/",
       "path": "/paths//api/v1/catalog/institutions/{institution_id}//get/parameters[0]/name",
@@ -1733,24 +1068,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PATCH /api/v1/catalog/institutions/{institution_id}/",
-      "path": "/paths//api/v1/catalog/institutions/{institution_id}//patch/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'institution_id' should use camelCase or kebab-case in PATCH /api/v1/catalog/institutions/{institution_id}/",
       "path": "/paths//api/v1/catalog/institutions/{institution_id}//patch/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for DELETE /api/v1/catalog/institutions/{institution_id}/",
-      "path": "/paths//api/v1/catalog/institutions/{institution_id}//delete/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -1768,24 +1089,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/catalog/intakes/",
-      "path": "/paths//api/v1/catalog/intakes//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/catalog/intakes/",
       "path": "/paths//api/v1/catalog/intakes//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/catalog/intakes/",
-      "path": "/paths//api/v1/catalog/intakes//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -1796,24 +1103,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/catalog/intakes/{intake_id}/",
-      "path": "/paths//api/v1/catalog/intakes/{intake_id}//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'intake_id' should use camelCase or kebab-case in GET /api/v1/catalog/intakes/{intake_id}/",
       "path": "/paths//api/v1/catalog/intakes/{intake_id}//get/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PATCH /api/v1/catalog/intakes/{intake_id}/",
-      "path": "/paths//api/v1/catalog/intakes/{intake_id}//patch/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -1824,24 +1117,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for DELETE /api/v1/catalog/intakes/{intake_id}/",
-      "path": "/paths//api/v1/catalog/intakes/{intake_id}//delete/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'intake_id' should use camelCase or kebab-case in DELETE /api/v1/catalog/intakes/{intake_id}/",
       "path": "/paths//api/v1/catalog/intakes/{intake_id}//delete/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/catalog/programs/",
-      "path": "/paths//api/v1/catalog/programs//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -1852,24 +1131,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/catalog/programs/",
-      "path": "/paths//api/v1/catalog/programs//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'program_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/catalog/programs/{program_id}/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/catalog/programs/{program_id}/",
-      "path": "/paths//api/v1/catalog/programs/{program_id}//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -1880,13 +1145,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PATCH /api/v1/catalog/programs/{program_id}/",
-      "path": "/paths//api/v1/catalog/programs/{program_id}//patch/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'program_id' should use camelCase or kebab-case in PATCH /api/v1/catalog/programs/{program_id}/",
       "path": "/paths//api/v1/catalog/programs/{program_id}//patch/parameters[0]/name",
@@ -1894,24 +1152,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for DELETE /api/v1/catalog/programs/{program_id}/",
-      "path": "/paths//api/v1/catalog/programs/{program_id}//delete/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'program_id' should use camelCase or kebab-case in DELETE /api/v1/catalog/programs/{program_id}/",
       "path": "/paths//api/v1/catalog/programs/{program_id}//delete/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/catalog/subjects/",
-      "path": "/paths//api/v1/catalog/subjects//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -1936,13 +1180,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for DELETE /api/v1/documents/{document_id}/delete/",
-      "path": "/paths//api/v1/documents/{document_id}/delete//delete/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for DELETE /api/v1/documents/{document_id}/delete/",
       "path": "/paths//api/v1/documents/{document_id}/delete//delete/responses",
@@ -1961,13 +1198,6 @@
       "message": "Path parameter 'document_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/documents/{document_id}/download/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/documents/{document_id}/download/",
-      "path": "/paths//api/v1/documents/{document_id}/download//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "error",
@@ -2005,13 +1235,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/documents/{document_id}/extract/",
-      "path": "/paths//api/v1/documents/{document_id}/extract//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "rest_conventions",
       "message": "POST request typically should have request body: POST /api/v1/documents/{document_id}/extract/",
@@ -2041,13 +1264,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/documents/{document_id}/info/",
-      "path": "/paths//api/v1/documents/{document_id}/info//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/documents/{document_id}/info/",
       "path": "/paths//api/v1/documents/{document_id}/info//get/responses",
@@ -2066,13 +1282,6 @@
       "message": "Path parameter 'document_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/documents/{document_id}/signed-url/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/documents/{document_id}/signed-url/",
-      "path": "/paths//api/v1/documents/{document_id}/signed-url//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -2096,13 +1305,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/documents/{document_id}/versions/",
-      "path": "/paths//api/v1/documents/{document_id}/versions//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/documents/{document_id}/versions/",
@@ -2124,13 +1326,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/documents/cover-letters/generate/",
-      "path": "/paths//api/v1/documents/cover-letters/generate//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/documents/cover-letters/generate/",
@@ -2143,13 +1338,6 @@
       "message": "Missing error responses for POST /api/v1/documents/cover-letters/generate/",
       "path": "/paths//api/v1/documents/cover-letters/generate//post/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/documents/question-bank/answer/",
-      "path": "/paths//api/v1/documents/question-bank/answer//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2166,13 +1354,6 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/documents/resumes/",
-      "path": "/paths//api/v1/documents/resumes//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/documents/resumes/",
@@ -2185,13 +1366,6 @@
       "message": "Missing error responses for GET /api/v1/documents/resumes/",
       "path": "/paths//api/v1/documents/resumes//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/documents/resumes/variants/",
-      "path": "/paths//api/v1/documents/resumes/variants//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2215,20 +1389,6 @@
       "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/documents/upload/",
-      "path": "/paths//api/v1/documents/upload//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/email/accounts/zoho/connect/",
-      "path": "/paths//api/v1/email/accounts/zoho/connect//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/email/accounts/zoho/connect/",
@@ -2241,13 +1401,6 @@
       "message": "Missing error responses for POST /api/v1/email/accounts/zoho/connect/",
       "path": "/paths//api/v1/email/accounts/zoho/connect//post/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/email/messages/",
-      "path": "/paths//api/v1/email/messages//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2264,25 +1417,11 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/email/send/",
-      "path": "/paths//api/v1/email/send//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "responses",
       "message": "Uncommon status code 202 for POST /api/v1/email/send/",
       "path": "/paths//api/v1/email/send//post/responses/202",
       "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/email/threads/",
-      "path": "/paths//api/v1/email/threads//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2297,13 +1436,6 @@
       "message": "Missing error responses for GET /api/v1/email/threads/",
       "path": "/paths//api/v1/email/threads//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/email/webhooks/delivery/",
-      "path": "/paths//api/v1/email/webhooks/delivery//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2327,13 +1459,6 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/integrations/openai/test/",
-      "path": "/paths//api/v1/integrations/openai/test//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/integrations/openai/test/",
@@ -2346,13 +1471,6 @@
       "message": "Missing error responses for POST /api/v1/integrations/openai/test/",
       "path": "/paths//api/v1/integrations/openai/test//post/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/integrations/telegram/connect/",
-      "path": "/paths//api/v1/integrations/telegram/connect//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2369,13 +1487,6 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/integrations/telegram/test/",
-      "path": "/paths//api/v1/integrations/telegram/test//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/integrations/telegram/test/",
@@ -2388,13 +1499,6 @@
       "message": "Missing error responses for POST /api/v1/integrations/telegram/test/",
       "path": "/paths//api/v1/integrations/telegram/test//post/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/integrations/telegram/webhook/",
-      "path": "/paths//api/v1/integrations/telegram/webhook//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2411,13 +1515,6 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/job-applications/",
-      "path": "/paths//api/v1/job-applications//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/job-applications/",
@@ -2430,13 +1527,6 @@
       "message": "Missing error responses for GET /api/v1/job-applications/",
       "path": "/paths//api/v1/job-applications//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/job-applications/",
-      "path": "/paths//api/v1/job-applications//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2458,13 +1548,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/job-applications/{application_id}/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/job-applications/{application_id}/",
-      "path": "/paths//api/v1/job-applications/{application_id}//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2495,13 +1578,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/job-applications/{application_id}/approve/",
-      "path": "/paths//api/v1/job-applications/{application_id}/approve//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/job-applications/{application_id}/approve/",
@@ -2528,13 +1604,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/job-applications/{application_id}/pause/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/job-applications/{application_id}/pause/",
-      "path": "/paths//api/v1/job-applications/{application_id}/pause//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2565,13 +1634,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/job-applications/{application_id}/reject/",
-      "path": "/paths//api/v1/job-applications/{application_id}/reject//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/job-applications/{application_id}/reject/",
@@ -2598,13 +1660,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/job-applications/{application_id}/resume/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/job-applications/{application_id}/resume/",
-      "path": "/paths//api/v1/job-applications/{application_id}/resume//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2642,13 +1697,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/job-applications/{application_id}/submit/",
-      "path": "/paths//api/v1/job-applications/{application_id}/submit//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/job-applications/{application_id}/submit/",
@@ -2677,13 +1725,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/jobs/",
-      "path": "/paths//api/v1/jobs//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/jobs/",
@@ -2703,13 +1744,6 @@
       "message": "Path parameter 'job_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/jobs/{job_id}/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/jobs/{job_id}/",
-      "path": "/paths//api/v1/jobs/{job_id}//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2740,13 +1774,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/jobs/{job_id}/dismiss/",
-      "path": "/paths//api/v1/jobs/{job_id}/dismiss//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/jobs/{job_id}/dismiss/",
@@ -2773,13 +1800,6 @@
       "message": "Path parameter 'job_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/jobs/{job_id}/score/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/jobs/{job_id}/score/",
-      "path": "/paths//api/v1/jobs/{job_id}/score//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2817,13 +1837,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/jobs/{job_id}/tailor-documents/",
-      "path": "/paths//api/v1/jobs/{job_id}/tailor-documents//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/jobs/{job_id}/tailor-documents/",
@@ -2859,13 +1872,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/jobs/{job_id}/watch/",
-      "path": "/paths//api/v1/jobs/{job_id}/watch//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/jobs/{job_id}/watch/",
@@ -2885,13 +1891,6 @@
       "message": "Path parameter 'job_id' should use camelCase or kebab-case in POST /api/v1/jobs/{job_id}/watch/",
       "path": "/paths//api/v1/jobs/{job_id}/watch//post/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/jobs/discovery-runs/",
-      "path": "/paths//api/v1/jobs/discovery-runs//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -2915,13 +1914,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/jobs/discovery-runs/{run_id}/",
-      "path": "/paths//api/v1/jobs/discovery-runs/{run_id}//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/jobs/discovery-runs/{run_id}/",
@@ -2943,13 +1935,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/meta/platform/",
-      "path": "/paths//api/v1/meta/platform//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/meta/platform/",
@@ -2965,31 +1950,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/notifications/",
-      "path": "/paths//api/v1/notifications//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/notifications/",
       "path": "/paths//api/v1/notifications//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/notifications/",
-      "path": "/paths//api/v1/notifications//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for DELETE /api/v1/notifications/{id}/",
-      "path": "/paths//api/v1/notifications/{id}//delete/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -3021,24 +1985,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/notifications/preferences/",
-      "path": "/paths//api/v1/notifications/preferences//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/notifications/preferences/",
       "path": "/paths//api/v1/notifications/preferences//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PUT /api/v1/notifications/preferences/",
-      "path": "/paths//api/v1/notifications/preferences//put/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -3063,24 +2013,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/notifications/user/{user_id}/",
-      "path": "/paths//api/v1/notifications/user/{user_id}//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'user_id' should use camelCase or kebab-case in GET /api/v1/notifications/user/{user_id}/",
       "path": "/paths//api/v1/notifications/user/{user_id}//get/parameters[2]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/outreach/campaigns/",
-      "path": "/paths//api/v1/outreach/campaigns//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -3097,13 +2033,6 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/outreach/campaigns/",
-      "path": "/paths//api/v1/outreach/campaigns//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/outreach/campaigns/",
@@ -3116,13 +2045,6 @@
       "message": "Missing error responses for POST /api/v1/outreach/campaigns/",
       "path": "/paths//api/v1/outreach/campaigns//post/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/outreach/contacts/",
-      "path": "/paths//api/v1/outreach/contacts//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -3139,13 +2061,6 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/outreach/contacts/",
-      "path": "/paths//api/v1/outreach/contacts//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/outreach/contacts/",
@@ -3158,13 +2073,6 @@
       "message": "Missing error responses for POST /api/v1/outreach/contacts/",
       "path": "/paths//api/v1/outreach/contacts//post/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/outreach/contacts/enrich/",
-      "path": "/paths//api/v1/outreach/contacts/enrich//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -3188,13 +2096,6 @@
       "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/outreach/messages/generate/",
-      "path": "/paths//api/v1/outreach/messages/generate//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/outreach/messages/generate/",
@@ -3207,13 +2108,6 @@
       "message": "Missing error responses for POST /api/v1/outreach/messages/generate/",
       "path": "/paths//api/v1/outreach/messages/generate//post/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/outreach/messages/send/",
-      "path": "/paths//api/v1/outreach/messages/send//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -3238,13 +2132,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/payments/",
-      "path": "/paths//api/v1/payments//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/payments/",
       "path": "/paths//api/v1/payments//get/responses",
@@ -3266,13 +2153,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/payments/{payment_id}/receipt/",
-      "path": "/paths//api/v1/payments/{payment_id}/receipt//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'payment_id' should use camelCase or kebab-case in GET /api/v1/payments/{payment_id}/receipt/",
       "path": "/paths//api/v1/payments/{payment_id}/receipt//get/parameters[0]/name",
@@ -3284,13 +2164,6 @@
       "message": "Path parameter 'payment_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/payments/{payment_id}/verify/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/payments/{payment_id}/verify/",
-      "path": "/paths//api/v1/payments/{payment_id}/verify//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -3308,45 +2181,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/payments/defer/",
-      "path": "/paths//api/v1/payments/defer//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "info",
-      "category": "rest_conventions",
-      "message": "POST request typically should have request body: POST /api/v1/payments/defer/",
-      "path": "/paths//api/v1/payments/defer//post",
-      "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/payments/defer/",
-      "path": "/paths//api/v1/payments/defer//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/payments/dev-bypass/",
-      "path": "/paths//api/v1/payments/dev-bypass//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for POST /api/v1/payments/dev-bypass/",
       "path": "/paths//api/v1/payments/dev-bypass//post/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/payments/initiate/",
-      "path": "/paths//api/v1/payments/initiate//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -3356,32 +2194,11 @@
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/payments/mobile-money/",
-      "path": "/paths//api/v1/payments/mobile-money//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
       "severity": "info",
-      "category": "rest_conventions",
-      "message": "POST request typically should have request body: POST /api/v1/payments/mobile-money/",
-      "path": "/paths//api/v1/payments/mobile-money//post",
-      "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
-      "message": "Missing error responses for POST /api/v1/payments/mobile-money/",
-      "path": "/paths//api/v1/payments/mobile-money//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/payments/resolve-fee/",
-      "path": "/paths//api/v1/payments/resolve-fee//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
+      "message": "Uncommon status code 202 for POST /api/v1/payments/mobile-money/",
+      "path": "/paths//api/v1/payments/mobile-money//post/responses/202",
+      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
     },
     {
       "severity": "warning",
@@ -3399,13 +2216,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/payments/webhook/lenco/",
-      "path": "/paths//api/v1/payments/webhook/lenco//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for POST /api/v1/payments/webhook/lenco/",
       "path": "/paths//api/v1/payments/webhook/lenco//post/responses",
@@ -3420,13 +2230,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/programs/{program_id}/fees/",
-      "path": "/paths//api/v1/programs/{program_id}/fees//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/programs/{program_id}/fees/",
       "path": "/paths//api/v1/programs/{program_id}/fees//get/responses",
@@ -3438,13 +2241,6 @@
       "message": "Path parameter 'program_id' should use camelCase or kebab-case in GET /api/v1/programs/{program_id}/fees/",
       "path": "/paths//api/v1/programs/{program_id}/fees//get/parameters[2]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/programs/{program_id}/fees/",
-      "path": "/paths//api/v1/programs/{program_id}/fees//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -3469,13 +2265,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/programs/{program_id}/fees/{id}/",
-      "path": "/paths//api/v1/programs/{program_id}/fees/{id}//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/programs/{program_id}/fees/{id}/",
       "path": "/paths//api/v1/programs/{program_id}/fees/{id}//get/responses",
@@ -3487,13 +2276,6 @@
       "message": "Path parameter 'program_id' should use camelCase or kebab-case in GET /api/v1/programs/{program_id}/fees/{id}/",
       "path": "/paths//api/v1/programs/{program_id}/fees/{id}//get/parameters[1]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PUT /api/v1/programs/{program_id}/fees/{id}/",
-      "path": "/paths//api/v1/programs/{program_id}/fees/{id}//put/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -3511,13 +2293,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for PATCH /api/v1/programs/{program_id}/fees/{id}/",
-      "path": "/paths//api/v1/programs/{program_id}/fees/{id}//patch/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for PATCH /api/v1/programs/{program_id}/fees/{id}/",
       "path": "/paths//api/v1/programs/{program_id}/fees/{id}//patch/responses",
@@ -3532,13 +2307,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for DELETE /api/v1/programs/{program_id}/fees/{id}/",
-      "path": "/paths//api/v1/programs/{program_id}/fees/{id}//delete/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for DELETE /api/v1/programs/{program_id}/fees/{id}/",
       "path": "/paths//api/v1/programs/{program_id}/fees/{id}//delete/responses",
@@ -3550,13 +2318,6 @@
       "message": "Path parameter 'program_id' should use camelCase or kebab-case in DELETE /api/v1/programs/{program_id}/fees/{id}/",
       "path": "/paths//api/v1/programs/{program_id}/fees/{id}//delete/parameters[1]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/reports/daily-digest/",
-      "path": "/paths//api/v1/reports/daily-digest//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -3574,13 +2335,6 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /api/v1/sessions/",
-      "path": "/paths//api/v1/sessions//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /api/v1/sessions/",
       "path": "/paths//api/v1/sessions//get/responses",
@@ -3595,24 +2349,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/sessions/{session_id}/revoke/",
-      "path": "/paths//api/v1/sessions/{session_id}/revoke//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'session_id' should use camelCase or kebab-case in POST /api/v1/sessions/{session_id}/revoke/",
       "path": "/paths//api/v1/sessions/{session_id}/revoke//post/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for POST /api/v1/sessions/revoke-all/",
-      "path": "/paths//api/v1/sessions/revoke-all//post/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "warning",
@@ -3623,24 +2363,10 @@
     },
     {
       "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /health/live/",
-      "path": "/paths//health/live//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
-    },
-    {
-      "severity": "warning",
       "category": "responses",
       "message": "Missing error responses for GET /health/live/",
       "path": "/paths//health/live//get/responses",
       "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /health/ready/",
-      "path": "/paths//health/ready//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -3648,13 +2374,6 @@
       "message": "Uncommon status code 503 for GET /health/ready/",
       "path": "/paths//health/ready//get/responses/503",
       "suggestion": "Consider using standard codes for GET: [200, 304, 404]"
-    },
-    {
-      "severity": "warning",
-      "category": "documentation",
-      "message": "Missing summary for GET /health/redis/",
-      "path": "/paths//health/redis//get/summary",
-      "suggestion": "Add a brief summary describing what this operation does"
     },
     {
       "severity": "info",
@@ -4086,6 +2805,34 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'generated_at' in schema 'ApplicationAiSummaryData' should use camelCase",
+      "path": "/components/schemas/ApplicationAiSummaryData/properties/generated_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'field_name' in schema 'ApplicationAmendmentRequest' should use camelCase",
+      "path": "/components/schemas/ApplicationAmendmentRequest/properties/field_name",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'new_value' in schema 'ApplicationAmendmentRequest' should use camelCase",
+      "path": "/components/schemas/ApplicationAmendmentRequest/properties/new_value",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'reviewer_id' in schema 'ApplicationAssignRequest' should use camelCase",
+      "path": "/components/schemas/ApplicationAssignRequest/properties/reviewer_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'task_id' in schema 'ApplicationAsyncTask' should use camelCase",
       "path": "/components/schemas/ApplicationAsyncTask/properties/task_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -4284,6 +3031,27 @@
       "category": "naming",
       "message": "Property 'draft_data' in schema 'ApplicationDraftWrite' should use camelCase",
       "path": "/components/schemas/ApplicationDraftWrite/properties/draft_data",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'waiver_type' in schema 'ApplicationFeeWaiverRequest' should use camelCase",
+      "path": "/components/schemas/ApplicationFeeWaiverRequest/properties/waiver_type",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'reason_code' in schema 'ApplicationFeeWaiverRequest' should use camelCase",
+      "path": "/components/schemas/ApplicationFeeWaiverRequest/properties/reason_code",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'discount_percentage' in schema 'ApplicationFeeWaiverRequest' should use camelCase",
+      "path": "/components/schemas/ApplicationFeeWaiverRequest/properties/discount_percentage",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {
@@ -4653,6 +3421,13 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'application_id' in schema 'ApplicationWaitlistPositionData' should use camelCase",
+      "path": "/components/schemas/ApplicationWaitlistPositionData/properties/application_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'actor_id' in schema 'AuditLog' should use camelCase",
       "path": "/components/schemas/AuditLog/properties/actor_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -4765,8 +3540,99 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'first_name' in schema 'BatchUserItem' should use camelCase",
+      "path": "/components/schemas/BatchUserItem/properties/first_name",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'last_name' in schema 'BatchUserItem' should use camelCase",
+      "path": "/components/schemas/BatchUserItem/properties/last_name",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'template_key' in schema 'CommunicationTemplate' should use camelCase",
+      "path": "/components/schemas/CommunicationTemplate/properties/template_key",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'subject_template' in schema 'CommunicationTemplate' should use camelCase",
+      "path": "/components/schemas/CommunicationTemplate/properties/subject_template",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'body_template' in schema 'CommunicationTemplate' should use camelCase",
+      "path": "/components/schemas/CommunicationTemplate/properties/body_template",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'is_active' in schema 'CommunicationTemplate' should use camelCase",
+      "path": "/components/schemas/CommunicationTemplate/properties/is_active",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'created_at' in schema 'CommunicationTemplate' should use camelCase",
+      "path": "/components/schemas/CommunicationTemplate/properties/created_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'updated_at' in schema 'CommunicationTemplate' should use camelCase",
+      "path": "/components/schemas/CommunicationTemplate/properties/updated_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'subject_template' in schema 'CommunicationTemplateUpdateRequest' should use camelCase",
+      "path": "/components/schemas/CommunicationTemplateUpdateRequest/properties/subject_template",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'body_template' in schema 'CommunicationTemplateUpdateRequest' should use camelCase",
+      "path": "/components/schemas/CommunicationTemplateUpdateRequest/properties/body_template",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'is_active' in schema 'CommunicationTemplateUpdateRequest' should use camelCase",
+      "path": "/components/schemas/CommunicationTemplateUpdateRequest/properties/is_active",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'generated_at' in schema 'DailyDigest' should use camelCase",
       "path": "/components/schemas/DailyDigest/properties/generated_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'payment_id' in schema 'DeferPaymentData' should use camelCase",
+      "path": "/components/schemas/DeferPaymentData/properties/payment_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'application_id' in schema 'DeferPaymentRequest' should use camelCase",
+      "path": "/components/schemas/DeferPaymentRequest/properties/application_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {
@@ -5152,6 +4018,34 @@
       "category": "naming",
       "message": "Property 'match_score' in schema 'JobSummary' should use camelCase",
       "path": "/components/schemas/JobSummary/properties/match_score",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'payment_id' in schema 'MobileMoneyInitiateData' should use camelCase",
+      "path": "/components/schemas/MobileMoneyInitiateData/properties/payment_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'provider_status' in schema 'MobileMoneyInitiateData' should use camelCase",
+      "path": "/components/schemas/MobileMoneyInitiateData/properties/provider_status",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'masked_phone' in schema 'MobileMoneyInitiateData' should use camelCase",
+      "path": "/components/schemas/MobileMoneyInitiateData/properties/masked_phone",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'application_id' in schema 'MobileMoneyInitiateRequest' should use camelCase",
+      "path": "/components/schemas/MobileMoneyInitiateRequest/properties/application_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {

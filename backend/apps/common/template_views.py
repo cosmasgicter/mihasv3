@@ -9,7 +9,7 @@ import logging
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
 
 from apps.common.models import CommunicationTemplate
 
@@ -35,13 +35,47 @@ class CommunicationTemplateSerializer(serializers.Serializer):
     updated_at = serializers.DateTimeField(read_only=True)
 
 
+class CommunicationTemplateListResponseSerializer(serializers.Serializer):
+    """Envelope for GET /api/v1/admin/templates/ — returns a list of templates."""
+
+    success = serializers.BooleanField()
+    data = CommunicationTemplateSerializer(many=True)
+
+
+class CommunicationTemplateUpdateRequestSerializer(serializers.Serializer):
+    """PUT /api/v1/admin/templates/{key}/ request body.
+
+    All fields optional — updating subject_template and/or body_template is the
+    common case. Use is_active=false to soft-disable a template.
+    """
+
+    subject_template = serializers.CharField(required=False, allow_blank=True)
+    body_template = serializers.CharField(required=False, allow_blank=True)
+    channel = serializers.ChoiceField(
+        choices=["email", "notification", "both"], required=False
+    )
+    is_active = serializers.BooleanField(required=False)
+
+
+class CommunicationTemplateUpdateResponseSerializer(serializers.Serializer):
+    success = serializers.BooleanField()
+    data = CommunicationTemplateSerializer()
+
+
 class CommunicationTemplateListView(APIView):
     """GET /api/v1/admin/templates/ — list all communication templates (admin only)."""
+
+    serializer_class = CommunicationTemplateSerializer
 
     def get_permissions(self):
         return [_get_admin_permission()()]
 
-    @extend_schema(tags=["admin"], summary="List communication templates")
+    @extend_schema(
+        request=None,
+        responses={200: OpenApiResponse(response=CommunicationTemplateListResponseSerializer)},
+        tags=["admin"],
+        summary="List communication templates",
+    )
     def get(self, request):
         templates = CommunicationTemplate.objects.all().order_by("template_key")
         data = CommunicationTemplateSerializer(templates, many=True).data
@@ -51,10 +85,21 @@ class CommunicationTemplateListView(APIView):
 class CommunicationTemplateUpdateView(APIView):
     """PUT /api/v1/admin/templates/{key}/ — update a template by key (admin only)."""
 
+    serializer_class = CommunicationTemplateUpdateRequestSerializer
+
     def get_permissions(self):
         return [_get_admin_permission()()]
 
-    @extend_schema(tags=["admin"], summary="Update a communication template")
+    @extend_schema(
+        request=CommunicationTemplateUpdateRequestSerializer,
+        responses={
+            200: OpenApiResponse(response=CommunicationTemplateUpdateResponseSerializer),
+            400: OpenApiResponse(description="Validation error"),
+            404: OpenApiResponse(description="Template not found"),
+        },
+        tags=["admin"],
+        summary="Update a communication template",
+    )
     def put(self, request, key):
         try:
             template = CommunicationTemplate.objects.get(template_key=key)

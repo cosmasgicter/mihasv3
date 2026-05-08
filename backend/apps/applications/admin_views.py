@@ -40,6 +40,13 @@ from apps.applications.serializers import (
     ApplicationReviewSerializer,
     ApplicationSerializer,
     PaymentStatusUpdateSerializer,
+    # T15 API remediation
+    ApplicationAmendmentReviewRequestSerializer,
+    ApplicationAssignRequestSerializer,
+    ApplicationAutoAssignRequestSerializer,
+    ApplicationEnvelopeResponseSerializer,
+    ApplicationFeeWaiverRequestSerializer,
+    ApplicationAiSummaryResponseSerializer,
 )
 from apps.applications.services import (
     ApplicationSubmissionError,
@@ -765,7 +772,18 @@ class ApplicationAssignView(APIView):
     """
 
     permission_classes = [IsSuperAdmin]
+    serializer_class = ApplicationAssignRequestSerializer
 
+    @extend_schema(
+        request=ApplicationAssignRequestSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationEnvelopeResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["applications"],
+        summary="Assign an application to a reviewer (super-admin only)",
+    )
     def post(self, request, application_id):
         from apps.accounts.models import Profile
 
@@ -853,7 +871,17 @@ class ApplicationAutoAssignView(APIView):
     """
 
     permission_classes = [IsSuperAdmin]
+    serializer_class = ApplicationAutoAssignRequestSerializer
 
+    @extend_schema(
+        request=ApplicationAutoAssignRequestSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationEnvelopeResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["applications"],
+        summary="Auto-assign unassigned applications via round-robin",
+    )
     def post(self, request):
         from apps.accounts.models import Profile
         from apps.common.models import Setting
@@ -959,7 +987,18 @@ class ApplicationFeeWaiverView(APIView):
     """
 
     permission_classes = [IsSuperAdmin]
+    serializer_class = ApplicationFeeWaiverRequestSerializer
 
+    @extend_schema(
+        request=ApplicationFeeWaiverRequestSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationEnvelopeResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["applications"],
+        summary="Grant a fee waiver (super-admin only)",
+    )
     def post(self, request, application_id):
         from apps.documents.fee_waiver_service import FeeWaiverError, FeeWaiverService
 
@@ -1029,7 +1068,18 @@ class ApplicationAmendmentReviewView(APIView):
     """
 
     permission_classes = [IsAdmin]
+    serializer_class = ApplicationAmendmentReviewRequestSerializer
 
+    @extend_schema(
+        request=ApplicationAmendmentReviewRequestSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationEnvelopeResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["applications"],
+        summary="Approve or reject an amendment request (admin only)",
+    )
     def post(self, request, application_id, amendment_id):
         from apps.applications.amendment_service import AmendmentError, AmendmentService
 
@@ -1146,7 +1196,17 @@ class ApplicationAdminSummaryView(APIView):
     """
 
     permission_classes = [IsAdmin]
+    serializer_class = ApplicationAiSummaryResponseSerializer
 
+    @extend_schema(
+        request=None,
+        responses={
+            200: OpenApiResponse(response=ApplicationAiSummaryResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        tags=["applications"],
+        summary="Get AI-generated admin review brief",
+    )
     def get(self, request, application_id):
         try:
             app = Application.objects.get(id=application_id)
