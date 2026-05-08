@@ -1,21 +1,14 @@
 {
   "summary": {
     "total_endpoints": 178,
-    "endpoints_with_issues": 122,
-    "total_issues": 755,
+    "endpoints_with_issues": 99,
+    "total_issues": 657,
     "errors": 1,
-    "warnings": 659,
+    "warnings": 561,
     "info": 95,
-    "score": 88.3
+    "score": 89.96
   },
   "issues": [
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/admin/audit-logs/",
-      "path": "/paths//api/v1/admin/audit-logs//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
     {
       "severity": "warning",
       "category": "naming",
@@ -46,48 +39,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/admin/dashboard/",
-      "path": "/paths//api/v1/admin/dashboard//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/admin/settings/",
-      "path": "/paths//api/v1/admin/settings//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/admin/settings/import/",
-      "path": "/paths//api/v1/admin/settings/import//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/admin/settings/reset/",
-      "path": "/paths//api/v1/admin/settings/reset//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/admin/templates/",
-      "path": "/paths//api/v1/admin/templates//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/admin/users/",
-      "path": "/paths//api/v1/admin/users//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Query parameter 'include_inactive' should use camelCase or kebab-case in GET /api/v1/admin/users/",
       "path": "/paths//api/v1/admin/users//get/parameters[0]/name",
@@ -99,13 +50,6 @@
       "message": "Missing description for POST /api/v1/admin/users/batch-import/",
       "path": "/paths//api/v1/admin/users/batch-import//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/admin/users/export/",
-      "path": "/paths//api/v1/admin/users/export//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -122,25 +66,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/analytics/funnel/",
-      "path": "/paths//api/v1/analytics/funnel//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/analytics/outreach/",
       "path": "/paths//api/v1/analytics/outreach//get/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/analytics/outreach/",
-      "path": "/paths//api/v1/analytics/outreach//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -150,25 +80,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/analytics/sources/",
-      "path": "/paths//api/v1/analytics/sources//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/applications/",
       "path": "/paths//api/v1/applications//get/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/applications/",
-      "path": "/paths//api/v1/applications//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -207,13 +123,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for PUT /api/v1/applications/{application_id}/",
-      "path": "/paths//api/v1/applications/{application_id}//put/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in PUT /api/v1/applications/{application_id}/",
       "path": "/paths//api/v1/applications/{application_id}//put/parameters[0]/name",
@@ -239,13 +148,6 @@
       "message": "Missing description for DELETE /api/v1/applications/{application_id}/",
       "path": "/paths//api/v1/applications/{application_id}//delete/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for DELETE /api/v1/applications/{application_id}/",
-      "path": "/paths//api/v1/applications/{application_id}//delete/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -375,13 +277,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/applications/{application_id}/conditions/",
-      "path": "/paths//api/v1/applications/{application_id}/conditions//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in GET /api/v1/applications/{application_id}/conditions/",
       "path": "/paths//api/v1/applications/{application_id}/conditions//get/parameters[0]/name",
@@ -407,13 +302,6 @@
       "message": "Path has excessive nesting (7 levels): /api/v1/applications/{application_id}/conditions/{condition_id}/verify/",
       "path": "/paths//api/v1/applications/{application_id}/conditions/{condition_id}/verify/",
       "suggestion": "Consider flattening the resource hierarchy or using query parameters"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/applications/{application_id}/conditions/{condition_id}/verify/",
-      "path": "/paths//api/v1/applications/{application_id}/conditions/{condition_id}/verify//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -459,13 +347,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for PUT /api/v1/applications/{application_id}/details/",
-      "path": "/paths//api/v1/applications/{application_id}/details//put/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in PUT /api/v1/applications/{application_id}/details/",
       "path": "/paths//api/v1/applications/{application_id}/details//put/parameters[0]/name",
@@ -477,13 +358,6 @@
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in PATCH /api/v1/applications/{application_id}/details/",
       "path": "/paths//api/v1/applications/{application_id}/details//patch/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for DELETE /api/v1/applications/{application_id}/details/",
-      "path": "/paths//api/v1/applications/{application_id}/details//delete/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -822,25 +696,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/applications/draft/",
-      "path": "/paths//api/v1/applications/draft//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/applications/export/",
       "path": "/paths//api/v1/applications/export//get/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/applications/export/",
-      "path": "/paths//api/v1/applications/export//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -871,32 +731,11 @@
       "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/auth/profile/",
-      "path": "/paths//api/v1/auth/profile//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for PATCH /api/v1/auth/profile/",
-      "path": "/paths//api/v1/auth/profile//patch/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "rest_conventions",
       "message": "POST request typically should have request body: POST /api/v1/auth/refresh/",
       "path": "/paths//api/v1/auth/refresh//post",
       "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/auth/session/",
-      "path": "/paths//api/v1/auth/session//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -906,25 +745,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/automation/rules/",
-      "path": "/paths//api/v1/automation/rules//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/automation/rules/",
       "path": "/paths//api/v1/automation/rules//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/automation/rules/",
-      "path": "/paths//api/v1/automation/rules//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -934,25 +759,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/automation/runs/",
-      "path": "/paths//api/v1/automation/runs//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/automation/runs/",
       "path": "/paths//api/v1/automation/runs//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/automation/runs/",
-      "path": "/paths//api/v1/automation/runs//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -977,13 +788,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/automation/runs/{run_id}/",
-      "path": "/paths//api/v1/automation/runs/{run_id}//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'run_id' should use camelCase or kebab-case in GET /api/v1/automation/runs/{run_id}/",
       "path": "/paths//api/v1/automation/runs/{run_id}//get/parameters[0]/name",
@@ -1002,13 +806,6 @@
       "message": "Missing description for POST /api/v1/automation/runs/{run_id}/approve/",
       "path": "/paths//api/v1/automation/runs/{run_id}/approve//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/automation/runs/{run_id}/approve/",
-      "path": "/paths//api/v1/automation/runs/{run_id}/approve//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -1033,24 +830,10 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/automation/runs/{run_id}/cancel/",
-      "path": "/paths//api/v1/automation/runs/{run_id}/cancel//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'run_id' should use camelCase or kebab-case in POST /api/v1/automation/runs/{run_id}/cancel/",
       "path": "/paths//api/v1/automation/runs/{run_id}/cancel//post/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/catalog/institutions/",
-      "path": "/paths//api/v1/catalog/institutions//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -1089,13 +872,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/catalog/intakes/",
-      "path": "/paths//api/v1/catalog/intakes//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'intake_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/catalog/intakes/{intake_id}/",
@@ -1121,13 +897,6 @@
       "message": "Path parameter 'intake_id' should use camelCase or kebab-case in DELETE /api/v1/catalog/intakes/{intake_id}/",
       "path": "/paths//api/v1/catalog/intakes/{intake_id}//delete/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/catalog/programs/",
-      "path": "/paths//api/v1/catalog/programs//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -1159,13 +928,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/catalog/subjects/",
-      "path": "/paths//api/v1/catalog/subjects//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'document_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/documents/{document_id}/delete/",
@@ -1177,13 +939,6 @@
       "message": "Avoid verbs in URLs: 'delete' in /api/v1/documents/{document_id}/delete/",
       "path": "/paths//api/v1/documents/{document_id}/delete/",
       "suggestion": "Use HTTP methods instead of verbs in URLs. Use nouns for resources."
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for DELETE /api/v1/documents/{document_id}/delete/",
-      "path": "/paths//api/v1/documents/{document_id}/delete//delete/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -1205,13 +960,6 @@
       "message": "Missing success response for GET /api/v1/documents/{document_id}/download/",
       "path": "/paths//api/v1/documents/{document_id}/download//get/responses",
       "suggestion": "Define at least one success response (200, 201, 202, or 204)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/documents/{document_id}/download/",
-      "path": "/paths//api/v1/documents/{document_id}/download//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -1264,13 +1012,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/documents/{document_id}/info/",
-      "path": "/paths//api/v1/documents/{document_id}/info//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'document_id' should use camelCase or kebab-case in GET /api/v1/documents/{document_id}/info/",
       "path": "/paths//api/v1/documents/{document_id}/info//get/parameters[0]/name",
@@ -1282,13 +1023,6 @@
       "message": "Path parameter 'document_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/documents/{document_id}/signed-url/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/documents/{document_id}/signed-url/",
-      "path": "/paths//api/v1/documents/{document_id}/signed-url//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -1313,13 +1047,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/documents/{document_id}/versions/",
-      "path": "/paths//api/v1/documents/{document_id}/versions//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'document_id' should use camelCase or kebab-case in GET /api/v1/documents/{document_id}/versions/",
       "path": "/paths//api/v1/documents/{document_id}/versions//get/parameters[0]/name",
@@ -1333,25 +1060,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/documents/cover-letters/generate/",
-      "path": "/paths//api/v1/documents/cover-letters/generate//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/documents/question-bank/answer/",
       "path": "/paths//api/v1/documents/question-bank/answer//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/documents/question-bank/answer/",
-      "path": "/paths//api/v1/documents/question-bank/answer//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -1361,25 +1074,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/documents/resumes/",
-      "path": "/paths//api/v1/documents/resumes//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/documents/resumes/variants/",
       "path": "/paths//api/v1/documents/resumes/variants//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/documents/resumes/variants/",
-      "path": "/paths//api/v1/documents/resumes/variants//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -1396,25 +1095,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/email/accounts/zoho/connect/",
-      "path": "/paths//api/v1/email/accounts/zoho/connect//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for GET /api/v1/email/messages/",
       "path": "/paths//api/v1/email/messages//get/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/email/messages/",
-      "path": "/paths//api/v1/email/messages//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -1431,32 +1116,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/email/threads/",
-      "path": "/paths//api/v1/email/threads//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/email/webhooks/delivery/",
       "path": "/paths//api/v1/email/webhooks/delivery//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/email/webhooks/delivery/",
-      "path": "/paths//api/v1/email/webhooks/delivery//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/errors/report/",
-      "path": "/paths//api/v1/errors/report//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -1466,25 +1130,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/integrations/openai/test/",
-      "path": "/paths//api/v1/integrations/openai/test//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/integrations/telegram/connect/",
       "path": "/paths//api/v1/integrations/telegram/connect//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/integrations/telegram/connect/",
-      "path": "/paths//api/v1/integrations/telegram/connect//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -1494,25 +1144,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/integrations/telegram/test/",
-      "path": "/paths//api/v1/integrations/telegram/test//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/integrations/telegram/webhook/",
       "path": "/paths//api/v1/integrations/telegram/webhook//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/integrations/telegram/webhook/",
-      "path": "/paths//api/v1/integrations/telegram/webhook//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -1522,25 +1158,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/job-applications/",
-      "path": "/paths//api/v1/job-applications//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/job-applications/",
       "path": "/paths//api/v1/job-applications//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/job-applications/",
-      "path": "/paths//api/v1/job-applications//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -1555,13 +1177,6 @@
       "message": "Missing description for GET /api/v1/job-applications/{application_id}/",
       "path": "/paths//api/v1/job-applications/{application_id}//get/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/job-applications/{application_id}/",
-      "path": "/paths//api/v1/job-applications/{application_id}//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -1586,13 +1201,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/job-applications/{application_id}/approve/",
-      "path": "/paths//api/v1/job-applications/{application_id}/approve//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/job-applications/{application_id}/approve/",
       "path": "/paths//api/v1/job-applications/{application_id}/approve//post/parameters[0]/name",
@@ -1611,13 +1219,6 @@
       "message": "Missing description for POST /api/v1/job-applications/{application_id}/pause/",
       "path": "/paths//api/v1/job-applications/{application_id}/pause//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/job-applications/{application_id}/pause/",
-      "path": "/paths//api/v1/job-applications/{application_id}/pause//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -1642,13 +1243,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/job-applications/{application_id}/reject/",
-      "path": "/paths//api/v1/job-applications/{application_id}/reject//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/job-applications/{application_id}/reject/",
       "path": "/paths//api/v1/job-applications/{application_id}/reject//post/parameters[0]/name",
@@ -1667,13 +1261,6 @@
       "message": "Missing description for POST /api/v1/job-applications/{application_id}/resume/",
       "path": "/paths//api/v1/job-applications/{application_id}/resume//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/job-applications/{application_id}/resume/",
-      "path": "/paths//api/v1/job-applications/{application_id}/resume//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -1704,13 +1291,6 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/job-applications/{application_id}/submit/",
-      "path": "/paths//api/v1/job-applications/{application_id}/submit//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "responses",
       "message": "Uncommon status code 202 for POST /api/v1/job-applications/{application_id}/submit/",
@@ -1733,13 +1313,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/jobs/",
-      "path": "/paths//api/v1/jobs//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'job_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/jobs/{job_id}/",
@@ -1751,13 +1324,6 @@
       "message": "Missing description for GET /api/v1/jobs/{job_id}/",
       "path": "/paths//api/v1/jobs/{job_id}//get/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/jobs/{job_id}/",
-      "path": "/paths//api/v1/jobs/{job_id}//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -1782,13 +1348,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/jobs/{job_id}/dismiss/",
-      "path": "/paths//api/v1/jobs/{job_id}/dismiss//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'job_id' should use camelCase or kebab-case in POST /api/v1/jobs/{job_id}/dismiss/",
       "path": "/paths//api/v1/jobs/{job_id}/dismiss//post/parameters[0]/name",
@@ -1807,13 +1366,6 @@
       "message": "Missing description for POST /api/v1/jobs/{job_id}/score/",
       "path": "/paths//api/v1/jobs/{job_id}/score//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/jobs/{job_id}/score/",
-      "path": "/paths//api/v1/jobs/{job_id}/score//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -1844,13 +1396,6 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/jobs/{job_id}/tailor-documents/",
-      "path": "/paths//api/v1/jobs/{job_id}/tailor-documents//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "responses",
       "message": "Uncommon status code 202 for POST /api/v1/jobs/{job_id}/tailor-documents/",
@@ -1877,13 +1422,6 @@
       "message": "Missing description for POST /api/v1/jobs/{job_id}/watch/",
       "path": "/paths//api/v1/jobs/{job_id}/watch//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/jobs/{job_id}/watch/",
-      "path": "/paths//api/v1/jobs/{job_id}/watch//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -1922,13 +1460,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/jobs/discovery-runs/{run_id}/",
-      "path": "/paths//api/v1/jobs/discovery-runs/{run_id}//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'run_id' should use camelCase or kebab-case in GET /api/v1/jobs/discovery-runs/{run_id}/",
       "path": "/paths//api/v1/jobs/discovery-runs/{run_id}//get/parameters[0]/name",
@@ -1940,69 +1471,6 @@
       "message": "Missing description for GET /api/v1/meta/platform/",
       "path": "/paths//api/v1/meta/platform//get/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/meta/platform/",
-      "path": "/paths//api/v1/meta/platform//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/notifications/",
-      "path": "/paths//api/v1/notifications//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/notifications/mark-all-read/",
-      "path": "/paths//api/v1/notifications/mark-all-read//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for PUT /api/v1/notifications/mark-all-read/",
-      "path": "/paths//api/v1/notifications/mark-all-read//put/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/notifications/mark-read/",
-      "path": "/paths//api/v1/notifications/mark-read//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for PUT /api/v1/notifications/mark-read/",
-      "path": "/paths//api/v1/notifications/mark-read//put/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/notifications/preferences/",
-      "path": "/paths//api/v1/notifications/preferences//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/notifications/read-all/",
-      "path": "/paths//api/v1/notifications/read-all//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for PUT /api/v1/notifications/read-all/",
-      "path": "/paths//api/v1/notifications/read-all//put/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -2026,25 +1494,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/outreach/campaigns/",
-      "path": "/paths//api/v1/outreach/campaigns//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/outreach/campaigns/",
       "path": "/paths//api/v1/outreach/campaigns//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/outreach/campaigns/",
-      "path": "/paths//api/v1/outreach/campaigns//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -2054,13 +1508,6 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/outreach/contacts/",
-      "path": "/paths//api/v1/outreach/contacts//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/outreach/contacts/",
@@ -2068,25 +1515,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/outreach/contacts/",
-      "path": "/paths//api/v1/outreach/contacts//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/outreach/contacts/enrich/",
       "path": "/paths//api/v1/outreach/contacts/enrich//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/outreach/contacts/enrich/",
-      "path": "/paths//api/v1/outreach/contacts/enrich//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",
@@ -2103,13 +1536,6 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/outreach/messages/generate/",
-      "path": "/paths//api/v1/outreach/messages/generate//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "documentation",
       "message": "Missing description for POST /api/v1/outreach/messages/send/",
@@ -2117,25 +1543,11 @@
       "suggestion": "Add a detailed description for better API documentation"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/outreach/messages/send/",
-      "path": "/paths//api/v1/outreach/messages/send//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "responses",
       "message": "Uncommon status code 202 for POST /api/v1/outreach/messages/send/",
       "path": "/paths//api/v1/outreach/messages/send//post/responses/202",
       "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/payments/",
-      "path": "/paths//api/v1/payments//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -2180,32 +1592,11 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/payments/dev-bypass/",
-      "path": "/paths//api/v1/payments/dev-bypass//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/payments/initiate/",
-      "path": "/paths//api/v1/payments/initiate//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
       "severity": "info",
       "category": "responses",
       "message": "Uncommon status code 202 for POST /api/v1/payments/mobile-money/",
       "path": "/paths//api/v1/payments/mobile-money//post/responses/202",
       "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/payments/resolve-fee/",
-      "path": "/paths//api/v1/payments/resolve-fee//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -2216,13 +1607,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/payments/webhook/lenco/",
-      "path": "/paths//api/v1/payments/webhook/lenco//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'program_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/programs/{program_id}/fees/",
@@ -2230,24 +1614,10 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/programs/{program_id}/fees/",
-      "path": "/paths//api/v1/programs/{program_id}/fees//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'program_id' should use camelCase or kebab-case in GET /api/v1/programs/{program_id}/fees/",
       "path": "/paths//api/v1/programs/{program_id}/fees//get/parameters[2]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/programs/{program_id}/fees/",
-      "path": "/paths//api/v1/programs/{program_id}/fees//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -2265,24 +1635,10 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/programs/{program_id}/fees/{id}/",
-      "path": "/paths//api/v1/programs/{program_id}/fees/{id}//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'program_id' should use camelCase or kebab-case in GET /api/v1/programs/{program_id}/fees/{id}/",
       "path": "/paths//api/v1/programs/{program_id}/fees/{id}//get/parameters[1]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for PUT /api/v1/programs/{program_id}/fees/{id}/",
-      "path": "/paths//api/v1/programs/{program_id}/fees/{id}//put/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -2293,24 +1649,10 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for PATCH /api/v1/programs/{program_id}/fees/{id}/",
-      "path": "/paths//api/v1/programs/{program_id}/fees/{id}//patch/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'program_id' should use camelCase or kebab-case in PATCH /api/v1/programs/{program_id}/fees/{id}/",
       "path": "/paths//api/v1/programs/{program_id}/fees/{id}//patch/parameters[1]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for DELETE /api/v1/programs/{program_id}/fees/{id}/",
-      "path": "/paths//api/v1/programs/{program_id}/fees/{id}//delete/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "warning",
@@ -2328,20 +1670,6 @@
     },
     {
       "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/reports/daily-digest/",
-      "path": "/paths//api/v1/reports/daily-digest//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /api/v1/sessions/",
-      "path": "/paths//api/v1/sessions//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'session_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/sessions/{session_id}/revoke/",
@@ -2353,20 +1681,6 @@
       "message": "Path parameter 'session_id' should use camelCase or kebab-case in POST /api/v1/sessions/{session_id}/revoke/",
       "path": "/paths//api/v1/sessions/{session_id}/revoke//post/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for POST /api/v1/sessions/revoke-all/",
-      "path": "/paths//api/v1/sessions/revoke-all//post/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
-    },
-    {
-      "severity": "warning",
-      "category": "responses",
-      "message": "Missing error responses for GET /health/live/",
-      "path": "/paths//health/live//get/responses",
-      "suggestion": "Define common error responses (400, 404, 500, etc.)"
     },
     {
       "severity": "info",

@@ -20,13 +20,13 @@ class TimelineHistoryItemSerializer(serializers.Serializer):
     changed_by_name = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(allow_null=True)
 
-    def get_application_number(self, obj):
+    def get_application_number(self, obj) -> str | None:
         application = getattr(obj, "application", None)
         if not application:
             return None
         return getattr(application, "application_number", None)
 
-    def get_changed_by_name(self, obj):
+    def get_changed_by_name(self, obj) -> str | None:
         changed_by = getattr(obj, "changed_by", None)
         if not changed_by:
             return None
