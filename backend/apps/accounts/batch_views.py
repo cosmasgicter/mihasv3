@@ -10,7 +10,7 @@ import secrets
 from django.db import IntegrityError, transaction
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -39,10 +39,45 @@ class BatchUserItemSerializer(serializers.Serializer):
     password = serializers.CharField(min_length=6, required=False, default="")
 
 
+class BatchUserImportRequestSerializer(serializers.ListSerializer):
+    """POST /api/v1/admin/users/batch-import/ request body (JSON array of users).
+
+    Maximum 100 items per batch. Each item must be a valid BatchUserItemSerializer.
+    """
+
+    child = BatchUserItemSerializer()
+
+    def validate(self, data):
+        if len(data) > MAX_BATCH_SIZE:
+            raise serializers.ValidationError(
+                f"Maximum {MAX_BATCH_SIZE} users per batch."
+            )
+        return data
+
+
+class BatchUserImportResponseDataSerializer(serializers.Serializer):
+    imported = serializers.ListField(child=serializers.CharField())
+    errors = serializers.ListField(child=serializers.DictField())
+
+
+class BatchUserImportResponseSerializer(serializers.Serializer):
+    success = serializers.BooleanField()
+    data = BatchUserImportResponseDataSerializer()
+
+
 class BatchUserImportView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
+    serializer_class = BatchUserItemSerializer  # drf-spectacular will describe as an array
 
-    @extend_schema(tags=["admin"], summary="Batch import users from CSV/JSON")
+    @extend_schema(
+        request=BatchUserItemSerializer(many=True),
+        responses={
+            200: OpenApiResponse(response=BatchUserImportResponseSerializer),
+            400: OpenApiResponse(description="Validation error — bad format, batch too large, or role escalation"),
+        },
+        tags=["admin"],
+        summary="Batch import users from CSV/JSON",
+    )
     def post(self, request):
         users_data = request.data
         if not isinstance(users_data, list):

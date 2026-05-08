@@ -60,6 +60,68 @@ def auto_tag_by_url_prefix(result, generator, request, public):
     return result
 
 
+def _humanize_operation_id(op_id: str, method: str) -> str:
+    """Turn an operation_id like 'applications_amendments_create' into a
+    human-readable summary like 'Create applications amendments'.
+
+    Used as a fallback when views lack an explicit summary= on @extend_schema.
+    """
+    if not op_id:
+        return ""
+    verb_map = {
+        "list": "List",
+        "retrieve": "Retrieve",
+        "create": "Create",
+        "update": "Update",
+        "partial_update": "Partially update",
+        "destroy": "Delete",
+    }
+    # Split operation_id on underscores. Common format: domain_resource_verb[_suffix].
+    parts = op_id.split("_")
+    verb_key = None
+    for candidate in parts[-1:] + parts[-2:-1]:  # last or second-to-last
+        if candidate in verb_map:
+            verb_key = candidate
+            break
+    if verb_key:
+        parts = [p for p in parts if p != verb_key]
+        resource = " ".join(parts).replace("-", " ")
+        return f"{verb_map[verb_key]} {resource}".strip()
+    # Fallback: verb by HTTP method
+    http_verb_map = {
+        "get": "Get",
+        "post": "Submit",
+        "put": "Update",
+        "patch": "Partially update",
+        "delete": "Delete",
+    }
+    verb = http_verb_map.get(method.lower(), "")
+    resource = " ".join(parts).replace("-", " ")
+    return f"{verb} {resource}".strip()
+
+
+def auto_summary_from_operation_id(result, generator, request, public):
+    """drf-spectacular postprocessing hook: generate a summary for any
+    operation that lacks one, derived from the operationId and HTTP method.
+
+    Explicit ``summary=`` on ``@extend_schema`` is always preserved. This hook
+    only runs when summary is missing or empty.
+    """
+    paths = result.get("paths", {})
+    for path, methods in paths.items():
+        for method, op in methods.items():
+            if method == "parameters" or not isinstance(op, dict):
+                continue
+            existing = (op.get("summary") or "").strip()
+            if existing:
+                continue
+            op_id = op.get("operationId") or ""
+            summary = _humanize_operation_id(op_id, method)
+            if summary:
+                op["summary"] = summary
+    return result
+
+
 class JWTCookieAuthenticationScheme(OpenApiAuthenticationExtension):
     """Describe the primary JWT auth backend for generated API docs.
 

@@ -32,6 +32,13 @@ info:
 
     - a bearer access token for direct API testing
     - or the `access_token` cookie issued by the login flow
+  contact:
+    name: MIHAS Admissions Platform Team
+    email: admissions@mihas.edu.zm
+    url: https://mihas.edu.zm
+  license:
+    name: Proprietary
+    url: https://mihas.edu.zm
 paths:
   /api/v1/admin/audit-logs/:
     get:
@@ -91,6 +98,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AdminAuditLogListResponse'
           description: ''
+      summary: List admin audit logs
   /api/v1/admin/dashboard/:
     get:
       operationId: admin_dashboard_retrieve
@@ -111,6 +119,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AdminDashboardResponse'
           description: ''
+      summary: Retrieve admin dashboard
   /api/v1/admin/settings/:
     get:
       operationId: admin_settings_list
@@ -146,6 +155,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AdminSettingListResponse'
           description: ''
+      summary: List admin settings
     post:
       operationId: admin_settings_create
       description: |-
@@ -188,6 +198,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Create admin settings
   /api/v1/admin/settings/{id}/:
     get:
       operationId: admin_settings_retrieve
@@ -227,6 +238,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Retrieve admin settings
     patch:
       operationId: admin_settings_update
       description: |-
@@ -282,6 +294,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Update admin settings
     delete:
       operationId: admin_settings_delete
       description: |-
@@ -320,6 +333,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Delete admin settings delete
   /api/v1/admin/settings/import/:
     post:
       operationId: api_v1_admin_settings_import_create
@@ -390,7 +404,11 @@ paths:
       - jwtCookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationTemplateListResponse'
+          description: ''
   /api/v1/admin/templates/{key}/:
     put:
       operationId: api_v1_admin_templates_update
@@ -405,12 +423,31 @@ paths:
         required: true
       tags:
       - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunicationTemplateUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CommunicationTemplateUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CommunicationTemplateUpdateRequest'
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationTemplateUpdateResponse'
+          description: ''
+        '400':
+          description: Validation error
+        '404':
+          description: Template not found
   /api/v1/admin/users/:
     get:
       operationId: admin_users_list
@@ -457,6 +494,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AdminUserListResponse'
           description: ''
+      summary: List admin users
     post:
       operationId: admin_users_create
       description: Create a new user with role assignment (admin registration).
@@ -496,6 +534,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Create admin users
   /api/v1/admin/users/{id}/:
     get:
       operationId: admin_users_retrieve
@@ -536,6 +575,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Retrieve admin users
     patch:
       operationId: admin_users_update
       description: |-
@@ -592,18 +632,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Update admin users
   /api/v1/admin/users/batch-import/:
     post:
       operationId: api_v1_admin_users_batch_import_create
       summary: Batch import users from CSV/JSON
       tags:
       - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/BatchUserItem'
+          application/x-www-form-urlencoded:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/BatchUserItem'
+          multipart/form-data:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/BatchUserItem'
+        required: true
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchUserImportResponse'
+          description: ''
+        '400':
+          description: Validation error — bad format, batch too large, or role escalation
   /api/v1/admin/users/export/:
     get:
       operationId: admin_users_export
@@ -635,6 +700,7 @@ paths:
                 type: string
                 format: binary
           description: CSV export of matching users.
+      summary: Get admin users export
   /api/v1/analytics/funnel/:
     get:
       operationId: analytics_funnel
@@ -650,6 +716,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FunnelAnalyticsResponse'
           description: ''
+      summary: Get analytics funnel
   /api/v1/analytics/outreach/:
     get:
       operationId: analytics_outreach
@@ -665,6 +732,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OutreachAnalyticsResponse'
           description: ''
+      summary: Get analytics outreach
   /api/v1/analytics/sources/:
     get:
       operationId: analytics_sources
@@ -680,6 +748,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SourceAnalyticsResponse'
           description: ''
+      summary: Get analytics sources
   /api/v1/applications/:
     get:
       operationId: applications_list
@@ -721,6 +790,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApplicationListResponse'
           description: ''
+      summary: List applications
     post:
       operationId: applications_create
       tags:
@@ -753,6 +823,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Create applications
   /api/v1/applications/{application_id}/:
     get:
       operationId: applications_retrieve
@@ -782,6 +853,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Retrieve applications
     put:
       operationId: application_update
       parameters:
@@ -815,6 +887,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Application'
           description: ''
+      summary: Update application
     patch:
       operationId: applications_update
       parameters:
@@ -860,6 +933,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Update applications
     delete:
       operationId: applications_delete
       parameters:
@@ -878,6 +952,7 @@ paths:
       responses:
         '204':
           description: Application deleted or already absent.
+      summary: Delete applications delete
   /api/v1/applications/{application_id}/acceptance-letter/:
     post:
       operationId: applications_generate_acceptance_letter
@@ -924,6 +999,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit applications generate acceptance letter
   /api/v1/applications/{application_id}/admin-summary/:
     get:
       operationId: api_v1_applications_admin_summary_retrieve
@@ -931,6 +1007,7 @@ paths:
         GET /api/v1/applications/{id}/admin-summary/
 
         Returns an AI-generated review brief for admins. Best-effort.
+      summary: Get AI-generated admin review brief
       parameters:
       - in: path
         name: application_id
@@ -945,7 +1022,17 @@ paths:
       - jwtCookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationAiSummaryResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/applications/{application_id}/amendments/:
     post:
       operationId: api_v1_applications_amendments_create
@@ -956,6 +1043,7 @@ paths:
         Owner only.
 
         Requirements: 14.2
+      summary: Request an amendment to a submitted application
       parameters:
       - in: path
         name: application_id
@@ -965,12 +1053,46 @@ paths:
         required: true
       tags:
       - applications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationAmendmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ApplicationAmendmentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ApplicationAmendmentRequest'
+        required: true
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationEnvelopeResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/applications/{application_id}/amendments/{amendment_id}/review/:
     post:
       operationId: api_v1_applications_amendments_review_create
@@ -981,6 +1103,7 @@ paths:
         Admin only.
 
         Requirements: 14.7
+      summary: Approve or reject an amendment request (admin only)
       parameters:
       - in: path
         name: amendment_id
@@ -996,12 +1119,40 @@ paths:
         required: true
       tags:
       - applications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationAmendmentReviewRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ApplicationAmendmentReviewRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ApplicationAmendmentReviewRequest'
+        required: true
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationEnvelopeResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/applications/{application_id}/assign/:
     post:
       operationId: api_v1_applications_assign_create
@@ -1012,6 +1163,7 @@ paths:
         Super admin only.
 
         Requirements: 11.1–11.4, 11.10
+      summary: Assign an application to a reviewer (super-admin only)
       parameters:
       - in: path
         name: application_id
@@ -1021,12 +1173,40 @@ paths:
         required: true
       tags:
       - applications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationAssignRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ApplicationAssignRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ApplicationAssignRequest'
+        required: true
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationEnvelopeResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/applications/{application_id}/conditions/:
     get:
       operationId: api_v1_applications_conditions_retrieve
@@ -1056,6 +1236,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApplicationCondition'
           description: ''
+      summary: Retrieve api v1 applications conditions
   /api/v1/applications/{application_id}/conditions/{condition_id}/verify/:
     post:
       operationId: api_v1_applications_conditions_verify_create
@@ -1103,6 +1284,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ConditionVerifyRequest'
           description: ''
+      summary: Create api v1 applications conditions verify
   /api/v1/applications/{application_id}/confirm-enrollment/:
     post:
       operationId: api_v1_applications_confirm_enrollment_create
@@ -1113,6 +1295,7 @@ paths:
         Owner only.
 
         Requirements: 10.5
+      summary: Confirm enrollment (owner-only)
       parameters:
       - in: path
         name: application_id
@@ -1127,7 +1310,23 @@ paths:
       - jwtCookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationEnvelopeResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/applications/{application_id}/details/:
     get:
       operationId: application_details_retrieve
@@ -1159,6 +1358,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Retrieve application details
     put:
       operationId: application_details_update
       description: Alias for ApplicationDetailView at /<id>/details/ with distinct
@@ -1194,6 +1394,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Application'
           description: ''
+      summary: Update application details
     patch:
       operationId: application_details_partial_update
       description: Alias for ApplicationDetailView at /<id>/details/ with distinct
@@ -1241,6 +1442,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Update application details partial
     delete:
       operationId: application_details_delete
       description: Alias for ApplicationDetailView at /<id>/details/ with distinct
@@ -1261,6 +1463,7 @@ paths:
       responses:
         '204':
           description: Application deleted or already absent.
+      summary: Delete application details delete
   /api/v1/applications/{application_id}/documents/:
     get:
       operationId: applications_documents_list
@@ -1296,6 +1499,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: List applications documents
   /api/v1/applications/{application_id}/email-slip/:
     post:
       operationId: applications_email_slip
@@ -1354,6 +1558,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit applications email slip
   /api/v1/applications/{application_id}/fee-waiver/:
     post:
       operationId: api_v1_applications_fee_waiver_create
@@ -1364,6 +1569,7 @@ paths:
         Super admin only.
 
         Requirements: 12.2, 12.7
+      summary: Grant a fee waiver (super-admin only)
       parameters:
       - in: path
         name: application_id
@@ -1373,12 +1579,40 @@ paths:
         required: true
       tags:
       - applications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationFeeWaiverRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ApplicationFeeWaiverRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ApplicationFeeWaiverRequest'
+        required: true
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationEnvelopeResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/applications/{application_id}/finance-receipt/:
     post:
       operationId: applications_generate_finance_receipt
@@ -1425,6 +1659,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit applications generate finance receipt
   /api/v1/applications/{application_id}/grades/:
     get:
       operationId: applications_grades_list
@@ -1460,6 +1695,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: List applications grades
     post:
       operationId: applications_grades_upsert
       parameters:
@@ -1517,6 +1753,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit applications grades upsert
   /api/v1/applications/{application_id}/interviews/:
     get:
       operationId: applications_interviews_list_for_application
@@ -1552,6 +1789,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Get applications interviews list for application
     post:
       operationId: applications_interviews_create
       parameters:
@@ -1603,6 +1841,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Create applications interviews
     put:
       operationId: applications_interviews_put_latest
       description: Updates the most recently scheduled interview (PUT alias for PATCH).
@@ -1655,6 +1894,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Update applications interviews put latest
     patch:
       operationId: applications_interviews_update_latest
       description: Updates the most recently scheduled interview for the application.
@@ -1707,6 +1947,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Update applications interviews latest
     delete:
       operationId: applications_interviews_delete_latest
       description: Deletes the most recently scheduled interview for the application.
@@ -1742,6 +1983,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Delete applications interviews delete latest
   /api/v1/applications/{application_id}/preview-summary/:
     get:
       operationId: api_v1_applications_preview_summary_retrieve
@@ -1751,6 +1993,7 @@ paths:
         Returns a personalized AI-generated summary for the student's review step.
         Cached for 10 minutes per application. Best-effort — returns a template
         fallback if AI is unavailable or slow.
+      summary: Get AI-generated application summary (student preview)
       parameters:
       - in: path
         name: application_id
@@ -1765,7 +2008,17 @@ paths:
       - jwtCookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationAiSummaryResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/applications/{application_id}/review/:
     post:
       operationId: applications_review
@@ -1813,6 +2066,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit applications review
     patch:
       operationId: applications_review_patch
       parameters:
@@ -1858,6 +2112,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Partially update applications review patch
   /api/v1/applications/{application_id}/submit/:
     post:
       operationId: applications_submit
@@ -1913,6 +2168,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit applications submit
   /api/v1/applications/{application_id}/summary/:
     get:
       operationId: applications_summary_retrieve
@@ -1948,6 +2204,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Retrieve applications summary
   /api/v1/applications/{application_id}/verify-document/:
     post:
       operationId: applications_verify_document
@@ -1995,6 +2252,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit applications verify document
   /api/v1/applications/{application_id}/waitlist-position/:
     get:
       operationId: api_v1_applications_waitlist_position_retrieve
@@ -2005,6 +2263,7 @@ paths:
         Owner or admin.
 
         Requirements: 3.9
+      summary: Get waitlist position and total
       parameters:
       - in: path
         name: application_id
@@ -2019,7 +2278,23 @@ paths:
       - jwtCookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationWaitlistPositionResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/applications/{application_id}/withdraw/:
     post:
       operationId: applications_withdraw
@@ -2087,6 +2362,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit applications withdraw
   /api/v1/applications/auto-assign/:
     post:
       operationId: api_v1_applications_auto_assign_create
@@ -2097,6 +2373,7 @@ paths:
         Super admin only.
 
         Requirements: 11.5–11.7
+      summary: Auto-assign unassigned applications via round-robin
       tags:
       - applications
       security:
@@ -2104,7 +2381,17 @@ paths:
       - jwtCookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationEnvelopeResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/applications/bulk-status/:
     post:
       operationId: applications_bulk_status_update
@@ -2142,6 +2429,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Update applications bulk status
   /api/v1/applications/draft/:
     get:
       operationId: applications_draft_retrieve
@@ -2163,6 +2451,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Retrieve applications draft
     post:
       operationId: applications_draft_save
       tags:
@@ -2194,6 +2483,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApplicationDraftResponse'
           description: ''
+      summary: Submit applications draft save
   /api/v1/applications/export/:
     get:
       operationId: applications_export
@@ -2226,6 +2516,7 @@ paths:
                 type: string
                 format: binary
           description: CSV export of applications that match the current filters.
+      summary: Get applications export
   /api/v1/applications/history/:
     get:
       operationId: timeline_history_list
@@ -2265,6 +2556,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: List timeline history
   /api/v1/applications/interviews/:
     get:
       operationId: applications_interviews_list
@@ -2300,6 +2592,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: List applications interviews
   /api/v1/applications/track/:
     get:
       operationId: applications_track
@@ -2331,6 +2624,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Get applications track
   /api/v1/auth/login/:
     post:
       operationId: auth_login
@@ -2374,6 +2668,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit auth login
   /api/v1/auth/logout/:
     post:
       operationId: auth_logout
@@ -2400,6 +2695,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit auth logout
   /api/v1/auth/password-reset/:
     post:
       operationId: auth_password_reset_request
@@ -2436,6 +2732,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit auth password reset request
   /api/v1/auth/password-reset/confirm/:
     post:
       operationId: auth_password_reset_confirm
@@ -2470,6 +2767,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit auth password reset confirm
   /api/v1/auth/profile/:
     get:
       operationId: api_v1_auth_profile_retrieve
@@ -2547,6 +2845,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit auth refresh
   /api/v1/auth/register/:
     post:
       operationId: auth_register
@@ -2583,6 +2882,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit auth register
   /api/v1/auth/session/:
     get:
       operationId: auth_session
@@ -2610,6 +2910,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthSessionResponse'
           description: ''
+      summary: Get auth session
   /api/v1/automation/rules/:
     get:
       operationId: automation_rules_list
@@ -2626,6 +2927,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AutomationRuleListResponse'
           description: ''
+      summary: List automation rules
     post:
       operationId: automation_rules_create
       tags:
@@ -2652,6 +2954,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AutomationRuleResponse'
           description: ''
+      summary: Create automation rules
   /api/v1/automation/runs/:
     get:
       operationId: automation_runs_list
@@ -2668,6 +2971,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AutomationRunListResponse'
           description: ''
+      summary: List automation runs
     post:
       operationId: automation_runs_create
       tags:
@@ -2694,6 +2998,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AutomationRunResponse'
           description: ''
+      summary: Create automation runs
   /api/v1/automation/runs/{run_id}/:
     get:
       operationId: automation_runs_retrieve
@@ -2717,6 +3022,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AutomationRunResponse'
           description: ''
+      summary: Retrieve automation runs
   /api/v1/automation/runs/{run_id}/approve/:
     post:
       operationId: automation_runs_approve
@@ -2751,6 +3057,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AutomationActionResponse'
           description: ''
+      summary: Submit automation runs approve
   /api/v1/automation/runs/{run_id}/cancel/:
     post:
       operationId: automation_runs_cancel
@@ -2785,6 +3092,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AutomationActionResponse'
           description: ''
+      summary: Submit automation runs cancel
   /api/v1/catalog/institutions/:
     get:
       operationId: catalog_institutions_list
@@ -2800,6 +3108,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CatalogInstitutionListResponse'
           description: ''
+      summary: List catalog institutions
     post:
       operationId: catalog_institutions_create
       description: |-
@@ -2835,6 +3144,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Create catalog institutions
   /api/v1/catalog/institutions/{institution_id}/:
     get:
       operationId: catalog_institutions_retrieve
@@ -2865,6 +3175,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Retrieve catalog institutions
     patch:
       operationId: catalog_institutions_update
       description: GET/PATCH/DELETE /api/v1/catalog/institutions/{id}/
@@ -2911,6 +3222,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Update catalog institutions
     delete:
       operationId: catalog_institutions_deactivate
       description: 'Soft-delete: reject if institution has active programs (409).'
@@ -2946,6 +3258,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Delete catalog institutions deactivate
   /api/v1/catalog/intakes/:
     get:
       operationId: catalog_intakes_list
@@ -2961,6 +3274,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CatalogIntakeListResponse'
           description: ''
+      summary: List catalog intakes
     post:
       operationId: catalog_intakes_create
       description: |-
@@ -2996,6 +3310,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Create catalog intakes
   /api/v1/catalog/intakes/{intake_id}/:
     get:
       operationId: catalog_intakes_retrieve
@@ -3026,6 +3341,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Retrieve catalog intakes
     patch:
       operationId: catalog_intakes_update
       description: GET/PATCH/DELETE /api/v1/catalog/intakes/{id}/
@@ -3072,6 +3388,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Update catalog intakes
     delete:
       operationId: catalog_intakes_deactivate
       description: GET/PATCH/DELETE /api/v1/catalog/intakes/{id}/
@@ -3101,6 +3418,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Delete catalog intakes deactivate
   /api/v1/catalog/programs/:
     get:
       operationId: catalog_programs_list
@@ -3127,6 +3445,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CatalogProgramListResponse'
           description: ''
+      summary: List catalog programs
     post:
       operationId: catalog_programs_create
       description: |-
@@ -3162,6 +3481,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Create catalog programs
   /api/v1/catalog/programs/{program_id}/:
     get:
       operationId: catalog_programs_retrieve
@@ -3192,6 +3512,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Retrieve catalog programs
     patch:
       operationId: catalog_programs_update
       description: GET/PATCH/DELETE /api/v1/catalog/programs/{id}/
@@ -3238,6 +3559,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Update catalog programs
     delete:
       operationId: catalog_programs_deactivate
       description: GET/PATCH/DELETE /api/v1/catalog/programs/{id}/
@@ -3267,6 +3589,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Delete catalog programs deactivate
   /api/v1/catalog/subjects/:
     get:
       operationId: catalog_subjects_list
@@ -3280,6 +3603,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CatalogSubjectListResponse'
           description: ''
+      summary: List catalog subjects
   /api/v1/documents/{document_id}/delete/:
     delete:
       operationId: api_v1_documents_delete_destroy
@@ -3306,6 +3630,7 @@ paths:
             application/json:
               schema: {}
           description: ''
+      summary: Delete api v1 documents delete
   /api/v1/documents/{document_id}/download/:
     get:
       operationId: api_v1_documents_download_retrieve
@@ -3329,6 +3654,7 @@ paths:
       responses:
         '302':
           description: No response body
+      summary: Retrieve api v1 documents download
   /api/v1/documents/{document_id}/extract/:
     post:
       operationId: documents_extract
@@ -3365,6 +3691,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit documents extract
   /api/v1/documents/{document_id}/info/:
     get:
       operationId: api_v1_documents_info_retrieve
@@ -3392,6 +3719,7 @@ paths:
             application/json:
               schema: {}
           description: ''
+      summary: Retrieve api v1 documents info
   /api/v1/documents/{document_id}/signed-url/:
     get:
       operationId: api_v1_documents_signed_url_retrieve
@@ -3418,6 +3746,7 @@ paths:
             application/json:
               schema: {}
           description: ''
+      summary: Retrieve api v1 documents signed url
   /api/v1/documents/{document_id}/versions/:
     get:
       operationId: documents_versions_list
@@ -3440,6 +3769,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DocumentVersionListResponse'
           description: ''
+      summary: List documents versions
   /api/v1/documents/cover-letters/generate/:
     post:
       operationId: documents_cover_letters_generate
@@ -3467,6 +3797,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GeneratedTextResponse'
           description: ''
+      summary: Submit documents cover letters generate
   /api/v1/documents/question-bank/answer/:
     post:
       operationId: documents_question_bank_answer
@@ -3494,6 +3825,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/GeneratedTextResponse'
           description: ''
+      summary: Submit documents question bank answer
   /api/v1/documents/resumes/:
     get:
       operationId: documents_resumes_list
@@ -3509,6 +3841,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResumeListResponse'
           description: ''
+      summary: List documents resumes
   /api/v1/documents/resumes/variants/:
     post:
       operationId: documents_resume_variants_create
@@ -3536,6 +3869,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DocumentActionResponse'
           description: ''
+      summary: Create documents resume variants
   /api/v1/documents/upload/:
     post:
       operationId: documents_upload
@@ -3591,6 +3925,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit documents upload
   /api/v1/email/accounts/zoho/connect/:
     post:
       operationId: email_zoho_connect
@@ -3618,6 +3953,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EmailAccountResponse'
           description: ''
+      summary: Submit email zoho connect
   /api/v1/email/messages/:
     get:
       operationId: email_messages_list
@@ -3633,6 +3969,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EmailMessageListResponse'
           description: ''
+      summary: List email messages
   /api/v1/email/send/:
     post:
       operationId: email_send
@@ -3670,6 +4007,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit email send
   /api/v1/email/threads/:
     get:
       operationId: email_threads_list
@@ -3685,6 +4023,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EmailThreadListResponse'
           description: ''
+      summary: List email threads
   /api/v1/email/webhooks/delivery/:
     post:
       operationId: email_delivery_webhook
@@ -3709,6 +4048,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EmailActionResponse'
           description: ''
+      summary: Submit email delivery webhook
   /api/v1/errors/report/:
     post:
       operationId: api_v1_errors_report_create
@@ -3772,6 +4112,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/IntegrationsActionResponse'
           description: ''
+      summary: Submit integrations openai test
   /api/v1/integrations/telegram/connect/:
     post:
       operationId: integrations_telegram_connect
@@ -3799,6 +4140,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TelegramSubscriptionResponse'
           description: ''
+      summary: Submit integrations telegram connect
   /api/v1/integrations/telegram/test/:
     post:
       operationId: integrations_telegram_test
@@ -3826,6 +4168,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/IntegrationsActionResponse'
           description: ''
+      summary: Submit integrations telegram test
   /api/v1/integrations/telegram/webhook/:
     post:
       operationId: integrations_telegram_webhook
@@ -3850,6 +4193,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/IntegrationsActionResponse'
           description: ''
+      summary: Submit integrations telegram webhook
   /api/v1/job-applications/:
     get:
       operationId: job_applications_list
@@ -3866,6 +4210,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobApplicationListResponse'
           description: ''
+      summary: List job applications
     post:
       operationId: job_applications_create
       tags:
@@ -3892,6 +4237,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobApplicationResponse'
           description: ''
+      summary: Create job applications
   /api/v1/job-applications/{application_id}/:
     get:
       operationId: job_applications_retrieve
@@ -3915,6 +4261,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobApplicationResponse'
           description: ''
+      summary: Retrieve job applications
   /api/v1/job-applications/{application_id}/approve/:
     post:
       operationId: job_applications_approve
@@ -3949,6 +4296,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobsActionResponse'
           description: ''
+      summary: Submit job applications approve
   /api/v1/job-applications/{application_id}/pause/:
     post:
       operationId: job_applications_pause
@@ -3983,6 +4331,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobsActionResponse'
           description: ''
+      summary: Submit job applications pause
   /api/v1/job-applications/{application_id}/reject/:
     post:
       operationId: job_applications_reject
@@ -4017,6 +4366,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobsActionResponse'
           description: ''
+      summary: Submit job applications reject
   /api/v1/job-applications/{application_id}/resume/:
     post:
       operationId: job_applications_resume
@@ -4051,6 +4401,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobsActionResponse'
           description: ''
+      summary: Submit job applications resume
   /api/v1/job-applications/{application_id}/submit/:
     post:
       operationId: job_applications_submit
@@ -4085,6 +4436,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobsActionResponse'
           description: ''
+      summary: Submit job applications submit
   /api/v1/jobs/:
     get:
       operationId: jobs_list
@@ -4110,6 +4462,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobsListResponse'
           description: ''
+      summary: List jobs
   /api/v1/jobs/{job_id}/:
     get:
       operationId: jobs_retrieve
@@ -4129,6 +4482,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobsDetailResponse'
           description: ''
+      summary: Retrieve jobs
   /api/v1/jobs/{job_id}/dismiss/:
     post:
       operationId: jobs_dismiss
@@ -4163,6 +4517,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobsActionResponse'
           description: ''
+      summary: Submit jobs dismiss
   /api/v1/jobs/{job_id}/score/:
     post:
       operationId: jobs_score
@@ -4197,6 +4552,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobsActionResponse'
           description: ''
+      summary: Submit jobs score
   /api/v1/jobs/{job_id}/tailor-documents/:
     post:
       operationId: jobs_tailor_documents
@@ -4231,6 +4587,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobsActionResponse'
           description: ''
+      summary: Submit jobs tailor documents
   /api/v1/jobs/{job_id}/watch/:
     post:
       operationId: jobs_watch
@@ -4265,6 +4622,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobsActionResponse'
           description: ''
+      summary: Submit jobs watch
   /api/v1/jobs/discovery-runs/:
     post:
       operationId: jobs_discovery_run_create
@@ -4298,6 +4656,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Create jobs discovery run
   /api/v1/jobs/discovery-runs/{run_id}/:
     get:
       operationId: jobs_discovery_run_retrieve
@@ -4320,6 +4679,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobsDiscoveryRunResponse'
           description: ''
+      summary: Retrieve jobs discovery run
   /api/v1/meta/platform/:
     get:
       operationId: meta_platform
@@ -4332,6 +4692,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PlatformMetaResponse'
           description: ''
+      summary: Get meta platform
   /api/v1/notifications/:
     get:
       operationId: notifications_list
@@ -4353,6 +4714,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/NotificationListResponse'
           description: ''
+      summary: List notifications
     post:
       operationId: notifications_send_create
       description: Delegate to NotificationSendView for admin send.
@@ -4392,6 +4754,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Create notifications send
   /api/v1/notifications/{id}/:
     delete:
       operationId: notifications_delete
@@ -4424,6 +4787,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Delete notifications delete
   /api/v1/notifications/{id}/read/:
     post:
       operationId: notifications_mark_read_post
@@ -4668,6 +5032,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/NotificationPreferenceResponse'
           description: ''
+      summary: Get notifications preferences get
     put:
       operationId: notifications_preferences_update
       description: |-
@@ -4703,6 +5068,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Update notifications preferences
   /api/v1/notifications/read-all/:
     post:
       operationId: notifications_mark_all_read_post
@@ -4825,6 +5191,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Get admin notification history
   /api/v1/outreach/campaigns/:
     get:
       operationId: outreach_campaigns_list
@@ -4841,6 +5208,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OutreachCampaignListResponse'
           description: ''
+      summary: List outreach campaigns
     post:
       operationId: outreach_campaigns_create
       tags:
@@ -4867,6 +5235,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OutreachCampaignResponse'
           description: ''
+      summary: Create outreach campaigns
   /api/v1/outreach/contacts/:
     get:
       operationId: outreach_contacts_list
@@ -4883,6 +5252,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OutreachContactListResponse'
           description: ''
+      summary: List outreach contacts
     post:
       operationId: outreach_contacts_create
       tags:
@@ -4909,6 +5279,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OutreachContactResponse'
           description: ''
+      summary: Create outreach contacts
   /api/v1/outreach/contacts/enrich/:
     post:
       operationId: outreach_contacts_enrich
@@ -4936,6 +5307,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OutreachActionResponse'
           description: ''
+      summary: Submit outreach contacts enrich
   /api/v1/outreach/messages/generate/:
     post:
       operationId: outreach_messages_generate
@@ -4963,6 +5335,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OutreachMessageResponse'
           description: ''
+      summary: Submit outreach messages generate
   /api/v1/outreach/messages/send/:
     post:
       operationId: outreach_messages_send
@@ -4990,6 +5363,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/OutreachActionResponse'
           description: ''
+      summary: Submit outreach messages send
   /api/v1/payments/:
     get:
       operationId: payments_list
@@ -5017,6 +5391,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaymentResponse'
           description: ''
+      summary: List payments
   /api/v1/payments/{payment_id}/receipt/:
     get:
       operationId: payments_receipt
@@ -5056,6 +5431,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Get payments receipt
   /api/v1/payments/{payment_id}/verify/:
     post:
       operationId: payments_verify
@@ -5097,18 +5473,60 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit payments verify
   /api/v1/payments/defer/:
     post:
       operationId: api_v1_payments_defer_create
       description: POST /api/v1/payments/defer/ — create a deferred payment record.
+      summary: Defer payment — submit application without paying upfront
       tags:
       - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeferPaymentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DeferPaymentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DeferPaymentRequest'
+        required: true
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeferPaymentResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/payments/dev-bypass/:
     post:
       operationId: api_v1_payments_dev_bypass_create
@@ -5137,6 +5555,7 @@ paths:
             application/json:
               schema: {}
           description: ''
+      summary: Create api v1 payments dev bypass
   /api/v1/payments/initiate/:
     post:
       operationId: api_v1_payments_initiate_create
@@ -5172,6 +5591,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaymentInitiateResponse'
           description: ''
+      summary: Create api v1 payments initiate
   /api/v1/payments/mobile-money/:
     post:
       operationId: api_v1_payments_mobile_money_create
@@ -5180,14 +5600,67 @@ paths:
 
         Creates a pending Payment record then calls the Lenco mobile money API.
         The student authorizes the payment on their phone (pay-offline flow).
+      summary: Initiate mobile money payment collection (Airtel/MTN)
       tags:
       - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileMoneyInitiateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MobileMoneyInitiateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MobileMoneyInitiateRequest'
+        required: true
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileMoneyInitiateResponse'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileMoneyInitiateResponse'
+          description: ''
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileMoneyInitiateResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/payments/resolve-fee/:
     get:
       operationId: api_v1_payments_resolve_fee_retrieve
@@ -5224,6 +5697,7 @@ paths:
             application/json:
               schema: {}
           description: ''
+      summary: Retrieve api v1 payments resolve fee
   /api/v1/payments/webhook/lenco/:
     post:
       operationId: api_v1_payments_webhook_lenco_create
@@ -5252,6 +5726,7 @@ paths:
             application/json:
               schema: {}
           description: ''
+      summary: Create api v1 payments webhook lenco
   /api/v1/programs/{program_id}/fees/:
     get:
       operationId: api_v1_programs_fees_list
@@ -5298,6 +5773,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedProgramFeeList'
           description: ''
+      summary: List api v1 programs fees
     post:
       operationId: api_v1_programs_fees_create
       description: |-
@@ -5343,6 +5819,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProgramFee'
           description: ''
+      summary: Create api v1 programs fees
   /api/v1/programs/{program_id}/fees/{id}/:
     get:
       operationId: api_v1_programs_fees_retrieve
@@ -5383,6 +5860,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProgramFee'
           description: ''
+      summary: Retrieve api v1 programs fees
     put:
       operationId: api_v1_programs_fees_update
       description: |-
@@ -5434,6 +5912,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProgramFee'
           description: ''
+      summary: Update api v1 programs fees
     patch:
       operationId: api_v1_programs_fees_partial_update
       description: |-
@@ -5484,6 +5963,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProgramFee'
           description: ''
+      summary: Update api v1 programs fees partial
     delete:
       operationId: api_v1_programs_fees_destroy
       description: 'Soft delete: set is_active=false instead of deleting the record.'
@@ -5508,6 +5988,7 @@ paths:
       responses:
         '204':
           description: No response body
+      summary: Delete api v1 programs fees
   /api/v1/reports/daily-digest/:
     get:
       operationId: reports_daily_digest
@@ -5523,6 +6004,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DailyDigestResponse'
           description: ''
+      summary: Get reports daily digest
   /api/v1/sessions/:
     get:
       operationId: sessions_list
@@ -5542,6 +6024,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionListResponse'
           description: ''
+      summary: List sessions
   /api/v1/sessions/{session_id}/revoke/:
     post:
       operationId: sessions_revoke
@@ -5586,6 +6069,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+      summary: Submit sessions revoke
   /api/v1/sessions/revoke-all/:
     post:
       operationId: sessions_revoke_all
@@ -5617,6 +6101,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionMessageResponse'
           description: ''
+      summary: Submit sessions revoke all
   /health/live/:
     get:
       operationId: health_liveness
@@ -5630,6 +6115,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthStatus'
           description: Liveness probe response.
+      summary: Get health liveness
   /health/ready/:
     get:
       operationId: health_readiness
@@ -5649,6 +6135,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthStatus'
           description: One or more backend dependencies are unavailable.
+      summary: Get health readiness
   /health/redis/:
     get:
       operationId: health_redis
@@ -5668,6 +6155,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthStatus'
           description: Redis is unavailable.
+      summary: Get health redis
 components:
   schemas:
     AdminAuditLogListResponse:
@@ -6225,6 +6713,83 @@ components:
       - updated_at
       - user_id
       - version
+    ApplicationAiSummaryData:
+      type: object
+      description: Shape of `data` for preview-summary and admin-summary AI endpoints.
+      properties:
+        summary:
+          type: string
+        cached:
+          type: boolean
+        generated_at:
+          type: string
+          format: date-time
+      required:
+      - summary
+    ApplicationAiSummaryResponse:
+      type: object
+      description: |-
+        Envelope for the AI-generated summary endpoints.
+
+        Note: This is distinct from ``ApplicationSummaryResponseSerializer`` defined
+        in ``_view_helpers.py``, which wraps the full application review summary
+        (structured data, not freeform text).
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/ApplicationAiSummaryData'
+      required:
+      - data
+      - success
+    ApplicationAmendmentRequest:
+      type: object
+      description: POST /api/v1/applications/{id}/amendments/ request body.
+      properties:
+        field_name:
+          type: string
+          description: Name of the application field being amended (e.g. phone, email,
+            address)
+          maxLength: 100
+        new_value:
+          type: string
+          description: Proposed new value for the field
+        reason:
+          type: string
+          description: Student-provided explanation for the amendment
+      required:
+      - field_name
+      - new_value
+      - reason
+    ApplicationAmendmentReviewRequest:
+      type: object
+      description: POST /api/v1/applications/{id}/amendments/{aid}/review/ request
+        body.
+      properties:
+        status:
+          enum:
+          - approved
+          - rejected
+          type: string
+          x-spec-enum-id: 1420e94e9a7846e2
+          description: |-
+            Review decision
+
+            * `approved` - Approved
+            * `rejected` - Rejected
+      required:
+      - status
+    ApplicationAssignRequest:
+      type: object
+      description: POST /api/v1/applications/{id}/assign/ request body.
+      properties:
+        reviewer_id:
+          type: string
+          format: uuid
+          description: Profile ID of the reviewer to assign (must have admin/reviewer/super_admin
+            role)
+      required:
+      - reviewer_id
     ApplicationAsyncTask:
       type: object
       properties:
@@ -6496,6 +7061,59 @@ components:
           format: uuid
           nullable: true
         draft_data: {}
+    ApplicationEnvelopeResponse:
+      type: object
+      description: |-
+        Generic {success, data} envelope for application business-logic responses.
+
+        The `data` field is kept as an unconstrained dict because each endpoint
+        returns a different payload shape (amendment, assignment, waitlist position,
+        enrollment deadline, AI summary text). The envelope contract is what matters
+        for frontend consumers; per-endpoint detail shapes are documented in view
+        docstrings and response examples.
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          additionalProperties: {}
+      required:
+      - success
+    ApplicationFeeWaiverRequest:
+      type: object
+      description: POST /api/v1/applications/{id}/fee-waiver/ request body.
+      properties:
+        waiver_type:
+          enum:
+          - full
+          - partial
+          - scholarship
+          type: string
+          x-spec-enum-id: 3993c2223452617b
+          description: |-
+            Waiver type. 'full' sets payment to force_approved.
+
+            * `full` - Full
+            * `partial` - Partial
+            * `scholarship` - Scholarship
+        reason_code:
+          type: string
+          description: Short code identifying the waiver reason (e.g. 'need_based',
+            'scholarship')
+          maxLength: 50
+        discount_percentage:
+          type: integer
+          maximum: 100
+          minimum: 0
+          default: 100
+          description: Discount percentage (0-100). Full waivers default to 100.
+        notes:
+          type: string
+          default: ''
+          description: Optional admin notes explaining the waiver decision
+      required:
+      - reason_code
+      - waiver_type
     ApplicationGrade:
       type: object
       description: ECZ grade serializer.
@@ -7002,6 +7620,32 @@ components:
           default: true
       required:
       - data
+    ApplicationWaitlistPositionData:
+      type: object
+      description: Shape of `data` for GET /applications/{id}/waitlist-position/.
+      properties:
+        position:
+          type: integer
+          nullable: true
+        total:
+          type: integer
+        application_id:
+          type: string
+          format: uuid
+      required:
+      - application_id
+      - position
+      - total
+    ApplicationWaitlistPositionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/ApplicationWaitlistPositionData'
+      required:
+      - data
+      - success
     AuditLog:
       type: object
       properties:
@@ -7254,6 +7898,69 @@ components:
           default: true
       required:
       - data
+    BatchUserImportResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/BatchUserImportResponseData'
+      required:
+      - data
+      - success
+    BatchUserImportResponseData:
+      type: object
+      properties:
+        imported:
+          type: array
+          items:
+            type: string
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - errors
+      - imported
+    BatchUserItem:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+          maxLength: 255
+        last_name:
+          type: string
+          maxLength: 255
+        phone:
+          type: string
+          default: ''
+          maxLength: 20
+        role:
+          enum:
+          - student
+          - reviewer
+          - admin
+          - super_admin
+          type: string
+          description: |-
+            * `student` - student
+            * `reviewer` - reviewer
+            * `admin` - admin
+            * `super_admin` - super_admin
+          x-spec-enum-id: 1a3817a8a61ce783
+        password:
+          type: string
+          default: ''
+          minLength: 6
+      required:
+      - email
+      - first_name
+      - last_name
+      - role
     CatalogInstitutionListResponse:
       type: object
       properties:
@@ -7358,6 +8065,94 @@ components:
           default: true
       required:
       - data
+    CommunicationTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        template_key:
+          type: string
+          readOnly: true
+        subject_template:
+          type: string
+        body_template:
+          type: string
+        channel:
+          enum:
+          - email
+          - notification
+          - both
+          type: string
+          description: |-
+            * `email` - email
+            * `notification` - notification
+            * `both` - both
+          x-spec-enum-id: c7814681fd23fa2a
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - template_key
+      - updated_at
+    CommunicationTemplateListResponse:
+      type: object
+      description: Envelope for GET /api/v1/admin/templates/ — returns a list of templates.
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommunicationTemplate'
+      required:
+      - data
+      - success
+    CommunicationTemplateUpdateRequest:
+      type: object
+      description: |-
+        PUT /api/v1/admin/templates/{key}/ request body.
+
+        All fields optional — updating subject_template and/or body_template is the
+        common case. Use is_active=false to soft-disable a template.
+      properties:
+        subject_template:
+          type: string
+        body_template:
+          type: string
+        channel:
+          enum:
+          - email
+          - notification
+          - both
+          type: string
+          description: |-
+            * `email` - email
+            * `notification` - notification
+            * `both` - both
+          x-spec-enum-id: c7814681fd23fa2a
+        is_active:
+          type: boolean
+    CommunicationTemplateUpdateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/CommunicationTemplate'
+      required:
+      - data
+      - success
     ConditionVerifyRequest:
       type: object
       description: Request body for verifying a condition.
@@ -7397,6 +8192,47 @@ components:
           default: true
       required:
       - data
+    DeferPaymentData:
+      type: object
+      description: Shape of the `data` field in DeferPaymentView 201 response.
+      properties:
+        payment_id:
+          type: string
+        reference:
+          type: string
+        amount:
+          type: string
+        currency:
+          type: string
+        status:
+          type: string
+      required:
+      - amount
+      - currency
+      - payment_id
+      - reference
+      - status
+    DeferPaymentRequest:
+      type: object
+      description: Validates POST /api/v1/payments/defer/ request body.
+      properties:
+        application_id:
+          type: string
+          format: uuid
+          description: Application ID to mark as deferred
+      required:
+      - application_id
+    DeferPaymentResponse:
+      type: object
+      description: Envelope wrapper for DeferPaymentView success response.
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/DeferPaymentData'
+      required:
+      - data
+      - success
     DiscoveryRun:
       type: object
       properties:
@@ -8314,6 +9150,78 @@ components:
           type: string
       required:
       - message
+    MobileMoneyInitiateData:
+      type: object
+      description: Shape of the `data` field in MobileMoneyInitiateView 201 response.
+      properties:
+        payment_id:
+          type: string
+        reference:
+          type: string
+        amount:
+          type: string
+        currency:
+          type: string
+        status:
+          type: string
+        provider_status:
+          type: string
+        operator:
+          type: string
+        masked_phone:
+          type: string
+        message:
+          type: string
+      required:
+      - amount
+      - currency
+      - payment_id
+      - status
+    MobileMoneyInitiateRequest:
+      type: object
+      description: |-
+        Validates POST /api/v1/payments/mobile-money/ request body.
+
+        Mirrors the fields the view was previously reading via
+        ``request.data.get(...)``: application_id (UUID), phone (string, Zambian
+        format), operator (airtel|mtn).
+      properties:
+        application_id:
+          type: string
+          format: uuid
+          description: Application ID to collect payment for
+        phone:
+          type: string
+          description: 'Zambian mobile phone number. Accepted formats: +260XXXXXXXXX,
+            260XXXXXXXXX, 0XXXXXXXXX, XXXXXXXXX'
+          maxLength: 20
+          minLength: 9
+        operator:
+          enum:
+          - airtel
+          - mtn
+          type: string
+          x-spec-enum-id: 47997ed24c4cfd47
+          description: |-
+            Mobile money operator
+
+            * `airtel` - Airtel
+            * `mtn` - MTN
+      required:
+      - application_id
+      - operator
+      - phone
+    MobileMoneyInitiateResponse:
+      type: object
+      description: Envelope wrapper for MobileMoneyInitiateView success response.
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/MobileMoneyInitiateData'
+      required:
+      - data
+      - success
     NotificationDeleteResponse:
       type: object
       properties:
@@ -10129,3 +11037,6 @@ tags:
   description: Platform identity, creator, and developer metadata.
 - name: errors
   description: Frontend error reporting endpoints.
+externalDocs:
+  description: Operator documentation
+  url: https://mihas.edu.zm/docs/api/

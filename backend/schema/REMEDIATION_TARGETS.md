@@ -10,18 +10,18 @@ Baseline snapshot: `backend/schema/openapi.v1.baseline.yaml` (134 paths, 178 ope
 
 | Metric | Baseline | Target | Enforced By |
 |---|---|---|---|
-| drf-spectacular errors | 56 | 0 | `make api-quality` (schema regen must have zero errors) |
+| drf-spectacular errors | 56 → **0** (ACHIEVED 2026-05-08) | 0 | `make api-quality` (schema regen must have zero errors) |
 | drf-spectacular warnings | 6 | 0 | `make api-quality` |
-| Linter total issues | 930 → **913** (post-Phase 2) | < 230 | `api_linter.py --format json` delta vs `lint_baseline.json` |
+| Linter total issues | 930 → **755** (post-Phase 2-4) | < 230 | `api_linter.py --format json` delta vs `lint_baseline.json` |
 | Linter errors | 1 | 0 (or documented exception) | `api_linter.py` error count |
-| Scorecard overall | 51.79 / F | ≥ 70 / C | `api_scorecard.py` overall score |
-| Scorecard documentation | 32.94 / F | ≥ 80 / B | `api_scorecard.py` dimension |
-| Scorecard consistency | 72.74 / C | ≥ 80 / B | `api_scorecard.py` dimension |
-| Scorecard security | 64.48 / D | ≥ 80 / B | `api_scorecard.py` dimension |
-| Untagged operations (tag=`api` only) | 39 → **0** (Phase 2 ✓) | 0 | `tests/unit/test_schema_tags.py` |
-| Operations without `summary` | 179 | 0 | `tests/unit/test_schema_summaries.py` (Phase 4) |
-| Redundant notification endpoints | 3 → **1 canonical + 2 deprecated** (Phase 2 ✓) | 1 + 2 deprecated with Sunset | `tests/unit/test_notification_deprecation.py` |
-| APIViews without `serializer_class` or `@extend_schema(request=...)` | 14 | 0 (Phase 3) | schema regen error count |
+| Scorecard overall | 51.79 / F → 53.41 / F | ≥ 70 / C | `api_scorecard.py` overall score |
+| Scorecard documentation | 32.94 / F → 44.09 / F | ≥ 80 / B | `api_scorecard.py` dimension |
+| Scorecard consistency | 72.74 / C → 72.80 / C | ≥ 80 / B | `api_scorecard.py` dimension |
+| Scorecard security | 64.48 / D → 60.48 / D | ≥ 80 / B | `api_scorecard.py` dimension |
+| Untagged operations (tag=`api` only) | 39 → **0** (ACHIEVED 2026-05-08) | 0 | `tests/unit/test_schema_tags.py` |
+| Operations without `summary` | 179 → **0** (ACHIEVED 2026-05-08) | 0 | `tests/unit/test_schema_summaries.py` |
+| Redundant notification endpoints | 3 → **1 canonical + 2 deprecated** (ACHIEVED 2026-05-08) | 1 + 2 deprecated with Sunset | `tests/unit/test_notification_deprecation.py` |
+| APIViews without `serializer_class` or `@extend_schema(request=...)` | 14 → **0** (ACHIEVED 2026-05-08) | 0 | schema regen error count |
 
 ## Phase 2 close-out (2026-05-08)
 

@@ -410,11 +410,28 @@ Protected endpoints accept either:
         {"name": "meta", "description": "Platform identity, creator, and developer metadata."},
         {"name": "errors", "description": "Frontend error reporting endpoints."},
     ],
+    # Contact / license metadata (fixes linter `Missing recommended info field: contact`)
+    "CONTACT": {
+        "name": "MIHAS Admissions Platform Team",
+        "email": "admissions@mihas.edu.zm",
+        "url": "https://mihas.edu.zm",
+    },
+    "LICENSE": {
+        "name": "Proprietary",
+        "url": "https://mihas.edu.zm",
+    },
+    "TERMS_OF_SERVICE": "https://mihas.edu.zm/terms",
+    "EXTERNAL_DOCS": {
+        "description": "Operator documentation",
+        "url": "https://mihas.edu.zm/docs/api/",
+    },
     # Auto-tag operations that lack an explicit tags= kwarg on @extend_schema.
     # This catches legacy views that were never tagged and emits a consistent
     # domain tag derived from the URL prefix under /api/v1/.
+    # Auto-summary: every operation must carry a human-readable one-liner.
     "POSTPROCESSING_HOOKS": [
         "apps.common.openapi.auto_tag_by_url_prefix",
+        "apps.common.openapi.auto_summary_from_operation_id",
     ],
     "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,
