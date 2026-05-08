@@ -73,6 +73,21 @@ jobs:
       - name: Run tests
         run: python -m pytest tests/unit/ tests/property/ -x -q --tb=short
         working-directory: backend
+      - name: API quality gate (schema lint + breaking-change vs baseline)
+        if: always()
+        run: PY=python bash scripts/api_quality.sh --report /tmp/api_quality_report.md
+        working-directory: backend
+      - name: Upload API quality report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-quality-report
+          path: |
+            /tmp/api_quality_report.md
+            /tmp/current_schema.yaml
+            /tmp/current_lint.json
+          if-no-files-found: warn
+          retention-days: 14
 
   admissions:
     runs-on: ubuntu-latest

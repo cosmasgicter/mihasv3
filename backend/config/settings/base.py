@@ -408,6 +408,13 @@ Protected endpoints accept either:
         {"name": "analytics", "description": "Funnel and source performance reporting."},
         {"name": "reports", "description": "Digest-style reporting endpoints."},
         {"name": "meta", "description": "Platform identity, creator, and developer metadata."},
+        {"name": "errors", "description": "Frontend error reporting endpoints."},
+    ],
+    # Auto-tag operations that lack an explicit tags= kwarg on @extend_schema.
+    # This catches legacy views that were never tagged and emits a consistent
+    # domain tag derived from the URL prefix under /api/v1/.
+    "POSTPROCESSING_HOOKS": [
+        "apps.common.openapi.auto_tag_by_url_prefix",
     ],
     "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,

@@ -1,0 +1,10 @@
+# AgentHub session state and worktrees — untracked. Only README.md and scripts are tracked.
+board/dispatch/*.md
+board/progress/*.md
+board/results/*.md
+!board/dispatch/.gitkeep
+!board/progress/.gitkeep
+!board/results/.gitkeep
+sessions/
+worktrees/
+archives/

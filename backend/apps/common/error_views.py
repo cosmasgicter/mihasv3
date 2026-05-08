@@ -43,7 +43,12 @@ class ErrorReportView(APIView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'error_report'
 
-    @extend_schema(request=OpenApiTypes.OBJECT, responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(
+        request=OpenApiTypes.OBJECT,
+        responses={200: OpenApiTypes.OBJECT},
+        tags=["errors"],
+        summary="Report a frontend error",
+    )
     def post(self, request):
         # Reject payloads larger than 16 KB before any processing.
         if len(request.body) > 16_384:

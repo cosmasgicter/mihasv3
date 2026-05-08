@@ -476,6 +476,16 @@ class NotificationListView(APIView):
     put=extend_schema(
         operation_id="notifications_mark_read",
         tags=["notifications"],
+        summary="Mark a single notification as read",
+        responses={
+            200: OpenApiResponse(response=NotificationMarkReadResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    post=extend_schema(
+        operation_id="notifications_mark_read_post",
+        tags=["notifications"],
+        summary="Mark a single notification as read (POST alias)",
         responses={
             200: OpenApiResponse(response=NotificationMarkReadResponseSerializer),
             404: OpenApiResponse(response=ErrorResponseSerializer),
@@ -529,13 +539,25 @@ class NotificationMarkReadView(APIView):
     put=extend_schema(
         operation_id="notifications_mark_all_read",
         tags=["notifications"],
+        summary="Mark all unread notifications as read",
+        responses={200: OpenApiResponse(response=NotificationMarkAllReadResponseSerializer)},
+    ),
+    post=extend_schema(
+        operation_id="notifications_mark_all_read_post",
+        tags=["notifications"],
+        summary="Mark all unread notifications as read (POST alias)",
         responses={200: OpenApiResponse(response=NotificationMarkAllReadResponseSerializer)},
     ),
 )
 class NotificationMarkAllReadView(APIView):
-    """PUT/POST /api/v1/notifications/read-all/ or /api/v1/notifications/mark-all-read/
+    """PUT/POST /api/v1/notifications/read-all/ (canonical)
 
     Mark all unread notifications as read for the authenticated user.
+
+    The aliases ``/mark-all-read/`` and ``/mark-read/`` route to
+    :class:`NotificationMarkAllReadAliasView` which adds RFC 9745
+    ``Deprecation`` and RFC 8594 ``Sunset`` headers. New integrations MUST use
+    ``/read-all/``.
     """
 
     permission_classes = [IsAuthenticated]
@@ -556,6 +578,66 @@ class NotificationMarkAllReadView(APIView):
 
     def post(self, request):
         return self._mark_all_read(request)
+
+
+# ---------------------------------------------------------------------------
+# Deprecated aliases for NotificationMarkAllReadView
+# ---------------------------------------------------------------------------
+
+# Default sunset date is 6 months after the deprecation sprint (2026-05-08).
+# Override via Django setting NOTIFICATION_ALIAS_SUNSET if needed.
+_DEFAULT_NOTIFICATION_ALIAS_SUNSET = "Thu, 08 Nov 2026 00:00:00 GMT"
+
+
+def _notification_alias_sunset() -> str:
+    from django.conf import settings
+    return getattr(settings, "NOTIFICATION_ALIAS_SUNSET", _DEFAULT_NOTIFICATION_ALIAS_SUNSET)
+
+
+@extend_schema_view(
+    put=extend_schema(
+        operation_id="notifications_mark_all_read_deprecated_alias",
+        tags=["notifications"],
+        summary="(Deprecated alias) Mark all unread notifications as read",
+        deprecated=True,
+        description=(
+            "Deprecated alias for PUT /api/v1/notifications/read-all/. "
+            "Responses include `Deprecation: true` and `Sunset` headers per "
+            "RFC 9745 / RFC 8594. New integrations must use the canonical "
+            "path. Sunset: see the `Sunset` response header."
+        ),
+        responses={200: OpenApiResponse(response=NotificationMarkAllReadResponseSerializer)},
+    ),
+    post=extend_schema(
+        operation_id="notifications_mark_all_read_deprecated_alias_post",
+        tags=["notifications"],
+        summary="(Deprecated alias POST) Mark all unread notifications as read",
+        deprecated=True,
+        responses={200: OpenApiResponse(response=NotificationMarkAllReadResponseSerializer)},
+    ),
+)
+class NotificationMarkAllReadAliasView(NotificationMarkAllReadView):
+    """Deprecated alias view for mark-all-read.
+
+    Wired at `/api/v1/notifications/mark-all-read/` and
+    `/api/v1/notifications/mark-read/`. Emits RFC 9745 `Deprecation: true`
+    and RFC 8594 `Sunset: <http-date>` headers on every response so clients
+    can detect the deprecation programmatically.
+    """
+
+    def _add_deprecation_headers(self, response):
+        response["Deprecation"] = "true"
+        response["Sunset"] = _notification_alias_sunset()
+        response["Link"] = (
+            '</api/v1/notifications/read-all/>; rel="successor-version"'
+        )
+        return response
+
+    def put(self, request):
+        return self._add_deprecation_headers(super().put(request))
+
+    def post(self, request):
+        return self._add_deprecation_headers(super().post(request))
 
 
 # ---------------------------------------------------------------------------

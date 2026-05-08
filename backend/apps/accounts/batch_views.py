@@ -10,6 +10,7 @@ import secrets
 from django.db import IntegrityError, transaction
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -41,6 +42,7 @@ class BatchUserItemSerializer(serializers.Serializer):
 class BatchUserImportView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
 
+    @extend_schema(tags=["admin"], summary="Batch import users from CSV/JSON")
     def post(self, request):
         users_data = request.data
         if not isinstance(users_data, list):

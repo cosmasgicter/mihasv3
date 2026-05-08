@@ -718,7 +718,7 @@ class ProfileView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT}, tags=["auth"], summary="Get authenticated user profile")
     def get(self, request):
         try:
             profile = Profile.objects.get(id=request.user.id)
@@ -730,7 +730,7 @@ class ProfileView(APIView):
         serializer = ProfileReadSerializer(profile)
         return Response({"success": True, "data": serializer.data})
 
-    @extend_schema(request=ProfileUpdateSerializer, responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(request=ProfileUpdateSerializer, responses={200: OpenApiTypes.OBJECT}, tags=["auth"], summary="Update authenticated user profile")
     def patch(self, request):
         try:
             profile = Profile.objects.get(id=request.user.id)
