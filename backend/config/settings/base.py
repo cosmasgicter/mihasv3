@@ -429,9 +429,12 @@ Protected endpoints accept either:
     # This catches legacy views that were never tagged and emits a consistent
     # domain tag derived from the URL prefix under /api/v1/.
     # Auto-summary: every operation must carry a human-readable one-liner.
+    # Auto-error-responses: every operation documents the standard error codes
+    # (adjusted for public endpoints that skip 401/403).
     "POSTPROCESSING_HOOKS": [
         "apps.common.openapi.auto_tag_by_url_prefix",
         "apps.common.openapi.auto_summary_from_operation_id",
+        "apps.common.openapi.auto_document_error_responses",
     ],
     "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,

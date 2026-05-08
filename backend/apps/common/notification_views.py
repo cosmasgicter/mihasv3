@@ -596,33 +596,35 @@ def _notification_alias_sunset() -> str:
 
 @extend_schema_view(
     put=extend_schema(
-        operation_id="notifications_mark_all_read_deprecated_alias",
+        operation_id="notifications_mark_all_read_alias_mark_all_read",
         tags=["notifications"],
-        summary="(Deprecated alias) Mark all unread notifications as read",
+        summary="(Deprecated alias /mark-all-read/) Mark all unread as read",
         deprecated=True,
         description=(
             "Deprecated alias for PUT /api/v1/notifications/read-all/. "
             "Responses include `Deprecation: true` and `Sunset` headers per "
-            "RFC 9745 / RFC 8594. New integrations must use the canonical "
-            "path. Sunset: see the `Sunset` response header."
+            "RFC 9745 / RFC 8594. Sunset: see the `Sunset` response header."
         ),
         responses={200: OpenApiResponse(response=NotificationMarkAllReadResponseSerializer)},
     ),
     post=extend_schema(
-        operation_id="notifications_mark_all_read_deprecated_alias_post",
+        operation_id="notifications_mark_all_read_alias_mark_all_read_post",
         tags=["notifications"],
-        summary="(Deprecated alias POST) Mark all unread notifications as read",
+        summary="(Deprecated alias POST /mark-all-read/) Mark all unread as read",
         deprecated=True,
         responses={200: OpenApiResponse(response=NotificationMarkAllReadResponseSerializer)},
     ),
 )
 class NotificationMarkAllReadAliasView(NotificationMarkAllReadView):
-    """Deprecated alias view for mark-all-read.
+    """Deprecated alias view for `/api/v1/notifications/mark-all-read/`.
 
-    Wired at `/api/v1/notifications/mark-all-read/` and
-    `/api/v1/notifications/mark-read/`. Emits RFC 9745 `Deprecation: true`
-    and RFC 8594 `Sunset: <http-date>` headers on every response so clients
-    can detect the deprecation programmatically.
+    Emits RFC 9745 `Deprecation: true` and RFC 8594 `Sunset: <http-date>`
+    headers on every response so clients can detect the deprecation
+    programmatically.
+
+    A separate subclass ``NotificationMarkReadBatchAliasView`` is wired at
+    `/api/v1/notifications/mark-read/` so the two paths have distinct
+    operation_ids in the generated schema instead of colliding.
     """
 
     def _add_deprecation_headers(self, response):
@@ -638,6 +640,36 @@ class NotificationMarkAllReadAliasView(NotificationMarkAllReadView):
 
     def post(self, request):
         return self._add_deprecation_headers(super().post(request))
+
+
+@extend_schema_view(
+    put=extend_schema(
+        operation_id="notifications_mark_all_read_alias_mark_read",
+        tags=["notifications"],
+        summary="(Deprecated alias /mark-read/) Mark all unread as read",
+        deprecated=True,
+        description=(
+            "Deprecated alias for PUT /api/v1/notifications/read-all/. "
+            "Routed at /api/v1/notifications/mark-read/. Responses include "
+            "`Deprecation: true` and `Sunset` headers per RFC 9745 / RFC 8594."
+        ),
+        responses={200: OpenApiResponse(response=NotificationMarkAllReadResponseSerializer)},
+    ),
+    post=extend_schema(
+        operation_id="notifications_mark_all_read_alias_mark_read_post",
+        tags=["notifications"],
+        summary="(Deprecated alias POST /mark-read/) Mark all unread as read",
+        deprecated=True,
+        responses={200: OpenApiResponse(response=NotificationMarkAllReadResponseSerializer)},
+    ),
+)
+class NotificationMarkReadBatchAliasView(NotificationMarkAllReadAliasView):
+    """Deprecated alias view for `/api/v1/notifications/mark-read/`.
+
+    Identical behavior to ``NotificationMarkAllReadAliasView``; separate class
+    so drf-spectacular generates distinct operation_ids per URL path instead
+    of emitting a collision warning.
+    """
 
 
 # ---------------------------------------------------------------------------

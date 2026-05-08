@@ -319,12 +319,12 @@ class AuditLogSerializer(serializers.Serializer):
         user = getattr(request, "user", None) if request else None
         return bool(user and getattr(user, "is_authenticated", False) and getattr(user, "role", None) == "super_admin")
 
-    def get_request_ip(self, obj):
+    def get_request_ip(self, obj) -> str | None:
         if not self._can_view_network_context():
             return None
         return decrypt_network_value(getattr(obj, "ip_address_encrypted", None))
 
-    def get_request_user_agent(self, obj):
+    def get_request_user_agent(self, obj) -> str | None:
         if not self._can_view_network_context():
             return None
         return decrypt_network_value(getattr(obj, "user_agent_encrypted", None))

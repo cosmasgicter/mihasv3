@@ -17,6 +17,7 @@ from apps.accounts.authentication import JWTUser
 from apps.common.notification_views import (
     NotificationMarkAllReadAliasView,
     NotificationMarkAllReadView,
+    NotificationMarkReadBatchAliasView,
 )
 
 
@@ -74,7 +75,7 @@ def test_mark_read_alias_has_deprecation_headers(mock_mark_all_read):
     factory = APIRequestFactory()
     request = factory.put("/api/v1/notifications/mark-read/")
     force_authenticate(request, user=_make_user())
-    view = NotificationMarkAllReadAliasView.as_view()
+    view = NotificationMarkReadBatchAliasView.as_view()
     response = view(request)
     assert response.status_code == 200
     assert response.headers.get("Deprecation") == "true"
@@ -122,8 +123,13 @@ def test_sunset_setting_override(mock_mark_all_read, settings):
 
 def test_urls_wire_aliases_to_alias_view():
     """The URL routing layer must direct /mark-all-read/ and /mark-read/ to
-    the alias subclass, NOT to the canonical view."""
+    distinct deprecated-alias subclasses (not the canonical view), so
+    drf-spectacular emits unique operation_ids."""
     from apps.common import notification_urls
+    from apps.common.notification_views import (
+        NotificationMarkAllReadAliasView,
+        NotificationMarkReadBatchAliasView,
+    )
 
     # Find the URL patterns by name
     by_name = {p.name: p for p in notification_urls.urlpatterns}
@@ -138,4 +144,6 @@ def test_urls_wire_aliases_to_alias_view():
 
     assert _view_class(canonical) is NotificationMarkAllReadView
     assert _view_class(alias1) is NotificationMarkAllReadAliasView
-    assert _view_class(alias2) is NotificationMarkAllReadAliasView
+    assert _view_class(alias2) is NotificationMarkReadBatchAliasView
+    # The two alias subclasses are distinct but share behavior
+    assert issubclass(NotificationMarkReadBatchAliasView, NotificationMarkAllReadAliasView)

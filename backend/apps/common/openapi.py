@@ -122,6 +122,85 @@ def auto_summary_from_operation_id(result, generator, request, public):
     return result
 
 
+# --- Default error-response shapes. Registered under ErrorResponse in the
+# components section by the `ErrorResponseSerializer` declared elsewhere; we
+# reference the $ref so we don't duplicate the schema.
+_ERROR_REF = {
+    "description": "",
+    "content": {
+        "application/json": {"schema": {"$ref": "#/components/schemas/ErrorResponse"}}
+    },
+}
+
+# Which error responses apply to which HTTP methods. GET rarely needs 400.
+_DEFAULT_ERROR_CODES_BY_METHOD = {
+    "get": ("401", "403", "404", "500"),
+    "post": ("400", "401", "403", "404", "500"),
+    "put": ("400", "401", "403", "404", "500"),
+    "patch": ("400", "401", "403", "404", "500"),
+    "delete": ("401", "403", "404", "500"),
+}
+
+# Paths that intentionally skip auth (public endpoints). We omit 401/403 there.
+_PUBLIC_PATH_PREFIXES = (
+    "/health/",
+    "/api/v1/errors/report/",  # AllowAny + rate-limited
+    "/api/v1/payments/webhook/lenco/",  # HMAC-validated, no auth
+    "/api/v1/applications/track/",  # public tracking
+    "/api/v1/auth/login/",
+    "/api/v1/auth/register/",
+    "/api/v1/auth/refresh/",
+    "/api/v1/auth/forgot-password/",
+    "/api/v1/auth/reset-password/",
+    "/api/v1/auth/verify-email/",
+)
+
+
+def _is_public(path: str) -> bool:
+    return any(path.startswith(p) for p in _PUBLIC_PATH_PREFIXES)
+
+
+_ERROR_DESCRIPTIONS = {
+    "400": "Bad request — validation error. Response body follows the platform error envelope.",
+    "401": "Authentication required — missing or invalid credentials.",
+    "403": "Forbidden — the authenticated user lacks permission for this action.",
+    "404": "Resource not found.",
+    "500": "Internal server error. Logged to GlitchTip.",
+}
+
+
+def auto_document_error_responses(result, generator, request, public):
+    """Inject documented error responses on operations that don't declare them.
+
+    Uses ``#/components/schemas/ErrorResponse`` as the response body schema.
+    Explicit error responses declared via ``@extend_schema(responses={...})``
+    are preserved — this hook only fills in gaps.
+    """
+    paths = result.get("paths", {})
+    for path, methods in paths.items():
+        is_public = _is_public(path)
+        for method, op in methods.items():
+            if method == "parameters" or not isinstance(op, dict):
+                continue
+            responses = op.setdefault("responses", {})
+            codes = _DEFAULT_ERROR_CODES_BY_METHOD.get(method.lower(), ())
+            for code in codes:
+                if is_public and code in ("401", "403"):
+                    continue
+                if code in responses:
+                    # Already declared by the view's @extend_schema — preserve.
+                    continue
+                responses[code] = {
+                    "description": _ERROR_DESCRIPTIONS.get(code, ""),
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+                        }
+                    },
+                }
+    return result
+
+
 class JWTCookieAuthenticationScheme(OpenApiAuthenticationExtension):
     """Describe the primary JWT auth backend for generated API docs.
 

@@ -22,6 +22,7 @@ from apps.common.notification_views import (
     NotificationListView,
     NotificationMarkAllReadAliasView,
     NotificationMarkAllReadView,
+    NotificationMarkReadBatchAliasView,
     NotificationMarkReadView,
     NotificationPreferenceView,
 )
@@ -32,7 +33,7 @@ urlpatterns = [
     path("read-all/", NotificationMarkAllReadView.as_view(), name="notification-mark-all-read"),
     # Deprecated aliases (RFC 9745 Deprecation + RFC 8594 Sunset headers)
     path("mark-all-read/", NotificationMarkAllReadAliasView.as_view(), name="notification-mark-all-read-alias"),
-    path("mark-read/", NotificationMarkAllReadAliasView.as_view(), name="notification-mark-read-batch"),
+    path("mark-read/", NotificationMarkReadBatchAliasView.as_view(), name="notification-mark-read-batch"),
     path("<uuid:pk>/read/", NotificationMarkReadView.as_view(), name="notification-mark-read"),
     path("<uuid:pk>/", NotificationDeleteView.as_view(), name="notification-delete"),
     path("user/<uuid:user_id>/", AdminNotificationHistoryView.as_view(), name="notification-user-history"),

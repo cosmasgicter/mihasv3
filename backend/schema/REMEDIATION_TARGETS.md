@@ -11,8 +11,8 @@ Baseline snapshot: `backend/schema/openapi.v1.baseline.yaml` (134 paths, 178 ope
 | Metric | Baseline | Target | Enforced By |
 |---|---|---|---|
 | drf-spectacular errors | 56 → **0** (ACHIEVED 2026-05-08) | 0 | `make api-quality` (schema regen must have zero errors) |
-| drf-spectacular warnings | 6 | 0 | `make api-quality` |
-| Linter total issues | 930 → **755** (post-Phase 2-4) | < 230 | `api_linter.py --format json` delta vs `lint_baseline.json` |
+| drf-spectacular warnings | 6 → **0** (ACHIEVED 2026-05-08) | 0 | `make api-quality` |
+| Linter total issues | 930 → **657** (post-Phase 2-5 polish) | < 230 | `api_linter.py --format json` delta vs `lint_baseline.json` |
 | Linter errors | 1 | 0 (or documented exception) | `api_linter.py` error count |
 | Scorecard overall | 51.79 / F → 53.41 / F | ≥ 70 / C | `api_scorecard.py` overall score |
 | Scorecard documentation | 32.94 / F → 44.09 / F | ≥ 80 / B | `api_scorecard.py` dimension |
@@ -23,18 +23,31 @@ Baseline snapshot: `backend/schema/openapi.v1.baseline.yaml` (134 paths, 178 ope
 | Redundant notification endpoints | 3 → **1 canonical + 2 deprecated** (ACHIEVED 2026-05-08) | 1 + 2 deprecated with Sunset | `tests/unit/test_notification_deprecation.py` |
 | APIViews without `serializer_class` or `@extend_schema(request=...)` | 14 → **0** (ACHIEVED 2026-05-08) | 0 | schema regen error count |
 
-## Phase 2 close-out (2026-05-08)
+## Phase 5-polish close-out (2026-05-08, follow-up after main sprint)
 
-Phase 2 (quick wins) completed:
-- T11 ✓ `OptionalJWTCookieAuthentication` OpenAPI extension registered — distinct `optionalJwtBearerAuth` / `optionalJwtCookieAuth` scheme names prevent drf-spectacular name-collision. SessionView now has proper security metadata.
-- T12 ✓ Two notification aliases (`/mark-all-read/`, `/mark-read/`) marked `deprecated=true` and emit `Deprecation: true` + `Sunset` headers per RFC 9745 / RFC 8594. Canonical path unchanged. OperationId collision warning eliminated.
-- T13 ✓ Tag sweep: 39 untagged operations → 0. Explicit `@extend_schema(tags=[...])` added to 12 operations; `SPECTACULAR_SETTINGS.POSTPROCESSING_HOOKS` now includes `apps.common.openapi.auto_tag_by_url_prefix` as safety-net that auto-tags by URL prefix for any future regressions.
+Additional polish landed after the initial Phase 5 close-out:
 
-Deltas verified:
-- drf-spectacular warnings 6 → 5 (identical-name-component warning for notifications → resolved; one optional-auth warning eliminated)
-- Linter issues 930 → 913 (–17)
-- Operations tagged only `api`: 39 → 0
-- Security scheme coverage on SessionView: absent → `[{optionalJwtBearerAuth:[]},{optionalJwtCookieAuth:[]},{}]`
+- **Type-hint warnings eliminated** — Added return type annotations to
+  `get_request_ip`, `get_request_user_agent` (AuditLogSerializer) and
+  `get_application_number`, `get_changed_by_name` (TimelineHistoryItemSerializer).
+  drf-spectacular warnings 6 → 0.
+- **OperationId collisions eliminated** — Split `NotificationMarkAllReadAliasView`
+  into two distinct subclasses (`NotificationMarkAllReadAliasView` for
+  `/mark-all-read/`, `NotificationMarkReadBatchAliasView` for `/mark-read/`)
+  so each alias path has its own operation_id in the schema.
+- **Missing error responses** — Added
+  `apps.common.openapi.auto_document_error_responses` postprocessing hook that
+  injects standard 400/401/403/404/500 error responses with
+  `$ref: '#/components/schemas/ErrorResponse'` on every operation that doesn't
+  declare them. Public-endpoint paths (health, webhook, login/register/refresh)
+  skip 401/403. Linter issues 755 → 657 (−98), score 88.30 → 89.96.
+
+Deltas:
+- drf-spectacular errors: 0 (unchanged)
+- drf-spectacular warnings: 6 → **0**
+- Linter issues: 755 → **657** (−98 since Phase 4 close-out)
+- Scorecard: 53.41 / F (unchanged — remaining linter issues are intentional
+  snake_case naming which the scorecard penalizes)
 
 
 ## Scorecard dimensions that are intentionally NOT targeted
