@@ -1,6 +1,6 @@
 # MIHAS Platform
 
-Mukuba Institute of Health and Allied Sciences — multi-application monorepo powering student admissions, AI job operations, and institutional services.
+Mukuba Institute of Health and Applied Sciences — multi-application monorepo powering student admissions, AI job operations, and institutional services.
 
 ## Repository Structure
 

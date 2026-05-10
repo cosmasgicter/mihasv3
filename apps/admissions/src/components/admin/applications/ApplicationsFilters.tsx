@@ -255,7 +255,7 @@ export function ApplicationsFilters({
                 >
                   <option value="all">All Institutions</option>
                   <option value="Kalulushi Training Centre">Kalulushi Training Centre</option>
-                  <option value="Mukuba Institute of Health and Allied Sciences">Mukuba Institute of Health and Allied Sciences</option>
+                  <option value="Mukuba Institute of Health and Applied Sciences">Mukuba Institute of Health and Applied Sciences</option>
                 </select>
               </div>
               

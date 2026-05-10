@@ -127,9 +127,14 @@ describe('generateAcceptanceLetter — conditional', () => {
 })
 
 describe('generateAcceptanceLetter — signatory defaults', () => {
-  it('defaults to Dr Solomon Musonda when signatoryName is not provided', () => {
+  it('defaults to Dr Solomon Musonda, MD (Managing Director) when not provided', () => {
     expect(DEFAULT_SIGNATORY.name).toBe('Dr Solomon Musonda')
-    expect(DEFAULT_SIGNATORY.role).toBe('Director')
+    expect(DEFAULT_SIGNATORY.role).toBe('Managing Director')
+    expect(DEFAULT_SIGNATORY.postnominal).toBe('MD')
+    // The real scanned signature path should live under images/signatures
+    expect(DEFAULT_SIGNATORY.signatureImage).toBe(
+      '/images/signatures/solomon-musonda.png',
+    )
   })
 
   it('honours custom signatoryName and signatoryRole when provided', async () => {
@@ -137,6 +142,23 @@ describe('generateAcceptanceLetter — signatory defaults', () => {
       ...unconditional,
       signatoryName: 'Prof. Mwenya Nkonde',
       signatoryRole: 'Acting Director',
+    })
+    expect(blob).toBeInstanceOf(Blob)
+  })
+
+  it('accepts a custom signatureImage override (e.g. a scanned signature)', async () => {
+    const blob = await generateAcceptanceLetter({
+      ...unconditional,
+      signatureImage: '/images/signatures/acting-director.png',
+    })
+    expect(blob).toBeInstanceOf(Blob)
+  })
+
+  it('accepts a custom postnominal and signatoryDivision override', async () => {
+    const blob = await generateAcceptanceLetter({
+      ...unconditional,
+      signatoryPostnominal: 'PhD',
+      signatoryDivision: 'School of Pharmacy',
     })
     expect(blob).toBeInstanceOf(Blob)
   })

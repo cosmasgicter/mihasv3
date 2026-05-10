@@ -35,7 +35,7 @@ def render(context: dict) -> tuple[str, str]:
         paragraph(f"Dear {student},"),
         paragraph(
             "Thank you for your application to Mukuba Institute of Health "
-            f"and Allied Sciences for <strong>{escape(program)}</strong> "
+            f"and Applied Sciences for <strong>{escape(program)}</strong> "
             f"({escape(intake)}). We are grateful for the care you put into it."
         ),
         paragraph(

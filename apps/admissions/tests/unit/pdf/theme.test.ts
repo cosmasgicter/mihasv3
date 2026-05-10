@@ -160,7 +160,7 @@ describe('PDF theme — typography', () => {
 describe('PDF theme — institutions', () => {
   it('exposes MIHAS and KATC with full metadata', () => {
     expect(institutions.MIHAS.fullName).toBe(
-      'Mukuba Institute of Health and Allied Sciences',
+      'Mukuba Institute of Health and Applied Sciences',
     )
     expect(institutions.KATC.fullName).toBe('Kalulushi Training Centre')
     expect(institutions.MIHAS.email).toBe('info@mihas.edu.zm')

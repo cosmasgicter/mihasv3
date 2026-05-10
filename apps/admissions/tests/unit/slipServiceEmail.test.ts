@@ -55,7 +55,7 @@ describe('createApplicationSlip email delivery', () => {
       program_name: 'Diploma in Registered Nursing',
       intake_name: 'January 2026',
       institution: 'MIHAS',
-      institution_name: 'Mukuba Institute of Health and Allied Sciences',
+      institution_name: 'Mukuba Institute of Health and Applied Sciences',
       full_name: 'Jane Student',
       email: 'jane@example.com',
       phone: '+260971234567',

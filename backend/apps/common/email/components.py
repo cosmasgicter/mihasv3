@@ -176,17 +176,57 @@ def notice_box(text: str, *, variant: str = "info") -> str:
 # ---------------------------------------------------------------------------
 
 
+def derive_division(program: str | None) -> str | None:
+    """Map a program name to its originating school/division.
+
+    Mirror of `deriveSignatoryDivision()` in
+    `apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx`. Matches
+    MIHAS's paper-form convention where the footer for a nursing
+    acceptance reads "On behalf of … , School of Nursing".
+
+    Returns None when no mapping is found — caller omits the division line.
+    """
+    if not program:
+        return None
+    lower = program.lower()
+    if "nursing" in lower:
+        return "School of Nursing"
+    if "midwifery" in lower:
+        return "School of Midwifery"
+    if "clinical medicine" in lower or "medical" in lower:
+        return "School of Clinical Medicine"
+    if "pharmacy" in lower:
+        return "School of Pharmacy"
+    if "environmental health" in lower:
+        return "School of Environmental Health"
+    return None
+
+
 def signature_block(
     name: str = "Dr Solomon Musonda",
-    role: str = "Director",
-    institution: str = "Mukuba Institute of Health and Allied Sciences",
+    role: str = "Managing Director",
+    postnominal: str = "MD",
+    institution: str = "Mukuba Institute of Health and Applied Sciences",
+    division: str | None = None,
 ) -> str:
     """Closing signature block at the bottom of letter-style emails.
 
-    Dr Solomon Musonda is the overall Director for both MIHAS and KATC.
+    Dr Solomon Musonda is the Managing Director for both MIHAS and KATC.
+    The "MD" postnominal matches the signature convention on MIHAS's
+    official application form — "Dr Solomon Musonda, MD".
+
     Callers should pass the specific institution name for the document
     being sent (MIHAS for MIHAS applicants, KATC for KATC applicants).
+    For nursing programs pass division="School of Nursing" to add a
+    line below the institution, matching the form footer convention.
     """
+    display_name = f"{name}, {postnominal}" if postnominal else name
+    division_row = (
+        f'<div style="color:{t.INK_500};font-size:{t.TYPE_CAPTION_SIZE};">'
+        f"{escape(division)}</div>"
+        if division
+        else ""
+    )
     return f"""
 <table role="presentation" cellpadding="0" cellspacing="0"
        style="margin:{t.SPACE_XL} 0 0 0;">
@@ -194,12 +234,13 @@ def signature_block(
     <td style="font-family:{t.FONT_BODY};font-size:{t.TYPE_BODY_SIZE};
                line-height:{t.TYPE_BODY_LINE};color:{t.INK_900};
                padding-top:{t.SPACE_LG};border-top:1px solid {t.INK_100};">
-      <div style="font-weight:{t.WEIGHT_BOLD};">{escape(name)}</div>
+      <div style="font-weight:{t.WEIGHT_BOLD};">{escape(display_name)}</div>
       <div style="color:{t.INK_500};font-size:{t.TYPE_CAPTION_SIZE};
                   margin-top:{t.SPACE_XS};">{escape(role)}</div>
       <div style="color:{t.INK_500};font-size:{t.TYPE_CAPTION_SIZE};">
         {escape(institution)}
       </div>
+      {division_row}
     </td>
   </tr>
 </table>

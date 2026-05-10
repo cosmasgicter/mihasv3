@@ -53,7 +53,7 @@ export const institutions = {
   MIHAS: {
     code: 'MIHAS',
     shortName: 'MIHAS',
-    fullName: 'Mukuba Institute of Health and Allied Sciences',
+    fullName: 'Mukuba Institute of Health and Applied Sciences',
     logoMark: logos.mihas,
     logoFull: logos.mihasFull,
     // Short form used in the PDF header — narrow column, must fit on one line.

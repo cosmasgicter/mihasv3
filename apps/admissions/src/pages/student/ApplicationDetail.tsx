@@ -281,7 +281,7 @@ export default function ApplicationDetail() {
                   application.institution === 'KATC'
                     ? 'Kalulushi Training Centre'
                     : application.institution === 'MIHAS'
-                      ? 'Mukuba Institute of Health and Allied Sciences'
+                      ? 'Mukuba Institute of Health and Applied Sciences'
                       : application.institution || 'Not provided'
                 }
               />

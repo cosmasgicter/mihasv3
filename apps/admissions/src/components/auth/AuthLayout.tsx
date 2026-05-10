@@ -292,7 +292,7 @@ function FormPanel({
           {backLinkLabel}
         </Link>
 
-        <div className="mt-4 flex items-center lg:hidden" role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
+        <div className="mt-4 flex items-center lg:hidden" role="img" aria-label="Mukuba Institute of Health and Applied Sciences logo">
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-950 text-white shadow-sm" aria-hidden="true">
             <GraduationCap className="h-6 w-6" />
           </div>
