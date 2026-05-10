@@ -115,7 +115,7 @@ export async function updateSetting(
   updates: Partial<SystemSettingPayload>
 ): Promise<boolean> {
   try {
-    await apiClient.request(`/admin/settings/${id}/`, {
+    await apiClient.request(`/admin/settings/${encodeURIComponent(id)}/`, {
       method: 'PATCH',
       body: JSON.stringify({
         value: updates.value,
@@ -132,7 +132,7 @@ export async function updateSetting(
 
 export async function deleteSetting(id: string): Promise<boolean> {
   try {
-    await apiClient.request(`/admin/settings/${id}/`, {
+    await apiClient.request(`/admin/settings/${encodeURIComponent(id)}/`, {
       method: 'DELETE',
     });
     return true;
@@ -169,7 +169,6 @@ export async function resetSettings(): Promise<{ success: boolean; message?: str
     return { success: false, message: 'Failed to reset settings' };
   }
 }
-
 
 
 

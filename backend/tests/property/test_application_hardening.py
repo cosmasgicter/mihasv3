@@ -84,9 +84,10 @@ class TestWebhookDeduplicationPreventsReprocessing(SimpleTestCase):
 
         processor = WebhookProcessor()
 
-        with patch("apps.documents.webhook_processor.WebhookEventLog.objects") as mock_log_objects:
+        with patch("django.db.transaction.atomic"), \
+             patch("apps.documents.webhook_processor.WebhookEventLog.objects") as mock_log_objects:
             # Simulate that a processed entry already exists
-            mock_log_objects.filter.return_value.exists.return_value = True
+            mock_log_objects.select_for_update.return_value.filter.return_value.first.return_value = MagicMock()
             mock_create = mock_log_objects.create
 
             with patch.object(processor, "_payment_service") as mock_payment_svc:
@@ -104,7 +105,7 @@ class TestWebhookDeduplicationPreventsReprocessing(SimpleTestCase):
                 call_kwargs = mock_create.call_args[1]
                 self.assertEqual(call_kwargs["reference"], reference)
                 self.assertEqual(call_kwargs["event_type"], event_type)
-                self.assertTrue(call_kwargs["processed"])
+                self.assertFalse(call_kwargs["processed"])
                 self.assertIn("Duplicate", call_kwargs["processing_error"])
 
     @given(
@@ -123,9 +124,10 @@ class TestWebhookDeduplicationPreventsReprocessing(SimpleTestCase):
 
         processor = WebhookProcessor()
 
-        with patch("apps.documents.webhook_processor.WebhookEventLog.objects") as mock_log_objects:
+        with patch("django.db.transaction.atomic"), \
+             patch("apps.documents.webhook_processor.WebhookEventLog.objects") as mock_log_objects:
             # No prior processed entry
-            mock_log_objects.filter.return_value.exists.return_value = False
+            mock_log_objects.select_for_update.return_value.filter.return_value.first.return_value = None
             mock_log_entry = MagicMock()
             mock_log_objects.create.return_value = mock_log_entry
 
@@ -304,7 +306,8 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
         mock_history = MagicMock()
         mock_history.changes = None
 
-        with patch("apps.applications.admin_views.Application.objects") as mock_app_objects, \
+        with patch("apps.applications.admin_views.transaction.atomic"), \
+             patch("apps.applications.admin_views.Application.objects") as mock_app_objects, \
              patch("apps.applications.admin_views.transition_application_status") as mock_transition, \
              patch("apps.applications.admin_views.ApplicationStatusHistory.objects") as mock_history_objects:
 
@@ -369,7 +372,8 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
         mock_app.status = "under_review"
         mock_app.payment_status = "verified"
 
-        with patch("apps.applications.admin_views.Application.objects") as mock_app_objects, \
+        with patch("apps.applications.admin_views.transaction.atomic"), \
+             patch("apps.applications.admin_views.Application.objects") as mock_app_objects, \
              patch("apps.applications.admin_views.transition_application_status") as mock_transition, \
              patch("apps.applications.admin_views.ApplicationStatusHistory.objects") as mock_history_objects, \
              patch("apps.applications.admin_views.Payment.objects") as mock_payment:

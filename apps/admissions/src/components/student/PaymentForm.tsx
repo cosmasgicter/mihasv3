@@ -7,9 +7,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { CheckCircle, CreditCard, RefreshCw, Smartphone, Phone, Check, Loader2, WifiOff } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { animateClasses } from '@/lib/animations'
-import { apiClient } from '@/services/client'
 import { useApplicationPaymentAction } from '@/hooks/useApplicationPaymentAction'
 import { normalizePaymentStatusValue } from '@/hooks/usePaymentStatus'
+import { generateIdempotencyKey } from '@/lib/paymentStatus'
+import { initiateMobileMoney, verifyPayment } from '@/services/payments'
+import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
 
 type PaymentMethod = 'mobile-money' | 'card'
 type MomoOperator = 'airtel' | 'mtn' | null
@@ -72,6 +74,10 @@ export interface PaymentFormProps {
   onPaymentStatusChange?: (status: 'pending' | 'successful' | 'failed' | null) => void
   onPaymentStatusRefresh?: () => Promise<void>
   onSuccess?: () => void
+  /** External inflight signal — disables initiate buttons when true (R14.1). */
+  inflight?: boolean
+  /** External pending payment id — disables initiate buttons while set (R14.1). */
+  pendingPaymentId?: string | null
 }
 
 function formatCurrency(amount: number, currency: string): string {
@@ -106,6 +112,8 @@ export function PaymentForm({
   onPaymentStatusChange,
   onPaymentStatusRefresh,
   onSuccess,
+  inflight = false,
+  pendingPaymentId = null,
 }: PaymentFormProps) {
   const normalizedPhone = normalizeZambianPhone(initialPhone)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('mobile-money')
@@ -121,6 +129,7 @@ export function PaymentForm({
   const pollRef = useRef<ReturnType<typeof setInterval>>()
   const pollErrorCountRef = useRef(0)
   const pollAttemptCountRef = useRef(0)
+  const paymentRecoveryStore = usePaymentRecoveryStore()
 
   const getCustomerDetails = useCallback(() => ({ fullName, email, phone: normalizedPhone }), [fullName, email, normalizedPhone])
 
@@ -156,26 +165,23 @@ export function PaymentForm({
 
       if (pollAttemptCountRef.current > PAYMENT_VERIFY_MAX_ATTEMPTS) {
         clearInterval(pollRef.current)
-        setMomoStatus('failed')
-        setMomoError('We could not confirm this payment automatically. Please try checking again or start a new payment request.')
-        setActivePendingMethod(null)
-        onPaymentStatusChange?.('failed')
+        setMomoStatus('pending')
+        setMomoError('We could not confirm this payment automatically yet. Please check again in a moment.')
+        onPaymentStatusChange?.('pending')
         return
       }
 
       try {
-        const verification = await apiClient.request<{ status?: string; data?: { status?: string } }>(
-          `/payments/${encodeURIComponent(paymentId)}/verify/`,
-          { method: 'POST', retries: 0 }
-        )
+        const verification = await verifyPayment(paymentId)
 
         pollErrorCountRef.current = 0
-        const normalized = normalizePaymentStatusValue(verification?.status ?? verification?.data?.status ?? null)
+        const normalized = normalizePaymentStatusValue(verification?.status ?? null)
         if (normalized === 'successful') {
           clearInterval(pollRef.current)
           setMomoStatus('successful')
           setActivePendingMethod(null)
           setActiveMomoPaymentId(null)
+          paymentRecoveryStore.clear(applicationId)
           onPaymentStatusChange?.('successful')
           return
         }
@@ -184,6 +190,7 @@ export function PaymentForm({
           setMomoStatus('failed')
           setActivePendingMethod(null)
           setActiveMomoPaymentId(null)
+          paymentRecoveryStore.clear(applicationId)
           onPaymentStatusChange?.('failed')
           return
         }
@@ -195,10 +202,9 @@ export function PaymentForm({
         pollErrorCountRef.current += 1
         if (pollErrorCountRef.current >= PAYMENT_VERIFY_MAX_ERRORS) {
           clearInterval(pollRef.current)
-          setMomoStatus('failed')
+          setMomoStatus('pending')
           setMomoError('Unable to verify payment status right now. Please try again in a moment.')
-          setActivePendingMethod(null)
-          onPaymentStatusChange?.('failed')
+          onPaymentStatusChange?.('pending')
           return
         }
       }
@@ -209,7 +215,7 @@ export function PaymentForm({
     } catch {
       // Ignore refresh errors — the verify call above is the primary check.
     }
-  }, [activeMomoPaymentId, activePendingMethod, onPaymentStatusChange, onPaymentStatusRefresh])
+  }, [activeMomoPaymentId, activePendingMethod, applicationId, onPaymentStatusChange, onPaymentStatusRefresh, paymentRecoveryStore])
 
   // Auto-poll every 10s while pending
   useEffect(() => {
@@ -269,15 +275,25 @@ export function PaymentForm({
     setMomoError(null)
     setActivePendingMethod('mobile-money')
     try {
-      const data = await apiClient.request<MobileMoneyResponse>('/payments/mobile-money/', {
-        method: 'POST',
-        body: JSON.stringify({ application_id: applicationId, phone: normalized, operator: momoOperator || 'airtel' }),
-      })
+      const data = await initiateMobileMoney(
+        { application_id: applicationId, phone: normalized },
+        { idempotencyKey: generateIdempotencyKey(applicationId) },
+      ) as MobileMoneyResponse
       if (!data) throw new Error('No response from payment service')
       setActiveMomoPaymentId(data.payment_id || null)
+      if (data.payment_id) {
+        paymentRecoveryStore.record({
+          application_id: applicationId,
+          payment_id: data.payment_id,
+          reference: data.reference,
+          method: 'mobile_money',
+          initiated_at: Date.now(),
+        })
+      }
       if ((data as MobileMoneyResponse).status === 'already_paid') {
         setMomoStatus('successful')
         setActivePendingMethod(null)
+        paymentRecoveryStore.clear(applicationId)
         onPaymentStatusChange?.('successful')
         return
       }
@@ -285,12 +301,14 @@ export function PaymentForm({
       if (initiatedStatus === 'successful') {
         setMomoStatus('successful')
         setActivePendingMethod(null)
+        paymentRecoveryStore.clear(applicationId)
         onPaymentStatusChange?.('successful')
         return
       }
       if (initiatedStatus === 'failed') {
         setMomoStatus('failed')
         setActivePendingMethod(null)
+        paymentRecoveryStore.clear(applicationId)
         onPaymentStatusChange?.('failed')
         return
       }
@@ -308,7 +326,7 @@ export function PaymentForm({
     } finally {
       setMomoLoading(false)
     }
-  }, [applicationId, momoPhone, momoOperator, onPaymentStatusChange, syncPendingPayment])
+  }, [applicationId, momoPhone, onPaymentStatusChange, paymentRecoveryStore, syncPendingPayment])
 
   const handleRetry = useCallback(() => {
     setMomoStatus('idle')
@@ -326,7 +344,12 @@ export function PaymentForm({
     void startCardPayment()
   }, [startCardPayment])
 
-  const canPay = amount > 0 && !isPaymentSuccessful && !isPaymentPending
+  const canPay =
+    amount > 0 &&
+    !isPaymentSuccessful &&
+    !isPaymentPending &&
+    !inflight &&
+    !pendingPaymentId
 
   // ── Success State ──
   if (isPaymentSuccessful) {
@@ -401,6 +424,10 @@ export function PaymentForm({
             <Loader2 className="h-3 w-3 animate-spin" />
             Checking automatically…
           </div>
+
+          {momoError && (
+            <p className="mt-3 text-sm text-muted-foreground">{momoError}</p>
+          )}
 
           {pendingElapsed >= 30 && (
             <p className="mt-4 text-sm text-muted-foreground">

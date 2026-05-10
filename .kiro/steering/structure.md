@@ -292,6 +292,106 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `.env.development` | Tracked placeholder file — removed to prevent confusion with gitignored real env files |
 | `.env.production` | Tracked placeholder file — removed; `.env.example` is the canonical template |
 
+### Files Added During Payment Hardening
+
+Spec: `.kiro/specs/payment-hardening/` (Phases 1–5, feature-flag-gated additive rollout).
+
+| Path | Purpose |
+|------|---------|
+| `docs/adrs/ADR-001-payment-is-source-of-truth.md` | ADR-1: Payment is the canonical source of truth; `applications.payment_status` is a derived summary |
+| `docs/adrs/ADR-002-force-approved-distinct-status.md` | ADR-2: `force_approved` is a first-class ledger status |
+| `docs/adrs/ADR-003-reuse-audit-logs.md` | ADR-3: Payment corrections + risk flags reuse `audit_logs` with `entity_type='payment'` |
+| `docs/adrs/ADR-004-canonical-json-webhook-dedup.md` | ADR-4: Canonical JSON + `WebhookEventIdentity` for webhook dedup |
+| `docs/adrs/ADR-005-metadata-jsonb-over-new-columns.md` | ADR-5: Snapshot/risk_flags/override fields live in `payments.metadata` jsonb |
+| `docs/adrs/ADR-006-feature-flagged-additive-rollout.md` | ADR-6: Five-phase feature-flagged rollout with additive schema |
+| `docs/adrs/ADR-007-single-mutation-entry-point.md` | ADR-7: `PaymentService._transition()` is the sole payment-status writer |
+| `backend/scripts/payment_hardening_receipt_indexes.sql` | Phase 1 SQL: `uq_payments_receipt_number` + `idx_payments_user_status` |
+| `backend/scripts/payment_hardening_receipt_indexes_rollback.sql` | Phase 1 SQL rollback |
+| `backend/scripts/payment_snapshot_backfill.py` | Phase 1: populate `metadata.snapshot` on legacy Payment rows |
+| `backend/apps/documents/payment_audit_service.py` | `PaymentAuditService` — payment audit writes + PII redaction |
+| `backend/apps/documents/payment_metrics.py` | Counter registry with PII label guardrails (`PAYMENT_COUNTERS`, `ALLOWED_LABEL_VALUES`) |
+| `backend/apps/documents/payment_error_codes.py` | Stable error-code catalogue (`PAYMENT_ERROR_CODES`) |
+| `apps/admissions/src/lib/paymentErrorCodes.ts` | Frontend mirror of the stable-code catalogue + user-facing copy |
+| `apps/admissions/tests/unit/__fixtures__/paymentErrorCodesBackendMirror.ts` | Drift-guard fixture for stable-code parity |
+| `apps/admissions/tests/unit/paymentErrorCodes.test.ts` | Frontend ↔ backend stable-code drift test |
+| `apps/admissions/tests/unit/paymentStatusLegacy.test.ts` | Regression: legacy `verified`/`paid`/`force_approved` → verified |
+| `apps/admissions/tests/unit/paymentStepLegacyPath.test.tsx` | Regression: mobile-money-first UX preserved |
+| `backend/tests/unit/test_payment_migration_indexes.py` | Phase 1: all 8 migration indexes exist on Postgres |
+| `backend/tests/unit/test_payment_snapshot_backfill.py` | Phase 1: snapshot backfill idempotence + ambiguous-row skip |
+| `backend/tests/unit/test_payment_backward_compatibility.py` | Regression: 50 legacy Payment-row shapes remain readable |
+| `backend/tests/unit/test_payment_api_contract_preservation.py` | Regression: payment URLs + envelope shape unchanged |
+| `backend/tests/unit/test_payment_service_transitions.py` | Phase 2 TDD: `_transition()` forward-only matrix + integrity gate |
+| `backend/tests/unit/test_payment_service_sole_authority.py` | Phase 2 TDD: grep guard — no out-of-band `payments.status` writes |
+| `backend/tests/unit/test_payment_audit_service.py` | `PaymentAuditService` unit tests |
+| `backend/tests/unit/test_payment_metrics_registry.py` | Counter-registry + PII guardrail tests |
+| `backend/tests/unit/test_payment_envelope_contract.py` | Envelope + stable-code contract across every payment endpoint |
+| `backend/tests/unit/test_payment_sensitive_fields_lock.py` | Phase 2: sensitive-fields lock (skipped until API-layer lock ships) |
+| `backend/tests/unit/test_payment_receipt_generation.py` | Phase 2: receipt idempotence + force-approved label |
+| `backend/tests/unit/test_payment_dev_bypass_404.py` | Phase 2: dev-bypass lockout baseline (Phase 5 extends) |
+| `backend/tests/unit/test_payment_reconciliation_task.py` | Phase 2+: reconciliation sweep behaviour |
+| `backend/tests/unit/test_mobile_money_view_normalization.py` | Phase 2: MSISDN normalisation + operator derivation |
+| `backend/tests/unit/test_payment_service_force_approve.py` | Phase 2: `force_approve` guards + audit retention |
+| `backend/tests/unit/test_payment_error_codes_snapshot.py` | Phase 3: stable-code catalogue snapshot pin |
+| `backend/tests/unit/test_webhook_processor_signature.py` | Phase 3: HMAC-SHA512 signature validation paths |
+| `backend/tests/unit/test_webhook_processor_dedup.py` | Phase 3: `compute_identity` + `is_duplicate` tests |
+| `backend/tests/unit/test_payment_webhook_out_of_order.py` | Phase 3: settled → successful → failed replay |
+| `backend/tests/unit/test_webhook_processor_canonical_json.py` | Phase 3: canonical-JSON failure is logged, not propagated |
+| `backend/tests/unit/test_webhook_processor_unknown_event.py` | Phase 3: unknown event types are logged, not mutating |
+| `backend/tests/unit/test_payment_structured_logging.py` | Phase 3: structured-log tagging (xfailed until service code adds tags) |
+| `backend/tests/unit/test_payment_webhook_returns_200.py` | Phase 3 regression: webhook 200-on-every-outcome contract |
+| `backend/tests/property/test_payment_state_machine_properties.py` | Phase 2 PBTs — Properties 1, 2, 13, 14, 19, 23 |
+| `backend/tests/property/test_payment_webhook_properties.py` | Phase 2 + 3 PBTs — Properties 5, 3, 4, 20, 21, 22 |
+| `backend/tests/property/test_payment_fee_resolver_properties.py` | Phase 2 PBTs — Properties 10, 11, 15 (skipped), 16 |
+| `backend/tests/property/test_payment_receipt_properties.py` | Phase 2 + 3 PBTs — Properties 17, 12, 6, 7, 8, 9 |
+| `.kiro/specs/payment-hardening/exploration-results.md` | Phase 1 checkpoint: 23-property baseline register |
+
+### Files Added During Payment Hardening Phases 4–5
+
+Spec: `.kiro/specs/payment-hardening/` (Phases 4–5 complete). Phase 4 is
+frontend-only and gated on `VITE_PAYMENT_HARDENING_UI`; Phase 5 is
+backend-only and gated on `PAYMENT_HARDENING_RATE_LIMITS` +
+`PAYMENT_HARDENING_FORCE_APPROVED`.
+
+| Path | Purpose |
+|------|---------|
+| `apps/admissions/src/stores/paymentRecoveryStore.ts` | Phase 4: Zustand + localStorage recovery store keyed by `application_id` with 24-hour TTL |
+| `apps/admissions/src/lib/paymentNextActions.ts` | Phase 4: `PaymentNextAction` stable-code union with user-facing copy |
+| `apps/admissions/src/lib/zambianMsisdn.ts` | Phase 4: client-side Zambian MSISDN validation + normalisation (no operator inference) |
+| `backend/apps/common/dev_bypass.py` | Phase 5: `require_not_dev_bypass_in_production` decorator + dev-bypass vector catalogue |
+| `backend/apps/common/throttling.py` | Phase 5: `PaymentUserScopedRateThrottle` keyed by `user.pk` (auth) or client IP (anon) |
+| `backend/apps/documents/risk_views.py` | Phase 5: `RiskFlagsListView` — `GET /api/v1/payments/risk-flags/` super-admin-only paginated list |
+| `apps/admissions/tests/property/paymentRecoveryStore.property.test.ts` | Phase 4: fast-check round-trip + TTL + prune idempotence PBTs |
+| `apps/admissions/tests/property/paymentStateMachine.property.test.ts` | Phase 4: Property 18 (UI state matrix determinism) enforcement PBT |
+| `apps/admissions/tests/property/paymentErrorCodes.property.test.ts` | Phase 4: Property 16 frontend half (MSISDN idempotence) + stable-code copy completeness PBT |
+| `apps/admissions/tests/unit/paymentErrorCodesCoverage.test.ts` | Phase 4: stable-code union vs copy map coverage snapshot |
+| `apps/admissions/tests/unit/paymentRecoveryStorePersistence.test.ts` | Phase 4: recovery store survives page refresh via localStorage |
+| `apps/admissions/tests/unit/derivePaymentUiState.test.ts` | Phase 4: exhaustive UI state matrix table |
+| `apps/admissions/tests/unit/paymentFormButtonDisable.test.tsx` | Phase 4: initiate-button disabled while inflight or pending |
+| `apps/admissions/tests/unit/usePaymentStatusTimeout.test.ts` | Phase 4: polling timeout sets `pollingExceededTimeout`, not `failed` |
+| `apps/admissions/tests/unit/usePaymentStatusNoFailedOnTimeout.test.ts` | Phase 4 regression: status never transitions to `failed` on timeout |
+| `apps/admissions/tests/unit/paymentStepLegacyMode.test.tsx` | Phase 4 regression: legacy mode unchanged under flag off |
+| `apps/admissions/tests/unit/settingsDirtyStatePhase4.test.tsx` | Phase 4 regression: Settings `isDirty` guard preserved |
+| `apps/admissions/tests/unit/paymentStepAccessibilityPhase4.test.tsx` | Phase 4 regression: focus-on-state-change + `aria-live` preserved |
+| `apps/admissions/tests/unit/paymentStepMobileMoneyFirstPhase4.test.tsx` | Phase 4 regression: mobile-money tab remains primary |
+| `apps/admissions/tests/integration/paymentStepUiStateMatrix.test.tsx` | Phase 4: each `PaymentUiState` renders correct affordances |
+| `apps/admissions/tests/integration/paymentStepRecoveryRehydration.test.tsx` | Phase 4: mount rehydrates pending Payment from `paymentRecoveryStore` |
+| `backend/tests/unit/test_payment_dev_bypass_404_phase5.py` | Phase 5: dev-bypass 404 for payment views (production settings) |
+| `backend/tests/unit/test_payment_dev_bypass_audit.py` | Phase 5: `payment.dev_bypass_used` audit emitted in non-production |
+| `backend/tests/unit/test_payment_dev_bypass_dev_passthrough_phase5.py` | Phase 5 regression: decorator is no-op absent a bypass vector |
+| `backend/tests/unit/test_payment_rate_limiting.py` | Phase 5: per-scope rate-limit enforcement |
+| `backend/tests/unit/test_payment_rate_limiting_webhook_exempt.py` | Phase 5: webhook ingress exempt from DRF throttle |
+| `backend/tests/unit/test_payment_rate_limiting_flag_default.py` | Phase 5 regression: flag off preserves legacy throttle behaviour |
+| `backend/tests/unit/test_payment_rate_limiting_envelope.py` | Phase 5: 429 envelope + `payment.rate_limited` audit + counter |
+| `backend/tests/unit/test_application_review_force_approved.py` | Phase 5: force-approved path creates canonical ledger row |
+| `backend/tests/unit/test_application_review_force_approved_legacy.py` | Phase 5 regression: legacy synthetic `successful` path preserved when flag off |
+| `backend/tests/unit/test_super_admin_payment_correction.py` | Phase 5: super-admin correction permission matrix + audit-ordering guard |
+| `backend/tests/unit/test_super_admin_payment_correction_routing.py` | Phase 5: `/correct/` route does not conflict with `/verify/` |
+| `backend/tests/unit/test_payment_risk_flags_endpoint.py` | Phase 5: risk-flags permission matrix + filtering |
+| `backend/tests/unit/test_phase5_endpoints_dev_bypass_404.py` | Phase 5: correction + risk-flags endpoints return 404 on any dev-bypass vector |
+
+Payment hardening status: **Phases 1–5 complete**. Rollout matrix and
+rollback order live in `docs/runbooks/payment-hardening-rollout.md`.
+
 ## Testing Layout
 
 | Area | Location | Notes |
@@ -319,3 +419,79 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 - Do not describe the backend as `django_api/`; the real package is `backend/`.
 - Do not describe the frontend as a single root `src/`; the real apps are under `apps/`.
 - Do not re-duplicate jobs-ops seeded state across multiple backend view modules.
+
+### Files Added During PDF & Email Redesign (May 2026)
+
+#### Admissions PDF system (`apps/admissions/src/lib/pdf/`)
+
+| Path | Purpose |
+|------|---------|
+| `apps/admissions/src/lib/pdf/theme/colors.ts` | Print-safe ink scale + 3 accent colors |
+| `apps/admissions/src/lib/pdf/theme/spacing.ts` | 4pt baseline grid + A4 dimensions |
+| `apps/admissions/src/lib/pdf/theme/typography.ts` | `Font.register` for Playfair Display + Source Sans 3 + JetBrains Mono |
+| `apps/admissions/src/lib/pdf/theme/index.ts` | Theme barrel + `institutions` registry + `getInstitution()` |
+| `apps/admissions/src/lib/pdf/components/BrandHeader.tsx` | Logo + institution name + doc-type banner |
+| `apps/admissions/src/lib/pdf/components/BrandFooter.tsx` | Fixed footer with auto page-numbering |
+| `apps/admissions/src/lib/pdf/components/MetadataStrip.tsx` | Reference · issued · status row |
+| `apps/admissions/src/lib/pdf/components/SectionHeading.tsx` | Playfair Display heading with optional gold underline |
+| `apps/admissions/src/lib/pdf/components/LabeledField.tsx` | UPPERCASE label + value (mono/strong/fallback) |
+| `apps/admissions/src/lib/pdf/components/FieldGrid.tsx` | 1- or 2-column grid of LabeledFields |
+| `apps/admissions/src/lib/pdf/components/StatusBadge.tsx` | Pill: verified / approved / conditional / pending |
+| `apps/admissions/src/lib/pdf/components/VerificationBlock.tsx` | QR + "Scan to verify" caption |
+| `apps/admissions/src/lib/pdf/components/SignatureBlock.tsx` | Name + role + institution (default: Dr Solomon Musonda, Director) |
+| `apps/admissions/src/lib/pdf/components/PageFrame.tsx` | A4 Page wrapper with fixed header/footer |
+| `apps/admissions/src/lib/pdf/documents/ApplicationSlip.tsx` | Student application slip generator |
+| `apps/admissions/src/lib/pdf/documents/PaymentReceipt.tsx` | Payment receipt with ZMW/USD support |
+| `apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx` | Unconditional + conditional offer letter |
+| `apps/admissions/src/lib/pdf/documents/types.ts` | Input data shapes + `DEFAULT_SIGNATORY` |
+| `apps/admissions/src/lib/pdf/qr.ts` | `buildQrDataUrl()` — JSON payload → PNG data URL |
+| `apps/admissions/src/lib/pdf/render.ts` | `renderToBlob()` — the single async render seam |
+| `apps/admissions/src/lib/pdf/index.ts` | Public barrel — callers import from here |
+| `apps/admissions/src/lib/pdf/README.md` | Full system docs |
+| `apps/admissions/public/fonts/pdf/*.ttf` | 3 variable fonts (Playfair Display, Source Sans 3, JetBrains Mono) |
+
+#### Backend email system (`backend/apps/common/email/`)
+
+| Path | Purpose |
+|------|---------|
+| `backend/apps/common/email/__init__.py` | Package marker |
+| `backend/apps/common/email/tokens.py` | Color/font/spacing tokens — mirror of PDF theme |
+| `backend/apps/common/email/components.py` | HTML helpers: paragraph, section_heading, cta_button, metadata_card, notice_box, signature_block, ordered_list, divider, to_plain_text |
+| `backend/apps/common/email/shell.py` | `render_shell(content, title, preheader)` — institutional shell |
+| `backend/apps/common/email/messages/application_submitted.py` | Student-submitted-their-application email |
+| `backend/apps/common/email/messages/payment_received.py` | Payment-verified email (ZMW/USD aware) |
+| `backend/apps/common/email/messages/interview_scheduled.py` | Interview slot assigned |
+| `backend/apps/common/email/messages/acceptance.py` | Unconditional admission offer |
+| `backend/apps/common/email/messages/conditional_acceptance.py` | Admission offer with conditions list |
+| `backend/apps/common/email/messages/rejection.py` | Respectful decline letter |
+| `backend/apps/common/email/messages/password_reset.py` | Security email with time-bounded link |
+| `backend/apps/common/email/render.py` | `render_message(type, context) -> (subject, html, text)` dispatcher |
+| `backend/apps/common/email/README.md` | Full email system docs |
+
+#### Deleted (replaced by the new system)
+
+| Path | Replacement |
+|------|-------------|
+| `apps/admissions/src/lib/applicationSlipPdf.ts` | `apps/admissions/src/lib/pdf/documents/ApplicationSlip.tsx` |
+| `apps/admissions/src/lib/receiptGenerator.ts` | `apps/admissions/src/lib/pdf/documents/PaymentReceipt.tsx` |
+| `apps/admissions/src/lib/acceptanceLetterGenerator.ts` | `apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx` |
+| `apps/admissions/src/lib/pdfLayout.ts` | `apps/admissions/src/lib/pdf/components/PageFrame.tsx` |
+
+#### Still in use (unchanged — admin-only large-table exports)
+
+| Path | Purpose |
+|------|---------|
+| `apps/admissions/src/lib/auditExports.ts` | Admin audit-trail CSV/JSON/PDF export (uses jspdf for large tables) |
+| `apps/admissions/src/lib/exportUtils.ts` | Admin applications-roster CSV/XLSX/PDF export (uses jspdf + pdf-lib) |
+
+#### Tests added
+
+| Path | Purpose |
+|------|---------|
+| `apps/admissions/tests/unit/pdf/theme.test.ts` | 17 tests: color scale, spacing, font registration idempotence, institutions |
+| `apps/admissions/tests/unit/pdf/primitives.test.tsx` | 28 tests: all 10 primitive components render cleanly |
+| `apps/admissions/tests/unit/pdf/applicationSlip.test.tsx` | Application slip generator tests |
+| `apps/admissions/tests/unit/pdf/paymentReceipt.test.tsx` | Payment receipt generator tests (ZMW/USD, missing fields) |
+| `apps/admissions/tests/unit/pdf/acceptanceLetter.test.tsx` | Acceptance letter tests (both variants, 1/3/10 conditions) |
+| `backend/tests/unit/test_email_component_system.py` | 21 tests: tokens, shell, components, XSS safety, backward-compat shim |
+| `backend/tests/unit/test_email_messages.py` | 23 tests: per-message rendering, currency variants, dispatcher registry |

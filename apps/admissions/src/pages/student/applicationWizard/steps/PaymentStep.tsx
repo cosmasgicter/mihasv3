@@ -8,6 +8,8 @@ import { animateClasses } from '@/lib/animations'
 import { apiClient } from '@/services/client'
 import { useFeeResolver } from '@/hooks/useFeeResolver'
 import { PaymentForm } from '@/components/student/PaymentForm'
+import { isPaymentHardeningUiEnabled } from '@/lib/paymentStatus'
+import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
 import type { WizardFormData } from '../types'
 
 /** Transaction fee rate charged by the payment gateway (1%) */
@@ -50,6 +52,18 @@ const PaymentStep = ({
   const [deferConfirm, setDeferConfirm] = useState(false)
   const [devBypassing, setDevBypassing] = useState(false)
   const [devBypassError, setDevBypassError] = useState<string | null>(null)
+
+  // Phase 4 (Task 38.2) — recovery store integration, flag-gated.
+  const hardeningUiEnabled = isPaymentHardeningUiEnabled()
+  const recoveryStore = usePaymentRecoveryStore()
+  const recoveredEntry =
+    hardeningUiEnabled && applicationId
+      ? recoveryStore.get(applicationId)
+      : null
+
+  // When a pending payment is recorded in the recovery store, disable
+  // new initiation attempts and surface the existing payment_id.
+  const pendingPaymentIdFromRecovery = recoveredEntry?.payment_id ?? null
 
   const isPaymentSettledForWizard = polledStatus === 'successful' || polledStatus === 'deferred'
 
@@ -172,6 +186,7 @@ const PaymentStep = ({
             polledStatus={polledStatus === 'deferred' ? null : polledStatus}
             onPaymentStatusChange={onPaymentStatusChange}
             onPaymentStatusRefresh={onPaymentStatusRefresh}
+            pendingPaymentId={pendingPaymentIdFromRecovery}
           />
         )}
 

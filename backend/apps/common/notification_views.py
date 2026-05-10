@@ -120,6 +120,51 @@ NotificationDeleteResponseSerializer = envelope_serializer(
 )
 
 
+def _send_notification_from_validated_data(data: dict) -> Response:
+    idempotency_key = (data.get("idempotency_key") or "").strip() or None
+
+    if idempotency_key:
+        existing = Notification.objects.filter(idempotency_key=idempotency_key).first()
+        if existing:
+            if str(existing.user_id) != str(data["user_id"]):
+                return Response(
+                    {
+                        "success": False,
+                        "error": "Idempotency key already used for another notification",
+                        "code": "IDEMPOTENCY_KEY_CONFLICT",
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+            return Response({
+                "success": True,
+                "data": {
+                    "id": str(existing.id),
+                    "message": "Notification already sent (idempotent)",
+                },
+            })
+
+    notification = create_notification(
+        user_id=data["user_id"],
+        title=data["title"],
+        message=data["message"],
+        type=data.get("type", "info"),
+        priority=data.get("priority"),
+        action_url=data.get("action_url"),
+        idempotency_key=idempotency_key,
+    )
+
+    return Response(
+        {
+            "success": True,
+            "data": {
+                "id": str(notification.id),
+                "message": "Notification created",
+            },
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
 # ---------------------------------------------------------------------------
 # 20.1 — Notification Preferences
 # ---------------------------------------------------------------------------
@@ -241,50 +286,7 @@ class NotificationSendView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = serializer.validated_data
-        idempotency_key = (data.get("idempotency_key") or "").strip() or None
-
-        # Check idempotency
-        if idempotency_key:
-            existing = Notification.objects.filter(idempotency_key=idempotency_key).first()
-            if existing:
-                if str(existing.user_id) != str(data["user_id"]):
-                    return Response(
-                        {
-                            "success": False,
-                            "error": "Idempotency key already used for another notification",
-                            "code": "IDEMPOTENCY_KEY_CONFLICT",
-                        },
-                        status=status.HTTP_409_CONFLICT,
-                    )
-                return Response({
-                    "success": True,
-                    "data": {
-                        "id": str(existing.id),
-                        "message": "Notification already sent (idempotent)",
-                    },
-                })
-
-        notification = create_notification(
-            user_id=data["user_id"],
-            title=data["title"],
-            message=data["message"],
-            type=data.get("type", "info"),
-            priority=data.get("priority"),
-            action_url=data.get("action_url"),
-            idempotency_key=idempotency_key,
-        )
-
-        return Response(
-            {
-                "success": True,
-                "data": {
-                    "id": str(notification.id),
-                    "message": "Notification created",
-                },
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        return _send_notification_from_validated_data(serializer.validated_data)
 
 
 # ---------------------------------------------------------------------------
@@ -451,10 +453,7 @@ class NotificationListView(APIView):
         })
 
     def post(self, request):
-        """Delegate to NotificationSendView for admin send."""
-        send_view = NotificationSendView()
-        send_view.request = request
-        # Check admin permission for POST
+        """Admin send notification via the shared notification service."""
         if not _get_admin_permission()().has_permission(request, self):
             return Response(
                 {
@@ -464,7 +463,20 @@ class NotificationListView(APIView):
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )
-        return send_view.post(request)
+
+        serializer = NotificationSendSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                {
+                    "success": False,
+                    "error": "Validation failed",
+                    "code": "VALIDATION_ERROR",
+                    "details": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return _send_notification_from_validated_data(serializer.validated_data)
 
 
 # ---------------------------------------------------------------------------

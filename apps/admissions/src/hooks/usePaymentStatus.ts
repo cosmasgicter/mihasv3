@@ -32,6 +32,13 @@ export const BACKOFF_FACTOR = 1.5
 export const MAX_INTERVAL = 60_000
 export const MAX_POLL_COUNT = 30
 
+/** Polling-exceeded-timeout threshold (R14.3). Default 120s. */
+export const POLL_TIMEOUT_MS =
+  typeof import.meta !== 'undefined' &&
+  import.meta.env?.VITE_PAYMENT_POLL_TIMEOUT_MS
+    ? Number(import.meta.env.VITE_PAYMENT_POLL_TIMEOUT_MS) || 120_000
+    : 120_000
+
 // ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
@@ -60,6 +67,8 @@ export function normalizePaymentStatusValue(status?: string | null): PaymentStat
  */
 export function usePaymentStatus(applicationId: string, applicationPaymentStatus?: string | null) {
   const [status, setStatus] = useState<PaymentStatusValue>(null)
+  const [pollingExceededTimeout, setPollingExceededTimeout] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const intervalRef = useRef(INITIAL_INTERVAL)
   const statusRef = useRef<PaymentStatusValue>(null)
@@ -68,6 +77,7 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
   const failCountRef = useRef(0)
   const requestIdRef = useRef(0)
   const inFlightRef = useRef(false)
+  const startedAtRef = useRef<number | null>(null)
 
   useEffect(() => () => { mountedRef.current = false }, [])
 
@@ -137,6 +147,9 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
         updateStatus(normalized)
       }
       failCountRef.current = 0
+      if (mountedRef.current) {
+        setLastUpdated(Date.now())
+      }
     } catch {
       failCountRef.current += 1
     } finally {
@@ -157,6 +170,20 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
     if (pollCountRef.current >= MAX_POLL_COUNT) return
     if (failCountRef.current >= 5) return  // Stop polling after 5 consecutive failures
 
+    // R14.3 — when polling has exceeded POLL_TIMEOUT_MS on a pending row,
+    // flip `pollingExceededTimeout` to true and stop background polling.
+    // Never transition `status` to `failed`.
+    if (
+      statusRef.current === 'pending' &&
+      startedAtRef.current !== null &&
+      Date.now() - startedAtRef.current > POLL_TIMEOUT_MS
+    ) {
+      if (mountedRef.current) {
+        setPollingExceededTimeout(true)
+      }
+      return
+    }
+
     timeoutRef.current = setTimeout(async () => {
       if (!mountedRef.current) return
       pollCountRef.current += 1
@@ -172,6 +199,11 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
     // Reset backoff and poll count on manual refetch
     intervalRef.current = INITIAL_INTERVAL
     pollCountRef.current = 0
+    // Clear the polling-timeout flag; the user explicitly asked for a re-check.
+    if (mountedRef.current) {
+      setPollingExceededTimeout(false)
+    }
+    startedAtRef.current = Date.now()
     clearPending()
     return fetchStatus().then(() => {
       scheduleNext()
@@ -185,6 +217,8 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
     clearPending()
     intervalRef.current = INITIAL_INTERVAL
     pollCountRef.current = 0
+    startedAtRef.current = Date.now()
+    setPollingExceededTimeout(false)
 
     // Initial fetch, then start the backoff chain
     fetchStatus().then(() => {
@@ -203,5 +237,11 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
     }
   }, [status, clearPending])
 
-  return { status, refetch, setStatus: updateStatus }
+  return {
+    status,
+    refetch,
+    setStatus: updateStatus,
+    pollingExceededTimeout,
+    lastUpdated,
+  }
 }

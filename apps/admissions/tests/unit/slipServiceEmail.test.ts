@@ -4,7 +4,7 @@ const generateApplicationSlipMock = vi.fn()
 const persistSlipMock = vi.fn()
 const mockApiRequest = vi.fn()
 
-vi.mock('@/lib/applicationSlipPdf', () => ({
+vi.mock('@/lib/pdf', () => ({
   generateApplicationSlip: (...args: unknown[]) => generateApplicationSlipMock(...args),
 }))
 

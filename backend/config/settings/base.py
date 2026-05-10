@@ -6,6 +6,7 @@ from pathlib import Path
 
 import dj_database_url
 from corsheaders.defaults import default_headers
+from django.core.exceptions import ImproperlyConfigured
 
 
 def split_csv_env(name: str, default: str = "") -> list[str]:
@@ -25,6 +26,14 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "insecure-dev-key-change-me")
 DEBUG = False
 
 ALLOWED_HOSTS: list[str] = []
+
+
+def validate_debug_not_serving_production_hosts() -> None:
+    """Prevent DEBUG=True from serving production API hostnames."""
+    if DEBUG and "api.mihas.edu.zm" in ALLOWED_HOSTS:
+        raise ImproperlyConfigured(
+            "DEBUG=True must not be used with api.mihas.edu.zm in ALLOWED_HOSTS."
+        )
 
 # ---------------------------------------------------------------------------
 # Application definition
@@ -299,7 +308,6 @@ AUTH_COOKIE_HTTPONLY = True
 # S3/R2 storage via django-storages
 # ---------------------------------------------------------------------------
 
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 AWS_S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL", "")
 AWS_STORAGE_BUCKET_NAME = os.environ.get("S3_BUCKET", "")
 AWS_S3_ACCESS_KEY_ID = os.environ.get("S3_ACCESS_KEY", "")
@@ -318,7 +326,23 @@ AWS_DEFAULT_ACL = None
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "endpoint_url": AWS_S3_ENDPOINT_URL,
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "access_key": AWS_S3_ACCESS_KEY_ID,
+            "secret_key": AWS_S3_SECRET_ACCESS_KEY,
+            "querystring_expire": AWS_QUERYSTRING_EXPIRE,
+            "signature_version": AWS_S3_SIGNATURE_VERSION,
+            "default_acl": AWS_DEFAULT_ACL,
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # ---------------------------------------------------------------------------
 # Django REST Framework
@@ -336,9 +360,13 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {
         "error_report": "5/min",
-        "payment_initiate": "5/min",
-        "payment_verify": "10/min",
+        "payment_initiate": "6/min",
+        "payment_verify": "30/min",
         "mobile_money_initiate": "5/min",
+        "payment_mobile_money": "6/min",
+        "payment_resolve_fee": "30/min",
+        "payment_correct": "3/min",
+        "payment_risk_flags": "30/min",
     },
     "DEFAULT_PAGINATION_CLASS": "apps.common.pagination.StandardPagination",
     "PAGE_SIZE": 20,
@@ -565,6 +593,43 @@ PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
     "true",
     "yes",
 )
+
+# ---------------------------------------------------------------------------
+# Payment hardening feature flags — see .kiro/specs/payment-hardening/
+# ---------------------------------------------------------------------------
+# Phase 2: gates ``PaymentService._transition()`` enforcement and the
+# hardened view branches (new stable codes, audit, metrics). When False the
+# legacy code paths remain in effect so the flag can be flipped per env.
+PAYMENT_HARDENING_FORWARD_ONLY = os.environ.get(
+    "PAYMENT_HARDENING_FORWARD_ONLY", ""
+).lower() in ("1", "true", "yes")
+
+# Phase 3: gates canonical-JSON + ``WebhookEventIdentity`` strict dedup on
+# the webhook path. When False the previous dedup behaviour remains.
+PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT = os.environ.get(
+    "PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT", ""
+).lower() in ("1", "true", "yes")
+
+# Phase 5: per-user DRF throttle scopes (payment_initiate, payment_verify,
+# payment_mobile_money, payment_resolve_fee). When False the pre-existing
+# throttle configuration remains in effect.
+PAYMENT_HARDENING_RATE_LIMITS = os.environ.get(
+    "PAYMENT_HARDENING_RATE_LIMITS", ""
+).lower() in ("1", "true", "yes")
+
+# Phase 5: admin override path creates a ``force_approved`` Payment instead
+# of the legacy synthetic zero-amount ``successful`` row. When False the
+# legacy behaviour is preserved.
+PAYMENT_HARDENING_FORCE_APPROVED = os.environ.get(
+    "PAYMENT_HARDENING_FORCE_APPROVED", ""
+).lower() in ("1", "true", "yes")
+
+# Reconciliation minimum-age cutoff before pending payments are re-queried
+# via Lenco. Default 300s (5 minutes) per the design's Phase 2 rollout.
+PAYMENT_RECONCILE_MIN_AGE_SECONDS = int(
+    os.environ.get("PAYMENT_RECONCILE_MIN_AGE_SECONDS", "300")
+)
+
 AUDIT_LOG_ENCRYPTION_KEY = os.environ.get("AUDIT_LOG_ENCRYPTION_KEY", "").strip()
 
 # ---------------------------------------------------------------------------

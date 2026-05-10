@@ -45,7 +45,7 @@ Record the first complete evidence bundle here or link to the external incident/
   - `manual-payment`
 - Regular admin CSV exports are redacted; super-admin exports retain full values.
 - Authenticated API requests with bearer tokens or auth cookies receive `Cache-Control: no-store, no-cache, must-revalidate, private`.
-- Lenco webhook IP allowlisting is available through `LENCO_WEBHOOK_ALLOWED_IPS`; keep empty unless stable provider/source ranges are known.
+- Lenco does not publish a stable public webhook source IP range. Keep `LENCO_WEBHOOK_ALLOWED_IPS` empty unless Lenco provides a dedicated static range for this integration; webhook authenticity is enforced by `X-Lenco-Signature` HMAC-SHA512 verification plus transaction re-query/reconciliation.
 - Student submit now requires `{"confirm_submission": true}` and repeat submit of an already submitted same-owner application returns the current submitted record.
 - Grade sync rejects duplicate subjects and requires at least 5 unique valid subjects for the batch save used by the wizard.
 - The wizard counts unique subjects, surfaces duplicate rows inline, keeps OCR non-blocking, and avoids replacing deterministic preview copy with AI text.
@@ -58,7 +58,7 @@ Record the first complete evidence bundle here or link to the external incident/
 | Historical secret examples in tracked docs/specs | Remove, redact, or document why retained | Pending review |
 | Secret scanning | Re-run against working tree and git history | Pending |
 | Frontend `style-src 'unsafe-inline'` | Revalidate Radix/runtime styles without it | Pending |
-| Lenco webhook source controls | Populate `LENCO_WEBHOOK_ALLOWED_IPS` only after stable ranges are confirmed | Optional/ready |
+| Lenco webhook source controls | Leave `LENCO_WEBHOOK_ALLOWED_IPS` empty unless Lenco provides a dedicated static range; rely on HMAC signature verification and re-query/reconciliation | Accepted/ready |
 
 ## Monitoring Matrix
 

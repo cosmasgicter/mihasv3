@@ -41,6 +41,13 @@ jobs:
       SECRET_KEY: ci-test-secret-not-for-production
     steps:
       - uses: actions/checkout@v4
+      - name: Block local Vercel env files
+        run: |
+          if find . -name '.env.vercel.*' -print -quit | grep -q .; then
+            echo "::error::.env.vercel.* files must not be committed or present in CI"
+            find . -name '.env.vercel.*' -print
+            exit 1
+          fi
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -100,6 +107,9 @@ jobs:
         working-directory: apps/admissions
       - name: Type check
         run: bun run type-check
+        working-directory: apps/admissions
+      - name: Check dynamic imports resolve
+        run: bun run check:imports
         working-directory: apps/admissions
       - name: Critical frontend slice
         run: bunx vitest run tests/unit/PaymentStep.test.tsx tests/unit/paymentStep.test.ts tests/unit/apiClientCsrf403Retry.test.ts tests/unit/sessionHardening.test.ts

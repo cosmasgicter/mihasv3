@@ -32,8 +32,10 @@ const landingStructuredData = [
     telephone: '+260961515151',
     address: {
       '@type': 'PostalAddress',
-      addressCountry: 'ZM',
+      streetAddress: 'Plot 3375 Off President Avenue',
       addressLocality: 'Kalulushi',
+      addressRegion: 'Copperbelt',
+      addressCountry: 'ZM',
     },
     sameAs: [
       'https://www.facebook.com/mihaskatc',
@@ -166,13 +168,13 @@ export default function LandingPage() {
     <PublicLayout>
       <Seo
         title="MIHAS-KATC Admissions | Apply to Accredited Health Science Programs"
-        description="Apply online to MIHAS-KATC accredited nursing and allied health diploma programs. Track admissions, deadlines, and enrollment updates in one portal."
+        description="Become a nurse, clinical officer, or environmental health inspector. Apply online to MIHAS-KATC. K150 for Zambians, USD 20 for international students. Mobile money accepted."
         path="/"
         structuredData={landingStructuredData}
       />
       <ShapeLandingHero
-        headline="Apply to accredited health science programs in one place"
-        description="Start your MIHAS-KATC application, choose your diploma path, upload documents, and track every admissions step from your phone."
+        headline="Become a nurse, clinical officer, or environmental health inspector."
+        description="MIHAS-KATC has trained Zambia's frontline health workers for 6+ years. 92% of our graduates are working within a year of finishing. Applications for the current intake are open now."
         rotatingPhrases={heroRotatingPhrases}
         primaryCta={{
           label: 'Start Your Application',
@@ -191,19 +193,19 @@ export default function LandingPage() {
             width: 400,
             height: 300,
           },
-          eyebrow: 'Two Campuses, One Portal',
-          title: 'Apply once. Track everything online.',
-          description: 'No paper forms. No phone calls. See exactly where your application stands — anytime, from any device.',
+          eyebrow: 'One application. Three diplomas. Real jobs.',
+          title: 'Start tonight. Finish when your documents are ready.',
+          description: 'K150 for Zambians, USD 20 for international students. Pay by Airtel, MTN, or card. Save your progress and come back. No office visits until your interview.',
           badges: ['NMCZ', 'HPCZ', 'ECZ', 'UNZA'],
           highlights: [
             { value: '2', label: 'campuses' },
             { value: '3', label: 'diploma tracks' },
-            { value: 'Live', label: 'status updates' },
+            { value: 'On-site', label: 'accommodation' },
           ],
           checklist: [
-            'Mukuba Institute (Nursing) and Kalulushi Training Centre (Clinical Medicine, Environmental Health).',
-            'One application form covers all three programs — pick the one that fits you.',
-            'Check your admissions status anytime from your phone. No office visits needed.',
+            'Mukuba Institute (Nursing) in Kitwe and Kalulushi Training Centre (Clinical Medicine, Environmental Health).',
+            'One application form for all three programs — pick the one that fits you best.',
+            'On-campus accommodation available. Book through the portal after admission.',
           ],
         }}
       />

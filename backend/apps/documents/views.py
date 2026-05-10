@@ -22,7 +22,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin
+from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
 from apps.common.pagination import StandardPagination
 from apps.documents.models import ApplicationDocument, Payment, ProgramFee
 from apps.documents.serializers import (
@@ -46,6 +46,9 @@ from apps.common.openapi_helpers import (
 )
 from apps.common.metrics import emit_metric
 from apps.common.idempotency import idempotent
+from apps.common.dev_bypass import require_not_dev_bypass_in_production
+from apps.common.throttling import PaymentUserScopedRateThrottle
+from apps.documents import payment_metrics
 
 from django.http import HttpResponseRedirect
 
@@ -448,6 +451,22 @@ class PaymentReceiptView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        if payment.status not in ("successful", "force_approved"):
+            return Response(
+                {
+                    "success": False,
+                    "error": "A receipt is only available for successful payments.",
+                    "code": "RECEIPT_NOT_ELIGIBLE",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not payment.receipt_number:
+            from apps.documents.payment_service import PaymentService
+
+            PaymentService()._generate_receipt_idempotent(payment)
+            payment.refresh_from_db()
+
         # Build receipt data.
         from apps.applications.models import Application
 
@@ -462,10 +481,12 @@ class PaymentReceiptView(APIView):
             "amount": str(payment.amount),
             "currency": payment.currency,
             "status": payment.status,
+            "receipt_number": payment.receipt_number,
             "created_at": payment.created_at.isoformat() if payment.created_at else None,
             "application_number": application.application_number if application else None,
             "program": application.program if application else None,
             "applicant_name": application.full_name if application else None,
+            "override": payment.status == "force_approved",
         }
 
         return Response({"success": True, "data": receipt})
@@ -495,8 +516,10 @@ class PaymentVerifyView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
-    throttle_classes = [PaymentVerifyThrottle]
+    throttle_classes = [PaymentUserScopedRateThrottle]
+    throttle_scope = "payment_verify"
 
+    @require_not_dev_bypass_in_production
     def post(self, request, payment_id):
         try:
             payment = Payment.objects.get(id=payment_id)
@@ -509,7 +532,20 @@ class PaymentVerifyView(APIView):
         # Ownership check: students can only verify their own payments.
         user = request.user
         role = getattr(user, "role", "student")
+        forward_only = bool(getattr(settings, "PAYMENT_HARDENING_FORWARD_ONLY", False))
+
         if role not in ("admin", "super_admin") and str(payment.user_id) != str(user.id):
+            if forward_only:
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "NOT_OWNER",
+                            "message": "Not authorized",
+                        },
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             return Response(
                 {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -519,7 +555,10 @@ class PaymentVerifyView(APIView):
 
         service = PaymentService()
         try:
-            result = service.verify_payment(payment_id)
+            if forward_only:
+                result = service.verify(payment_id, actor_id=user.id)
+            else:
+                result = service.verify_payment(payment_id)
         except Exception:
             import sentry_sdk
             sentry_sdk.capture_exception()
@@ -536,6 +575,63 @@ class PaymentVerifyView(APIView):
             "payment_method": result.payment_method,
         }
 
+        if forward_only:
+            # Hardened path — stable-code envelope on the ``data.code`` field.
+            # Errors surface at HTTP 200 with ``success=false`` for the
+            # integrity-gate codes and at HTTP 200 with ``success=true`` for
+            # the "still-pending" codes (PROVIDER_UNAVAILABLE, PAYMENT_PENDING).
+            err = result.error
+            if err is None:
+                data["code"] = "PAYMENT_CONFIRMED"
+                payment_metrics.increment(
+                    "payment.verify.confirmed",
+                    tags={"endpoint": "verify", "user_role": role},
+                )
+                return Response({"success": True, "data": data})
+
+            if err == "PROVIDER_UNAVAILABLE":
+                data["code"] = "PROVIDER_UNAVAILABLE"
+                data["next_action"] = "check_status"
+                payment_metrics.increment(
+                    "payment.verify.provider_unavailable",
+                    tags={"endpoint": "verify"},
+                )
+                return Response({"success": True, "data": data}, status=status.HTTP_200_OK)
+
+            if err == "PAYMENT_PENDING":
+                data["code"] = "PAYMENT_PENDING"
+                data["next_action"] = "check_status"
+                payment_metrics.increment(
+                    "payment.verify.pending",
+                    tags={"endpoint": "verify"},
+                )
+                return Response({"success": True, "data": data}, status=status.HTTP_200_OK)
+
+            if err in ("AMOUNT_MISMATCH", "CURRENCY_MISMATCH", "MISSING_PROVIDER_REFERENCE"):
+                data["code"] = err
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": err,
+                            "message": err.replace("_", " ").capitalize(),
+                        },
+                        "data": data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+            # Unknown error string — fall back to generic verification error.
+            data["code"] = "VERIFICATION_ERROR"
+            return Response(
+                {
+                    "success": False,
+                    "error": {"code": "VERIFICATION_ERROR", "message": str(err)},
+                    "data": data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
         if result.error:
             return Response(
                 {"success": False, "error": result.error, "code": "VERIFICATION_ERROR", "data": data},
@@ -543,6 +639,152 @@ class PaymentVerifyView(APIView):
             )
 
         return Response({"success": True, "data": data})
+
+
+# ---------------------------------------------------------------------------
+# Super-admin payment correction (payment-hardening Task 46.1)
+# ---------------------------------------------------------------------------
+
+
+class SuperAdminPaymentCorrectionRequestSerializer(serializers.Serializer):
+    """Request body for ``POST /api/v1/payments/<uuid>/correct/``.
+
+    The serializer enforces the reason-length guard at the boundary so a
+    short reason never reaches the service layer. Field-level errors are
+    mapped to stable codes (``OVERRIDE_REASON_REQUIRED`` /
+    ``VALIDATION_ERROR``) by the view on validation failure.
+    """
+
+    target_status = serializers.ChoiceField(
+        choices=[
+            "pending",
+            "deferred",
+            "successful",
+            "failed",
+            "expired",
+            "force_approved",
+        ],
+    )
+    reason = serializers.CharField(min_length=10, max_length=500)
+
+
+class SuperAdminPaymentCorrectionView(APIView):
+    """POST /api/v1/payments/<uuid:payment_id>/correct/ — super-admin override.
+
+    Super_Admin_Correction_Path (design § State Machine): allows a
+    super-admin to move a Payment to any canonical status, including
+    from a terminal state. The audit row is emitted **before** the
+    transition persists so the governance trail survives a rollback
+    (R1.5). The action ``payment.super_admin_corrected`` auto-promotes
+    to the 365-day security retention window via
+    ``SECURITY_RETENTION_ACTION_PREFIXES`` (R2.6).
+
+    Permission: ``IsAuthenticated`` + ``IsSuperAdmin`` (R17.5 analogue —
+    actor role must equal ``super_admin``). Dev-bypass vectors are
+    locked out in production via ``require_not_dev_bypass_in_production``
+    (R16.1). Per-user rate limit of ``3/min`` via the ``payment_correct``
+    scope on ``PaymentUserScopedRateThrottle`` (R19.1, R19.2).
+
+    Requirements: R2.5, R2.6, R17.1.
+    """
+
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
+    throttle_classes = [PaymentUserScopedRateThrottle]
+    throttle_scope = "payment_correct"
+
+    @extend_schema(
+        operation_id="payments_super_admin_correct",
+        tags=["payments"],
+        request=SuperAdminPaymentCorrectionRequestSerializer,
+        responses={
+            200: OpenApiTypes.OBJECT,
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            429: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+        summary="Super-admin correction — move a Payment to any canonical status.",
+    )
+    @require_not_dev_bypass_in_production
+    def post(self, request, payment_id):
+        serializer = SuperAdminPaymentCorrectionRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            # Map short-reason errors to the stable ``OVERRIDE_REASON_REQUIRED``
+            # code (R2.5); everything else flows through the generic
+            # ``VALIDATION_ERROR`` path.
+            reason_errors = serializer.errors.get("reason")
+            code = (
+                "OVERRIDE_REASON_REQUIRED"
+                if reason_errors
+                else "VALIDATION_ERROR"
+            )
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": code,
+                        "message": (
+                            "Reason must be at least 10 characters."
+                            if code == "OVERRIDE_REASON_REQUIRED"
+                            else "Invalid request body."
+                        ),
+                        "details": serializer.errors,
+                    },
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        target_status = serializer.validated_data["target_status"]
+        reason = serializer.validated_data["reason"]
+
+        from apps.documents.payment_service import PaymentService
+
+        service = PaymentService()
+        try:
+            result = service.super_admin_correct(
+                payment_id=payment_id,
+                target_status=target_status,
+                actor_id=request.user.id,
+                reason=reason,
+            )
+        except ValueError as exc:
+            code = str(exc)
+            if code == "PAYMENT_NOT_FOUND":
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "NOT_FOUND",
+                            "message": "Payment not found.",
+                        },
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            if code in ("OVERRIDE_REASON_REQUIRED", "INVALID_TARGET_STATUS"):
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": code,
+                            "message": code.replace("_", " ").capitalize(),
+                        },
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            raise
+
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "payment_id": str(result.payment_id),
+                    "status": result.status,
+                    "target_status": target_status,
+                    "reason_accepted": True,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -561,7 +803,8 @@ class PaymentInitiateView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
-    throttle_classes = [PaymentInitiateThrottle]
+    throttle_classes = [PaymentUserScopedRateThrottle]
+    throttle_scope = "payment_initiate"
 
     @extend_schema(
         request=inline_serializer('PaymentInitiateRequest', fields={
@@ -574,6 +817,7 @@ class PaymentInitiateView(APIView):
             'currency': serializers.CharField(),
         })},
     )
+    @require_not_dev_bypass_in_production
     @idempotent
     def post(self, request):
         application_id = request.data.get("application_id")
@@ -585,9 +829,26 @@ class PaymentInitiateView(APIView):
 
         from apps.applications.models import Application
 
+        forward_only = bool(getattr(settings, "PAYMENT_HARDENING_FORWARD_ONLY", False))
+
         try:
             application = Application.objects.get(id=application_id)
         except Application.DoesNotExist:
+            if forward_only:
+                payment_metrics.increment(
+                    "payment.initiation.failure",
+                    tags={"endpoint": "initiate", "outcome": "failure"},
+                )
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "APPLICATION_NOT_FOUND",
+                            "message": "Application not found",
+                        },
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
             return Response(
                 {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
                 status=status.HTTP_404_NOT_FOUND,
@@ -597,6 +858,21 @@ class PaymentInitiateView(APIView):
         user = request.user
         role = getattr(user, "role", "student")
         if role not in ("admin", "super_admin") and str(application.user_id) != str(user.id):
+            if forward_only:
+                payment_metrics.increment(
+                    "payment.initiation.failure",
+                    tags={"endpoint": "initiate", "outcome": "failure"},
+                )
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "NOT_OWNER",
+                            "message": "Not authorized",
+                        },
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             return Response(
                 {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -607,12 +883,92 @@ class PaymentInitiateView(APIView):
         service = PaymentService()
 
         try:
-            result = service.initiate_payment(
-                application_id=application.id,
-                user_id=user.id,
-            )
+            if forward_only:
+                result = service.initiate(
+                    application_id=application.id,
+                    user_id=user.id,
+                )
+            else:
+                result = service.initiate_payment(
+                    application_id=application.id,
+                    user_id=user.id,
+                )
         except ValueError as exc:
             error_msg = str(exc)
+
+            if forward_only:
+                # Hardened path: stable error codes in the envelope.
+                if error_msg.startswith("MAX_PAYMENT_ATTEMPTS_EXCEEDED"):
+                    parts = error_msg.split("|")
+                    remaining = int(parts[1]) if len(parts) > 1 else 0
+                    emit_metric(
+                        'payment.initiation_failed',
+                        method='card',
+                        reason='max_attempts_exceeded',
+                        application_id=str(application_id),
+                    )
+                    payment_metrics.increment(
+                        "payment.initiation.failure",
+                        tags={"endpoint": "initiate", "outcome": "failure"},
+                    )
+                    return Response(
+                        {
+                            "success": False,
+                            "error": {
+                                "code": "MAX_PAYMENT_ATTEMPTS_EXCEEDED",
+                                "message": "Maximum payment attempts exceeded. Please contact support.",
+                            },
+                            "remaining_attempts": remaining,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                stable_codes = {
+                    "NOT_OWNER": (status.HTTP_403_FORBIDDEN, "Not authorized"),
+                    "APPLICATION_NOT_FOUND": (status.HTTP_404_NOT_FOUND, "Application not found"),
+                    "APPLICATION_NOT_PAYABLE": (status.HTTP_400_BAD_REQUEST, "Application is not payable"),
+                    "ALREADY_PAID": (status.HTTP_200_OK, "Application is already paid"),
+                }
+                if error_msg in stable_codes:
+                    emit_metric(
+                        'payment.initiation_failed',
+                        method='card',
+                        reason=error_msg,
+                        application_id=str(application_id),
+                    )
+                    payment_metrics.increment(
+                        "payment.initiation.failure",
+                        tags={"endpoint": "initiate", "outcome": "failure"},
+                    )
+                    http_status, message = stable_codes[error_msg]
+                    return Response(
+                        {
+                            "success": False,
+                            "error": {"code": error_msg, "message": message},
+                        },
+                        status=http_status,
+                    )
+
+                logger.exception("Failed to initiate payment for application %s", application_id)
+                emit_metric(
+                    'payment.initiation_failed',
+                    method='card',
+                    reason=str(exc),
+                    application_id=str(application_id),
+                )
+                payment_metrics.increment(
+                    "payment.initiation.failure",
+                    tags={"endpoint": "initiate", "outcome": "failure"},
+                )
+                return Response(
+                    {
+                        "success": False,
+                        "error": {"code": "PAYMENT_ERROR", "message": str(exc)},
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Legacy path — preserve the existing (flat-key) envelope.
             if error_msg.startswith("MAX_PAYMENT_ATTEMPTS_EXCEEDED"):
                 parts = error_msg.split("|")
                 remaining = int(parts[1]) if len(parts) > 1 else 0
@@ -635,6 +991,21 @@ class PaymentInitiateView(APIView):
         except Exception:
             logger.exception("Failed to initiate payment for application %s", application_id)
             emit_metric('payment.initiation_failed', method='card', reason='unexpected_error', application_id=str(application_id))
+            if forward_only:
+                payment_metrics.increment(
+                    "payment.initiation.failure",
+                    tags={"endpoint": "initiate", "outcome": "failure"},
+                )
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "PAYMENT_ERROR",
+                            "message": "Failed to initiate payment",
+                        },
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
             return Response(
                 {"success": False, "error": "Failed to initiate payment", "code": "PAYMENT_ERROR"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -642,12 +1013,40 @@ class PaymentInitiateView(APIView):
 
         lenco_public_key = getattr(settings, "LENCO_PUBLIC_KEY", "") or ""
 
+        # Hardened path: ``initiate`` returns an empty-payment_id result when
+        # the application is already paid. Surface it via ``next_action``.
+        if forward_only and not result.payment_id:
+            emit_metric('payment.initiated', method='card', application_id=str(application_id))
+            payment_metrics.increment(
+                "payment.initiation.duplicate",
+                tags={"endpoint": "initiate"},
+            )
+            return Response(
+                {
+                    "success": True,
+                    "data": {
+                        "payment_id": None,
+                        "reference": "",
+                        "amount": "0",
+                        "currency": "",
+                        "lenco_public_key": lenco_public_key,
+                        "next_action": "already_paid",
+                    },
+                },
+                status=status.HTTP_200_OK,
+            )
+
         emit_metric('payment.initiated', method='card', application_id=str(application_id))
+        if forward_only:
+            payment_metrics.increment(
+                "payment.initiation.success",
+                tags={"endpoint": "initiate", "user_role": role},
+            )
         return Response(
             {
                 "success": True,
                 "data": {
-                    "payment_id": str(result.payment_id),
+                    "payment_id": str(result.payment_id) if result.payment_id else None,
                     "reference": result.reference,
                     "amount": str(result.amount),
                     "currency": result.currency,
@@ -728,7 +1127,7 @@ class DeferPaymentView(APIView):
             {
                 "success": True,
                 "data": {
-                    "payment_id": str(result.payment_id),
+                    "payment_id": str(result.payment_id) if result.payment_id else None,
                     "reference": result.reference,
                     "amount": str(result.amount),
                     "currency": result.currency,
@@ -747,7 +1146,8 @@ class MobileMoneyInitiateView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
-    throttle_classes = [MobileMoneyThrottle]
+    throttle_classes = [PaymentUserScopedRateThrottle]
+    throttle_scope = "payment_mobile_money"
     serializer_class = MobileMoneyInitiateRequestSerializer
 
     @staticmethod
@@ -769,6 +1169,298 @@ class MobileMoneyInitiateView(APIView):
         # Already has + prefix or unknown format — return cleaned
         return f"+{digits}" if not raw.startswith("+") else raw.strip()
 
+    def _hardened_post(self, request, application_id, phone_raw):
+        """Forward-only path — delegate to ``PaymentService.initiate_mobile_money``.
+
+        The service handles normalisation, operator derivation, Lenco HTTP
+        call, and ``mark_provider_initiation``. This view only shapes the
+        HTTP envelope with stable codes and metric counters.
+
+        Any ``operator`` field submitted by the client is ignored — the
+        backend is the sole authority on operator classification.
+        """
+        from apps.applications.models import Application
+        from apps.documents.payment_service import PaymentService
+
+        try:
+            application = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            payment_metrics.increment(
+                "payment.initiation.failure",
+                tags={"endpoint": "mobile_money", "outcome": "failure"},
+            )
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "APPLICATION_NOT_FOUND",
+                        "message": "Application not found",
+                    },
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user = request.user
+        role = getattr(user, "role", "student")
+        if role not in ("admin", "super_admin") and str(application.user_id) != str(user.id):
+            payment_metrics.increment(
+                "payment.initiation.failure",
+                tags={"endpoint": "mobile_money", "outcome": "failure"},
+            )
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "NOT_OWNER",
+                        "message": "Not authorized",
+                    },
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Already-paid fast path — mirrors the legacy behaviour.
+        if application.payment_status in ("successful", "verified", "force_approved"):
+            return Response(
+                {
+                    "success": True,
+                    "data": {
+                        "status": "already_paid",
+                        "next_action": "already_paid",
+                    },
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        service = PaymentService()
+
+        try:
+            result = service.initiate_mobile_money(
+                application_id=application.id,
+                user_id=user.id,
+                phone_raw=phone_raw,
+            )
+        except ValueError as exc:
+            error_msg = str(exc)
+            if error_msg == "PROVIDER_UNAVAILABLE":
+                # Unknown MSISDN prefix — no Airtel/MTN match.
+                payment_metrics.increment(
+                    "payment.provider.rejected",
+                    tags={"endpoint": "mobile_money"},
+                )
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "PROVIDER_UNAVAILABLE",
+                            "message": "Unable to determine mobile money operator for this number.",
+                        },
+                        "data": {"next_action": "retry_with_different_number"},
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if error_msg == "INVALID_PHONE_FORMAT":
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "VALIDATION_ERROR",
+                            "message": "Phone number format is not recognised.",
+                        },
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if error_msg == "NOT_OWNER":
+                return Response(
+                    {
+                        "success": False,
+                        "error": {"code": "NOT_OWNER", "message": "Not authorized"},
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            if error_msg.startswith("MAX_PAYMENT_ATTEMPTS_EXCEEDED"):
+                parts = error_msg.split("|")
+                remaining = int(parts[1]) if len(parts) > 1 else 0
+                payment_metrics.increment(
+                    "payment.initiation.failure",
+                    tags={"endpoint": "mobile_money", "outcome": "failure"},
+                )
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "MAX_PAYMENT_ATTEMPTS_EXCEEDED",
+                            "message": "Maximum payment attempts exceeded. Please contact support.",
+                        },
+                        "remaining_attempts": remaining,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            payment_metrics.increment(
+                "payment.initiation.failure",
+                tags={"endpoint": "mobile_money", "outcome": "failure"},
+            )
+            logger.exception(
+                "Mobile money initiate failed for application %s", application_id
+            )
+            return Response(
+                {
+                    "success": False,
+                    "error": {"code": "PAYMENT_ERROR", "message": str(exc)},
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception:
+            logger.exception(
+                "Unexpected error during mobile money initiate for application %s",
+                application_id,
+            )
+            payment_metrics.increment(
+                "payment.initiation.failure",
+                tags={"endpoint": "mobile_money", "outcome": "failure"},
+            )
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "PAYMENT_ERROR",
+                        "message": "Payment processing failed. Please try again.",
+                    },
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        # ``initiate_mobile_money`` returns an empty-payment_id result when
+        # the application is already paid.
+        if not result.payment_id:
+            return Response(
+                {
+                    "success": True,
+                    "data": {
+                        "status": "already_paid",
+                        "next_action": "already_paid",
+                    },
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        # Re-read the Payment row to inspect the provider_initiation status
+        # recorded by the service; status drives HTTP and next_action.
+        try:
+            payment = Payment.objects.get(id=result.payment_id)
+        except Payment.DoesNotExist:  # pragma: no cover — defensive
+            logger.warning(
+                "Payment %s not found after initiate_mobile_money",
+                result.payment_id,
+            )
+            provider_state = "unknown"
+            provider_operator = None
+            provider_last4 = None
+            payment_currency = "ZMW"
+        else:
+            initiation = (payment.metadata or {}).get("provider_initiation") or {}
+            provider_state = initiation.get("status") or "sent"
+            provider_operator = initiation.get("operator")
+            provider_last4 = initiation.get("phone_last4")
+            payment_currency = payment.currency
+
+        emit_metric(
+            "payment.initiated",
+            method="mobile_money",
+            application_id=str(application_id),
+        )
+
+        base_data = {
+            "payment_id": str(result.payment_id),
+            "reference": result.reference,
+            "amount": str(result.amount),
+            "currency": result.currency or payment_currency,
+            "operator": provider_operator,
+            "masked_phone": (
+                f"***{provider_last4}" if provider_last4 else None
+            ),
+        }
+
+        if provider_state == "accepted":
+            payment_metrics.increment(
+                "payment.provider.accepted",
+                tags={"endpoint": "mobile_money", "provider_status": "accepted"},
+            )
+            payment_metrics.increment(
+                "payment.initiation.success",
+                tags={"endpoint": "mobile_money", "user_role": role},
+            )
+            return Response(
+                {
+                    "success": True,
+                    "data": {
+                        **base_data,
+                        "status": "accepted",
+                        "provider_status": "accepted",
+                        "next_action": None,
+                    },
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        if provider_state == "unknown":
+            payment_metrics.increment(
+                "payment.provider.unknown",
+                tags={"endpoint": "mobile_money", "provider_status": "unknown"},
+            )
+            return Response(
+                {
+                    "success": True,
+                    "data": {
+                        **base_data,
+                        "status": "pending",
+                        "provider_status": "unknown",
+                        "next_action": "check_status",
+                    },
+                },
+                status=status.HTTP_202_ACCEPTED,
+            )
+
+        if provider_state == "rejected":
+            payment_metrics.increment(
+                "payment.provider.rejected",
+                tags={"endpoint": "mobile_money", "provider_status": "rejected"},
+            )
+            err_message = (initiation.get("error") or "Provider rejected the request.")[:500]
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "PROVIDER_UNAVAILABLE",
+                        "message": err_message,
+                    },
+                    "data": {
+                        **base_data,
+                        "status": "pending",
+                        "provider_status": "rejected",
+                        "next_action": "retry_with_different_number",
+                    },
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # not_started / sent / anything else — pending, still in flight.
+        payment_metrics.increment(
+            "payment.provider.unknown",
+            tags={"endpoint": "mobile_money", "provider_status": "unknown"},
+        )
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    **base_data,
+                    "status": "pending",
+                    "provider_status": provider_state,
+                    "next_action": "check_status",
+                },
+            },
+            status=status.HTTP_202_ACCEPTED,
+        )
+
     @extend_schema(
         request=MobileMoneyInitiateRequestSerializer,
         responses={
@@ -783,6 +1475,7 @@ class MobileMoneyInitiateView(APIView):
         tags=["payments"],
         summary="Initiate mobile money payment collection (Airtel/MTN)",
     )
+    @require_not_dev_bypass_in_production
     @idempotent
     def post(self, request):
         # Validate via serializer; keep the legacy envelope on validation error.
@@ -799,7 +1492,17 @@ class MobileMoneyInitiateView(APIView):
             )
         application_id = serializer.validated_data["application_id"]
         phone_raw = serializer.validated_data["phone"].strip()
-        operator = serializer.validated_data["operator"].strip().lower()
+
+        forward_only = bool(getattr(settings, "PAYMENT_HARDENING_FORWARD_ONLY", False))
+        if forward_only:
+            return self._hardened_post(request, application_id, phone_raw)
+        operator = (serializer.validated_data.get("operator") or "").strip().lower()
+
+        if not forward_only and operator not in ("airtel", "mtn"):
+            return Response(
+                {"success": False, "error": "application_id, phone, and operator (airtel/mtn) are required", "code": "VALIDATION_ERROR"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         phone = self._normalize_phone_e164(phone_raw)
 
@@ -1177,10 +1880,12 @@ class LencoWebhookView(APIView):
     Requirements: 4.1, 4.2, 4.7, 10.1
     """
 
+    # Webhook ingress is gated by HMAC signature validation, not DRF throttle (R19.4).
     authentication_classes = []
     permission_classes = [AllowAny]
 
     @extend_schema(request=OpenApiTypes.ANY, responses={200: OpenApiTypes.ANY})
+    @require_not_dev_bypass_in_production
     def post(self, request):
         allowed_ips = getattr(settings, "LENCO_WEBHOOK_ALLOWED_IPS", [])
         client_ip = _client_ip(request)
@@ -1238,6 +1943,8 @@ class FeeResolveView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [PaymentUserScopedRateThrottle]
+    throttle_scope = "payment_resolve_fee"
 
     @extend_schema(
         request=None,
@@ -1248,6 +1955,7 @@ class FeeResolveView(APIView):
             OpenApiParameter("country", OpenApiTypes.STR, OpenApiParameter.QUERY, required=False),
         ],
     )
+    @require_not_dev_bypass_in_production
     def get(self, request):
         program_code = request.query_params.get("program_code")
         if not program_code:
@@ -1264,6 +1972,8 @@ class FeeResolveView(APIView):
 
         resolver = FeeResolver()
 
+        forward_only = bool(getattr(settings, "PAYMENT_HARDENING_FORWARD_ONLY", False))
+
         try:
             resolved = resolver.resolve_fee(
                 program_code=program_code,
@@ -1271,10 +1981,47 @@ class FeeResolveView(APIView):
                 country=country,
             )
         except Program.DoesNotExist:
+            if forward_only:
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "FEE_UNAVAILABLE",
+                            "message": "Program not found",
+                        },
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
             return Response(
                 {"success": False, "error": "Program not found", "code": "NOT_FOUND"},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        except Exception:
+            logger.exception("Fee resolution failed for program %s", program_code)
+            if forward_only:
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "FEE_UNAVAILABLE",
+                            "message": "Unable to resolve fee.",
+                        },
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            return Response(
+                {"success": False, "error": "Unable to resolve fee", "code": "FEE_ERROR"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        # ``customer_total`` is derived server-side to keep the client from
+        # guessing the provider fee. When no provider_fee_estimate is
+        # surfaced by the resolver it defaults to zero, so the total equals
+        # the base amount.
+        provider_fee_estimate = Decimal(
+            str(getattr(resolved, "provider_fee_estimate", "0") or "0")
+        )
+        customer_total = Decimal(str(resolved.amount)) + provider_fee_estimate
 
         return Response({
             "success": True,
@@ -1283,6 +2030,8 @@ class FeeResolveView(APIView):
                 "currency": resolved.currency,
                 "residency_category": resolved.residency_category,
                 "source": resolved.source,
+                "provider_fee_estimate": str(provider_fee_estimate),
+                "customer_total": str(customer_total),
             },
         })
 

@@ -75,7 +75,7 @@ export default function ContactPage() {
     <PublicLayout>
       <Seo
         title="Contact Admissions | MIHAS-KATC"
-        description="Reach the MIHAS-KATC admissions team for application help, program guidance, and enrollment support."
+        description="Reach the MIHAS-KATC admissions team for application help, program guidance, payment questions, and international student support. WhatsApp is fastest."
         path="/contact"
       />
       <div className="bg-slate-50">
@@ -90,25 +90,25 @@ export default function ContactPage() {
               Back to Home
             </Link>
             <div className="flex flex-wrap gap-2" aria-label="Contact support topics">
-              {['Admissions support', 'Programme guidance', 'Enrollment help'].map((topic) => (
+              {['Application help', 'Program guidance', 'Payment issues', 'International students'].map((topic) => (
                 <span key={topic} className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700">
                   {topic}
                 </span>
               ))}
             </div>
             <h1 className="mt-5 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-              Contact Admissions
+              Talk to admissions
             </h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-              Reach our admissions team for application help, program guidance, and enrollment support.
+              Stuck on the application, not sure which program to pick, or waiting on a payment? Reach out through whichever channel you prefer. WhatsApp is fastest.
             </p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
             <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-              <h2 className="text-xl font-semibold tracking-tight text-slate-950">Talk to a real admissions team, not a dead form</h2>
+              <h2 className="text-xl font-semibold tracking-tight text-slate-950">How to reach us, fast</h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-                Use this page when you need help choosing a programme, understanding payment steps, or resolving an application issue. We kept the path short so students can act quickly and confidently.
+                WhatsApp for quick questions — we usually reply within an hour during working days. Call if your payment did not go through. Email if it is long or you need to attach documents. If you are near Kalulushi, you can also walk into the KATC campus and someone will help you at reception.
               </p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -146,8 +146,11 @@ export default function ContactPage() {
                   <ContactItem href={`mailto:${contactInfo.email}`} icon={<Mail className="h-4 w-4 text-primary" aria-hidden="true" />} label="Email">
                     {contactInfo.email}
                   </ContactItem>
-                  <ContactItem icon={<MapPin className="h-4 w-4 text-primary" aria-hidden="true" />} label="Address">
-                    {contactInfo.address}
+                  <ContactItem icon={<MapPin className="h-4 w-4 text-primary" aria-hidden="true" />} label="MIHAS campus">
+                    {contactInfo.mihasAddress}
+                  </ContactItem>
+                  <ContactItem icon={<MapPin className="h-4 w-4 text-primary" aria-hidden="true" />} label="KATC campus">
+                    {contactInfo.katcAddress}
                   </ContactItem>
                 </div>
               </CardContent>

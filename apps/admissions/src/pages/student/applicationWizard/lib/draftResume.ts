@@ -6,6 +6,8 @@ export interface DraftResumeApplicationState {
   full_name?: string | null
   program?: string | null
   payment_status?: string | null
+  result_slip_url?: string | null
+  extra_kyc_url?: string | null
 }
 
 export interface DraftResumeUploads {
@@ -28,10 +30,22 @@ export function normalizeDraftResumeGrades(grades: unknown[] | null | undefined)
     .filter((grade) => grade.subject_id.length > 0 && !grade.subject_id.startsWith('fallback-') && grade.grade >= 1 && grade.grade <= 9)
 }
 
-export function deriveDraftResumeUploads(_application: DraftResumeApplicationState) {
+export function deriveDraftResumeUploads(application: DraftResumeApplicationState) {
   return {
-    result_slip: false,
-    extra_kyc: false,
+    result_slip: Boolean(application.result_slip_url?.trim()),
+    extra_kyc: Boolean(application.extra_kyc_url?.trim()),
+  }
+}
+
+export function mergeDraftResumeUploads(
+  application: DraftResumeApplicationState,
+  serverUploads?: Partial<DraftResumeUploads> | null
+): DraftResumeUploads {
+  const urlUploads = deriveDraftResumeUploads(application)
+
+  return {
+    result_slip: Boolean(urlUploads.result_slip || serverUploads?.result_slip),
+    extra_kyc: Boolean(urlUploads.extra_kyc || serverUploads?.extra_kyc),
   }
 }
 

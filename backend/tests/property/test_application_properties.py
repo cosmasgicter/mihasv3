@@ -410,10 +410,12 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
         request.user = user
         request.data = {"new_status": "approved", "notes": notes}
 
-        with patch("apps.applications.admin_views.Application.objects") as mock_qs:
+        with patch("apps.applications.admin_views.transaction.atomic"), \
+             patch("apps.applications.admin_views.Application.objects") as mock_qs:
             mock_qs.get.return_value = app
 
-            with patch("apps.documents.models.Payment.objects") as MockPaymentObjects:
+            with patch("apps.applications.admin_views.Payment.objects") as MockPaymentObjects:
+                mock_qs.select_for_update.return_value.get.return_value = app
                 MockPaymentObjects.filter.return_value.exists.return_value = False
 
                 view = ApplicationReviewView()
@@ -435,12 +437,14 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
         request.user = user
         request.data = {"new_status": "approved", "notes": notes, "force": True}
 
-        with patch("apps.applications.admin_views.Application.objects") as mock_qs, \
+        with patch("apps.applications.admin_views.transaction.atomic"), \
+             patch("apps.applications.admin_views.Application.objects") as mock_qs, \
              patch("apps.applications.admin_views.transition_application_status", return_value="submitted"), \
              patch("apps.applications.admin_views.ApplicationStatusHistory.objects") as mock_history, \
              patch("apps.common.communication_service.CommunicationService") as mock_comms, \
              patch("apps.applications.admin_views.CommunicationService", mock_comms):
             mock_qs.get.return_value = app
+            mock_qs.select_for_update.return_value.get.return_value = app
             mock_history.create.return_value = MagicMock()
             mock_history.filter.return_value.order_by.return_value.first.return_value = MagicMock()
 
@@ -464,8 +468,10 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
         request.user = user
         request.data = {"new_status": new_status}
 
-        with patch("apps.applications.admin_views.Application.objects") as mock_qs:
+        with patch("apps.applications.admin_views.transaction.atomic"), \
+             patch("apps.applications.admin_views.Application.objects") as mock_qs:
             mock_qs.get.return_value = app
+            mock_qs.select_for_update.return_value.get.return_value = app
 
             with patch("apps.applications.admin_views.ApplicationStatusHistory.objects") as mock_history:
                 mock_history.create.return_value = MagicMock()

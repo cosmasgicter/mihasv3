@@ -58,6 +58,14 @@ This runbook defines how to rotate production secrets without guessing under pre
   - payment initiate path
   - payment verification/webhook path
 
+### `SMTP_PASSWORD`
+
+- Used by Zoho SMTP outbound delivery.
+- Rotate in the mail provider first, then update backend hosting secrets.
+- Validate:
+  - test email dispatch
+  - email queue drain
+
 ### `RESEND_API_KEY`
 
 - Used for outbound mail fallback.
@@ -72,6 +80,14 @@ This runbook defines how to rotate production secrets without guessing under pre
   - upload
   - retrieval
   - document generation paths
+
+### `VAPID_PRIVATE_KEY` / `VAPID_PUBLIC_KEY`
+
+- Used for web-push credentials when push delivery is enabled.
+- Rotation may require clients to re-subscribe.
+- Validate:
+  - subscription creation
+  - a test push notification
 
 ### `GLITCHTIP_DSN` / frontend error reporting keys
 
@@ -109,3 +125,4 @@ This runbook defines how to rotate production secrets without guessing under pre
 - `JWT_SIGNING_KEY` rotation logs users out
 - `AUDIT_LOG_ENCRYPTION_KEY` rotation affects historical decryptability
 - `DATABASE_URL` and `REDIS_URL` changes affect all runtime services
+- If any `.env.vercel.*` file ever contained production credentials, delete the local file and rotate every affected secret before treating the incident as closed.

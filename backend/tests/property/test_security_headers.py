@@ -3,7 +3,7 @@
 # Feature: audit-remediation, Property 8: Security headers present on all responses
 
 For any HTTP response from the backend, the response should include
-X-XSS-Protection: 1; mode=block and a Content-Security-Policy header
+X-XSS-Protection: 0 and a Content-Security-Policy header
 with a non-empty directive.
 
 **Validates: Requirements 12.1, 12.2, 12.3**
@@ -54,7 +54,7 @@ class TestSecurityHeadersPresentOnAllResponses(SimpleTestCase):
     """# Feature: audit-remediation, Property 8: Security headers present on all responses
 
     For any HTTP response from the backend, the response should include
-    X-XSS-Protection: 1; mode=block and a Content-Security-Policy header
+    X-XSS-Protection: 0 and a Content-Security-Policy header
     with a non-empty directive.
 
     **Validates: Requirements 12.1, 12.2, 12.3**
@@ -64,7 +64,7 @@ class TestSecurityHeadersPresentOnAllResponses(SimpleTestCase):
     @settings(max_examples=5, deadline=None)
     def test_xss_protection_header_present(self, path, status_code):
         """For any request path and response status, the middleware sets
-        X-XSS-Protection to '1; mode=block'."""
+        X-XSS-Protection to '0'."""
         request = HttpRequest()
         request.method = "GET"
         request.path = path
@@ -78,7 +78,7 @@ class TestSecurityHeadersPresentOnAllResponses(SimpleTestCase):
         response = middleware(request)
 
         self.assertIn("X-XSS-Protection", response)
-        self.assertEqual(response["X-XSS-Protection"], "1; mode=block")
+        self.assertEqual(response["X-XSS-Protection"], "0")
 
     @given(path=request_paths, status_code=status_codes)
     @settings(max_examples=5, deadline=None)

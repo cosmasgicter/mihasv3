@@ -17,6 +17,7 @@ import { createApplicationSlip } from '@/lib/slipService'
 import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import { sanitizeForLog } from '@/lib/security'
 import { logApiError } from '@/lib/apiErrorLogger'
+import { extractAuthUser } from '@/lib/authSession'
 import { toError } from '@/lib/toError'
 import { findBestSubjectId } from '@/lib/subjectMatcher'
 import { apiClient, AuthenticationError } from '@/services/client'
@@ -40,7 +41,7 @@ import {
 } from '@/lib/profileFieldMapping'
 import { mergeWizardSubjects, resolveWizardSubjectId } from '../lib/educationCatalog'
 import {
-  deriveDraftResumeUploads,
+  mergeDraftResumeUploads,
   normalizeDraftResumeGrades,
   resolveDraftResumeStepId,
 } from '../lib/draftResume'
@@ -763,8 +764,8 @@ const useWizardController = (): UseWizardControllerResult => {
 
       let sessionRecheckFailed = true
       try {
-        const sessionResult = await authService.session() as { user?: { id?: string } } | null
-        const sessionUser = sessionResult?.user ?? null
+        const sessionResult = await authService.session()
+        const sessionUser = extractAuthUser(sessionResult)
         if (sessionUser) {
           queryClient.setQueryData(['auth', 'session'], { user: sessionUser })
           sessionRecheckFailed = false
@@ -779,8 +780,8 @@ const useWizardController = (): UseWizardControllerResult => {
       if (sessionRecheckFailed) {
         try {
           await authService.refresh()
-          const refreshedSession = await authService.session() as { user?: { id?: string } } | null
-          const refreshedUser = refreshedSession?.user ?? null
+          const refreshedSession = await authService.session()
+          const refreshedUser = extractAuthUser(refreshedSession)
           if (refreshedUser) {
             queryClient.setQueryData(['auth', 'session'], { user: refreshedUser })
             tokenRefreshFailed = false
@@ -1237,10 +1238,7 @@ const useWizardController = (): UseWizardControllerResult => {
           }
           setValue('intake', app.intake || '', { shouldValidate: false })
           const hydratedServerUploads = await hydrateServerDocuments(app.id)
-          const restoredUploads = {
-            result_slip: Boolean(hydratedServerUploads.result_slip),
-            extra_kyc: Boolean(hydratedServerUploads.extra_kyc),
-          }
+          const restoredUploads = mergeDraftResumeUploads(app, hydratedServerUploads)
           markUploadedFile('result_slip', restoredUploads.result_slip)
           markUploadedFile('extra_kyc', restoredUploads.extra_kyc)
           setGradesHydrating(true)
@@ -1371,11 +1369,7 @@ const useWizardController = (): UseWizardControllerResult => {
       setValue('intake', String(draft.intake || ''), { shouldValidate: false })
 
       const hydratedServerUploads = await hydrateServerDocuments(resolvedDraftId)
-      const restoredUploads = {
-        ...deriveDraftResumeUploads(draft),
-        result_slip: Boolean(hydratedServerUploads.result_slip),
-        extra_kyc: Boolean(hydratedServerUploads.extra_kyc),
-      }
+      const restoredUploads = mergeDraftResumeUploads(draft, hydratedServerUploads)
       markUploadedFile('result_slip', restoredUploads.result_slip)
       markUploadedFile('extra_kyc', restoredUploads.extra_kyc)
 

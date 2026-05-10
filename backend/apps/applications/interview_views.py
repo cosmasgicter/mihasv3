@@ -39,6 +39,14 @@ from ._view_helpers import (
 
 logger = logging.getLogger(__name__)
 
+ALLOWED_INTERVIEW_STATUSES = {
+    "scheduled",
+    "completed",
+    "cancelled",
+    "no_show",
+    "rescheduled",
+}
+
 
 # ---------------------------------------------------------------------------
 # Interview List (all interviews, filterable)
@@ -242,6 +250,16 @@ class ApplicationInterviewView(APIView):
 
         new_status = serializer.validated_data.get("status", "").strip()
         admin_id = str(request.user.id)
+
+        if new_status and new_status not in ALLOWED_INTERVIEW_STATUSES:
+            return Response(
+                {
+                    "success": False,
+                    "error": f"Status must be one of {sorted(ALLOWED_INTERVIEW_STATUSES)}",
+                    "code": "INVALID_STATUS",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if new_status == "rescheduled":
             new_scheduled_at = serializer.validated_data.get("scheduled_at")

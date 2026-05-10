@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 
 import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
+import { extractAuthUser } from '@/lib/authSession'
 import { sanitizeForLog } from '@/lib/security'
 import { isPermissionDenial } from '@/lib/sessionHardening'
 import { apiClient } from '@/services/client'
@@ -77,14 +78,14 @@ export function delay(ms: number): Promise<void> {
 
 export async function verifySessionWithRetry(): Promise<boolean> {
   try {
-    const result = await apiClient.request<{ user?: unknown }>('/auth/session/')
-    return !!result?.user
+    const result = await apiClient.request<unknown>('/auth/session/')
+    return !!extractAuthUser(result)
   } catch (error) {
     if (isAuthError(error)) {
       await delay(1000)
       try {
-        const retryResult = await apiClient.request<{ user?: unknown }>('/auth/session/')
-        return !!retryResult?.user
+        const retryResult = await apiClient.request<unknown>('/auth/session/')
+        return !!extractAuthUser(retryResult)
       } catch (retryError) {
         if (isAuthError(retryError)) {
           throw new Error('Your session has expired. Please sign in again to continue uploading.')

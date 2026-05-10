@@ -50,12 +50,14 @@ class TestDraftDeletePaymentProtection:
         mock_payment_objects.filter.assert_called_once_with(application_id=application.id)
 
     @patch("apps.applications.student_views.Payment.objects")
+    @patch("apps.applications.student_views.transaction.atomic")
     @patch("apps.applications.student_views.ApplicationDetailView._get_application")
-    def test_draft_without_payment_activity_is_deleted(self, mock_get_application, mock_payment_objects):
+    def test_draft_without_payment_activity_is_deleted(self, mock_get_application, mock_atomic, mock_payment_objects):
         student = _user()
         application_id = uuid.uuid4()
         application = _draft_application(application_id, str(student.id))
         mock_get_application.return_value = application
+        mock_atomic.return_value.__enter__.return_value = None
         mock_payment_objects.filter.return_value.exists.return_value = False
 
         response = self.view(_request(self.factory, student), application_id=application_id)

@@ -147,7 +147,7 @@ class TestDocumentVerificationStatusUpdate:
         with patch(_APP) as mock_app_qs, \
              patch(_DOC) as mock_doc_qs, \
              patch(_AUDIT):
-            mock_app_qs.get.return_value = application
+            mock_app_qs.select_related.return_value.get.return_value = application
             mock_doc_qs.select_related.return_value.get.return_value = document
 
             request = _auth_request(
@@ -270,7 +270,7 @@ class TestAuditLogCreation:
         with patch(_APP) as mock_app_qs, \
              patch(_DOC) as mock_doc_qs, \
              patch(_AUDIT) as mock_audit:
-            mock_app_qs.get.return_value = application
+            mock_app_qs.select_related.return_value.get.return_value = application
             mock_doc_qs.select_related.return_value.get.return_value = document
 
             request = _auth_request(
@@ -303,7 +303,7 @@ class TestAuditLogCreation:
              patch(_TASK_LETTER) as mock_task, \
              patch(_IDEM) as mock_idem_qs, \
              patch(_AUDIT) as mock_audit:
-            mock_app_qs.get.return_value = application
+            mock_app_qs.select_related.return_value.get.return_value = application
             mock_idem_qs.filter.return_value.first.return_value = None
             mock_result = MagicMock()
             mock_result.id = "task-id"
@@ -338,7 +338,7 @@ class TestAuditLogCreation:
              patch(_TASK_RECEIPT) as mock_task, \
              patch(_IDEM) as mock_idem_qs, \
              patch(_AUDIT) as mock_audit:
-            mock_app_qs.get.return_value = application
+            mock_app_qs.select_related.return_value.get.return_value = application
             mock_pay_qs.filter.return_value.exists.return_value = True
             mock_idem_qs.filter.return_value.first.return_value = None
             mock_result = MagicMock()
@@ -393,7 +393,7 @@ class TestAcceptanceLetter202Response:
              patch(_TASK_LETTER) as mock_task, \
              patch(_IDEM) as mock_idem_qs, \
              patch(_AUDIT):
-            mock_app_qs.get.return_value = application
+            mock_app_qs.select_related.return_value.get.return_value = application
             mock_idem_qs.filter.return_value.first.return_value = None
             mock_result = MagicMock()
             mock_result.id = f"celery-{uuid.uuid4().hex[:8]}"
@@ -450,7 +450,7 @@ class TestFinanceReceipt202Response:
              patch(_TASK_RECEIPT) as mock_task, \
              patch(_IDEM) as mock_idem_qs, \
              patch(_AUDIT):
-            mock_app_qs.get.return_value = application
+            mock_app_qs.select_related.return_value.get.return_value = application
             mock_pay_qs.filter.return_value.exists.return_value = True
             mock_idem_qs.filter.return_value.first.return_value = None
             mock_result = MagicMock()
@@ -503,7 +503,7 @@ class TestAcceptanceLetterRejectsNonApproved:
         application = _make_application(app_id=app_id, status=app_status)
 
         with patch(_APP) as mock_app_qs:
-            mock_app_qs.get.return_value = application
+            mock_app_qs.select_related.return_value.get.return_value = application
 
             request = _auth_request(
                 factory, "post",
@@ -546,7 +546,7 @@ class TestFinanceReceiptRejectsNoPayment:
 
         with patch(_APP) as mock_app_qs, \
              patch(_PAY) as mock_pay_qs:
-            mock_app_qs.get.return_value = application
+            mock_app_qs.select_related.return_value.get.return_value = application
             mock_pay_qs.filter.return_value.exists.return_value = False
 
             request = _auth_request(
@@ -595,7 +595,7 @@ class TestIdempotentGenerationRequests:
              patch(_TASK_LETTER) as mock_task, \
              patch(_IDEM) as mock_idem_qs, \
              patch(_AUDIT):
-            mock_app_qs.get.return_value = application
+            mock_app_qs.select_related.return_value.get.return_value = application
 
             # First request: no existing idempotency key
             mock_idem_qs.filter.return_value.first.return_value = None
@@ -652,7 +652,7 @@ class TestIdempotentGenerationRequests:
              patch(_TASK_RECEIPT) as mock_task, \
              patch(_IDEM) as mock_idem_qs, \
              patch(_AUDIT):
-            mock_app_qs.get.return_value = application
+            mock_app_qs.select_related.return_value.get.return_value = application
             mock_pay_qs.filter.return_value.exists.return_value = True
 
             # First request: no existing idempotency key

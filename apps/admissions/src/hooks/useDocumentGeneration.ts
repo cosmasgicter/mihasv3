@@ -11,9 +11,11 @@
 
 import { useState } from 'react';
 import { logger } from '@/lib/logger';
-import { generateApplicationSlip } from '@/lib/applicationSlipPdf';
-import { generateAcceptanceLetter } from '@/lib/acceptanceLetterGenerator';
-import { generatePaymentReceipt } from '@/lib/receiptGenerator';
+import {
+  generateApplicationSlip,
+  generateAcceptanceLetter,
+  generatePaymentReceipt,
+} from '@/lib/pdf';
 import { applicationService } from '@/services/applications';
 import { apiClient } from '@/services/client';
 
