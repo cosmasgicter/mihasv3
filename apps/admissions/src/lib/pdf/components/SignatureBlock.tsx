@@ -1,29 +1,36 @@
 /**
  * SignatureBlock — the signature area at the bottom of official letters.
  *
- * Visual layout:
+ * Primary visual layout (with a scanned signature, the common case):
  *
- *   ╭── Pinyon Script signature (large, ink-900) ─────╮
- *   │   Dr Solomon Musonda                            │
+ *   ╭── Scanned signature (PNG, ~56pt tall) ──────────╮
+ *   │   ✍  handwritten Dr Solomon Musonda             │
  *   ╰──────────────────────────────────────────────────╯
  *   ──────────────────────────────
- *   Dr Solomon Musonda              (Source Sans bold — for clarity)
- *   Director                        (role, muted)
- *   MIHAS-KATC                      (institution, muted)
+ *   Dr Solomon Musonda, MD           (Source Sans bold, postnominal inline)
+ *   Managing Director                (role, muted)
+ *   Mukuba Institute of Health       (institution, muted — line 1)
+ *   and Applied Sciences             (may wrap)
+ *   School of Nursing                (optional division, muted — line 2)
  *
- * Rationale — why a calligraphy name instead of a scanned signature:
- *   - A scanned signature would require storing and reading Dr Musonda's
- *     actual signature image, which has real-world legal and security
- *     implications we don't want to take on in this migration.
- *   - A calligraphy-rendered name is the academic convention used by
- *     many universities on typeset-only letterhead: it reads as the
- *     visual signature of the document without claiming to be a
- *     reproduction of the signatory's own handwriting.
- *   - The typeset name below the rule ensures the name is machine-
- *     readable and printable-clear regardless of zoom.
+ * Fallback layout (no `signatureImage` — used for non-Musonda signatories
+ * or preview renders): the name is rendered in Pinyon Script above the
+ * rule instead of an image. This is still academically conventional.
  *
- * If a real scanned signature image becomes available later, pass it via
- * `signatureImage` — it replaces the Pinyon Script rendering.
+ * Design rationale:
+ *   - MIHAS's official application form carries Dr Musonda's scanned
+ *     signature; our acceptance letters must match the authority of
+ *     that stationery.
+ *   - We keep Pinyon Script as a fallback for three cases:
+ *       1. Preview renders during development
+ *       2. Test fixtures that want a deterministic, non-image artefact
+ *       3. Future signatories without a scanned signature on file
+ *   - The typeset name below the rule ensures the signatory is machine-
+ *     readable and printable-clear regardless of zoom, and matches the
+ *     convention on MIHAS's own application form: "Dr Solomon Musonda, MD".
+ *   - The division line ("School of Nursing") matches the form footer:
+ *     "On behalf of Mukuba Institute of Health and Applied Sciences,
+ *     School of Nursing".
  */
 
 import { Image, StyleSheet, Text, View } from '@react-pdf/renderer'
@@ -32,7 +39,9 @@ import { borderWidth, semantic, spacing, textStyles } from '../theme'
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginTop: spacing[3],
+    // marginTop was spacing[3] (12pt); tightened to spacing[2] (8pt) to
+    // help fit the signature row on one page alongside the division line.
+    marginTop: spacing[2],
     width: 260,
   },
   scriptSignature: {
@@ -40,11 +49,15 @@ const styles = StyleSheet.create({
     color: semantic.titleText,
     marginBottom: spacing[0.5],
     // Nudge the script baseline slightly so the line sits comfortably
-    // below the signature's descenders (e.g. the loop of "y" in "Bwalya").
+    // below the signature's descenders (e.g. the loop of "y").
     paddingBottom: 2,
   },
   signatureImage: {
-    height: 48,
+    // 38pt tall — tight but legible. The signature PNG is 1344×459
+    // (~2.93:1), so at 38pt tall it scales to ~111pt wide. Balances
+    // fitting the unconditional letter onto a single page against
+    // maintaining enough visual presence to read as a real signature.
+    height: 38,
     width: 'auto',
     marginBottom: spacing[1],
   },
@@ -66,36 +79,67 @@ const styles = StyleSheet.create({
     ...textStyles.metadata,
     color: semantic.mutedText,
   },
+  divisionLine: {
+    ...textStyles.metadata,
+    color: semantic.mutedText,
+  },
 })
 
 export interface SignatureBlockProps {
   /** Full name of the signatory (e.g. "Dr Solomon Musonda"). */
   name: string
-  /** Role/title (e.g. "Director"). */
+  /** Role/title (e.g. "Managing Director"). */
   role: string
+  /**
+   * Optional postnominal (e.g. "MD", "PhD"). When set, appears after
+   * the name in both script and typeset forms, separated by a comma.
+   */
+  postnominal?: string
   /** Institution line (optional, shown under the role). */
   institution?: string
-  /** Optional scanned-signature image as a data URL — replaces the Pinyon Script rendering. */
+  /**
+   * Optional division/school line (e.g. "School of Nursing"). Rendered
+   * below the institution in the same muted style.
+   */
+  division?: string
+  /**
+   * Optional scanned-signature image path or data URL — replaces the
+   * Pinyon Script rendering. When omitted, the script fallback is used.
+   */
   signatureImage?: string
+}
+
+/**
+ * Compose the display name with optional postnominal:
+ *   "Dr Solomon Musonda" + "MD" → "Dr Solomon Musonda, MD"
+ */
+function composeDisplayName(name: string, postnominal?: string): string {
+  const trimmed = postnominal?.trim()
+  return trimmed ? `${name}, ${trimmed}` : name
 }
 
 export function SignatureBlock({
   name,
   role,
+  postnominal,
   institution,
+  division,
   signatureImage,
 }: SignatureBlockProps) {
+  const displayName = composeDisplayName(name, postnominal)
+
   return (
     <View style={styles.wrapper}>
       {signatureImage ? (
         <Image src={signatureImage} style={styles.signatureImage} />
       ) : (
-        <Text style={styles.scriptSignature}>{name}</Text>
+        <Text style={styles.scriptSignature}>{displayName}</Text>
       )}
       <View style={styles.line} />
-      <Text style={styles.name}>{name}</Text>
+      <Text style={styles.name}>{displayName}</Text>
       <Text style={styles.role}>{role}</Text>
       {institution ? <Text style={styles.institutionLine}>{institution}</Text> : null}
+      {division ? <Text style={styles.divisionLine}>{division}</Text> : null}
     </View>
   )
 }

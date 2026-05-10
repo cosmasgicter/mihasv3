@@ -235,8 +235,11 @@ def test_acceptance_unconditional_offer():
     assert "Diploma in Registered Nursing" in html
     assert "12 January 2027" in html
     assert "Confirm your place" in html
-    # Default signatory is Dr Solomon Musonda
-    assert "Dr Solomon Musonda" in html
+    # Default signatory is Dr Solomon Musonda, MD (Managing Director)
+    assert "Dr Solomon Musonda, MD" in html
+    assert "Managing Director" in html
+    # Nursing program derives the School of Nursing division line
+    assert "School of Nursing" in html
 
 
 # ---------------------------------------------------------------------------

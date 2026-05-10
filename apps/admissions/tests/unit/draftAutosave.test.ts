@@ -56,7 +56,7 @@ describe('draftAutosave', () => {
         institutions: {
           id: 'inst-1',
           name: 'MIHAS',
-          full_name: 'Mukuba Institute of Health and Allied Sciences',
+          full_name: 'Mukuba Institute of Health and Applied Sciences',
         },
       } as any,
       institutionCode: 'MIHAS',

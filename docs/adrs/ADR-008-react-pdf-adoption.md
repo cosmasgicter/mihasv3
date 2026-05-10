@@ -109,7 +109,7 @@ after payment), and costs $ on Koyeb.
   cached by the browser after the first download.
 - **Logo integration.** Both institution marks (MIHAS + KATC) appear on
   every document header.
-- **Signatory system.** `DEFAULT_SIGNATORY` = Dr Solomon Musonda, Director
+- **Signatory system.** `DEFAULT_SIGNATORY` = Dr Solomon Musonda, MD (Managing Director)
   of Admissions. Overridable per document via `signatoryName` /
   `signatoryRole` props on acceptance letters.
 - **Test ergonomics improved.** JSX element trees are easier to mock than

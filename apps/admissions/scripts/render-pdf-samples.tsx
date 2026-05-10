@@ -63,6 +63,29 @@ import { generateAcceptanceLetter } from '../src/lib/pdf/documents/AcceptanceLet
 
 import * as fs from 'node:fs/promises'
 
+// In production, @react-pdf fetches images from absolute URLs served by the
+// frontend (e.g. /images/signatures/solomon-musonda.png). Under Node there is
+// no HTTP server, so we resolve any /public-rooted path to an absolute
+// filesystem path that @react-pdf can read directly via fs.
+const publicDir = path.resolve(__dirname, '../public')
+function publicFilePath(publicPath: string): string {
+  return path.resolve(publicDir, publicPath.replace(/^\//, ''))
+}
+
+// Patch the logos dictionary used by BrandHeader (via getInstitution) so the
+// sample PDFs actually show the institution logos, not the ENOENT fallback.
+import { institutions } from '../src/lib/pdf/theme'
+for (const inst of Object.values(institutions) as Array<{
+  logoMark: string
+  logoFull: string
+}>) {
+  ;(inst as { logoMark: string }).logoMark = publicFilePath(inst.logoMark)
+  ;(inst as { logoFull: string }).logoFull = publicFilePath(inst.logoFull)
+}
+
+// Resolved absolute filesystem path for Dr Musonda's scanned signature.
+const signatureImageFile = publicFilePath('/images/signatures/solomon-musonda.png')
+
 async function main() {
   console.log('Rendering sample PDFs...')
 
@@ -133,6 +156,7 @@ async function main() {
     intake: 'January 2027',
     approvedDate: '2026-10-15T08:00:00Z',
     startDate: '2027-01-12T00:00:00Z',
+    signatureImage: signatureImageFile,
   })
   await fs.writeFile('/tmp/mihas-sample-acceptance-unconditional.pdf', Buffer.from(await acceptanceBlob.arrayBuffer()))
   console.log('✓ /tmp/mihas-sample-acceptance-unconditional.pdf')
@@ -151,6 +175,7 @@ async function main() {
       { description: 'Submit original ECZ School Certificate.', deadline: '2026-12-01' },
       { description: 'Complete the medical fitness assessment.', deadline: '2026-12-15' },
     ],
+    signatureImage: signatureImageFile,
   })
   await fs.writeFile('/tmp/mihas-sample-acceptance-conditional-2conds.pdf', Buffer.from(await conditionalShortBlob.arrayBuffer()))
   console.log('✓ /tmp/mihas-sample-acceptance-conditional-2conds.pdf')
@@ -171,6 +196,7 @@ async function main() {
       { description: 'Complete the medical fitness assessment through an accredited provider.', deadline: '2026-12-15' },
       { description: 'Pay the Year 1 tuition deposit of K2,500.', deadline: '2026-12-31' },
     ],
+    signatureImage: signatureImageFile,
   })
   await fs.writeFile('/tmp/mihas-sample-acceptance-conditional.pdf', Buffer.from(await conditionalBlob.arrayBuffer()))
   console.log('✓ /tmp/mihas-sample-acceptance-conditional.pdf')

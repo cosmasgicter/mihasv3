@@ -57,7 +57,8 @@ raw HTML string — compose them by joining with `"\n"`.
 | `notice_box(text, variant=)` | Callout box. Variants: `info`, `warning`, `danger`, `success`. |
 | `cta_button(label, href)` | Primary dark CTA with Outlook VML fallback. |
 | `ordered_list(items)` | Numbered list with gold accent numbers. |
-| `signature_block(name?, role?, institution?)` | Closing signature; defaults to Dr Solomon Musonda, Director. |
+| `signature_block(name?, role?, postnominal?, institution?, division?)` | Closing signature; defaults to Dr Solomon Musonda, MD — Managing Director. Pass `division="School of Nursing"` (or use `derive_division(program)`) to add a school line. |
+| `derive_division(program)` | Map a program name to its school ("Nursing" → "School of Nursing", etc). Returns `None` for unmapped programs. |
 | `divider()` | Thin hairline rule (table-based for Outlook compatibility). |
 | `to_plain_text(html)` | Strip tags for the plain-text multipart fallback. |
 

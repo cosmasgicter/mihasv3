@@ -438,7 +438,7 @@ rollback order live in `docs/runbooks/payment-hardening-rollout.md`.
 | `apps/admissions/src/lib/pdf/components/FieldGrid.tsx` | 1- or 2-column grid of LabeledFields |
 | `apps/admissions/src/lib/pdf/components/StatusBadge.tsx` | Pill: verified / approved / conditional / pending |
 | `apps/admissions/src/lib/pdf/components/VerificationBlock.tsx` | QR + "Scan to verify" caption |
-| `apps/admissions/src/lib/pdf/components/SignatureBlock.tsx` | Name + role + institution (default: Dr Solomon Musonda, Director) |
+| `apps/admissions/src/lib/pdf/components/SignatureBlock.tsx` | Scanned PNG signature (default: Dr Solomon Musonda, MD — Managing Director) with Pinyon Script fallback for non-default signatories |
 | `apps/admissions/src/lib/pdf/components/PageFrame.tsx` | A4 Page wrapper with fixed header/footer |
 | `apps/admissions/src/lib/pdf/documents/ApplicationSlip.tsx` | Student application slip generator |
 | `apps/admissions/src/lib/pdf/documents/PaymentReceipt.tsx` | Payment receipt with ZMW/USD support |

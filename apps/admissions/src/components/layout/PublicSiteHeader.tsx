@@ -56,7 +56,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
       <header className={cn('sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm', className)}>
         <div className="container-responsive px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-3">
-            <Link to="/" className="inline-flex items-center gap-3 font-semibold text-foreground" aria-label="Mukuba Institute of Health and Allied Sciences logo - Home">
+            <Link to="/" className="inline-flex items-center gap-3 font-semibold text-foreground" aria-label="Mukuba Institute of Health and Applied Sciences logo - Home">
               <span className="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-primary shadow-sm" aria-hidden="true">
                 <GraduationCap className="h-5 w-5" />
               </span>

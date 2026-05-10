@@ -106,7 +106,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         <div className={cn(
           'relative flex items-center rounded-lg border border-white/10 bg-white/5 shadow-sm transition-all duration-200',
           collapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-3'
-        )} role="img" aria-label="Mukuba Institute of Health and Allied Sciences logo">
+        )} role="img" aria-label="Mukuba Institute of Health and Applied Sciences logo">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-cyan-300 text-slate-950 shadow-sm" aria-hidden="true">
             <span className="text-sm font-black tracking-tight">MI</span>
           </div>

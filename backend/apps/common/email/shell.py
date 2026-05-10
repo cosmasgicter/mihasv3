@@ -28,7 +28,7 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
         preheader = (
             escape(title)
             if title
-            else "Important update from Mukuba Institute of Health and Allied Sciences."
+            else "Important update from Mukuba Institute of Health and Applied Sciences."
         )
 
     title_block = ""
@@ -121,7 +121,7 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
                   <div style="padding-top:16px;font-family:{t.FONT_DISPLAY};
                               font-size:29px;line-height:1.16;
                               font-weight:{t.WEIGHT_BOLD};color:{t.PAPER};">
-                    Mukuba Institute of Health &amp; Allied Sciences
+                    Mukuba Institute of Health &amp; Applied Sciences
                   </div>
                 </td>
                 <td align="right" class="mihas-subcopy"
@@ -179,7 +179,7 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
                 <td style="font-family:{t.FONT_BODY};font-size:12px;line-height:1.7;
                            color:#6a7a8d;">
                   <strong style="color:{t.INK_900};">
-                    Mukuba Institute of Health &amp; Allied Sciences
+                    Mukuba Institute of Health &amp; Applied Sciences
                   </strong><br />
                   apply.mihas.edu.zm
                 </td>

@@ -84,7 +84,7 @@ def sqlite_contract_seed(django_db_setup, django_db_blocker):
                 id=uuid4(),
                 name="MIHAS",
                 code="MIHAS",
-                full_name="MIHAS Institute of Health and Allied Sciences",
+                full_name="MIHAS Institute of Health and Applied Sciences",
                 is_active=True,
                 created_at=timezone.now(),
                 updated_at=timezone.now(),

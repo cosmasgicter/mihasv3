@@ -4,6 +4,7 @@ from html import escape
 
 from apps.common.email.components import (
     cta_button,
+    derive_division,
     metadata_card,
     notice_box,
     ordered_list,
@@ -48,7 +49,7 @@ def render(context: dict) -> tuple[str, str]:
             paragraph(
                 f"We are pleased to offer you admission to "
                 f"<strong>{escape(program)}</strong> at Mukuba Institute of "
-                f"Health and Allied Sciences for the <strong>{escape(intake)}</strong> "
+                f"Health and Applied Sciences for the <strong>{escape(intake)}</strong> "
                 "intake, subject to the conditions listed below."
             ),
             section_heading("Your offer"),
@@ -79,7 +80,7 @@ def render(context: dict) -> tuple[str, str]:
                 ]
             ),
             cta_button("Upload evidence", portal + "/student/application"),
-            signature_block(),
+            signature_block(division=derive_division(program)),
         ]
     )
 

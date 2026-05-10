@@ -203,7 +203,7 @@ describe('SignatureBlock', () => {
   it('renders with name and role only', () => {
     expect(
       rendersCleanly(
-        <SignatureBlock name="Dr Solomon Musonda" role="Director" />,
+        <SignatureBlock name="Dr Solomon Musonda" role="Managing Director" />,
       ),
     ).toBe(true)
   })
@@ -212,8 +212,33 @@ describe('SignatureBlock', () => {
       rendersCleanly(
         <SignatureBlock
           name="Dr Solomon Musonda"
-          role="Director"
-          institution="Mukuba Institute of Health and Allied Sciences"
+          role="Managing Director"
+          institution="Mukuba Institute of Health and Applied Sciences"
+        />,
+      ),
+    ).toBe(true)
+  })
+  it('renders with postnominal appended to the name', () => {
+    expect(
+      rendersCleanly(
+        <SignatureBlock
+          name="Dr Solomon Musonda"
+          postnominal="MD"
+          role="Managing Director"
+          institution="Mukuba Institute of Health and Applied Sciences"
+        />,
+      ),
+    ).toBe(true)
+  })
+  it('renders with a school/division line beneath the institution', () => {
+    expect(
+      rendersCleanly(
+        <SignatureBlock
+          name="Dr Solomon Musonda"
+          postnominal="MD"
+          role="Managing Director"
+          institution="Mukuba Institute of Health and Applied Sciences"
+          division="School of Nursing"
         />,
       ),
     ).toBe(true)
@@ -223,7 +248,8 @@ describe('SignatureBlock', () => {
       rendersCleanly(
         <SignatureBlock
           name="Dr Solomon Musonda"
-          role="Director"
+          postnominal="MD"
+          role="Managing Director"
           signatureImage="data:image/png;base64,Xx"
         />,
       ),

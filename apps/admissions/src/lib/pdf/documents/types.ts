@@ -64,19 +64,44 @@ export interface AcceptanceLetterData {
   conditions?: AcceptanceCondition[]
   /** Optional signatory override — defaults to Dr Solomon Musonda. */
   signatoryName?: string
+  /** Optional role override — defaults to "Managing Director". */
   signatoryRole?: string
+  /** Optional postnominal ("MD", "PhD", etc) — defaults to "MD". */
+  signatoryPostnominal?: string
+  /**
+   * Optional scanned-signature image path. When set, replaces the Pinyon
+   * Script calligraphy rendering above the signature line.
+   * Defaults to the canonical Dr Solomon Musonda scan.
+   */
+  signatureImage?: string
+  /**
+   * Optional division/school line that replaces or augments the institution
+   * line under the typeset signatory name. For example, a nursing acceptance
+   * at MIHAS should read "Mukuba Institute of Health and Applied Sciences
+   * — School of Nursing" beneath the signatory.
+   *
+   * When omitted, the institution alone is shown.
+   */
+  signatoryDivision?: string
 }
 
 /**
  * Signatory defaults — used when data fields are absent. Keeps the
  * signature block consistent across documents that share the director.
  *
- * Dr Solomon Musonda is the overall Director for both MIHAS and KATC —
- * not the "Director of Admissions". The institution shown in the
- * signature block is the one issuing the specific document (MIHAS or
- * KATC, resolved from the application's `institution` field).
+ * Dr Solomon Musonda is the Managing Director for both MIHAS and KATC.
+ * "MD" (Doctor of Medicine) is the postnominal as it appears on the
+ * official MIHAS application form and correspondence.
+ *
+ * The institution shown in the signature block is the one issuing the
+ * specific document (MIHAS or KATC, resolved from the application's
+ * `institution` field). For nursing-program acceptance letters, the
+ * division line resolves to "… — School of Nursing" via
+ * `deriveSignatoryDivision()` in AcceptanceLetter.
  */
 export const DEFAULT_SIGNATORY = {
   name: 'Dr Solomon Musonda',
-  role: 'Director',
+  role: 'Managing Director',
+  postnominal: 'MD',
+  signatureImage: '/images/signatures/solomon-musonda.png',
 } as const

@@ -123,18 +123,39 @@ def test_notice_box_variants_apply_correct_palette():
 
 def test_signature_block_defaults_to_dr_solomon_musonda():
     html = signature_block()
+    # Default display name carries the MD postnominal inline, matching
+    # MIHAS's official form ("Dr Solomon Musonda, MD").
+    assert "Dr Solomon Musonda, MD" in html
+    # Managing Director is the actual title on MIHAS stationery.
+    assert "Managing Director" in html
+    assert "Mukuba Institute of Health and Applied Sciences" in html
+
+
+def test_signature_block_omits_postnominal_when_cleared():
+    html = signature_block(postnominal="")
     assert "Dr Solomon Musonda" in html
-    assert "Director" in html
-    assert "Mukuba Institute of Health and Allied Sciences" in html
+    # No trailing comma+MD when postnominal is cleared
+    assert "Dr Solomon Musonda, " not in html
+
+
+def test_signature_block_renders_division_line_when_set():
+    html = signature_block(division="School of Nursing")
+    assert "School of Nursing" in html
+
+
+def test_signature_block_omits_division_line_by_default():
+    html = signature_block()
+    assert "School of" not in html
 
 
 def test_signature_block_accepts_overrides():
     html = signature_block(
         name="Prof. Mwenya Nkonde",
         role="Acting Director",
+        postnominal="PhD",
         institution="Kalulushi Training Centre",
     )
-    assert "Prof. Mwenya Nkonde" in html
+    assert "Prof. Mwenya Nkonde, PhD" in html
     assert "Acting Director" in html
     assert "Kalulushi Training Centre" in html
 

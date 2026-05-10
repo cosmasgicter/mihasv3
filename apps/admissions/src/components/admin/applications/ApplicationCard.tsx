@@ -12,8 +12,8 @@ import { formatDate } from '@/lib/dateFormat'
 export const INSTITUTION_NAMES: Record<string, string> = {
   'KATC': 'Kalulushi Training Centre',
   'katc': 'Kalulushi Training Centre',
-  'MIHAS': 'Mukuba Institute of Health and Allied Sciences',
-  'mihas': 'Mukuba Institute of Health and Allied Sciences'
+  'MIHAS': 'Mukuba Institute of Health and Applied Sciences',
+  'mihas': 'Mukuba Institute of Health and Applied Sciences'
 }
 
 export const getInstitutionName = (code?: string): string => {

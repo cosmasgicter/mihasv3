@@ -10,8 +10,12 @@
  * fixed header/footer) carries the header to page 2 — solving the old
  * jsPDF "orphaned page 2" and "mid-list break" bugs.
  *
- * Signatory defaults to Dr Solomon Musonda, Director, but the data shape
- * supports overrides for institution-specific signatories.
+ * Signatory defaults to Dr Solomon Musonda, MD (Managing Director of both
+ * MIHAS and KATC), with a real scanned signature image. The division line
+ * auto-derives from the program name — nursing programs show "School of
+ * Nursing" under the institution, matching MIHAS's paper-form convention.
+ * All signature fields (name, role, postnominal, signatureImage, division)
+ * are overridable via AcceptanceLetterData.
  *
  * Layout:
  *   BrandHeader
@@ -111,7 +115,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    marginTop: spacing[4],
+    marginTop: spacing[2],
   },
 })
 
@@ -130,6 +134,11 @@ function AcceptanceLetterDocument({ data, qrDataUrl, generatedLabel }: Props) {
 
   const signatoryName = data.signatoryName ?? DEFAULT_SIGNATORY.name
   const signatoryRole = data.signatoryRole ?? DEFAULT_SIGNATORY.role
+  const signatoryPostnominal =
+    data.signatoryPostnominal ?? DEFAULT_SIGNATORY.postnominal
+  const signatureImage = data.signatureImage ?? DEFAULT_SIGNATORY.signatureImage
+  const signatoryDivision =
+    data.signatoryDivision ?? deriveSignatoryDivision(data.program)
 
   return (
     <Document
@@ -225,20 +234,24 @@ function AcceptanceLetterDocument({ data, qrDataUrl, generatedLabel }: Props) {
           </View>
         ) : null}
 
-        <View wrap={false}>
-          <Text style={styles.closing}>
-            Congratulations once again. We look forward to seeing you on campus.
-          </Text>
-          <Text style={styles.bodyParagraph}>Yours sincerely,</Text>
+        <Text style={styles.closing}>
+          Congratulations once again. We look forward to seeing you on campus.
+        </Text>
+        <Text style={styles.bodyParagraph}>Yours sincerely,</Text>
 
-          <View style={styles.footerRow}>
-            <SignatureBlock
-              name={signatoryName}
-              role={signatoryRole}
-              institution={institution.fullName}
-            />
-            <VerificationBlock qrDataUrl={qrDataUrl} />
-          </View>
+        {/* Keep the signature + verification row together — if they orphan */}
+        {/* across a page break the letter looks unsigned. The prose above is */}
+        {/* allowed to flow naturally so page 1 can fill its available space. */}
+        <View style={styles.footerRow} wrap={false}>
+          <SignatureBlock
+            name={signatoryName}
+            role={signatoryRole}
+            postnominal={signatoryPostnominal}
+            institution={institution.fullName}
+            division={signatoryDivision}
+            signatureImage={signatureImage}
+          />
+          <VerificationBlock qrDataUrl={qrDataUrl} />
         </View>
       </PageFrame>
     </Document>
@@ -251,6 +264,30 @@ const NEXT_STEPS = [
   'Attend the orientation programme in the first week of the intake.',
   'Contact admissions@mihas.edu.zm if you have any questions or need support.',
 ]
+
+/**
+ * Map a program name to its originating school/division.
+ *
+ * Mirrors MIHAS's paper application form convention, where the footer
+ * reads "On behalf of Mukuba Institute of Health and Applied Sciences,
+ * School of Nursing" for nursing programs. Adding a division line under
+ * the institution is a small visual concession that matches the
+ * authority of the paper stationery.
+ *
+ * Returns `undefined` when the program has no mapped division — the
+ * institution name stands alone in that case.
+ */
+function deriveSignatoryDivision(program: string): string | undefined {
+  const lower = program.toLowerCase()
+  if (lower.includes('nursing')) return 'School of Nursing'
+  if (lower.includes('midwifery')) return 'School of Midwifery'
+  if (lower.includes('clinical medicine') || lower.includes('medical')) {
+    return 'School of Clinical Medicine'
+  }
+  if (lower.includes('pharmacy')) return 'School of Pharmacy'
+  if (lower.includes('environmental health')) return 'School of Environmental Health'
+  return undefined
+}
 
 /**
  * Public function — replaces the old jsPDF-based generateAcceptanceLetter.

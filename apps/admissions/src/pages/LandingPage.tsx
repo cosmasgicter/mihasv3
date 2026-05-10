@@ -25,7 +25,7 @@ const landingStructuredData = [
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'MIHAS-KATC Admissions',
-    alternateName: 'Mukuba Institute of Health and Allied Sciences & Kalulushi Training Centre',
+    alternateName: 'Mukuba Institute of Health and Applied Sciences & Kalulushi Training Centre',
     url: 'https://apply.mihas.edu.zm',
     logo: 'https://apply.mihas.edu.zm/images/logos/mihas-logo.png',
     email: 'info@mihas.edu.zm',

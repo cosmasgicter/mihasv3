@@ -256,7 +256,7 @@ Two separate PDF systems, by design:
 - Any new **admin tabular export** that stays in admin-only flows can continue to use `jspdf`.
 - Never mix — a branded document built with jspdf will drift from the design system; a large-table export built with `@react-pdf` will struggle with performance at 2,000+ rows.
 - Custom fonts for `@react-pdf` live in `apps/admissions/public/fonts/pdf/` and are registered idempotently by `registerPdfFonts()` — not via `@fontsource` npm packages.
-- Default signatory for acceptance letters: Dr Solomon Musonda, Director (overall director for both MIHAS and KATC; overridable per letter).
+- Default signatory for acceptance letters: Dr Solomon Musonda, MD — Managing Director for both MIHAS and KATC. A real scanned signature (`/images/signatures/solomon-musonda.png`) is used by default; pass `signatureImage` to override. For nursing programs the letter auto-derives a "School of Nursing" division line under the institution name — see `deriveSignatoryDivision()` in `AcceptanceLetter.tsx`. All signature fields (name, role, postnominal, signatureImage, division) are overridable per letter.
 
 Transactional emails use a Python component system at `backend/apps/common/email/`. Call `render_message(message_type, context)` which returns `(subject, html, text)`. Supported types: `application_submitted`, `payment_received`, `interview_scheduled`, `acceptance`, `conditional_acceptance`, `rejection`, `password_reset`. The `communication_templates` DB table still drives per-intake subject overrides; the component system owns structure and visual identity.
 
