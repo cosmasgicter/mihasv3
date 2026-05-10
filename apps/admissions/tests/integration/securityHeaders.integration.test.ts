@@ -77,9 +77,35 @@ describe('Feature: website-quality-remediation, Security Headers (Req 5)', () =>
       const csp = globalHeaders.headers.find(
         (h) => h.key === 'Content-Security-Policy'
       )!;
-      expect(csp.value).toContain("connect-src 'self' ***REMOVED***");
+      // connect-src starts with 'self' + allows data: (for @react-pdf's
+      // base64-embedded yoga-layout wasm binary), then the API origins.
+      expect(csp.value).toMatch(/connect-src 'self' data:/);
+      expect(csp.value).toContain('***REMOVED***');
       expect(csp.value).toContain('https://pay.lenco.co');
       expect(csp.value).toContain('https://*.r2.cloudflarestorage.com');
+    });
+
+    it('should allow wasm-unsafe-eval for @react-pdf PDF generation', () => {
+      // @react-pdf/renderer v4 uses yoga-layout which is a WebAssembly
+      // module. Without 'wasm-unsafe-eval' the browser refuses to compile
+      // the module and PDF download fails in production. Safer than full
+      // 'unsafe-eval' — only permits WebAssembly.compile/instantiate,
+      // still blocks eval() and new Function().
+      const csp = globalHeaders.headers.find(
+        (h) => h.key === 'Content-Security-Policy'
+      )!;
+      expect(csp.value).toContain("'wasm-unsafe-eval'");
+      // Must NOT weaken to full unsafe-eval
+      expect(csp.value).not.toContain("'unsafe-eval'");
+    });
+
+    it('should NOT allow unsafe-inline in script-src (XSS hardening)', () => {
+      const csp = globalHeaders.headers.find(
+        (h) => h.key === 'Content-Security-Policy'
+      )!;
+      // script-src must never regain unsafe-inline — it's the single
+      // biggest XSS mitigation we have in the CSP.
+      expect(csp.value).not.toMatch(/script-src[^;]*'unsafe-inline'/);
     });
 
     it('should allow local blob workers', () => {
