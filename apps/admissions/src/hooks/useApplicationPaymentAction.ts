@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { apiClient } from '@/services/client'
 import { useLencoWidget } from '@/hooks/useLencoWidget'
 import { normalizePaymentStatusValue } from '@/hooks/usePaymentStatus'
+import { generateIdempotencyKey } from '@/lib/paymentStatus'
+import { initiatePayment, verifyPayment } from '@/services/payments'
+import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
 
 export type PaymentActionStatus = 'idle' | 'initiating' | 'pending' | 'successful' | 'failed'
 
@@ -105,6 +107,7 @@ export function useApplicationPaymentAction({
   const initiatingRef = useRef(false)
   const mountedRef = useRef(true)
   const paymentAttemptRef = useRef(0)
+  const paymentRecoveryStore = usePaymentRecoveryStore()
 
   useEffect(() => {
     mountedRef.current = true
@@ -144,10 +147,10 @@ export function useApplicationPaymentAction({
 
     try {
       const data = await withRetry(() =>
-        apiClient.request<InitiateResponse>('/payments/initiate/', {
-          method: 'POST',
-          body: JSON.stringify({ application_id: applicationId }),
-        }),
+        initiatePayment(
+          { application_id: applicationId },
+          { idempotencyKey: generateIdempotencyKey(applicationId) },
+        ) as Promise<InitiateResponse>,
       )
 
       if (!data) throw new Error('No response from payment service')
@@ -157,6 +160,14 @@ export function useApplicationPaymentAction({
       if (!lenco_public_key || !Number.isFinite(paymentAmount) || paymentAmount <= 0) {
         throw new Error('Payment service returned incomplete details')
       }
+
+      paymentRecoveryStore.record({
+        application_id: applicationId,
+        payment_id,
+        reference,
+        method: 'card',
+        initiated_at: Date.now(),
+      })
 
       const customer = getCustomerDetails()
       const { firstName, lastName } = splitFullName(customer.fullName)
@@ -177,17 +188,17 @@ export function useApplicationPaymentAction({
           updatePaymentStatus('pending', 'Verifying payment…')
           initiatingRef.current = false
           try {
-            const result = await apiClient.request<VerifyResponse>(
-              `/payments/${encodeURIComponent(payment_id)}/verify/`, { method: 'POST' },
-            )
+            const result = await verifyPayment(payment_id) as VerifyResponse
             if (!mountedRef.current || attemptId !== paymentAttemptRef.current) return
             const s = normalizePaymentStatusValue(result?.status)
             if (s === 'successful') {
+              paymentRecoveryStore.clear(applicationId)
               setInitiateError(null)
               updatePaymentStatus('successful', 'Payment confirmed.')
               onPaymentStatusChange?.('successful')
               await refreshStatus()
             } else if (s === 'failed') {
+              paymentRecoveryStore.clear(applicationId)
               updatePaymentStatus('failed', 'Payment could not be verified. You can retry.')
               onPaymentStatusChange?.('failed')
               await refreshStatus()

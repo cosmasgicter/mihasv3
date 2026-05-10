@@ -11,6 +11,7 @@ import io
 import logging
 
 from django.db import transaction
+from django.conf import settings
 from django.utils import timezone
 from drf_spectacular.utils import (
     OpenApiParameter,
@@ -354,22 +355,116 @@ class ApplicationReviewView(APIView):
             payment_status = ps_serializer.validated_data["payment_status"]
             notes = ps_serializer.validated_data["notes"]
 
+            # Phase 5 gate (Task 45.2): ``PAYMENT_HARDENING_FORCE_APPROVED``
+            # routes admin verifications with no prior Payment through
+            # ``PaymentService.force_approve`` so the ledger gets a
+            # canonical ``force_approved`` row instead of the legacy
+            # synthetic zero-amount ``successful`` row (R2.3, R22.6).
+            force_approved_hardening = bool(
+                getattr(settings, "PAYMENT_HARDENING_FORCE_APPROVED", False)
+            )
+
             try:
                 from apps.documents.payment_service import PaymentService
+                from apps.documents.models import Payment as _Payment
 
-                app = PaymentService().review_application_payment(
-                    application_id=app.id,
-                    payment_status=payment_status,
-                    reviewed_by_id=str(request.user.id),
-                    notes=notes,
+                service = PaymentService()
+
+                # Hardened path: admin force-approving a fresh application
+                # with no prior Payment row goes through ``force_approve``
+                # so the mutation routes through ``_transition`` and the
+                # security-retention audit is emitted.
+                use_force_approve = (
+                    force_approved_hardening
+                    and payment_status == "verified"
+                    and not _Payment.objects.filter(application_id=app.id).exists()
                 )
+                if use_force_approve:
+                    reviewer = request.user
+                    try:
+                        service.force_approve(
+                            application_id=app.id,
+                            actor_id=reviewer.id,
+                            actor_role=getattr(reviewer, "role", "admin"),
+                            reason=(notes or "").strip() or "Admin force-approved payment (no prior record)",
+                        )
+                    except ValueError as exc:
+                        code = str(exc)
+                        if code == "OVERRIDE_REASON_REQUIRED":
+                            return Response(
+                                {
+                                    "success": False,
+                                    "error": {
+                                        "code": "OVERRIDE_REASON_REQUIRED",
+                                        "message": "A reason of at least 10 characters is required.",
+                                    },
+                                },
+                                status=status.HTTP_400_BAD_REQUEST,
+                            )
+                        if code == "CANNOT_REVERSE_SUCCESSFUL_PAYMENT":
+                            return Response(
+                                {
+                                    "success": False,
+                                    "error": {
+                                        "code": "CANNOT_REVERSE_SUCCESSFUL_PAYMENT",
+                                        "message": "A successful payment cannot be reversed.",
+                                    },
+                                },
+                                status=status.HTTP_409_CONFLICT,
+                            )
+                        raise
+
+                    app.refresh_from_db()
+                else:
+                    # LEGACY: Task 45.2 — when
+                    # ``PAYMENT_HARDENING_FORCE_APPROVED`` is False (or the
+                    # admin is targeting an application that already has a
+                    # Payment row), the legacy
+                    # ``PaymentService.review_application_payment`` path
+                    # is preserved. That path continues to create a
+                    # synthetic zero-amount ``successful`` Payment for
+                    # fresh ``verified`` reviews and mutate the latest
+                    # Payment row for reviews where one already exists.
+                    # The CANNOT_REVERSE_SUCCESSFUL_PAYMENT guard below
+                    # applies to both modes (Phase 2, R2.1 + R2.2). Once
+                    # the flag ships on by default this branch is
+                    # retired per spec Task 45.
+                    app = service.review_application_payment(
+                        application_id=app.id,
+                        payment_status=payment_status,
+                        reviewed_by_id=str(request.user.id),
+                        notes=notes,
+                    )
             except ValueError as exc:
-                if str(exc) == "PAYMENT_RECORD_REQUIRED":
+                code = str(exc)
+                if code == "PAYMENT_RECORD_REQUIRED":
                     return Response(
                         {
                             "success": False,
                             "error": "A payment record is required before this payment status can be reviewed.",
                             "code": "PAYMENT_RECORD_REQUIRED",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                if code == "CANNOT_REVERSE_SUCCESSFUL_PAYMENT":
+                    return Response(
+                        {
+                            "success": False,
+                            "error": {
+                                "code": "CANNOT_REVERSE_SUCCESSFUL_PAYMENT",
+                                "message": "A successful payment cannot be reversed.",
+                            },
+                        },
+                        status=status.HTTP_409_CONFLICT,
+                    )
+                if code == "OVERRIDE_REASON_REQUIRED":
+                    return Response(
+                        {
+                            "success": False,
+                            "error": {
+                                "code": "OVERRIDE_REASON_REQUIRED",
+                                "message": "A reason of at least 10 characters is required.",
+                            },
                         },
                         status=status.HTTP_400_BAD_REQUEST,
                     )

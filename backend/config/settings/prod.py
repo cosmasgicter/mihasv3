@@ -15,6 +15,7 @@ ALLOWED_HOSTS = [
     for host in os.environ.get("ALLOWED_HOSTS", "api.mihas.edu.zm").split(",")  # noqa: F405
     if host.strip()
 ]
+validate_debug_not_serving_production_hosts()  # noqa: F405
 
 # Full security with SSL redirect
 SECURE_SSL_REDIRECT = True
@@ -40,6 +41,14 @@ if not LENCO_API_SECRET_KEY or not LENCO_PUBLIC_KEY:  # noqa: F405
     raise ImproperlyConfigured("LENCO_API_SECRET_KEY and LENCO_PUBLIC_KEY are required in production.")
 if not AUDIT_LOG_ENCRYPTION_KEY:  # noqa: F405
     raise ImproperlyConfigured("AUDIT_LOG_ENCRYPTION_KEY is required in production.")
+
+# Payment hardening is mandatory in production. These settings intentionally
+# override the rollout flags from base.py so a missing env var cannot silently
+# leave the legacy payment paths active.
+PAYMENT_HARDENING_FORWARD_ONLY = True
+PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT = True
+PAYMENT_HARDENING_RATE_LIMITS = True
+PAYMENT_HARDENING_FORCE_APPROVED = True
 
 # CORS — production frontend only
 CORS_ALLOWED_ORIGINS = split_csv_env(  # noqa: F405

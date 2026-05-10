@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   deriveDraftResumeUploads,
+  mergeDraftResumeUploads,
   normalizeDraftResumeGrades,
   resolveDraftResumeStepId,
 } from '@/pages/student/applicationWizard/lib/draftResume'
@@ -17,8 +18,8 @@ describe('wizard draft resume helpers', () => {
     ])
 
     expect(result).toEqual([
-      { subject_id: 'math', grade: 1 },
-      { subject_id: 'eng', grade: 4 },
+      { row_id: 'restored-0-math', subject_id: 'math', grade: 1 },
+      { row_id: 'restored-1-eng', subject_id: 'eng', grade: 4 },
     ])
   })
 
@@ -34,6 +35,42 @@ describe('wizard draft resume helpers', () => {
     })
   })
 
+  it('keeps application document urls when server document hydration is empty', () => {
+    expect(
+      mergeDraftResumeUploads(
+        {
+          result_slip_url: 'https://files.example.com/result.pdf',
+          extra_kyc_url: 'https://files.example.com/nrc.pdf',
+        },
+        {
+          result_slip: false,
+          extra_kyc: false,
+        }
+      )
+    ).toEqual({
+      result_slip: true,
+      extra_kyc: true,
+    })
+  })
+
+  it('keeps server document flags when application urls are missing', () => {
+    expect(
+      mergeDraftResumeUploads(
+        {
+          result_slip_url: '',
+          extra_kyc_url: null,
+        },
+        {
+          result_slip: true,
+          extra_kyc: false,
+        }
+      )
+    ).toEqual({
+      result_slip: true,
+      extra_kyc: false,
+    })
+  })
+
   it('resumes to the payment step when education requirements are complete but payment is not verified', () => {
     const grades = normalizeDraftResumeGrades([
       { subject_id: 's1', grade: 1 },
@@ -43,15 +80,18 @@ describe('wizard draft resume helpers', () => {
       { subject_id: 's5', grade: 5 },
     ])
 
+    const application = {
+      full_name: 'Jane Student',
+      program: 'Registered Nursing',
+      result_slip_url: '/result.pdf',
+      extra_kyc_url: '/nrc.pdf',
+      payment_status: 'pending_review',
+    }
+
     const stepId = resolveDraftResumeStepId(
-      {
-        full_name: 'Jane Student',
-        program: 'Registered Nursing',
-        result_slip_url: '/result.pdf',
-        extra_kyc_url: '/nrc.pdf',
-        payment_status: 'pending_review',
-      },
-      grades
+      application,
+      grades,
+      deriveDraftResumeUploads(application)
     )
 
     expect(stepId).toBe(3)
@@ -66,36 +106,41 @@ describe('wizard draft resume helpers', () => {
       { subject_id: 's5', grade: 5 },
     ])
 
+    const application = {
+      full_name: 'Jane Student',
+      program: 'Registered Nursing',
+      result_slip_url: '/result.pdf',
+      extra_kyc_url: '/nrc.pdf',
+      payment_status: 'verified',
+    }
+
     const stepId = resolveDraftResumeStepId(
-      {
-        full_name: 'Jane Student',
-        program: 'Registered Nursing',
-        result_slip_url: '/result.pdf',
-        extra_kyc_url: '/nrc.pdf',
-        payment_status: 'verified',
-      },
-      grades
+      application,
+      grades,
+      deriveDraftResumeUploads(application)
     )
 
     expect(stepId).toBe(4)
   })
 
   it('stays on the education step when grades or documents are incomplete', () => {
+    const application = {
+      full_name: 'Jane Student',
+      program: 'Registered Nursing',
+      result_slip_url: '/result.pdf',
+      extra_kyc_url: null,
+      payment_status: null,
+    }
+
     const stepId = resolveDraftResumeStepId(
-      {
-        full_name: 'Jane Student',
-        program: 'Registered Nursing',
-        result_slip_url: '/result.pdf',
-        extra_kyc_url: null,
-        payment_status: null,
-      },
+      application,
       normalizeDraftResumeGrades([
         { subject_id: 's1', grade: 1 },
         { subject_id: 's2', grade: 2 },
-      ])
+      ]),
+      deriveDraftResumeUploads(application)
     )
 
     expect(stepId).toBe(2)
   })
 })
-

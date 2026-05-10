@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { generatePaymentReceipt } from '@/lib/receiptGenerator';
+import { generatePaymentReceipt } from '@/lib/pdf';
 import { apiClient } from '@/services/client';
 
 interface PaymentRecord {

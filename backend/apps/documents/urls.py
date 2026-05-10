@@ -6,6 +6,7 @@ Requirements: 2.1, 4.1, 6.1, 10.1, 13.1
 
 from django.urls import path
 
+from apps.documents.risk_views import RiskFlagsListView
 from apps.documents.views import (
     DeferPaymentView,
     DocumentDeleteView,
@@ -23,6 +24,7 @@ from apps.documents.views import (
     PaymentReceiptView,
     PaymentVerifyView,
     ProgramFeeViewSet,
+    SuperAdminPaymentCorrectionView,
 )
 from apps.documents.job_views import (
     CoverLetterGenerateView,
@@ -111,6 +113,11 @@ payment_urlpatterns = [
         name="lenco-webhook",
     ),
     path(
+        "risk-flags/",
+        RiskFlagsListView.as_view(),
+        name="payment-risk-flags",
+    ),
+    path(
         "<uuid:payment_id>/receipt/",
         PaymentReceiptView.as_view(),
         name="payment-receipt",
@@ -119,6 +126,11 @@ payment_urlpatterns = [
         "<uuid:payment_id>/verify/",
         PaymentVerifyView.as_view(),
         name="payment-verify",
+    ),
+    path(
+        "<uuid:payment_id>/correct/",
+        SuperAdminPaymentCorrectionView.as_view(),
+        name="payment-super-admin-correct",
     ),
 ]
 

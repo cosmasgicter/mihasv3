@@ -35,14 +35,70 @@ def poll_pending_payments_task(self):
         logger.info("poll_pending_payments_task: skipped (already running)")
         return
     try:
+        from django.conf import settings
+
         from apps.documents.models import Payment
+        from apps.documents import payment_metrics
         from apps.documents.payment_service import PaymentService
 
+        forward_only = bool(getattr(settings, "PAYMENT_HARDENING_FORWARD_ONLY", False))
+        service = PaymentService()
+
         now = timezone.now()
-        five_minutes_ago = now - timedelta(minutes=5)
+        five_minutes_ago = now - timedelta(
+            seconds=int(getattr(settings, "PAYMENT_RECONCILE_MIN_AGE_SECONDS", 300))
+        )
         twenty_four_hours_ago = now - timedelta(hours=24)
 
-        # --- Expire payments pending > 24 hours (Req 8.1, 8.2, 8.3) ---
+        # --- Hardened path: delegate expiry + verify to PaymentService ---
+        if forward_only:
+            try:
+                expired_count = service.expire_stale(older_than_hours=24, batch_cap=50)
+                if expired_count:
+                    logger.info(
+                        "poll_pending_payments_task: expired %d payments via PaymentService.expire_stale",
+                        expired_count,
+                    )
+            except Exception:
+                logger.exception("poll_pending_payments_task: expire_stale failed")
+
+            pending_payments = list(
+                Payment.objects.filter(
+                    status='pending',
+                    created_at__lt=five_minutes_ago,
+                    created_at__gt=twenty_four_hours_ago,
+                )[:50]
+            )
+            count = len(pending_payments)
+            logger.info(
+                "poll_pending_payments_task (forward_only): %d payments to verify",
+                count,
+            )
+            if count == 0:
+                return
+
+            for payment in pending_payments:
+                try:
+                    # Celery worker has no authenticated actor. Use the
+                    # hardened verifier with actor_id=None so reconciliation
+                    # follows the same state machine and integrity gates as
+                    # student/admin verification.
+                    service.verify(payment.id, actor_id=None)
+                    payment_metrics.increment(
+                        "payment.reconcile.processed",
+                        tags={"outcome": "success"},
+                    )
+                except Exception:
+                    logger.exception(
+                        "Failed to verify payment %s during reconcile", payment.id
+                    )
+                    payment_metrics.increment(
+                        "payment.reconcile.processed",
+                        tags={"outcome": "failure"},
+                    )
+            return
+
+        # --- Legacy path: expire payments pending > 24 hours (Req 8.1, 8.2, 8.3) ---
         expired_payments = list(
             Payment.objects.filter(
                 status='pending',
@@ -107,8 +163,6 @@ def poll_pending_payments_task(self):
         if count == 0:
             return
 
-        service = PaymentService()
-
         failures = 0
         for payment in pending_payments:
             try:
@@ -125,11 +179,19 @@ def poll_pending_payments_task(self):
                     result.status,
                     result.error,
                 )
+                payment_metrics.increment(
+                    "payment.reconcile.processed",
+                    tags={"outcome": "success"},
+                )
             except Exception:
                 logger.exception(
                     "Failed to verify payment %s during polling", payment.id
                 )
                 failures += 1
+                payment_metrics.increment(
+                    "payment.reconcile.processed",
+                    tags={"outcome": "failure"},
+                )
 
         if failures > 0 and failures == count:
             # All verifications failed — likely Lenco API outage

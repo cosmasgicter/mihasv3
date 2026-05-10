@@ -290,12 +290,14 @@ class TestStudentPostSubmissionMutationGuards:
         assert response.data["code"] == "APPLICATION_NOT_EDITABLE"
 
     @patch("apps.applications.student_views.transaction.atomic")
+    @patch("apps.applications.student_views.Payment.objects")
     @patch("apps.applications.student_views.IsOwnerOrAdmin")
     @patch("apps.applications.student_views._with_payment_summary")
     def test_student_can_delete_draft_application_via_model_delete(
         self,
         mock_with_payment_summary,
         mock_permission,
+        mock_payment_objects,
         mock_atomic,
     ):
         user_id = uuid.uuid4()
@@ -305,6 +307,7 @@ class TestStudentPostSubmissionMutationGuards:
 
         mock_with_payment_summary.return_value.get.return_value = application
         mock_permission.return_value.has_object_permission.return_value = True
+        mock_payment_objects.filter.return_value.exists.return_value = False
         mock_atomic.return_value.__enter__.return_value = None
 
         application.delete = MagicMock()
@@ -321,12 +324,14 @@ class TestStudentPostSubmissionMutationGuards:
         application.delete.assert_called_once_with()
 
     @patch("apps.applications.student_views.transaction.atomic")
+    @patch("apps.applications.student_views.Payment.objects")
     @patch("apps.applications.student_views.IsOwnerOrAdmin")
     @patch("apps.applications.student_views._with_payment_summary")
     def test_delete_draft_database_failure_returns_json_error(
         self,
         mock_with_payment_summary,
         mock_permission,
+        mock_payment_objects,
         mock_atomic,
     ):
         user_id = uuid.uuid4()
@@ -336,6 +341,7 @@ class TestStudentPostSubmissionMutationGuards:
 
         mock_with_payment_summary.return_value.get.return_value = application
         mock_permission.return_value.has_object_permission.return_value = True
+        mock_payment_objects.filter.return_value.exists.return_value = False
         mock_atomic.return_value.__enter__.return_value = None
 
         application.delete = MagicMock(side_effect=RuntimeError("delete failed"))
@@ -480,12 +486,14 @@ class TestDraftDeletionRegression:
     factory = APIRequestFactory()
 
     @patch("apps.applications.student_views.transaction.atomic")
+    @patch("apps.applications.student_views.Payment.objects")
     @patch("apps.applications.student_views.IsOwnerOrAdmin")
     @patch("apps.applications.student_views._with_payment_summary")
     def test_delete_draft_with_all_dependents_returns_204(
         self,
         mock_with_payment_summary,
         mock_permission,
+        mock_payment_objects,
         mock_atomic,
     ):
         """Regression: raw SQL delete was failing with 500 due to table name mismatches."""
@@ -496,6 +504,7 @@ class TestDraftDeletionRegression:
 
         mock_with_payment_summary.return_value.get.return_value = application
         mock_permission.return_value.has_object_permission.return_value = True
+        mock_payment_objects.filter.return_value.exists.return_value = False
         mock_atomic.return_value.__enter__.return_value = None
 
         application.delete = MagicMock()

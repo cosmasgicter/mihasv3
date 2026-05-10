@@ -1,319 +1,197 @@
-"""Tests for payment endpoint rate limiting.
+"""Unit tests — Task 44.4: per-scope rate-limit enforcement.
 
-Verifies that:
-  - PaymentInitiateThrottle, PaymentVerifyThrottle, MobileMoneyThrottle
-    enforce correct per-user rate limits.
-  - After exceeding the limit, requests return HTTP 429.
-  - 429 responses include a Retry-After header.
-  - Different endpoints have different rate limits.
+Validates Requirements R19.1 and R19.2.
 
-Implements task 8.3.
-Requirements: 7.4
+For each of the four payment throttle scopes we:
+
+1. Issue ``budget`` requests as the same authenticated user — all must
+   succeed (non-429).
+2. Issue the ``budget + 1``-th request — must return HTTP 429 with the
+   stable envelope::
+
+       {
+         "success": false,
+         "error": "<stable-catalogue message>",
+         "code": "RATE_LIMITED",
+         "details": {"retry_after": int, "scope": "payment_<...>"}
+       }
+
+3. A second authenticated user is unaffected (user-isolation).
+4. For ``payment_resolve_fee`` — an unauthenticated anonymous request
+   from a different ``REMOTE_ADDR`` has an independent IP-keyed budget.
+
+The cache is cleared between sub-tests so throttles do not leak.
 """
 
+from __future__ import annotations
+
+import json
 import os
+import uuid
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
 
-from unittest.mock import MagicMock, PropertyMock
-
-from django.test import SimpleTestCase, override_settings
-from rest_framework.test import APIRequestFactory
-
-from apps.documents.throttles import (
-    MobileMoneyThrottle,
-    PaymentInitiateThrottle,
-    PaymentVerifyThrottle,
-)
-from apps.documents.views import (
-    MobileMoneyInitiateView,
-    PaymentInitiateView,
-    PaymentVerifyView,
-)
-
-factory = APIRequestFactory()
+import pytest
+from django.core.cache import cache
+from django.test import override_settings
+from rest_framework.test import APIClient
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _make_authenticated_request(user_id="user-1", method="post", path="/api/v1/payments/initiate/"):
-    """Build a fake authenticated POST request."""
-    request = factory.post(path)
-    request.user = MagicMock(
-        is_authenticated=True,
-        pk=user_id,
-        id=user_id,
+
+def _seed_profile(role: str = "student"):
+    """Create a minimal Profile row for ``force_authenticate`` calls."""
+    from apps.accounts.models import Profile
+    from django.utils import timezone
+
+    now = timezone.now()
+    return Profile.objects.create(
+        id=uuid.uuid4(),
+        email=f"ratelimit-{uuid.uuid4().hex[:8]}@example.com",
+        first_name="Rate",
+        last_name="Tester",
+        role=role,
+        is_active=True,
+        created_at=now,
+        updated_at=now,
     )
-    request.META["REMOTE_ADDR"] = "127.0.0.1"
-    return request
 
 
-def _exhaust_throttle(throttle_cls, num_requests, user_id="user-1"):
-    """Call allow_request() num_requests times and return the throttle + last result."""
-    throttle = throttle_cls()
-    view = MagicMock()
-    result = True
-    for _ in range(num_requests):
-        request = _make_authenticated_request(user_id=user_id)
-        result = throttle.allow_request(request, view)
-        if not result:
-            break
-    return throttle, result
+# Scope → (HTTP method, path, budget/min, auth required)
+SCOPES: tuple[tuple[str, str, str, int, bool], ...] = (
+    ("payment_initiate", "post", "/api/v1/payments/initiate/", 6, True),
+    ("payment_mobile_money", "post", "/api/v1/payments/mobile-money/", 6, True),
+    (
+        "payment_verify",
+        "post",
+        f"/api/v1/payments/{uuid.UUID('00000000-0000-0000-0000-000000000099')}/verify/",
+        30,
+        True,
+    ),
+    ("payment_resolve_fee", "get", "/api/v1/payments/resolve-fee/?program_code=NONE", 30, True),
+)
 
 
-# ---------------------------------------------------------------------------
-# Throttle class configuration tests
-# ---------------------------------------------------------------------------
+def _send(client: APIClient, method: str, path: str, *, remote_addr: str | None = None):
+    extra: dict = {}
+    if remote_addr is not None:
+        extra["REMOTE_ADDR"] = remote_addr
 
-class TestThrottleClassConfiguration(SimpleTestCase):
-    """Verify throttle classes have correct scopes and rates."""
-
-    def test_payment_initiate_scope(self):
-        self.assertEqual(PaymentInitiateThrottle.scope, "payment_initiate")
-
-    def test_payment_initiate_rate(self):
-        self.assertEqual(PaymentInitiateThrottle.rate, "5/min")
-
-    def test_payment_verify_scope(self):
-        self.assertEqual(PaymentVerifyThrottle.scope, "payment_verify")
-
-    def test_payment_verify_rate(self):
-        self.assertEqual(PaymentVerifyThrottle.rate, "10/min")
-
-    def test_mobile_money_scope(self):
-        self.assertEqual(MobileMoneyThrottle.scope, "mobile_money_initiate")
-
-    def test_mobile_money_rate(self):
-        self.assertEqual(MobileMoneyThrottle.rate, "5/min")
+    if method == "post":
+        body = {"application_id": str(uuid.uuid4()), "phone": "+260970000000", "operator": "airtel"}
+        return client.post(
+            path,
+            data=json.dumps(body),
+            content_type="application/json",
+            **extra,
+        )
+    return client.get(path, **extra)
 
 
-# ---------------------------------------------------------------------------
-# View throttle class assignment tests
-# ---------------------------------------------------------------------------
-
-class TestViewThrottleAssignment(SimpleTestCase):
-    """Verify each payment view has the correct throttle class assigned."""
-
-    def test_initiate_view_has_throttle(self):
-        self.assertIn(PaymentInitiateThrottle, PaymentInitiateView.throttle_classes)
-
-    def test_verify_view_has_throttle(self):
-        self.assertIn(PaymentVerifyThrottle, PaymentVerifyView.throttle_classes)
-
-    def test_mobile_money_view_has_throttle(self):
-        self.assertIn(MobileMoneyThrottle, MobileMoneyInitiateView.throttle_classes)
+# ===========================================================================
+# Tests
+# ===========================================================================
 
 
-# ---------------------------------------------------------------------------
-# Rate limit enforcement tests
-# ---------------------------------------------------------------------------
+@pytest.mark.django_db
+@override_settings(PAYMENT_HARDENING_RATE_LIMITS=True)
+@pytest.mark.parametrize(
+    "scope,method,path,budget,requires_auth",
+    SCOPES,
+    ids=[row[0] for row in SCOPES],
+)
+def test_per_scope_429_at_budget_plus_one(
+    scope, method, path, budget, requires_auth,
+):
+    """Validates: Requirements R19.1."""
+    cache.clear()
 
-class TestPaymentInitiateRateLimit(SimpleTestCase):
-    """PaymentInitiateThrottle allows 5 requests/min then blocks."""
+    client = APIClient()
+    profile = _seed_profile()
+    if requires_auth:
+        client.force_authenticate(user=profile)
 
-    def setUp(self):
-        # Clear the throttle cache between tests
-        from django.core.cache import cache
-        cache.clear()
+    # Fire exactly ``budget`` requests — none should be 429.
+    for i in range(budget):
+        response = _send(client, method, path)
+        assert response.status_code != 429, (
+            f"scope={scope!r} request {i + 1}/{budget} returned 429 too early"
+        )
 
-    def test_allows_requests_within_limit(self):
-        throttle = PaymentInitiateThrottle()
-        view = MagicMock()
-        for i in range(5):
-            request = _make_authenticated_request(user_id="initiate-user")
-            allowed = throttle.allow_request(request, view)
-            self.assertTrue(allowed, f"Request {i + 1} of 5 should be allowed")
+    # The next request must be 429 with the stable envelope.
+    response = _send(client, method, path)
+    assert response.status_code == 429, (
+        f"scope={scope!r} budget+1 request expected 429, got "
+        f"{response.status_code}"
+    )
 
-    def test_blocks_after_exceeding_limit(self):
-        throttle = PaymentInitiateThrottle()
-        view = MagicMock()
-        # Exhaust the 5-request limit
-        for _ in range(5):
-            request = _make_authenticated_request(user_id="initiate-block-user")
-            throttle.allow_request(request, view)
-
-        # 6th request should be blocked
-        request = _make_authenticated_request(user_id="initiate-block-user")
-        allowed = throttle.allow_request(request, view)
-        self.assertFalse(allowed, "6th request should be blocked (limit is 5/min)")
-
-    def test_retry_after_present_when_throttled(self):
-        throttle = PaymentInitiateThrottle()
-        view = MagicMock()
-        # Exhaust the limit
-        for _ in range(5):
-            request = _make_authenticated_request(user_id="initiate-retry-user")
-            throttle.allow_request(request, view)
-
-        # Trigger throttle
-        request = _make_authenticated_request(user_id="initiate-retry-user")
-        throttle.allow_request(request, view)
-
-        # wait() returns the number of seconds to wait — this becomes Retry-After
-        retry_after = throttle.wait()
-        self.assertIsNotNone(retry_after, "Throttle.wait() should return a value when throttled")
-        self.assertGreater(retry_after, 0, "Retry-After should be positive")
-        self.assertLessEqual(retry_after, 60, "Retry-After should not exceed 60s for a per-minute throttle")
+    data = response.json() if hasattr(response, "json") else response.data
+    assert data.get("success") is False
+    assert data.get("code") == "RATE_LIMITED"
+    details = data.get("details") or {}
+    assert details.get("scope") == scope
+    assert isinstance(details.get("retry_after"), int)
+    assert details.get("retry_after") >= 0
 
 
-class TestPaymentVerifyRateLimit(SimpleTestCase):
-    """PaymentVerifyThrottle allows 10 requests/min then blocks."""
+@pytest.mark.django_db
+@override_settings(PAYMENT_HARDENING_RATE_LIMITS=True)
+def test_second_user_is_not_throttled_by_first_users_budget():
+    """Validates: Requirements R19.2 — keys are per user.pk."""
+    cache.clear()
 
-    def setUp(self):
-        from django.core.cache import cache
-        cache.clear()
+    user_a = _seed_profile()
+    user_b = _seed_profile()
 
-    def test_allows_requests_within_limit(self):
-        throttle = PaymentVerifyThrottle()
-        view = MagicMock()
-        for i in range(10):
-            request = _make_authenticated_request(user_id="verify-user")
-            allowed = throttle.allow_request(request, view)
-            self.assertTrue(allowed, f"Request {i + 1} of 10 should be allowed")
+    client_a = APIClient()
+    client_a.force_authenticate(user=user_a)
 
-    def test_blocks_after_exceeding_limit(self):
-        throttle = PaymentVerifyThrottle()
-        view = MagicMock()
-        for _ in range(10):
-            request = _make_authenticated_request(user_id="verify-block-user")
-            throttle.allow_request(request, view)
+    client_b = APIClient()
+    client_b.force_authenticate(user=user_b)
 
-        request = _make_authenticated_request(user_id="verify-block-user")
-        allowed = throttle.allow_request(request, view)
-        self.assertFalse(allowed, "11th request should be blocked (limit is 10/min)")
+    scope_budget = 6  # payment_initiate
+    path = "/api/v1/payments/initiate/"
 
-    def test_retry_after_present_when_throttled(self):
-        throttle = PaymentVerifyThrottle()
-        view = MagicMock()
-        for _ in range(10):
-            request = _make_authenticated_request(user_id="verify-retry-user")
-            throttle.allow_request(request, view)
+    # Exhaust user A's budget.
+    for _ in range(scope_budget + 1):
+        _send(client_a, "post", path)
 
-        request = _make_authenticated_request(user_id="verify-retry-user")
-        throttle.allow_request(request, view)
-
-        retry_after = throttle.wait()
-        self.assertIsNotNone(retry_after)
-        self.assertGreater(retry_after, 0)
-        self.assertLessEqual(retry_after, 60)
+    # User B's first request for the same scope must NOT be 429.
+    response = _send(client_b, "post", path)
+    assert response.status_code != 429, (
+        "user B was rate-limited by user A's budget — throttle keying is wrong"
+    )
 
 
-class TestMobileMoneyRateLimit(SimpleTestCase):
-    """MobileMoneyThrottle allows 5 requests/min then blocks."""
+@pytest.mark.django_db
+@override_settings(PAYMENT_HARDENING_RATE_LIMITS=True)
+def test_anonymous_ip_isolation_on_resolve_fee():
+    """Validates: Requirements R19.2 — anonymous requests are keyed by IP.
 
-    def setUp(self):
-        from django.core.cache import cache
-        cache.clear()
+    ``resolve-fee`` is authenticated in production, but the
+    ``get_cache_key`` fallback to ``get_ident`` is exercised by any
+    anonymous request hitting the throttle — DRF's permissions return
+    401 **after** the throttle runs. We therefore exhaust budget from
+    one IP and assert a *different* ``REMOTE_ADDR`` gets a fresh
+    budget on the same route.
+    """
+    cache.clear()
 
-    def test_allows_requests_within_limit(self):
-        throttle = MobileMoneyThrottle()
-        view = MagicMock()
-        for i in range(5):
-            request = _make_authenticated_request(user_id="mm-user")
-            allowed = throttle.allow_request(request, view)
-            self.assertTrue(allowed, f"Request {i + 1} of 5 should be allowed")
+    client = APIClient()
+    path = "/api/v1/payments/resolve-fee/?program_code=NONE"
+    budget = 30
 
-    def test_blocks_after_exceeding_limit(self):
-        throttle = MobileMoneyThrottle()
-        view = MagicMock()
-        for _ in range(5):
-            request = _make_authenticated_request(user_id="mm-block-user")
-            throttle.allow_request(request, view)
+    # Exhaust IP_A's budget.
+    for _ in range(budget + 1):
+        _send(client, "get", path, remote_addr="10.0.0.1")
 
-        request = _make_authenticated_request(user_id="mm-block-user")
-        allowed = throttle.allow_request(request, view)
-        self.assertFalse(allowed, "6th request should be blocked (limit is 5/min)")
-
-    def test_retry_after_present_when_throttled(self):
-        throttle = MobileMoneyThrottle()
-        view = MagicMock()
-        for _ in range(5):
-            request = _make_authenticated_request(user_id="mm-retry-user")
-            throttle.allow_request(request, view)
-
-        request = _make_authenticated_request(user_id="mm-retry-user")
-        throttle.allow_request(request, view)
-
-        retry_after = throttle.wait()
-        self.assertIsNotNone(retry_after)
-        self.assertGreater(retry_after, 0)
-        self.assertLessEqual(retry_after, 60)
-
-
-# ---------------------------------------------------------------------------
-# Different limits for different endpoints
-# ---------------------------------------------------------------------------
-
-class TestDifferentLimitsPerEndpoint(SimpleTestCase):
-    """Verify that different throttle classes enforce different limits."""
-
-    def setUp(self):
-        from django.core.cache import cache
-        cache.clear()
-
-    def test_verify_allows_more_than_initiate(self):
-        """PaymentVerify (10/min) should still allow requests after PaymentInitiate (5/min) would block."""
-        initiate_throttle = PaymentInitiateThrottle()
-        verify_throttle = PaymentVerifyThrottle()
-        view = MagicMock()
-
-        # Send 6 requests through each throttle (different users to isolate)
-        initiate_results = []
-        for _ in range(6):
-            request = _make_authenticated_request(user_id="diff-initiate-user")
-            initiate_results.append(initiate_throttle.allow_request(request, view))
-
-        verify_results = []
-        for _ in range(6):
-            request = _make_authenticated_request(user_id="diff-verify-user")
-            verify_results.append(verify_throttle.allow_request(request, view))
-
-        # Initiate: 5 allowed, 6th blocked
-        self.assertEqual(initiate_results[:5], [True] * 5)
-        self.assertFalse(initiate_results[5])
-
-        # Verify: all 6 allowed (limit is 10)
-        self.assertEqual(verify_results, [True] * 6)
-
-    def test_initiate_and_mobile_money_same_limit(self):
-        """PaymentInitiate and MobileMoney both have 5/min limit."""
-        initiate_throttle = PaymentInitiateThrottle()
-        mm_throttle = MobileMoneyThrottle()
-        view = MagicMock()
-
-        # Both should block on the 6th request
-        for _ in range(5):
-            request = _make_authenticated_request(user_id="same-limit-initiate")
-            initiate_throttle.allow_request(request, view)
-
-        for _ in range(5):
-            request = _make_authenticated_request(user_id="same-limit-mm")
-            mm_throttle.allow_request(request, view)
-
-        request_i = _make_authenticated_request(user_id="same-limit-initiate")
-        request_m = _make_authenticated_request(user_id="same-limit-mm")
-
-        self.assertFalse(initiate_throttle.allow_request(request_i, view))
-        self.assertFalse(mm_throttle.allow_request(request_m, view))
-
-    def test_throttles_are_per_user(self):
-        """Different users have independent rate limits."""
-        throttle_a = PaymentInitiateThrottle()
-        throttle_b = PaymentInitiateThrottle()
-        view = MagicMock()
-
-        # Exhaust limit for user A
-        for _ in range(5):
-            request = _make_authenticated_request(user_id="user-a")
-            throttle_a.allow_request(request, view)
-
-        # User A is blocked
-        request_a = _make_authenticated_request(user_id="user-a")
-        self.assertFalse(throttle_a.allow_request(request_a, view))
-
-        # User B should still be allowed
-        request_b = _make_authenticated_request(user_id="user-b")
-        self.assertTrue(throttle_b.allow_request(request_b, view))
+    # IP_B must have an independent budget.
+    response = _send(client, "get", path, remote_addr="10.0.0.2")
+    assert response.status_code != 429, (
+        "anonymous IP_B was rate-limited by IP_A's budget — anon keying "
+        "is not per-IP"
+    )

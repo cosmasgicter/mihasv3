@@ -210,3 +210,40 @@ class TestIdempotencyTaskDiscoverability(SimpleTestCase):
         # crontab objects have hour and minute as set-like attributes
         self.assertEqual(schedule.hour, {3})
         self.assertEqual(schedule.minute, {0})
+
+
+class TestDjangoFiveStorageSettings(SimpleTestCase):
+    """BUG-004 — storage backends use Django's STORAGES setting."""
+
+    def test_deprecated_storage_settings_removed(self):
+        import config.settings.base as base_settings
+
+        self.assertFalse(hasattr(base_settings, "STATICFILES_STORAGE"))
+        self.assertFalse(hasattr(base_settings, "DEFAULT_FILE_STORAGE"))
+
+    def test_storages_backends_configured(self):
+        from django.conf import settings
+
+        self.assertEqual(
+            settings.STORAGES["default"]["BACKEND"],
+            "storages.backends.s3boto3.S3Boto3Storage",
+        )
+        self.assertEqual(
+            settings.STORAGES["staticfiles"]["BACKEND"],
+            "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        )
+
+
+class TestProductionDebugGuard(SimpleTestCase):
+    """ZDR-007 — DEBUG must not serve the production API hostname."""
+
+    def test_debug_with_production_host_raises(self):
+        from django.core.exceptions import ImproperlyConfigured
+
+        import config.settings.base as base_settings
+
+        with patch.object(base_settings, "DEBUG", True), patch.object(
+            base_settings, "ALLOWED_HOSTS", ["api.mihas.edu.zm"]
+        ):
+            with self.assertRaises(ImproperlyConfigured):
+                base_settings.validate_debug_not_serving_production_hosts()

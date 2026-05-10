@@ -15,7 +15,12 @@ import { ArrowRight, CheckCircle } from '@/components/icons'
 import { preloadAuthRoutes } from '@/lib/routePreload'
 import {
   accreditations,
+  accommodationHighlights,
+  applicationFees,
+  eligibilityItems,
   features,
+  howItWorksSteps,
+  internationalHighlights,
   programs,
   stats,
 } from '@/lib/constants/landing'
@@ -71,7 +76,7 @@ function FeaturesSection() {
             </h2>
           </TextEffect>
           <p className="mt-3 text-base leading-7 text-slate-600 sm:text-lg">
-            300+ graduates already working in hospitals and clinics across Zambia
+            Because we teach the job, not just the theory.
           </p>
         </ScrollReveal>
 
@@ -99,6 +104,112 @@ function FeaturesSection() {
   )
 }
 
+function HowItWorksSection() {
+  return (
+    <section
+      id="how-it-works"
+      aria-labelledby="how-it-works-heading"
+      className="scroll-mt-24 border-y border-slate-200 bg-white py-14 sm:scroll-mt-28 sm:py-16 lg:py-20"
+      style={deferredSectionStyle}
+    >
+      <div className="container-responsive px-4 sm:px-6 lg:px-8">
+        <ScrollReveal className="mb-10 max-w-3xl sm:mb-12">
+          <TextEffect effect="fadeUp">
+            <h2 id="how-it-works-heading" className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl lg:text-4xl">
+              How the application works
+            </h2>
+          </TextEffect>
+          <p className="mt-3 text-base leading-7 text-slate-600 sm:text-lg">
+            Four steps, about 30 minutes end-to-end if your documents are ready. You can pause anywhere.
+          </p>
+        </ScrollReveal>
+
+        <StaggerReveal className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.1}>
+          {howItWorksSteps.map((item) => (
+            <StaggerItem key={item.step}>
+              <Card className="h-full rounded-lg border border-slate-200 bg-white shadow-sm">
+                <CardContent className="p-5 sm:p-6">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                    {item.step}
+                  </div>
+                  <CardTitle className="mb-2 text-base font-semibold text-slate-950">
+                    {item.title}
+                  </CardTitle>
+                  <CardDescription className="text-sm leading-6 text-slate-600">
+                    {item.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </StaggerItem>
+          ))}
+        </StaggerReveal>
+
+        <div className="mx-auto mt-10 max-w-3xl rounded-lg border border-slate-200 bg-slate-50 p-5 sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Application fees</p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {applicationFees.map((fee) => (
+              <div key={fee.audience} className="rounded-md border border-slate-200 bg-white p-4">
+                <p className="text-sm font-medium text-slate-500">{fee.audience}</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-950">{fee.amount}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-600">{fee.note}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs leading-5 text-slate-500">
+            Short on cash right now? You can defer payment and still submit — pay before your interview.
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function EligibilitySection() {
+  return (
+    <section
+      id="eligibility"
+      aria-labelledby="eligibility-heading"
+      className="scroll-mt-24 bg-slate-50 py-14 sm:scroll-mt-28 sm:py-16 lg:py-20"
+      style={deferredSectionStyle}
+    >
+      <div className="container-responsive px-4 sm:px-6 lg:px-8">
+        <ScrollReveal className="mb-10 max-w-3xl sm:mb-12">
+          <TextEffect effect="fadeUp">
+            <h2 id="eligibility-heading" className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl lg:text-4xl">
+              What you need to apply
+            </h2>
+          </TextEffect>
+          <p className="mt-3 text-base leading-7 text-slate-600 sm:text-lg">
+            Simple list. If you have these, you qualify to apply. We will tell you the exact grades required for each program once you are in.
+          </p>
+        </ScrollReveal>
+
+        <StaggerReveal className="grid grid-cols-1 gap-4 md:grid-cols-2" staggerDelay={0.1}>
+          {eligibilityItems.map((item) => (
+            <StaggerItem key={item.title}>
+              <Card className="h-full rounded-lg border border-slate-200 bg-white shadow-sm">
+                <CardContent className="flex gap-4 p-5 sm:p-6">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/15 bg-primary/10">
+                    <item.icon className="h-5 w-5 text-primary" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <CardTitle className="mb-1 text-base font-semibold text-slate-950">
+                      {item.title}
+                    </CardTitle>
+                    <CardDescription className="text-sm leading-6 text-slate-600">
+                      {item.description}
+                    </CardDescription>
+                  </div>
+                </CardContent>
+              </Card>
+            </StaggerItem>
+          ))}
+        </StaggerReveal>
+      </div>
+    </section>
+  )
+}
+
 function AccreditationSection() {
   return (
     <section
@@ -111,11 +222,11 @@ function AccreditationSection() {
         <ScrollReveal className="mb-10 max-w-3xl">
           <TextEffect effect="fadeUp">
             <h2 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl lg:text-4xl">
-              Recognized Qualifications That Get You Hired
+              Your diploma gets you registered. Here is who backs it.
             </h2>
           </TextEffect>
           <p className="mt-3 text-base leading-7 text-slate-600 sm:text-lg">
-            Our graduates work in hospitals, clinics, and health organizations across Zambia, the SADC region, and internationally
+            Our graduates work in Zambian hospitals, plus Botswana, Namibia, and South Africa. UNZA affiliation means you can top up to a degree later.
           </p>
         </ScrollReveal>
 
@@ -162,11 +273,11 @@ function ProgramsSection() {
         <ScrollReveal className="mb-10 max-w-3xl sm:mb-12">
           <TextEffect effect="fadeUp">
             <h2 id="programs-heading" className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl lg:text-4xl">
-              Three Programs. Real Jobs.
+              Three diplomas. Three career paths.
             </h2>
           </TextEffect>
           <p className="mt-3 text-base leading-7 text-slate-600 sm:text-lg">
-            Government-accredited diplomas with direct paths to employment
+            Pick the one that matches the work you want to do. You can only apply to one program at a time.
           </p>
         </ScrollReveal>
 
@@ -232,6 +343,94 @@ function ProgramsSection() {
   )
 }
 
+function AccommodationSection() {
+  return (
+    <section
+      id="accommodation"
+      aria-labelledby="accommodation-heading"
+      className="scroll-mt-24 border-y border-slate-200 bg-white py-14 sm:scroll-mt-28 sm:py-16 lg:py-20"
+      style={deferredSectionStyle}
+    >
+      <div className="container-responsive px-4 sm:px-6 lg:px-8">
+        <ScrollReveal className="mb-10 max-w-3xl sm:mb-12">
+          <TextEffect effect="fadeUp">
+            <h2 id="accommodation-heading" className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl lg:text-4xl">
+              Coming from out of town? We have a bed for you.
+            </h2>
+          </TextEffect>
+          <p className="mt-3 text-base leading-7 text-slate-600 sm:text-lg">
+            On-campus accommodation at both campuses. If you are coming from Lusaka, Livingstone, or outside Zambia, you do not need to hunt for a hostel.
+          </p>
+        </ScrollReveal>
+
+        <StaggerReveal className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4" staggerDelay={0.1}>
+          {accommodationHighlights.map((item) => (
+            <StaggerItem key={item.title}>
+              <Card className="h-full rounded-lg border border-slate-200 bg-white shadow-sm">
+                <CardContent className="p-5 sm:p-6">
+                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg border border-primary/15 bg-primary/10">
+                    <item.icon className="h-5 w-5 text-primary" aria-hidden="true" />
+                  </div>
+                  <CardTitle className="mb-2 text-base font-semibold text-slate-950">
+                    {item.title}
+                  </CardTitle>
+                  <CardDescription className="text-sm leading-6 text-slate-600">
+                    {item.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </StaggerItem>
+          ))}
+        </StaggerReveal>
+      </div>
+    </section>
+  )
+}
+
+function InternationalSection() {
+  return (
+    <section
+      id="international"
+      aria-labelledby="international-heading"
+      className="scroll-mt-24 bg-slate-50 py-14 sm:scroll-mt-28 sm:py-16 lg:py-20"
+      style={deferredSectionStyle}
+    >
+      <div className="container-responsive px-4 sm:px-6 lg:px-8">
+        <ScrollReveal className="mb-10 max-w-3xl sm:mb-12">
+          <TextEffect effect="fadeUp">
+            <h2 id="international-heading" className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl lg:text-4xl">
+              Applying from outside Zambia?
+            </h2>
+          </TextEffect>
+          <p className="mt-3 text-base leading-7 text-slate-600 sm:text-lg">
+            MIHAS-KATC welcomes international students. The application is the same portal, in the same place, payable in USD.
+          </p>
+        </ScrollReveal>
+
+        <StaggerReveal className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4" staggerDelay={0.1}>
+          {internationalHighlights.map((item) => (
+            <StaggerItem key={item.title}>
+              <Card className="h-full rounded-lg border border-slate-200 bg-white shadow-sm">
+                <CardContent className="p-5 sm:p-6">
+                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg border border-primary/15 bg-primary/10">
+                    <item.icon className="h-5 w-5 text-primary" aria-hidden="true" />
+                  </div>
+                  <CardTitle className="mb-2 text-base font-semibold text-slate-950">
+                    {item.title}
+                  </CardTitle>
+                  <CardDescription className="text-sm leading-6 text-slate-600">
+                    {item.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </StaggerItem>
+          ))}
+        </StaggerReveal>
+      </div>
+    </section>
+  )
+}
+
 function CTASection() {
   return (
     <section
@@ -244,10 +443,10 @@ function CTASection() {
         <TextEffect effect="fadeUp">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Current Intake Is Open. Apply Today.
+              The current intake is open. You can start tonight.
             </h2>
             <p className="mt-3 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-              Spots fill up fast. Apply today and join 300+ graduates already working in Zambian hospitals and clinics.
+              Takes about 30 minutes if your documents are ready. K150 for Zambian applicants, USD 20 for international applicants. Mobile money or card — either works.
             </p>
           </div>
         </TextEffect>
@@ -263,7 +462,7 @@ function CTASection() {
             onFocus={warmAuthRoutes}
             onTouchStart={warmAuthRoutes}
           >
-            <span>Apply Now</span>
+            <span>Start Your Application</span>
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </Link>
         </Button>
@@ -277,8 +476,12 @@ export function LandingPageSections() {
     <>
       <StatsSection />
       <FeaturesSection />
+      <HowItWorksSection />
+      <EligibilitySection />
       <AccreditationSection />
       <ProgramsSection />
+      <AccommodationSection />
+      <InternationalSection />
       <CTASection />
     </>
   )

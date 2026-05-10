@@ -147,6 +147,8 @@ class MobileMoneyInitiateRequestSerializer(serializers.Serializer):
     )
     operator = serializers.ChoiceField(
         choices=[("airtel", "Airtel"), ("mtn", "MTN")],
+        required=False,
+        allow_blank=True,
         help_text="Mobile money operator",
     )
 

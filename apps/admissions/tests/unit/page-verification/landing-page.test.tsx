@@ -163,7 +163,7 @@ describe('Landing page verification', () => {
   it('renders without errors and shows the hero heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Train for the Healthcare Jobs Zambia Needs')
+    expect(text).toContain('Become a nurse, clinical officer, or environmental health inspector')
   })
 
   it('renders the hero CTA buttons with correct links', async () => {
@@ -180,8 +180,8 @@ describe('Landing page verification', () => {
     const text = container.textContent || ''
     expect(text).toContain('300+')
     expect(text).toContain('92%')
-    expect(text).toContain('Graduates Employed')
-    expect(text).toContain('Job Placement Rate')
+    expect(text).toContain('Graduates working in Zambian hospitals')
+    expect(text).toContain('Get hired within 12 months')
   })
 
   // ── Features section ────────────────────────────────────────────────
@@ -189,10 +189,10 @@ describe('Landing page verification', () => {
   it('renders the features section with all feature cards', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Why Students Pick MIHAS-KATC')
+    expect(text).toContain('Why students pick MIHAS-KATC')
     expect(text).toContain('Learn from Working Professionals')
-    expect(text).toContain('Qualifications Employers Trust')
-    expect(text).toContain('We Help You Find Work')
+    expect(text).toContain('A diploma that is registered before you walk out')
+    expect(text).toContain('92% of our graduates are hired within a year')
   })
 
   // ── Accreditation section ───────────────────────────────────────────
@@ -200,7 +200,7 @@ describe('Landing page verification', () => {
   it('renders the accreditation section with all accreditation cards', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Recognized Qualifications That Get You Hired')
+    expect(text).toContain('Your diploma gets you registered')
     expect(text).toContain('NMCZ Accredited')
     expect(text).toContain('HPCZ Accredited')
     expect(text).toContain('ECZ Recognized')
@@ -212,11 +212,52 @@ describe('Landing page verification', () => {
   it('renders the programs section with program cards', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Three Programs. Real Jobs.')
+    expect(text).toContain('Three diplomas. Three career paths.')
     expect(text).toContain('Kalulushi Training Centre')
     expect(text).toContain('Mukuba Institute of Health and Applied Sciences')
     expect(text).toContain('Diploma in Clinical Medicine')
     expect(text).toContain('Diploma in Registered Nursing')
+  })
+
+  // ── How It Works section ────────────────────────────────────────────
+
+  it('renders the how-it-works section with four steps and fee callout', async () => {
+    await renderAndWait()
+    const text = container.textContent || ''
+    expect(text).toContain('How the application works')
+    expect(text).toContain('Create your account')
+    expect(text).toContain('Pay the application fee')
+    expect(text).toContain('K150')
+    expect(text).toContain('USD 20')
+  })
+
+  // ── Eligibility section ─────────────────────────────────────────────
+
+  it('renders the eligibility section with requirements', async () => {
+    await renderAndWait()
+    const text = container.textContent || ''
+    expect(text).toContain('What you need to apply')
+    expect(text).toContain('ECZ Grade 12 certificate')
+    expect(text).toContain('Cambridge certificate accepted')
+    expect(text).toContain('NRC or passport')
+  })
+
+  // ── Accommodation section ───────────────────────────────────────────
+
+  it('renders the accommodation section', async () => {
+    await renderAndWait()
+    const text = container.textContent || ''
+    expect(text).toContain('Coming from out of town? We have a bed for you.')
+    expect(text).toContain('On-campus housing available')
+  })
+
+  // ── International students section ──────────────────────────────────
+
+  it('renders the international students section', async () => {
+    await renderAndWait()
+    const text = container.textContent || ''
+    expect(text).toContain('Applying from outside Zambia?')
+    expect(text).toContain('Pay in USD from anywhere')
   })
 
   // ── CTA section ─────────────────────────────────────────────────────
@@ -224,8 +265,8 @@ describe('Landing page verification', () => {
   it('renders the CTA section with apply link', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Current Intake Is Open')
-    expect(text).toContain('Apply Now')
+    expect(text).toContain('The current intake is open')
+    expect(text).toContain('Start Your Application')
     const html = container.innerHTML || ''
     // CTA links to signup
     expect(html).toContain('/auth/signup')
@@ -238,7 +279,7 @@ describe('Landing page verification', () => {
     await renderAndWait()
     const text = container.textContent || ''
     // Page should still render all sections
-    expect(text).toContain('Train for the Healthcare Jobs Zambia Needs')
-    expect(text).toContain('Three Programs. Real Jobs.')
+    expect(text).toContain('Become a nurse, clinical officer, or environmental health inspector')
+    expect(text).toContain('Three diplomas. Three career paths.')
   })
 })

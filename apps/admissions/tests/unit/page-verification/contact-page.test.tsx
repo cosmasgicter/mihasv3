@@ -137,7 +137,7 @@ describe('Contact page verification', () => {
   it('renders without errors and shows the page heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Contact Admissions')
+    expect(text).toContain('Talk to admissions')
   })
 
   it('renders the back-to-home link', async () => {
@@ -151,7 +151,7 @@ describe('Contact page verification', () => {
   it('renders the page description', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Reach our admissions team')
+    expect(text).toContain('WhatsApp is fastest')
   })
 
   // ── Contact info section ────────────────────────────────────────────
@@ -171,10 +171,15 @@ describe('Contact page verification', () => {
     expect(text).toContain('info@mihas.edu.zm')
   })
 
-  it('renders contact address', async () => {
+  it('renders both campus addresses', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('President Avenue, Kalulushi')
+    // MIHAS address — the one the institution actually operates from
+    expect(text).toContain('Plot 3375 Off President Avenue, Kalulushi')
+    expect(text).toContain('Civic Centre')
+    // KATC address — distinct location (Dag Hammarskjöld Road)
+    expect(text).toContain('Dag Hammarskjöld')
+    expect(text).toContain('10101')
   })
 
   // ── Contact form rendering ──────────────────────────────────────────

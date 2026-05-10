@@ -1,62 +1,21 @@
-import { describe, expect, it, vi } from 'vitest'
+/**
+ * Retired test — the `@/lib/documentTemplates` module it targeted was never
+ * built. The PDF redesign migration (May 2026) replaced the unbuilt HTML+PDF
+ * dual-output approach with three focused generators under `@/lib/pdf`.
+ *
+ * Equivalent coverage now lives in:
+ *   - tests/unit/pdf/applicationSlip.test.tsx
+ *   - tests/unit/pdf/paymentReceipt.test.tsx
+ *   - tests/unit/pdf/acceptanceLetter.test.tsx
+ *   - tests/unit/pdf/primitives.test.tsx
+ *   - tests/unit/pdf/theme.test.ts
+ *
+ * This file is kept as a skipped suite for one release so git-history readers
+ * can trace the migration. It will be deleted in Task 11.
+ */
 
-import { renderOfferLetter } from '@/lib/documentTemplates'
+import { describe, it } from 'vitest'
 
-vi.mock('jspdf', () => {
-  class FakeJsPdf {
-    internal = {
-      pageSize: {
-        getWidth: () => 210,
-        getHeight: () => 297,
-      },
-    }
-
-    setFillColor() {}
-    rect() {}
-    setTextColor() {}
-    setFont() {}
-    setFontSize() {}
-    text() {}
-    splitTextToSize(text: string) {
-      return [text]
-    }
-    addPage() {}
-    setDrawColor() {}
-    line() {}
-    roundedRect() {}
-    output(type: string) {
-      if (type === 'arraybuffer') return new ArrayBuffer(16)
-      return ''
-    }
-  }
-
-  return { jsPDF: FakeJsPdf }
-})
-
-vi.mock('jspdf-autotable', () => ({}))
-
-describe('document template premium shell', () => {
-  it('renders branded premium html for offer letters', async () => {
-    const rendered = await renderOfferLetter({
-      student: { fullName: 'Jane Doe' },
-      application: {
-        programName: 'Diploma in Nursing',
-        intake: 'August 2026',
-        startDate: '2026-08-04',
-        responseDeadline: '2026-06-15',
-        referenceNumber: 'APP-2026-001',
-      },
-      staff: {
-        fullName: 'Admissions Office',
-        title: 'Director of Admissions',
-      },
-    })
-
-    expect(rendered.html).toContain('MIHAS Documents')
-    expect(rendered.html).toContain('Mukuba Institute of Health and Allied Sciences')
-    expect(rendered.html).toContain('Formal admission confirmation and onboarding guidance')
-    expect(rendered.html).toContain('Jane Doe')
-    expect(rendered.html).toContain('APP-2026-001')
-    expect(rendered.pdf.bytes).toBeInstanceOf(Uint8Array)
-  })
+describe.skip('document template premium shell — retired', () => {
+  it('coverage moved to tests/unit/pdf/*.test.tsx', () => {})
 })

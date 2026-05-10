@@ -42,7 +42,7 @@ describe('applicationSessionManager draft deletion', () => {
     const result = await applicationSessionManager.deleteDraft('user-1')
 
     expect(result.success).toBe(true)
-    expect(listMock).toHaveBeenCalledWith({ mine: true, status: 'draft', pageSize: 50 }, {})
+    expect(listMock).toHaveBeenCalledWith({ mine: true, status: 'draft', pageSize: 100 }, {})
     expect(deleteMock).toHaveBeenCalledTimes(2)
     expect(deleteMock).toHaveBeenNthCalledWith(1, 'draft-1')
     expect(deleteMock).toHaveBeenNthCalledWith(2, 'draft-2')

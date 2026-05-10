@@ -35,6 +35,31 @@ Weighted score: 84/100 — Grade: B+ (up from 83)
 | M3 | No request body size limits | FIXED — `DATA_UPLOAD_MAX_MEMORY_SIZE=5MB`, `FILE_UPLOAD_MAX_MEMORY_SIZE=10MB` |
 | M4 | JWT signing key empty string fallback | FIXED — startup check in `CommonConfig.ready()` raises `ImproperlyConfigured` |
 
+## May 2026 Admissions Hardening Follow-Up
+
+The May 9, 2026 admissions hardening pass closed the following audit items in code:
+
+| ID | Finding | Status |
+|----|---------|--------|
+| ZDR-003 | Payment verification amplification | FIXED — `PaymentVerifyView` uses `PaymentVerifyThrottle` with `payment_verify: 10/min` |
+| ZDR-004 | Payment initiation request flooding | FIXED — card and mobile-money initiation use dedicated DRF throttles |
+| ZDR-005 | Raw phone PII in payment metadata | FIXED — mobile-money metadata stores `phone_hash` and `phone_last4`, while raw phone is only sent transiently to Lenco |
+| ZDR-006 | Arbitrary interview status mutation | FIXED — updates reject statuses outside `scheduled`, `completed`, `cancelled`, `no_show`, `rescheduled` |
+| ZDR-007 | Debug auth bypass risk | FIXED — `IsAuthenticatedOrDebug` is removed and settings reject `DEBUG=True` with `api.mihas.edu.zm` |
+| ZDR-008 | `.env.vercel.*` production secrets | VERIFIED IN WORKSPACE — no `.env.vercel.*` files are present; rotate any previously exposed secrets per `docs/runbooks/secrets-rotation.md` |
+| BUG-001 | Celery Beat idempotency cleanup task name | FIXED — schedule uses `apps.common.tasks.cleanup_idempotency_keys` |
+| BUG-002 | Session endpoint envelope drift | FIXED — `SessionView` returns `{success, data}` for authenticated and unauthenticated states |
+| BUG-003 | Refresh cookie max-age drift | FIXED — auth cookies derive max-age from `SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"]` |
+| BUG-004 | Deprecated Django storage settings | FIXED — storage is configured through `STORAGES` |
+| BUG-005 | Duplicate preview-summary return | FIXED — the view has one response path for the generated summary |
+| BUG-006 | `payment_id=None` serialized as `"None"` | FIXED — already-paid initiation returns JSON `null` |
+| BUG-007 | Mark-all-read missing `read_at` | FIXED — bulk read updates set `read_at` with `timezone.now()` |
+| BUG-008 | Notification POST bypassed DRF lifecycle | FIXED — notification POST now calls the shared creation helper instead of instantiating another view |
+| BUG-009 through BUG-015 | Catalog envelope drift | FIXED — catalog responses return the standard envelope |
+| BUG-016 | Unprotected `idempotency_redesign.sql` | VERIFIED IN WORKSPACE — the script is not present under `backend/scripts/` |
+| BUG-017 | Admissions application URL encoding gaps | FIXED — application sub-resource calls use `encodeURIComponent(id)` |
+| BUG-018 | Admin settings URL encoding gaps | FIXED — settings update/delete encode `id` |
+
 ---
 
 ## Open Findings

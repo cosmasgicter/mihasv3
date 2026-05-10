@@ -55,3 +55,31 @@ If code behavior changes in:
 - `backend/DEPLOY.md`
 
 then this document and ADR-007 must be updated in the same change.
+
+## Payment Hardening — DRF Throttle Scopes
+
+The payment-hardening spec (`.kiro/specs/payment-hardening/`) adds four
+per-scope DRF throttles that key on `request.user.pk` for authenticated
+requests. They are declared in `REST_FRAMEWORK.DEFAULT_THROTTLE_RATES`
+in `backend/config/settings/base.py`.
+
+| Scope | Rate | Endpoint | Behaviour When Redis Is Down |
+|-------|-----:|----------|-----------------------------:|
+| `payment_initiate` | 6/min | `POST /api/v1/payments/initiate/` | Fail open (DRF default) |
+| `payment_mobile_money` | 6/min | `POST /api/v1/payments/mobile-money/` | Fail open |
+| `payment_verify` | 30/min | `POST /api/v1/payments/{id}/verify/` | Fail open |
+| `payment_resolve_fee` | 30/min | `GET /api/v1/payments/resolve-fee/` | Fail open |
+
+DRF's default cache-backed throttle implementation fails open on
+`cache.get_or_set` errors — if Redis is unavailable the throttle simply
+does not increment and no 429 is returned. This matches the platform's
+degradation posture: payment availability is favoured over throttling
+precision during a Redis outage. The Phase 5 flag
+`PAYMENT_HARDENING_RATE_LIMITS=True` enables these scopes; when off, the
+pre-existing throttle configuration remains in effect.
+
+The webhook endpoint `POST /api/v1/payments/webhook/lenco/` is
+intentionally NOT throttled. Webhook ingress is gated by HMAC-SHA512
+signature validation instead (see `WebhookProcessor.validate_signature`),
+and the platform's obligation to Lenco is to return HTTP 200 for every
+delivery attempt (`R8.2`).

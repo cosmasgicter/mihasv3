@@ -162,6 +162,8 @@ The frontend and backend share a single, unified API contract. There is no compa
 - Shared jobs-ops scaffold data currently lives in `backend/apps/common/jobs_ops_seed.py`; do not re-duplicate that seed state across views.
 - Current default error-alert recipient is `admin@mihas.edu.zm` (configurable via `ERROR_ALERT_EMAIL` env var). Used for uptime, payment failures, and SLA breach alerts. Error monitoring uses GlitchTip.
 - Payment records live in the `payments` table (managed by `backend/apps/documents/`). Application-level payment summaries should be derived from canonical payment records, not from retired inline compatibility columns.
+- Django storage backends are configured through the Django 5 `STORAGES` dict. Do not reintroduce `STATICFILES_STORAGE` or `DEFAULT_FILE_STORAGE`.
+- Payment metadata must not persist raw phone numbers. Mobile-money records may keep `phone_hash` and `phone_last4`; raw phone values are only allowed in the transient outbound Lenco request.
 - `.env` and `.env.local` files are gitignored and safe for real credentials during local development. They are never committed to the repository. When the user asks to add real secrets to these files, do so without hesitation — the gitignore is configured correctly.
 - Email is sent via Zoho SMTP (smtp.zoho.com:465, TLS). No IMAP integration — the platform only sends outbound email, it does not read inboxes. Resend is configured as a fallback for transactional delivery.
 
@@ -182,6 +184,40 @@ The platform uses Lenco as its payment gateway for application fees. Key compone
 | `useFeeResolver` | `apps/admissions/src/hooks/useFeeResolver.ts` | Frontend fee resolution hook |
 | `usePaymentStatus` | `apps/admissions/src/hooks/usePaymentStatus.ts` | Payment status polling hook |
 | `PaymentStep` | `apps/admissions/src/pages/student/applicationWizard/steps/PaymentStep.tsx` | Wizard payment step: mobile money (primary), card widget (secondary), defer option |
+| `PaymentAuditService` | `backend/apps/documents/payment_audit_service.py` | Payment audit writes + PII redaction; single source of truth for `audit_logs.entity_type='payment'` rows. See `docs/adrs/ADR-003-reuse-audit-logs.md`. |
+| `payment_metrics` | `backend/apps/documents/payment_metrics.py` | Counter registry (`PAYMENT_COUNTERS`) + PII label guardrail for `sentry_sdk.metrics.incr`. |
+| `payment_error_codes` | `backend/apps/documents/payment_error_codes.py` | Authoritative `PAYMENT_ERROR_CODES` map (stable code → HTTP status + message). Frontend mirror at `apps/admissions/src/lib/paymentErrorCodes.ts`. |
+| `WebhookEventIdentity` | `backend/apps/documents/webhook_processor.py` | Canonical dedup primitive: `(provider_event_id, event_type, reference, payload_hash)`. See `docs/adrs/ADR-004-canonical-json-webhook-dedup.md`. |
+| `paymentRecoveryStore` | `apps/admissions/src/stores/paymentRecoveryStore.ts` | Zustand + localStorage recovery store keyed by `application_id` with 24-hour TTL (Phase 4). |
+| `paymentNextActions` | `apps/admissions/src/lib/paymentNextActions.ts` | Stable-code-driven `PaymentNextAction` union with user-facing copy. |
+| `zambianMsisdn` | `apps/admissions/src/lib/zambianMsisdn.ts` | Client-side Zambian MSISDN format validation + normalisation (no operator inference). |
+| `derivePaymentUiState` | `apps/admissions/src/lib/paymentStatus.ts` | Pure mapper from `{backendStatus, inflight, stableCode, pollingExceededTimeout}` to `PaymentUiState` (Phase 4). |
+| `SuperAdminPaymentCorrectionView` | `backend/apps/documents/views.py` | `POST /api/v1/payments/{id}/correct/` — super-admin-only correction endpoint, reason ≥ 10 chars (Phase 5). |
+| `RiskFlagsListView` | `backend/apps/documents/risk_views.py` | `GET /api/v1/payments/risk-flags/` — super-admin-only paginated risk-flag review (Phase 5). |
+| `dev_bypass` | `backend/apps/common/dev_bypass.py` | `require_not_dev_bypass_in_production` decorator — 404 on any bypass vector under production settings (Phase 5). |
+| `throttling` | `backend/apps/common/throttling.py` | `PaymentUserScopedRateThrottle` keyed by `user.pk` or client IP (Phase 5). |
+
+Payment hardening status: Phases 1–5 shipped. See
+`docs/runbooks/payment-hardening-rollout.md` for the enable/disable
+matrix and rollback order.
+
+## Payment Hardening Feature Flags
+
+The payment-hardening rollout (spec `.kiro/specs/payment-hardening/`) ships
+behind the following per-phase environment flags. Each defaults to `False`
+so the legacy code path remains in effect until the flag is explicitly
+flipped.
+
+| Flag | Phase | Scope | Gates |
+|------|-------|-------|-------|
+| `PAYMENT_HARDENING_FORWARD_ONLY` | 2 | Backend | `PaymentService._transition()` forward-only guard + hardened view branches |
+| `PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT` | 3 | Backend | Canonical-JSON + `WebhookEventIdentity` strict dedup on `/api/v1/payments/webhook/lenco/` |
+| `PAYMENT_HARDENING_RATE_LIMITS` | 5 | Backend | Per-user DRF throttle scopes (`payment_initiate`, `payment_mobile_money`, `payment_verify`, `payment_resolve_fee`) |
+| `PAYMENT_HARDENING_FORCE_APPROVED` | 5 | Backend | Admin override creates a `force_approved` Payment instead of synthetic zero-amount `successful` |
+| `VITE_PAYMENT_HARDENING_UI` | 4 | Frontend (Vercel build-time) | New PaymentStep UI state matrix + recovery store + stable error-code copy |
+
+Rollback for any phase is a flag flip (set to `False`) and redeploy — no
+schema revert required because Phase 1 schema changes are additive.
 
 Payment API endpoints:
 - `POST /api/v1/payments/initiate/` — create pending payment, returns widget config
@@ -205,6 +241,26 @@ Environment variables:
 - Frontend: `VITE_LENCO_PUBLIC_KEY`, `VITE_LENCO_WIDGET_URL`
 
 Webhook URL registered with Lenco: `https://api.mihas.edu.zm/api/v1/payments/webhook/lenco/`
+
+## Document and Email Generation
+
+Two separate PDF systems, by design:
+
+| System | Scope | Engine | Entry point |
+|--------|-------|--------|-------------|
+| Branded student documents | Application slip, payment receipt, acceptance letter | `@react-pdf/renderer` v4 | `@/lib/pdf` barrel — `generateApplicationSlip`, `generatePaymentReceipt`, `generateAcceptanceLetter` |
+| Admin large-table exports | Audit trail, applications roster | `jspdf` + `jspdf-autotable` (+ `pdf-lib` for user export) | `@/lib/auditExports`, `@/lib/exportUtils` |
+
+**Rules:**
+- Any new **student-facing** branded document (letter, certificate, slip) goes in `@/lib/pdf/documents/` and uses the shared primitives.
+- Any new **admin tabular export** that stays in admin-only flows can continue to use `jspdf`.
+- Never mix — a branded document built with jspdf will drift from the design system; a large-table export built with `@react-pdf` will struggle with performance at 2,000+ rows.
+- Custom fonts for `@react-pdf` live in `apps/admissions/public/fonts/pdf/` and are registered idempotently by `registerPdfFonts()` — not via `@fontsource` npm packages.
+- Default signatory for acceptance letters: Dr Solomon Musonda, Director (overall director for both MIHAS and KATC; overridable per letter).
+
+Transactional emails use a Python component system at `backend/apps/common/email/`. Call `render_message(message_type, context)` which returns `(subject, html, text)`. Supported types: `application_submitted`, `payment_received`, `interview_scheduled`, `acceptance`, `conditional_acceptance`, `rejection`, `password_reset`. The `communication_templates` DB table still drives per-intake subject overrides; the component system owns structure and visual identity.
+
+See `apps/admissions/src/lib/pdf/README.md`, `backend/apps/common/email/README.md`, and `docs/adrs/ADR-008-react-pdf-adoption.md` for the full story.
 
 ## Error Monitoring
 

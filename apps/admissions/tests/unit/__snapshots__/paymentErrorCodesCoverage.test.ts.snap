@@ -1,0 +1,136 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PAYMENT_NEXT_ACTIONS — coverage > PAYMENT_NEXT_ACTION_COPY snapshot pins wording 1`] = `
+[
+  {
+    "action": "already_paid",
+    "guidance": "This application is already paid. You can access your receipt from the dashboard.",
+    "label": "View receipt",
+  },
+  {
+    "action": "check_status",
+    "guidance": "Your payment is still being confirmed. You can check the status in a moment or continue waiting.",
+    "label": "Check status",
+  },
+  {
+    "action": "contact_support",
+    "guidance": "We could not complete your payment. Please contact support for help resolving this.",
+    "label": "Contact support",
+  },
+  {
+    "action": "retry_with_different_number",
+    "guidance": "The mobile money number was not accepted. Enter a different Airtel or MTN number and try again.",
+    "label": "Try a different number",
+  },
+  {
+    "action": "unavailable",
+    "guidance": "The payment service is temporarily unavailable. Please wait a moment and try again.",
+    "label": "Try again later",
+  },
+]
+`;
+
+exports[`PAYMENT_STABLE_CODES — coverage > PAYMENT_ERROR_COPY snapshot pins wording 1`] = `
+[
+  {
+    "body": "Payment for this application is already complete.",
+    "code": "ALREADY_PAID",
+    "title": "Already paid",
+  },
+  {
+    "body": "The amount received does not match your application fee. Please contact support before retrying.",
+    "code": "AMOUNT_MISMATCH",
+    "title": "Payment amount does not match",
+  },
+  {
+    "body": "We could not find this application. Please refresh and try again.",
+    "code": "APPLICATION_NOT_FOUND",
+    "title": "Application not found",
+  },
+  {
+    "body": "This application cannot be paid for yet. Complete the earlier steps first.",
+    "code": "APPLICATION_NOT_PAYABLE",
+    "title": "Application not ready for payment",
+  },
+  {
+    "body": "This payment has already completed successfully and cannot be reversed.",
+    "code": "CANNOT_REVERSE_SUCCESSFUL_PAYMENT",
+    "title": "Successful payment cannot be reversed",
+  },
+  {
+    "body": "The currency of your payment does not match the application fee. Please contact support.",
+    "code": "CURRENCY_MISMATCH",
+    "title": "Payment currency does not match",
+  },
+  {
+    "body": "This draft cannot be deleted while a payment record exists. Please contact support.",
+    "code": "DRAFT_DELETE_BLOCKED_BY_PAYMENT",
+    "title": "Draft cannot be deleted",
+  },
+  {
+    "body": "We could not look up the fee for this program. Please try again later.",
+    "code": "FEE_UNAVAILABLE",
+    "title": "Fee not available",
+  },
+  {
+    "body": "You have reached the maximum number of payment attempts for this application. Please contact support.",
+    "code": "MAX_PAYMENT_ATTEMPTS_EXCEEDED",
+    "title": "Too many payment attempts",
+  },
+  {
+    "body": "Your payment did not include the confirmation reference. Please try again or contact support.",
+    "code": "MISSING_PROVIDER_REFERENCE",
+    "title": "Payment reference missing",
+  },
+  {
+    "body": "You do not have permission to perform this action.",
+    "code": "NOT_OWNER",
+    "title": "Not authorized",
+  },
+  {
+    "body": "A reason of at least 10 characters is required for this action.",
+    "code": "OVERRIDE_REASON_REQUIRED",
+    "title": "Reason required",
+  },
+  {
+    "body": "Your payment has been confirmed.",
+    "code": "PAYMENT_CONFIRMED",
+    "title": "Payment confirmed",
+  },
+  {
+    "body": "Your payment is still being processed. We will confirm it shortly.",
+    "code": "PAYMENT_PENDING",
+    "title": "Payment is processing",
+  },
+  {
+    "body": "These fields cannot be changed while payment activity exists on your application.",
+    "code": "PAYMENT_SENSITIVE_FIELDS_LOCKED",
+    "title": "Application is locked for this change",
+  },
+  {
+    "body": "Payment processing is not available right now. Please try again later.",
+    "code": "PAYMENT_UNAVAILABLE",
+    "title": "Payment processing unavailable",
+  },
+  {
+    "body": "The payment service is temporarily unavailable. Please try again in a moment.",
+    "code": "PROVIDER_UNAVAILABLE",
+    "title": "Payment service temporarily unavailable",
+  },
+  {
+    "body": "You are doing that too often. Please wait a moment and try again.",
+    "code": "RATE_LIMITED",
+    "title": "Too many requests",
+  },
+  {
+    "body": "A receipt is only available for successful or force-approved payments.",
+    "code": "RECEIPT_NOT_ELIGIBLE",
+    "title": "Receipt not available",
+  },
+  {
+    "body": "Some of the details you entered are not valid. Please review and try again.",
+    "code": "VALIDATION_ERROR",
+    "title": "Check your input",
+  },
+]
+`;

@@ -165,24 +165,24 @@ def create_notification(
             metadata=metadata,
             idempotency_key=idempotency_key,
         )
-    _record_outbox_event(
-        event_type="notification.created",
-        channel="notification",
-        payload={
-            "user_id": str(user_id),
-            "title": normalized_title,
-            "message": normalized_message,
-            "type": normalized_type,
-            "priority": normalized_priority,
-            "action_url": normalized_action_url,
-            "metadata": metadata or {},
-        },
-        target_table="notifications",
-        target_id=notification.id,
-        aggregate_type="user",
-        aggregate_id=user_id,
-        idempotency_key=idempotency_key,
-    )
+        _record_outbox_event(
+            event_type="notification.created",
+            channel="notification",
+            payload={
+                "user_id": str(user_id),
+                "title": normalized_title,
+                "message": normalized_message,
+                "type": normalized_type,
+                "priority": normalized_priority,
+                "action_url": normalized_action_url,
+                "metadata": metadata or {},
+            },
+            target_table="notifications",
+            target_id=notification.id,
+            aggregate_type="user",
+            aggregate_id=user_id,
+            idempotency_key=idempotency_key,
+        )
     return notification
 
 

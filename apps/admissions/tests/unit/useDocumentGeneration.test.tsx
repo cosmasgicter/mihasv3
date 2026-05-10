@@ -6,22 +6,16 @@ import {
   extractApplicationFromEnvelope,
   useDocumentGeneration,
 } from '@/hooks/useDocumentGeneration';
-import { generateApplicationSlip } from '@/lib/applicationSlipPdf';
-import { generateAcceptanceLetter } from '@/lib/acceptanceLetterGenerator';
-import { generatePaymentReceipt } from '@/lib/receiptGenerator';
+import { generateApplicationSlip } from '@/lib/pdf';
+import { generateAcceptanceLetter } from '@/lib/pdf';
+import { generatePaymentReceipt } from '@/lib/pdf';
 
 const getByIdMock = vi.fn();
 const apiRequestMock = vi.fn();
 
-vi.mock('@/lib/applicationSlipPdf', () => ({
+vi.mock('@/lib/pdf', () => ({
   generateApplicationSlip: vi.fn(async () => new Blob(['slip'])),
-}));
-
-vi.mock('@/lib/acceptanceLetterGenerator', () => ({
   generateAcceptanceLetter: vi.fn(async () => new Blob(['acceptance'])),
-}));
-
-vi.mock('@/lib/receiptGenerator', () => ({
   generatePaymentReceipt: vi.fn(async () => new Blob(['receipt'])),
   generateReceiptNumber: vi.fn(() => 'RCT-001'),
 }));

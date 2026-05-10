@@ -58,8 +58,8 @@ class TestReadinessProbeRedisStatusAndLatency(SimpleTestCase):
     """Property 7: Readiness Probe Redis Status and Latency.
 
     For any readiness probe request, the response body SHALL contain a `redis`
-    field (either "ok" or "degraded") and a `redis_latency_ms` field that is a
-    non-negative number. When Redis responds successfully, `redis` SHALL be
+    field (either "ok" or "degraded") and SHALL NOT expose infrastructure
+    latency. When Redis responds successfully, `redis` SHALL be
     "ok". When Redis fails or times out, `redis` SHALL be "degraded" and the
     HTTP status SHALL be 200.
 
@@ -70,7 +70,7 @@ class TestReadinessProbeRedisStatusAndLatency(SimpleTestCase):
     @given(redis_ok=REDIS_STATUS, latency=REDIS_LATENCY_SECONDS)
     @settings(max_examples=20, deadline=None)
     def test_redis_status_and_latency_in_response(self, redis_ok, latency):
-        """Response always contains redis status and non-negative latency_ms."""
+        """Response contains redis status without exposing redis_latency_ms."""
         view, request = _build_view_and_request()
 
         def fake_check_redis_with_latency(self_inner):
@@ -88,10 +88,7 @@ class TestReadinessProbeRedisStatusAndLatency(SimpleTestCase):
         self.assertIn("redis", data)
         self.assertIn(data["redis"], ("ok", "degraded"))
 
-        # Response must contain redis_latency_ms field
-        self.assertIn("redis_latency_ms", data)
-        self.assertIsInstance(data["redis_latency_ms"], (int, float))
-        self.assertGreaterEqual(data["redis_latency_ms"], 0)
+        self.assertNotIn("redis_latency_ms", data)
 
         # When Redis is ok, status should be "ok"
         if redis_ok:

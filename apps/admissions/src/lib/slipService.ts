@@ -37,7 +37,7 @@ export async function createApplicationSlip(
 
   try {
     const [{ generateApplicationSlip }, { persistSlip }] = await Promise.all([
-      importWithChunkRecovery(() => import('./applicationSlipPdf'), {
+      importWithChunkRecovery(() => import('@/lib/pdf'), {
         guardKey: 'wizard-slip-pdf',
         recoveryMessage: 'A newer version of the slip generator is loading. Please wait a moment and try again.',
       }),
@@ -47,10 +47,11 @@ export async function createApplicationSlip(
       }),
     ])
 
-    // Always generate locally with jsPDF
-    const blob = await generateApplicationSlip(data).catch(err => {
+    // Always generate locally via @react-pdf/renderer
+    const blob = await generateApplicationSlip(data).catch((err: unknown) => {
       console.error('Slip generation error:', err)
-      throw new Error(`Failed to generate PDF: ${err.message || 'Unknown error'}`)
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      throw new Error(`Failed to generate PDF: ${message}`)
     })
 
     let uploadError: string | undefined
