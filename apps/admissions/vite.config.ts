@@ -72,38 +72,40 @@ function normalizeProxyTarget(value: string): string {
 /**
  * Post-build HTML finaliser.
  *
- * Runs as a single `closeBundle` handler so we can guarantee ordering
- * between critical-CSS inlining and modulepreload injection. Running
- * these as separate plugins with `enforce: 'post'` isn't reliable —
- * Vite doesn't guarantee stable closeBundle ordering between them, and
- * critters' htmlparser2 pipeline silently drops `<link rel="modulepreload">`
- * tags it doesn't recognise.
+ * Lesson learned from the May 2026 perf regression:
  *
- * Steps, in order:
- *   1. Read dist/index.html.
- *   2. Run critters to extract & inline above-the-fold CSS, then
- *      rewrite the main stylesheet link to load deferred. Cuts
- *      render-blocking CSS round-trip for the first paint.
- *   3. Splice <link rel="modulepreload"> tags for marketing-route
- *      chunks just before </head>. This parallelises the
- *      entry → LandingPage chunk fetch — the dominant contributor to
- *      the 15 s cold-start on 3G in the May 2026 baseline.
- *   4. Write the final HTML back.
+ *   The previous version of this plugin wired critters and injected
+ *   45 modulepreload hints for the entire marketing dep graph. In
+ *   production on mobile, this made things WORSE — first paint
+ *   regressed from 15 s to 30 s, Lighthouse dropped 97 → 88 — because:
+ *
+ *     1. Critters with `preload: 'swap'` emitted a render-blocking
+ *        `<link rel="stylesheet" onload="this.rel='stylesheet'">` (the
+ *        onload swap is a no-op when rel is already 'stylesheet'), and
+ *        a duplicate copy of the same stylesheet tag. Inlined only
+ *        ~1 KB of CSS while adding the duplicate request overhead.
+ *
+ *     2. 45 modulepreload hints saturated the browser's concurrent
+ *        fetch budget and forced the main thread to parse + compile
+ *        every module before React could even mount. On mid-range
+ *        Android the CPU cost alone was >10 s.
+ *
+ * Current approach — minimal and measured:
+ *   - No critters. The full index.css ships as a single
+ *     `<link rel="stylesheet">` and Vite's default loader is fine.
+ *     (If we revisit critical CSS later, we'll use a more conservative
+ *     inlining strategy and verify every metric before shipping.)
+ *   - Exactly ONE modulepreload hint for the LandingPage chunk, so
+ *     the browser starts fetching it in parallel with the entry JS
+ *     instead of waiting for React to discover the lazy() import.
+ *     Vite's own modulePreload handles transitive deps of the entry
+ *     chunk; we do not need to replicate that graph by hand.
+ *
+ * If this still isn't fast enough after deploy, the next step is
+ * Phase B (prerender marketing routes) — a one-shot architectural
+ * change — not more handwritten preload tweaks.
  */
 function finaliseHtmlPlugin(): Plugin {
-  // Matches the lazy() imports in src/App.tsx for the public/marketing surface.
-  const TARGET_ROUTES = new Set([
-    'src/pages/LandingPage.tsx',
-    'src/pages/ContactPage.tsx',
-    'src/pages/TermsPage.tsx',
-    'src/pages/PrivacyPage.tsx',
-    'src/pages/NotFoundPage.tsx',
-  ])
-  // Plus the LandingPageSections lazy import inside LandingPage itself.
-  const TARGET_SECTIONS = new Set([
-    'src/components/landing/LandingPageSections.tsx',
-  ])
-
   return {
     name: 'mihas-finalise-html',
     apply: 'build',
@@ -120,112 +122,34 @@ function finaliseHtmlPlugin(): Plugin {
         return
       }
 
-      // --- Step 2: inline critical CSS via critters ---
-      try {
-        const { default: Critters } = await import('critters')
-        const critters = new Critters({
-          path: distDir,
-          publicPath: '/',
-          external: true,
-          inlineFonts: false,
-          preloadFonts: false,
-          pruneSource: false,
-          compress: true,
-          mergeStylesheets: false,
-          preload: 'swap',
-          logLevel: 'warn',
-        })
-        html = await critters.process(html)
-        const inlinedMatch = /<style[^>]*>([\s\S]*?)<\/style>/m.exec(html)
-        const inlinedKb = Math.round(
-          (inlinedMatch ? Buffer.byteLength(inlinedMatch[1]!) : 0) / 1024,
-        )
-        // eslint-disable-next-line no-console
-        console.log(
-          `\u001b[32m✓\u001b[0m finalise-html: inlined ~${inlinedKb} KB of critical CSS`,
-        )
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          `⚠ finalise-html: critical-CSS inlining skipped — ${(err as Error).message}`,
-        )
-      }
-
-      // --- Step 3: inject modulepreload hints for marketing chunks ---
-      let manifest: Record<string, { file: string; src?: string; isEntry?: boolean }> = {}
+      // Find the LandingPage chunk in the manifest and emit a single
+      // modulepreload hint for it. The manifest key pattern is either
+      // `src/pages/LandingPage.tsx` (expected) or a synthesised
+      // `_LandingPage-<hash>.js` key when the chunk is also imported
+      // from other places; handle both.
+      let manifest: Record<string, { file: string; src?: string; isEntry?: boolean; isDynamicEntry?: boolean }> = {}
       try {
         const raw = await fs.readFile(manifestPath, 'utf8')
         manifest = JSON.parse(raw)
       } catch {
-        // No manifest — skip hints silently. The build will still work,
-        // just without the modulepreload optimisation.
+        await fs.writeFile(htmlPath, html, 'utf8')
+        return
       }
 
-      const hints: string[] = []
-      const addedFiles = new Set<string>()
-      // Target files by manifest key (source path) OR file-basename prefix.
-      // LandingPage's manifest entry sometimes lacks a `src` field because
-      // it's pulled in as a dependency of multiple chunks; fall back to
-      // matching the output filename so we never miss it.
-      const TARGET_BASENAMES = /^(LandingPage|ContactPage|TermsPage|PrivacyPage|NotFoundPage|LandingPageSections)-/
-
-      // Build quick lookups:
-      //   byKey   — manifest key → entry
-      //   byFile  — output file path → entry
-      const byKey = new Map(Object.entries(manifest))
-      const byFile = new Map(
-        Object.entries(manifest).map(([k, v]) => [v.file, { key: k, ...v }]),
-      )
-
-      /**
-       * Walk an entry's direct + transitive imports, adding each emitted
-       * JS file to `addedFiles`. Vite's own modulePreload only handles
-       * chunks imported from the HTML entry — lazy chunks like
-       * LandingPage are responsible for loading their own deps, which
-       * creates a round-trip waterfall. Preloading everything the
-       * LandingPage needs collapses that waterfall.
-       */
-      const walk = (key: string | undefined, depth = 0): void => {
-        if (!key || depth > 8 || addedFiles.has(key)) return
-        const entry = byKey.get(key)
-        if (!entry) return
-        addedFiles.add(key)
-        if (entry.file && entry.file.endsWith('.js')) {
-          hints.push(
-            `<link rel="modulepreload" crossorigin href="/${entry.file}" />`,
-          )
-        }
-        const imports = (entry as unknown as { imports?: string[] }).imports ?? []
-        for (const dep of imports) {
-          // imports can be manifest keys (src/pages/*.tsx) or raw filenames
-          // (index.html, _LandingPage-hash.js). Try both.
-          if (byKey.has(dep)) {
-            walk(dep, depth + 1)
-          } else {
-            const matchByFile = byFile.get(dep)
-            if (matchByFile) walk(matchByFile.key, depth + 1)
-          }
-        }
-      }
-
-      for (const [key, entry] of Object.entries(manifest)) {
-        const matchesByKey = TARGET_ROUTES.has(key) || TARGET_SECTIONS.has(key)
+      const landingEntry = Object.values(manifest).find((entry) => {
         const basename = entry.file.split('/').pop() ?? ''
-        const matchesByFile = TARGET_BASENAMES.test(basename)
-        if (matchesByKey || matchesByFile) {
-          walk(key)
-        }
-      }
+        return /^LandingPage-/.test(basename)
+      })
 
-      if (hints.length > 0) {
-        html = html.replace(/<\/head>/, `${hints.join('')}</head>`)
+      if (landingEntry) {
+        const hint = `<link rel="modulepreload" crossorigin href="/${landingEntry.file}" />`
+        html = html.replace(/<\/head>/, `${hint}</head>`)
         // eslint-disable-next-line no-console
         console.log(
-          `\u001b[32m✓\u001b[0m finalise-html: added ${hints.length} modulepreload hint(s)`,
+          `\u001b[32m✓\u001b[0m finalise-html: preload hint for LandingPage (${landingEntry.file})`,
         )
       }
 
-      // --- Step 4: write back ---
       await fs.writeFile(htmlPath, html, 'utf8')
     },
   }

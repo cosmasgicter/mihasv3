@@ -29,20 +29,14 @@
     <!-- Supabase preconnect removed - fully migrated to Neon Postgres -->
 
     <!--
-      LCP hint: the hero "proof panel" image on / is the largest element
-      above the fold on most viewports. Preloading it alongside the JS
-      entry lets the browser fetch it in parallel with the LandingPage
-      chunk instead of waiting for JS to discover the <img>. imagesrcset
-      matches the OptimizedImage variants emitted at build time.
+      LCP image preload was removed after the May 2026 Phase A regression:
+      competing for bandwidth with the entry JS on mobile worsened FCP by
+      several seconds even though the image itself was tiny. The hero
+      image is served with fetchpriority=high on the <img> tag inside
+      LandingPage, which is sufficient once the React component mounts.
+      Do not re-add a <link rel="preload" as="image"> here without first
+      measuring on a throttled 3G mobile profile.
     -->
-    <link
-      rel="preload"
-      as="image"
-      href="/images/programs/mihas-campus-640w.webp"
-      imagesrcset="/images/programs/mihas-campus-320w.webp 320w, /images/programs/mihas-campus-640w.webp 640w"
-      imagesizes="(min-width: 1024px) 32rem, 100vw"
-      fetchpriority="high"
-    />
     <!-- 
       Font strategy: Inter is used as the primary font via the system font stack.
       No external font files are loaded — the browser uses a locally installed Inter
