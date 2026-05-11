@@ -33,6 +33,8 @@ class ApplicationDocument(models.Model):
     created_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(null=True, blank=True)
     extracted_text = models.TextField(null=True, blank=True)
+    ecz_exam_number = models.CharField(max_length=20, null=True, blank=True)
+    ecz_exam_year = models.IntegerField(null=True, blank=True)
 
     class Meta:
         managed = False

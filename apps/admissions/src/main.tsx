@@ -203,7 +203,10 @@ if (typeof window !== 'undefined') {
     const preloader = document.getElementById('preloader')
     if (preloader) {
       preloader.classList.add('fade-out')
-      setTimeout(() => preloader.remove(), 250)
+      // Match the .mihas-preloader CSS transition (350ms) with a small
+      // buffer so the fade animation fully plays before the node is torn
+      // out of the DOM.
+      setTimeout(() => preloader.remove(), 400)
     }
   }
 }

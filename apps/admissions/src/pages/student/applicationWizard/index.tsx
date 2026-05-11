@@ -105,6 +105,7 @@ const ApplicationWizardContent = () => {
     ocrStatus,
     ocrExtractedCount,
     ocrFailureReason,
+    ocrExtractionMeta,
     retryOcr,
     persistingSlip,
     slipLoading,
@@ -827,6 +828,7 @@ const ApplicationWizardContent = () => {
                 ocrStatus={ocrStatus}
                 ocrExtractedCount={ocrExtractedCount}
                 ocrFailureReason={ocrFailureReason}
+                ocrExtractionMeta={ocrExtractionMeta}
                 onRetryOcr={retryOcr}
               />
               </ErrorBoundary>

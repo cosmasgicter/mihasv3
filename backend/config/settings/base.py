@@ -367,6 +367,10 @@ REST_FRAMEWORK = {
         "payment_resolve_fee": "30/min",
         "payment_correct": "3/min",
         "payment_risk_flags": "30/min",
+        # AI hardening scopes (gated by AI_HARDENING_RATE_LIMITS)
+        "ai_admin_summary": "60/hour",
+        "ai_document_extract": "5/hour",
+        "ai_student_preview": "10/hour",
     },
     "DEFAULT_PAGINATION_CLASS": "apps.common.pagination.StandardPagination",
     "PAGE_SIZE": 20,
@@ -622,6 +626,34 @@ PAYMENT_HARDENING_RATE_LIMITS = os.environ.get(
 # legacy behaviour is preserved.
 PAYMENT_HARDENING_FORCE_APPROVED = os.environ.get(
     "PAYMENT_HARDENING_FORCE_APPROVED", ""
+).lower() in ("1", "true", "yes")
+
+# ---------------------------------------------------------------------------
+# AI hardening flags — see docs/ai-data-flows.md and apps/common/ai_*.py
+# ---------------------------------------------------------------------------
+
+# Enables the Redis-backed circuit breaker in ``apps.common.ai_circuit_breaker``
+# around every AI Gateway call. When False the breaker is a pass-through.
+AI_HARDENING_CIRCUIT_BREAKER = os.environ.get(
+    "AI_HARDENING_CIRCUIT_BREAKER", ""
+).lower() in ("1", "true", "yes")
+
+# Enables ``AIUserScopedRateThrottle`` on admin-summary, document-extract,
+# and student-preview endpoints. When False those throttles are no-ops.
+AI_HARDENING_RATE_LIMITS = os.environ.get(
+    "AI_HARDENING_RATE_LIMITS", ""
+).lower() in ("1", "true", "yes")
+
+# Enables Redis caching of admin-summary and student-preview AI responses
+# via ``apps.common.ai_cache``. When False the caching layer is bypassed.
+AI_HARDENING_CACHE = os.environ.get(
+    "AI_HARDENING_CACHE", ""
+).lower() in ("1", "true", "yes")
+
+# Enables PII redaction in ``apps.common.ai_prompt_redactor`` before
+# admin-summary and student-preview prompts are sent to the AI Gateway.
+AI_HARDENING_REDACTION = os.environ.get(
+    "AI_HARDENING_REDACTION", ""
 ).lower() in ("1", "true", "yes")
 
 # Reconciliation minimum-age cutoff before pending payments are re-queried

@@ -49,6 +49,8 @@ class DocumentSerializer(serializers.ModelSerializer):
             "system_generated",
             "uploaded_at",
             "extracted_text",
+            "ecz_exam_number",
+            "ecz_exam_year",
             "created_at",
             "updated_at",
         ]

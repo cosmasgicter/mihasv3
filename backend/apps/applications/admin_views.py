@@ -26,6 +26,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
+from apps.common.throttling import AIUserScopedRateThrottle
 from apps.applications.document_intelligence import DocumentIntelligence
 from apps.applications.filters import ApplicationFilter, annotate_activity_at
 from apps.applications.models import (
@@ -1292,6 +1293,9 @@ class ApplicationAdminSummaryView(APIView):
 
     permission_classes = [IsAdmin]
     serializer_class = ApplicationAiSummaryResponseSerializer
+    # AI hardening: per-admin rate throttle (60/hour) when flag is on.
+    throttle_classes = [AIUserScopedRateThrottle]
+    throttle_scope = "ai_admin_summary"
 
     @extend_schema(
         request=None,
@@ -1312,28 +1316,59 @@ class ApplicationAdminSummaryView(APIView):
             )
 
         from apps.applications.serializers import build_grades_summary
+        from apps.common.ai_cache import (
+            cached_ai_call,
+            compute_application_fingerprint,
+        )
 
         docs = ApplicationDocument.objects.filter(application_id=app.id).values_list("document_type", flat=True)
         docs_summary = ", ".join(docs) if docs else "No documents uploaded"
 
-        summary = None
-        try:
+        # Super-admin-only cache bypass — audit-logged via the existing
+        # middleware. Non-super-admins always read from cache when
+        # available.
+        force_refresh = False
+        if request.query_params.get("refresh") == "1":
+            if getattr(request.user, "role", None) == "super_admin":
+                force_refresh = True
+                logger.info(
+                    "ai_cache: admin-summary force refresh app=%s by=%s",
+                    app.id, request.user.id,
+                )
+
+        fingerprint = compute_application_fingerprint(
+            app.id,
+            app.updated_at,
+            extra=f"payment:{app.payment_status or ''}|status:{app.status}",
+        )
+
+        def _generate():
+            from apps.common.ai_prompt_redactor import redact_for_admin_summary
             from apps.common.ai_service import generate_admin_review_summary
 
-            summary = generate_admin_review_summary(
-                {
-                    "full_name": app.full_name,
-                    "program": app.program,
-                    "institution": app.institution,
-                    "intake": app.intake,
-                    "nrc_number": app.nrc_number or app.passport_number or "Not provided",
-                    "nationality": getattr(app, "nationality", None) or "Unknown",
-                    "sex": app.sex,
-                    "date_of_birth": str(app.date_of_birth) if app.date_of_birth else "Unknown",
-                    "payment_status": app.payment_status or "unpaid",
-                    "documents_summary": docs_summary,
-                    "grades_summary": build_grades_summary(app),
-                }
+            raw = {
+                "full_name": app.full_name,
+                "program": app.program,
+                "institution": app.institution,
+                "intake": app.intake,
+                "nrc_number": app.nrc_number or app.passport_number or "Not provided",
+                "nationality": getattr(app, "nationality", None) or "Unknown",
+                "sex": app.sex,
+                "date_of_birth": str(app.date_of_birth) if app.date_of_birth else "Unknown",
+                "payment_status": app.payment_status or "unpaid",
+                "documents_summary": docs_summary,
+                "grades_summary": build_grades_summary(app),
+            }
+            redacted = redact_for_admin_summary(raw)
+            return generate_admin_review_summary(redacted)
+
+        summary = None
+        try:
+            summary = cached_ai_call(
+                namespace="admin_summary",
+                fingerprint=fingerprint,
+                generator=_generate,
+                refresh=force_refresh,
             )
         except Exception:
             pass

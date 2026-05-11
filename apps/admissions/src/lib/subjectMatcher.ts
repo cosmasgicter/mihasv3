@@ -83,7 +83,16 @@ const ALIASES: Record<string, string> = {
   'commercial studies': 'commerce',
   'combined science': 'science',
   'physical science': 'science',
+  // "Ordinary Science" was a phantom subject we briefly listed; in real
+  // ECZ, the subject is simply "Science" (the combined Chemistry+Physics
+  // paper). Any historical OCR/data that still says "ordinary science"
+  // needs to resolve to the canonical Science entry.
   'ordinary science': 'science',
+  // "Ordinary Mathematics" is likewise not an ECZ subject — the
+  // canonical core subject is just "Mathematics". Keep the alias for
+  // backward compatibility with slips that used the informal phrasing.
+  'ordinary mathematics': 'mathematics',
+  'ordinary maths': 'mathematics',
   // Common AI/OCR output variations
   'english language': 'english',
   'english': 'english language',

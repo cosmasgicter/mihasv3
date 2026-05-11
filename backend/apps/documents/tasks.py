@@ -322,6 +322,24 @@ def extract_document_text_task(self, document_id, force=False):
             document.extracted_text = extracted_text.strip()
         if ai_analysis:
             document.verification_notes = _json.dumps({"ai_analysis": ai_analysis})
+            # Persist ECZ exam metadata when available. Strict validation:
+            # exam_number must be 10 or 12 digits; year must be within the
+            # last 10 years (defensive against AI hallucination).
+            if isinstance(ai_analysis, dict):
+                exam_number = ai_analysis.get("exam_number")
+                if isinstance(exam_number, (str, int)):
+                    digits = "".join(c for c in str(exam_number) if c.isdigit())
+                    if len(digits) in (10, 12):
+                        document.ecz_exam_number = digits
+                exam_year = ai_analysis.get("year")
+                if exam_year is not None:
+                    try:
+                        year_int = int(str(exam_year).strip())
+                        current_year = timezone.now().year
+                        if current_year - 10 <= year_int <= current_year + 1:
+                            document.ecz_exam_year = year_int
+                    except (ValueError, TypeError):
+                        pass
         subjects = ai_analysis.get("subjects") if isinstance(ai_analysis, dict) else None
         if not extracted_text:
             document.verification_status = "ocr_no_text"

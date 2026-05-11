@@ -24,7 +24,10 @@ const ELECTIVE_SUBJECTS: Grade12Subject[] = [
   { id: 'fallback-integrated-science', name: 'Integrated Science', code: 'INTSCI', category: 'sciences', level: 'grade12' },
   { id: 'fallback-agricultural-science', name: 'Agricultural Science', code: 'AGR', category: 'sciences', level: 'grade12' },
   { id: 'fallback-additional-mathematics', name: 'Additional Mathematics', code: 'ADDMATH', category: 'sciences', level: 'grade12' },
-  { id: 'fallback-ordinary-mathematics', name: 'Ordinary Mathematics', code: 'OMATH', category: 'sciences', level: 'grade12' },
+  // "Ordinary Mathematics" and "Ordinary Science" removed May 2026 — these
+  // are not real ECZ syllabus entries. The canonical names are just
+  // "Mathematics" (core) and "Science" (elective, combined Chemistry+Physics
+  // paper). A-Level takes separate Chemistry/Physics at the A-Level tier.
   // Commercial
   { id: 'fallback-commerce', name: 'Commerce', code: 'COM', category: 'commercial', level: 'grade12' },
   { id: 'fallback-principles-of-accounts', name: 'Principles of Accounts', code: 'POA', category: 'commercial', level: 'grade12' },

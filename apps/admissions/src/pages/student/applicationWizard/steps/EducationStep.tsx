@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { CanonicalSelect } from '@/components/ui/CanonicalSelect'
 import { FileUpload } from '@/components/ui/FileUpload'
 import { EligibilityNotification } from '@/components/application/EligibilityNotification'
+import { ExtractedResultsCard } from '@/components/student/ExtractedResultsCard'
 import { animateClasses, staggerChild } from '@/lib/animations'
 
 // eslint-disable-next-line no-restricted-imports -- type import from eligibilityEngine until API-backed replacement is ready
@@ -100,6 +101,7 @@ interface EducationStepProps {
   ocrStatus?: 'idle' | 'polling' | 'done' | 'failed'
   ocrExtractedCount?: number
   ocrFailureReason?: import('../hooks/useOcrGradeExtraction').OcrFailureReason
+  ocrExtractionMeta?: import('../hooks/useOcrGradeExtraction').OcrExtractionMeta | null
   onRetryOcr?: () => void
 }
 
@@ -124,6 +126,7 @@ const EducationStep = ({
   ocrStatus,
   ocrExtractedCount,
   ocrFailureReason,
+  ocrExtractionMeta,
   onRetryOcr,
 }: EducationStepProps) => {
   const lastSubjectRef = useRef<HTMLDivElement>(null)
@@ -245,11 +248,18 @@ const EducationStep = ({
             <span>Scanning your result slip for grades…</span>
           </div>
         )}
-        {ocrStatus === 'done' && ocrExtractedCount && ocrExtractedCount > 0 && (
+        {ocrStatus === 'done' && ocrExtractedCount && ocrExtractedCount > 0 && !(ocrExtractionMeta && ocrExtractionMeta.subjects.length > 0) && (
           <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3 text-sm text-green-600 animate-in fade-in duration-300" role="status">
             <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
             <span>Auto-populated {ocrExtractedCount} subject{ocrExtractedCount > 1 ? 's' : ''} from your result slip. Review them below and correct any mistakes.</span>
           </div>
+        )}
+        {ocrStatus === 'done' && ocrExtractionMeta && ocrExtractionMeta.subjects.length > 0 && (
+          <ExtractedResultsCard
+            examNumber={ocrExtractionMeta.examNumber}
+            year={ocrExtractionMeta.year}
+            subjects={ocrExtractionMeta.subjects}
+          />
         )}
         {ocrStatus === 'done' && (!ocrExtractedCount || ocrExtractedCount === 0) && (
           <div className="flex items-center gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-700 animate-in fade-in duration-300" role="status">
@@ -352,8 +362,6 @@ const EducationStep = ({
               const subjectHint =
                 diagnostic === 'missing_subject'
                   ? 'Pick a subject to match this grade.'
-                  : diagnostic === 'fallback_subject'
-                  ? 'Choose a real subject from the list.'
                   : null
               return (
               <div
