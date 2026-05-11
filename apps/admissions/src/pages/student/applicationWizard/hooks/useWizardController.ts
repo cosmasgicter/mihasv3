@@ -45,6 +45,7 @@ import {
   normalizeDraftResumeGrades,
   resolveDraftResumeStepId,
 } from '../lib/draftResume'
+import { validateLiveGrades } from '../lib/liveGradeValidation'
 import {
   buildServerDraftPayload,
   canCreateServerDraft,
@@ -1952,11 +1953,13 @@ const useWizardController = (): UseWizardControllerResult => {
       // Read from ref to avoid stale closure — selectedGrades state may not
       // have flushed yet if the user's last dropdown selection was very recent.
       const latestGrades = selectedGradesRef.current
-      const normalizedLatestGrades = normalizeSelectedGrades(latestGrades)
-      const validGrades = normalizedLatestGrades.filter(
-        g => g.subject_id && Number(g.grade) >= 1 && Number(g.grade) <= 9
-      )
-      const validGradeCount = new Set(validGrades.map(g => g.subject_id)).size
+
+      // Live validation — produces per-row diagnostics without silently
+      // dropping in-progress rows (unlike normalizeDraftResumeGrades,
+      // which is a server-draft sanitiser and was the cause of the
+      // "6 subjects selected but told 2 are missing" bug).
+      const liveValidation = validateLiveGrades(latestGrades)
+      const validGradeCount = liveValidation.validCount
 
       if (!applicationId) {
         const errorMessage = 'Application not created. Returning to Basic Information step.'
@@ -1965,15 +1968,19 @@ const useWizardController = (): UseWizardControllerResult => {
         goToStep(0)
         return
       }
-      
+
       if (validGradeCount < 5) {
-        const emptyRows = latestGrades.length - normalizedLatestGrades.length
-        const hint = emptyRows > 0 ? ` — ${emptyRows} row${emptyRows > 1 ? 's have' : ' has'} no subject selected` : ''
-        const errorMessage = `Minimum 5 unique subjects required (${validGradeCount} selected${hint})`
+        const hintSuffix = liveValidation.hintMessage ? ` — ${liveValidation.hintMessage}` : ''
+        const errorMessage = `Minimum 5 unique subjects required (${validGradeCount} selected${hintSuffix})`
         setError(errorMessage)
         return
       }
-      if (validGrades.length !== validGradeCount) {
+
+      // validGradeCount already excludes duplicates — if they still count as
+      // "valid" (hitting the >= 5 threshold via first-occurrence), surface
+      // the duplicate rows explicitly so the student can fix them.
+      const duplicateCount = liveValidation.diagnostics.filter((d) => d.issue === 'duplicate').length
+      if (duplicateCount > 0) {
         const errorMessage = 'Each subject can only be selected once. Please remove or change duplicate subjects.'
         setError(errorMessage)
         return
@@ -2003,7 +2010,11 @@ const useWizardController = (): UseWizardControllerResult => {
       // Files already uploaded on selection, just sync grades and proceed
       try {
         setLoading(true)
-        const gradesToSync = normalizedLatestGrades
+        // For the server sync we still strip in-progress / empty rows using
+        // the draft-resume normaliser — that's what it was designed for.
+        // Live validation above ensures only genuinely valid rows got us
+        // here, so this normalisation is a safe final cleanup.
+        const gradesToSync = normalizeSelectedGrades(latestGrades)
         if (gradesToSync.length > 0) {
           await syncGrades.mutateAsync({ id: applicationId, grades: gradesToSync })
           setSelectedGrades(gradesToSync)

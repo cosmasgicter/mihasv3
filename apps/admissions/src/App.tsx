@@ -4,6 +4,7 @@ import {
   DashboardSkeleton,
   AuthSkeleton,
   DetailSkeleton,
+  MarketingRouteSkeleton,
 } from '@/components/ui/skeletons'
 
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
@@ -136,7 +137,13 @@ function RouteAwareApp() {
     <>
       {marketingRoute ? (
         <LazyLoadErrorBoundary>
-          <Suspense fallback={location.pathname === '/track-application' ? <DetailSkeleton /> : null}>
+          <Suspense
+            fallback={
+              location.pathname === '/track-application'
+                ? <DetailSkeleton />
+                : <MarketingRouteSkeleton />
+            }
+          >
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/track-application" element={<PublicApplicationTracker />} />
