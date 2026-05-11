@@ -31,10 +31,13 @@ export interface RowDiagnostic {
     | 'missing_subject' // grade entered (or partially) but no subject picked
     | 'missing_grade' // subject picked but grade is 0 / missing
     | 'invalid_grade_range' // grade is outside 1-9
-    | 'fallback_subject' // subject_id still carries a 'fallback-' placeholder
     | 'duplicate' // same subject as an earlier row in the same submission
     | 'empty_row' // neither subject nor grade — benign, shown only as soft hint
     | null // valid
+  // NOTE: 'fallback_subject' was removed May 2026. Fallback-* IDs are
+  // legitimate client-side placeholders that resolve at sync time via
+  // resolveWizardSubjectId. Blocking them here was a regression that
+  // prevented valid selections from counting.
 }
 
 export interface ValidateLiveGradesResult {
@@ -51,9 +54,10 @@ export interface ValidateLiveGradesResult {
   hintMessage: string | null
 }
 
-/** A subject_id is a "real" pick (not empty, not a fallback placeholder). */
+/** A subject_id is a "real" pick (not empty). Fallback-* IDs are valid
+ *  client-side placeholders that resolve at sync time. */
 function isRealSubjectId(subjectId: string): boolean {
-  return subjectId.length > 0 && !subjectId.startsWith('fallback-')
+  return subjectId.length > 0
 }
 
 /** Is the grade value one of the 9 canonical Zambian O-level grades? */
@@ -74,7 +78,6 @@ function classifyRow(row: SubjectGrade): Exclude<RowDiagnostic['issue'], 'duplic
   const hasGrade = grade !== 0
 
   if (!hasSubject && !hasGrade) return 'empty_row'
-  if (subjectId.startsWith('fallback-')) return 'fallback_subject'
   if (!hasSubject) return 'missing_subject'
   if (!hasGrade) return 'missing_grade'
   if (!isValidGrade(grade)) return 'invalid_grade_range'
@@ -114,11 +117,6 @@ function buildHintMessage(diagnostics: RowDiagnostic[]): string | null {
     parts.push(
       `${invalidRange} ${rowWord(invalidRange)} a grade between 1 and 9`,
     )
-  }
-
-  const fallback = counts.get('fallback_subject') ?? 0
-  if (fallback > 0) {
-    parts.push(`${fallback} ${rowWord(fallback)} a real subject choice`)
   }
 
   const duplicates = counts.get('duplicate') ?? 0

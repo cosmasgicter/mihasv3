@@ -53,6 +53,8 @@ from apps.common.openapi_helpers import ErrorResponseSerializer
 from apps.documents.models import Payment
 from rest_framework.throttling import UserRateThrottle
 
+from apps.common.throttling import AIUserScopedRateThrottle
+
 from ._view_helpers import (
     ApplicationConditionSerializer,
     ApplicationDraftResponseSerializer,
@@ -547,6 +549,9 @@ class ApplicationPreviewSummaryView(APIView):
 
     permission_classes = [IsAuthenticated]
     serializer_class = ApplicationAiSummaryResponseSerializer
+    # AI hardening: per-student rate throttle (10/hour) when flag is on.
+    throttle_classes = [AIUserScopedRateThrottle]
+    throttle_scope = "ai_student_preview"
 
     @extend_schema(
         request=None,
@@ -558,8 +563,6 @@ class ApplicationPreviewSummaryView(APIView):
         summary="Get AI-generated application summary (student preview)",
     )
     def get(self, request, application_id):
-        from django.core.cache import cache
-
         try:
             app = Application.objects.get(id=application_id)
         except Application.DoesNotExist:
@@ -574,43 +577,72 @@ class ApplicationPreviewSummaryView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Check cache first (10 min TTL)
-        cache_key = f"preview_summary:{application_id}"
-        cached = cache.get(cache_key)
-        if cached:
-            return Response({"success": True, "data": {"summary": cached, "source": "ai"}})
+        from apps.common.ai_cache import (
+            cached_ai_call,
+            compute_application_fingerprint,
+            compute_grades_fingerprint,
+        )
 
-        subjects_count = ApplicationGrade.objects.filter(application_id=app.id).values("subject_id").distinct().count()
+        grades_qs = ApplicationGrade.objects.filter(
+            application_id=app.id,
+        ).values("subject_id", "grade")
+        grades_list = list(grades_qs)
+        subjects_count = len({g["subject_id"] for g in grades_list if g.get("subject_id")})
+
         first_name = (app.full_name or "").split()[0] or "Student"
         program = app.program or "your chosen programme"
         intake = getattr(app, "intake", "") or ""
 
-        # Try AI summary with a 15-second timeout
-        summary = None
-        source = "fallback"
-        try:
+        # Cache-key fingerprint includes grades — if the student edits
+        # grades we regenerate the summary rather than serving stale
+        # copy for 24 h.
+        grades_fp = compute_grades_fingerprint(grades_list)
+        fingerprint = compute_application_fingerprint(
+            app.id,
+            app.updated_at,
+            extra=f"grades:{grades_fp}|intake:{intake}",
+        )
+
+        def _generate_ai():
             from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
+            from apps.common.ai_prompt_redactor import redact_for_student_preview
             from apps.common.ai_service import generate_student_preview_summary
 
             def _call_ai():
-                return generate_student_preview_summary({
+                raw = {
                     "full_name": app.full_name,
                     "program": program,
                     "institution": getattr(app, "institution", "MIHAS"),
                     "intake": intake,
                     "grades_summary": build_grades_summary(app),
                     "subjects_count": subjects_count,
-                })
+                }
+                return generate_student_preview_summary(redact_for_student_preview(raw))
 
-            with ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(_call_ai)
-                summary = future.result(timeout=15)
+            try:
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(_call_ai)
+                    result = future.result(timeout=15)
+                if result and len(result) >= 50:
+                    return result
+                return None
+            except (FuturesTimeoutError, Exception):
+                logger.info("AI preview summary unavailable for %s, using fallback", application_id)
+                return None
 
+        summary = None
+        source = "fallback"
+        try:
+            summary = cached_ai_call(
+                namespace="student_preview",
+                fingerprint=fingerprint,
+                generator=_generate_ai,
+            )
             if summary and len(summary) >= 50:
                 source = "ai"
-        except (FuturesTimeoutError, Exception):
-            logger.info("AI preview summary unavailable for %s, using fallback", application_id)
+        except Exception:
+            summary = None
 
         if not summary or len(summary) < 50:
             parts = [f"{first_name}, your application for {program} is looking great."]
@@ -622,10 +654,6 @@ class ApplicationPreviewSummaryView(APIView):
                 parts.append("Once submitted, the admissions team will review your application promptly.")
             summary = " ".join(parts)
             source = "fallback"
-
-        # Cache AI summaries for 10 minutes
-        if source == "ai":
-            cache.set(cache_key, summary, timeout=600)
 
         return Response({"success": True, "data": {"summary": summary, "source": source}})
 

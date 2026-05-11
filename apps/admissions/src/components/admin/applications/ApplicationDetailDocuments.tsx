@@ -155,6 +155,13 @@ export function ApplicationDetailDocuments({ documents, loading, application }: 
                 {doc.verification_notes && (
                   <p className="mt-2 break-words text-xs leading-5 text-slate-700">{doc.verification_notes}</p>
                 )}
+                {(doc as any).ecz_exam_number && (
+                  <p className="mt-2 text-xs text-slate-600">
+                    <span className="font-medium">ECZ Exam:</span>{' '}
+                    {(doc as any).ecz_exam_number}
+                    {(doc as any).ecz_exam_year && ` (${(doc as any).ecz_exam_year})`}
+                  </p>
+                )}
               </div>
             </div>
             <ViewDocButton doc={doc} />

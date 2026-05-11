@@ -121,11 +121,11 @@ describe('validateLiveGrades — per-row diagnostic branches', () => {
     expect(result.diagnostics[0]?.issue).toBe('invalid_grade_range')
   })
 
-  it('flags a row whose subject_id still starts with "fallback-" as fallback_subject', () => {
+  it('treats a row whose subject_id starts with "fallback-" as valid (resolves at sync time)', () => {
     const rows: SubjectGrade[] = [row('fallback-english', 3, 'r1')]
     const result = validateLiveGrades(rows)
-    expect(result.validCount).toBe(0)
-    expect(result.diagnostics[0]?.issue).toBe('fallback_subject')
+    expect(result.validCount).toBe(1)
+    expect(result.diagnostics[0]?.issue).toBeNull()
   })
 
   it('flags the second occurrence of the same subject_id as duplicate', () => {

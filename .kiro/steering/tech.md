@@ -387,7 +387,22 @@ A runbook for rotating production secrets lives at `docs/runbooks/secrets-rotati
 - AI features use `AI_GATEWAY_API_KEY` (not `OPENAI_API_KEY`) for the Vercel AI Gateway.
 - The gateway supports multiple model tiers configured in `base.py`: `AI_MODEL_FAST` (gemini-2.5-flash), `AI_MODEL_VISION` (gemini-2.5-flash), `AI_MODEL_ANALYSIS` (gpt-4o-mini), `AI_MODEL_SMART` (deepseek-v3).
 - OCR never overwrites manually entered grades. Timeout is 30 seconds.
-- AI admin summary is cached and rate-limited. Falls back gracefully when the API key is missing.
+- AI admin summary and student preview summary each have a 24-hour Redis cache keyed by application fingerprint (see `backend/apps/common/ai_cache.py`). Super-admins can force-refresh the admin summary with `?refresh=1`.
+- AI-touching endpoints are individually throttled per user when `AI_HARDENING_RATE_LIMITS=True`: admin summary 60/hour, student preview 10/hour, document OCR re-extract 5/hour (see `backend/apps/common/throttling.py` — `AIUserScopedRateThrottle`).
+- Every AI call runs through `apps.common.ai_circuit_breaker.with_circuit_breaker`, which short-circuits for 5 minutes after 3 consecutive failures when `AI_HARDENING_CIRCUIT_BREAKER=True`. Callers already treat `None` as "AI unavailable, degrade gracefully".
+- PII redaction (`apps.common.ai_prompt_redactor`) strips `full_name` / NRC / passport / DOB / contact details from the admin summary prompt and replaces `full_name` with `first_name` in the student preview prompt when `AI_HARDENING_REDACTION=True`. Fallback paths (template copy, `None` return) remain unchanged.
+- See `docs/ai-data-flows.md` for the full data map, retention notes, and feature-flag matrix.
+
+### AI hardening feature flags
+
+| Flag | Phase | Default | Purpose |
+|------|-------|---------|---------|
+| `AI_HARDENING_CIRCUIT_BREAKER` | 1.1 | `False` | Enable Redis-backed circuit breaker on every AI call |
+| `AI_HARDENING_RATE_LIMITS` | 1.2 | `False` | Enable `AIUserScopedRateThrottle` on admin-summary, student-preview, and document-extract |
+| `AI_HARDENING_CACHE` | 1.3 | `False` | Enable 24 h Redis cache on admin-summary and student-preview |
+| `AI_HARDENING_REDACTION` | 2 | `False` | Strip PII from prompts before they leave the platform |
+
+Rollback is a flag flip — no schema changes ship with Phases 1–3.
 
 ## Current Jobs Ops State
 

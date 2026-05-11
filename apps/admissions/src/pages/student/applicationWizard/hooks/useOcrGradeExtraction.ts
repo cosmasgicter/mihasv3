@@ -81,6 +81,12 @@ function mapAiGradesToCatalog(
 
 export type OcrFailureReason = 'timeout' | 'server_failed' | 'skipped' | 'no_text' | 'no_grades_matched' | null
 
+export interface OcrExtractionMeta {
+  subjects: AiSubject[]
+  examNumber: string | null
+  year: string | null
+}
+
 export function useOcrGradeExtraction(
   documentId: string | null,
   catalogSubjects: CatalogSubject[],
@@ -89,6 +95,7 @@ export function useOcrGradeExtraction(
   const [status, setStatus] = useState<'idle' | 'polling' | 'done' | 'failed'>('idle')
   const [extractedCount, setExtractedCount] = useState(0)
   const [failureReason, setFailureReason] = useState<OcrFailureReason>(null)
+  const [extractionMeta, setExtractionMeta] = useState<OcrExtractionMeta | null>(null)
 
   // Use refs for values that change between polls to avoid stale closures
   const pollCountRef = useRef(0)
@@ -172,6 +179,25 @@ export function useOcrGradeExtraction(
           doneRef.current = true
           if (mountedRef.current) {
             setExtractedCount(matched.length)
+            // Only keep subjects that have a valid name + valid 1-9 grade.
+            // Prevents downstream NaN in Math.min / average computations
+            // and guards against AI returning malformed entries.
+            const cleanSubjects: AiSubject[] = []
+            for (const s of analysis.subjects as unknown[]) {
+              if (!s || typeof s !== 'object') continue
+              const name = (s as AiSubject).name
+              const grade = (s as AiSubject).grade
+              if (typeof name === 'string' && name.trim().length > 0 && isValidEczGrade(grade)) {
+                cleanSubjects.push({ name: name.trim(), grade })
+              }
+            }
+            const rawExam = typeof analysis.exam_number === 'string' ? analysis.exam_number.trim() : null
+            const rawYear = typeof analysis.year === 'string' ? analysis.year.trim() : null
+            setExtractionMeta({
+              subjects: cleanSubjects,
+              examNumber: rawExam && rawExam.length <= 20 ? rawExam : null,
+              year: rawYear && /^\d{4}$/.test(rawYear) ? rawYear : null,
+            })
             setStatus('done')
           }
           callbackRef.current(matched)
@@ -214,6 +240,7 @@ export function useOcrGradeExtraction(
     pollCountRef.current = 0
     setStatus('polling')
     setExtractedCount(0)
+    setExtractionMeta(null)
     setFailureReason(null)
     stopPolling()
     // Delay first poll — give Celery time to pick up the task
@@ -231,5 +258,5 @@ export function useOcrGradeExtraction(
   // Cleanup on unmount
   useEffect(() => () => stopPolling(), [stopPolling])
 
-  return { status, extractedCount, failureReason, startPolling, stopPolling }
+  return { status, extractedCount, failureReason, extractionMeta, startPolling, stopPolling }
 }

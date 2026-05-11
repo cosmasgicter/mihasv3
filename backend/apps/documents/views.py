@@ -47,7 +47,7 @@ from apps.common.openapi_helpers import (
 from apps.common.metrics import emit_metric
 from apps.common.idempotency import idempotent
 from apps.common.dev_bypass import require_not_dev_bypass_in_production
-from apps.common.throttling import PaymentUserScopedRateThrottle
+from apps.common.throttling import AIUserScopedRateThrottle, PaymentUserScopedRateThrottle
 from apps.documents import payment_metrics
 
 from django.http import HttpResponseRedirect
@@ -362,6 +362,10 @@ class DocumentExtractView(APIView):
 
     permission_classes = [IsAuthenticated]
     serializer_class = TaskQueuedSerializer
+    # AI hardening: cap per-user OCR retries (5/hour) when flag is on.
+    # Guards against budget-burn attacks via repeated ``force=True`` calls.
+    throttle_classes = [AIUserScopedRateThrottle]
+    throttle_scope = "ai_document_extract"
 
     def post(self, request, document_id):
         try:

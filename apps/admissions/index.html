@@ -60,10 +60,15 @@
 
     <title>MIHAS Application System</title>
 
-    <!-- Preloader styles — white background loader matching app theme (inline, renders before JS) -->
+    <!--
+      Branded inline preloader. Renders before any JS or external CSS loads,
+      so the user sees the MIHAS identity within ~100ms of page arrival.
+      All visual assets inlined (SVG logo, CSS) to eliminate extra HTTP
+      requests on first paint.
+    -->
     <style>
-      html, body { background: #ffffff; margin: 0; }
-      .preloader {
+      html, body { margin: 0; background: #f8fafc; }
+      .mihas-preloader {
         position: fixed;
         inset: 0;
         z-index: 9999;
@@ -71,45 +76,109 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: #ffffff;
-        transition: opacity 0.25s ease;
+        padding: 24px;
+        background:
+          radial-gradient(circle at 20% 15%, rgba(37, 99, 235, 0.08), transparent 45%),
+          radial-gradient(circle at 85% 90%, rgba(180, 83, 9, 0.06), transparent 40%),
+          #f8fafc;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: #0f172a;
+        transition: opacity 0.35s ease;
       }
-      .preloader.fade-out {
+      .mihas-preloader.fade-out {
         opacity: 0;
         pointer-events: none;
       }
-      .preloader-dots {
+      .mihas-pre-card {
+        width: 100%;
+        max-width: 360px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        animation: mihas-pre-rise 0.5s ease;
+      }
+      .mihas-pre-logo {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        background: #ffffff;
         display: flex;
         align-items: center;
-        gap: 10px;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        position: relative;
       }
-      .preloader-dots span {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #6366f1;
-        animation: preloader-float 1.4s ease-in-out infinite;
+      .mihas-pre-logo svg {
+        width: 40px;
+        height: 40px;
       }
-      .preloader-dots span:nth-child(1) { animation-delay: 0s; }
-      .preloader-dots span:nth-child(2) { animation-delay: 0.16s; }
-      .preloader-dots span:nth-child(3) { animation-delay: 0.32s; }
-      @keyframes preloader-float {
-        0%, 100% { transform: translateY(0); opacity: 0.3; }
-        50% { transform: translateY(-8px); opacity: 1; }
+      .mihas-pre-logo::after {
+        content: "";
+        position: absolute;
+        inset: -4px;
+        border-radius: 20px;
+        border: 2px solid transparent;
+        border-top-color: #2563eb;
+        border-right-color: #2563eb;
+        animation: mihas-pre-spin 1.3s cubic-bezier(0.5, 0, 0.5, 1) infinite;
       }
-      .preloader-slow {
-        margin-top: 24px;
-        font-family: system-ui, -apple-system, sans-serif;
-        font-size: 13px;
-        color: #6b7280;
+      .mihas-pre-wordmark {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: #0f172a;
         text-align: center;
       }
-      .preloader-slow a {
-        color: #4f46e5;
+      .mihas-pre-sub {
+        font-size: 13px;
+        color: #475569;
+        text-align: center;
+        min-height: 1.25em;
+        transition: opacity 0.3s ease;
+      }
+      .mihas-pre-bar {
+        width: 100%;
+        max-width: 220px;
+        height: 3px;
+        border-radius: 3px;
+        background: rgba(37, 99, 235, 0.12);
+        overflow: hidden;
+        margin-top: 4px;
+      }
+      .mihas-pre-bar-inner {
+        height: 100%;
+        width: 35%;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #2563eb, #3b82f6, #b45309, #2563eb);
+        background-size: 300% 100%;
+        animation: mihas-pre-flow 1.6s linear infinite;
+      }
+      .mihas-pre-slow {
+        margin-top: 20px;
+        font-size: 12px;
+        color: #64748b;
+        text-align: center;
+      }
+      .mihas-pre-slow a {
+        color: #2563eb;
         text-decoration: underline;
       }
+      @keyframes mihas-pre-rise {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: none; }
+      }
+      @keyframes mihas-pre-spin {
+        to { transform: rotate(360deg); }
+      }
+      @keyframes mihas-pre-flow {
+        0% { background-position: 100% 0; transform: translateX(-60%); }
+        100% { background-position: 0 0; transform: translateX(240%); }
+      }
       @media (prefers-reduced-motion: reduce) {
-        .preloader-dots span { animation: none; opacity: 0.6; }
+        .mihas-pre-card { animation: none; }
+        .mihas-pre-logo::after { animation: none; border-color: #2563eb; }
+        .mihas-pre-bar-inner { animation: none; width: 100%; }
       }
     </style>
 
@@ -119,12 +188,52 @@
     -->
   </head>
   <body>
-    <div id="preloader" class="preloader" aria-live="polite" aria-label="Loading application">
-      <div class="preloader-dots">
-        <span></span><span></span><span></span>
+    <!--
+      Preloader — first thing the browser paints. Shows MIHAS identity and a
+      reassuring "we're loading" signal so students on slow mobile networks
+      don't think the site is broken and bounce. The outer id="preloader"
+      plus .fade-out className keep the existing __dismissPreloader contract
+      (main.tsx + preloader.js don't need to change).
+    -->
+    <div
+      id="preloader"
+      class="mihas-preloader"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading MIHAS Admissions Portal"
+    >
+      <div class="mihas-pre-card">
+        <div class="mihas-pre-logo" aria-hidden="true">
+          <!-- Stylised lamp-and-leaf crest distilled from the MIHAS logo.
+               40×40 viewBox, two paths, no fills beyond brand colours. -->
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" focusable="false">
+            <circle cx="20" cy="20" r="18" fill="#2563eb" />
+            <path
+              d="M20 10c-4 3-6 6-6 10a6 6 0 0 0 12 0c0-4-2-7-6-10Zm0 4.5c1.6 1.6 2.5 3 2.5 5.5a2.5 2.5 0 1 1-5 0c0-2.5.9-3.9 2.5-5.5Z"
+              fill="#ffffff"
+            />
+            <path
+              d="M13 28h14v2.5a2 2 0 0 1-2 2H15a2 2 0 0 1-2-2V28Z"
+              fill="#b45309"
+            />
+          </svg>
+        </div>
+        <div class="mihas-pre-wordmark">
+          Mukuba Institute of Health &amp; Applied Sciences
+        </div>
+        <div
+          id="mihas-pre-sub"
+          class="mihas-pre-sub"
+          data-initial="Getting your application ready&hellip;"
+        >
+          Getting your application ready&hellip;
+        </div>
+        <div class="mihas-pre-bar" aria-hidden="true">
+          <div class="mihas-pre-bar-inner"></div>
+        </div>
       </div>
-      <p id="preloader-slow" class="preloader-slow" hidden>
-        Taking longer than expected. <a href="/">Refresh</a>
+      <p id="preloader-slow" class="mihas-pre-slow" hidden>
+        Taking longer than expected &mdash; <a href="/">reload</a>
       </p>
     </div>
     <div id="root"></div>

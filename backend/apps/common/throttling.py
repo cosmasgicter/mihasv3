@@ -87,4 +87,38 @@ class PaymentUserScopedRateThrottle(ScopedRateThrottle):
         return self.cache_format % {"scope": scope, "ident": ident}
 
 
-__all__ = ["PaymentUserScopedRateThrottle"]
+__all__ = ["PaymentUserScopedRateThrottle", "AIUserScopedRateThrottle"]
+
+
+class AIUserScopedRateThrottle(ScopedRateThrottle):
+    """Per-user (fallback IP) scoped throttle for AI-touching endpoints.
+
+    Mirrors :class:`PaymentUserScopedRateThrottle`. Separate class (and
+    flag) because AI endpoints have different rate needs and a
+    different rollout cadence than the payment stack.
+
+    Gate: ``settings.AI_HARDENING_RATE_LIMITS``. When off,
+    ``get_cache_key`` returns ``None`` so the throttle is a no-op.
+
+    Cache key format: ``throttle_<scope>_ai_user_<pk_or_ip>`` — the
+    ``_ai_`` infix keeps AI buckets disjoint from payment buckets
+    even if a scope name happened to collide.
+    """
+
+    cache_format = "throttle_%(scope)s_ai_user_%(ident)s"
+
+    def get_cache_key(self, request, view):  # type: ignore[override]
+        if not getattr(settings, "AI_HARDENING_RATE_LIMITS", False):
+            return None
+
+        scope = getattr(self, "scope", None) or getattr(view, "throttle_scope", None)
+        if not scope:
+            return None
+
+        user = getattr(request, "user", None)
+        if user is not None and getattr(user, "is_authenticated", False):
+            ident = str(getattr(user, "pk", None) or getattr(user, "id", ""))
+        else:
+            ident = self.get_ident(request)
+
+        return self.cache_format % {"scope": scope, "ident": ident}
