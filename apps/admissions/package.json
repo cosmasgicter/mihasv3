@@ -19,6 +19,8 @@
     "test:watch": "bun x vitest",
     "validate:tailwind": "./scripts/validate-tailwind-classes.sh",
     "check:imports": "bun scripts/check-dynamic-imports.ts",
+    "check:entry": "bun scripts/check-entry-chunk.ts",
+    "check:all": "bun run check:imports && bun run check:entry",
     "security-audit": "bun run security-audit.js"
   },
   "dependencies": {

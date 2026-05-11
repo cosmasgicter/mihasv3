@@ -13,6 +13,7 @@ import type { EligibilityResult } from '@/lib/eligibilityEngine'
 
 import type { Grade12Subject, SubjectGrade } from '../types'
 import { EDUCATION_UPLOAD_COPY } from '../lib/educationCatalog'
+import { validateLiveGrades, type RowDiagnostic } from '../lib/liveGradeValidation'
 import type { ApplicationUploadState } from '../hooks/useApplicationFileUploads'
 
 function getUploadStatus(file: File | null, uploadState: ApplicationUploadState | undefined, isUploaded?: boolean) {
@@ -150,6 +151,12 @@ const EducationStep = ({
       .filter(grade => grade.subject_id && Number(grade.grade) >= 1 && Number(grade.grade) <= 9)
       .map(grade => grade.subject_id)
   ).size
+
+  // Per-row diagnostics for inline hints. Computed in parallel to
+  // selectedGrades so diagnosticsByIndex[i] describes selectedGrades[i].
+  // See lib/liveGradeValidation.ts for the full issue taxonomy.
+  const liveValidation = validateLiveGrades(selectedGrades)
+  const diagnosticsByIndex: RowDiagnostic[] = liveValidation.diagnostics
 
   // Subject options for CanonicalSelect
   const getSubjectOptions = (currentSubjectId: string) => {
@@ -334,6 +341,20 @@ const EducationStep = ({
           <div className="space-y-3">
             {selectedGrades.map((grade, index) => {
               const isDuplicate = Boolean(grade.subject_id && (subjectCounts.get(grade.subject_id) ?? 0) > 1)
+              const diagnostic = diagnosticsByIndex[index]?.issue ?? null
+              // Which inline hints apply per row
+              const gradeHint =
+                diagnostic === 'missing_grade'
+                  ? 'Enter a grade between 1 and 9.'
+                  : diagnostic === 'invalid_grade_range'
+                  ? 'Grade must be between 1 and 9.'
+                  : null
+              const subjectHint =
+                diagnostic === 'missing_subject'
+                  ? 'Pick a subject to match this grade.'
+                  : diagnostic === 'fallback_subject'
+                  ? 'Choose a real subject from the list.'
+                  : null
               return (
               <div
                 key={grade.row_id || `${grade.subject_id || 'empty'}-${index}`}
@@ -360,6 +381,11 @@ const EducationStep = ({
                       This subject is already selected in another row.
                     </p>
                   )}
+                  {!isDuplicate && subjectHint && (
+                    <p className="mt-1 text-xs font-medium text-destructive" role="alert">
+                      {subjectHint}
+                    </p>
+                  )}
                 </div>
 
                 {/* Grade Select */}
@@ -374,6 +400,11 @@ const EducationStep = ({
                     placeholder="Select grade"
                     aria-label={`Grade for subject ${index + 1}`}
                   />
+                  {gradeHint && (
+                    <p className="mt-1 text-xs font-medium text-destructive" role="alert">
+                      {gradeHint}
+                    </p>
+                  )}
                 </div>
 
                 {/* Actions */}

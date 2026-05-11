@@ -10,10 +10,28 @@ import {
   incrementReloadReasonCounter,
 } from '@/lib/reloadControl'
 import { evaluateChunkAutoReloadPolicy } from '@/lib/chunkAutoReloadPolicy'
-import { initErrorReporter } from '@/lib/errorReporter'
 
-// Activate the global error reporter (respects VITE_ERROR_REPORT_ENABLED)
-initErrorReporter()
+// Activate the global error reporter AFTER first paint. Sentry ships ~60-80 KB
+// gzipped; eager import of `@/lib/errorReporter` pulled it into the entry
+// chunk and delayed FCP by ~200 ms on mobile even when the DSN was absent.
+// The runtime-only check inside initErrorReporter is not enough — the
+// import itself is the cost.
+//
+// This also means a GlitchTip outage never blocks the app from mounting.
+if (typeof window !== 'undefined' && import.meta.env.VITE_GLITCHTIP_DSN) {
+  const scheduleErrorReporter = () => {
+    void import('@/lib/errorReporter')
+      .then((m) => m.initErrorReporter())
+      .catch(() => {
+        // swallowed — error reporter bootstrap must never crash the app
+      })
+  }
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(scheduleErrorReporter, { timeout: 3000 })
+  } else {
+    setTimeout(scheduleErrorReporter, 1500)
+  }
+}
 
 const CHUNK_RELOAD_LAST_TS_KEY = 'mihas_chunk_reload_ts_v2'
 const CHUNK_RELOAD_COUNT_KEY = 'mihas_chunk_reload_count_v2'
