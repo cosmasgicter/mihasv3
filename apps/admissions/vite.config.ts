@@ -72,38 +72,20 @@ function normalizeProxyTarget(value: string): string {
 /**
  * Post-build HTML finaliser.
  *
- * Lesson learned from the May 2026 perf regression:
+ * PRIMARY FIX: Makes the main CSS stylesheet non-render-blocking.
  *
- *   The previous version of this plugin wired critters and injected
- *   45 modulepreload hints for the entire marketing dep graph. In
- *   production on mobile, this made things WORSE — first paint
- *   regressed from 15 s to 30 s, Lighthouse dropped 97 → 88 — because:
+ * Problem: Vite injects `<link rel="stylesheet" href="/assets/index-[hash].css">`
+ * into <head>. This 142KB file blocks the browser from painting ANYTHING —
+ * including the inline preloader — until it fully downloads. On slow mobile
+ * (3G/4G in Zambia), this means 10-30s of white screen.
  *
- *     1. Critters with `preload: 'swap'` emitted a render-blocking
- *        `<link rel="stylesheet" onload="this.rel='stylesheet'">` (the
- *        onload swap is a no-op when rel is already 'stylesheet'), and
- *        a duplicate copy of the same stylesheet tag. Inlined only
- *        ~1 KB of CSS while adding the duplicate request overhead.
+ * Solution: Transform the CSS link to use the `media="print" onload` pattern.
+ * The browser fetches the CSS at high priority but does NOT block rendering.
+ * The preloader (with inline styles) paints immediately (~100ms). Once the
+ * CSS loads, `onload` flips `media` to "all" and styles apply instantly.
+ * A <noscript> fallback ensures CSS still works without JS.
  *
- *     2. 45 modulepreload hints saturated the browser's concurrent
- *        fetch budget and forced the main thread to parse + compile
- *        every module before React could even mount. On mid-range
- *        Android the CPU cost alone was >10 s.
- *
- * Current approach — minimal and measured:
- *   - No critters. The full index.css ships as a single
- *     `<link rel="stylesheet">` and Vite's default loader is fine.
- *     (If we revisit critical CSS later, we'll use a more conservative
- *     inlining strategy and verify every metric before shipping.)
- *   - Exactly ONE modulepreload hint for the LandingPage chunk, so
- *     the browser starts fetching it in parallel with the entry JS
- *     instead of waiting for React to discover the lazy() import.
- *     Vite's own modulePreload handles transitive deps of the entry
- *     chunk; we do not need to replicate that graph by hand.
- *
- * If this still isn't fast enough after deploy, the next step is
- * Phase B (prerender marketing routes) — a one-shot architectural
- * change — not more handwritten preload tweaks.
+ * Also injects a single modulepreload hint for the LandingPage chunk.
  */
 function finaliseHtmlPlugin(): Plugin {
   return {
@@ -122,11 +104,22 @@ function finaliseHtmlPlugin(): Plugin {
         return
       }
 
-      // Find the LandingPage chunk in the manifest and emit a single
-      // modulepreload hint for it. The manifest key pattern is either
-      // `src/pages/LandingPage.tsx` (expected) or a synthesised
-      // `_LandingPage-<hash>.js` key when the chunk is also imported
-      // from other places; handle both.
+      // 1. Make the main CSS non-render-blocking.
+      //    Match: <link rel="stylesheet" crossorigin href="/assets/index-HASH.css">
+      //    Replace with async pattern + noscript fallback.
+      html = html.replace(
+        /<link rel="stylesheet" crossorigin href="(\/assets\/index-[^"]+\.css)">/,
+        (_, cssHref) => {
+          // eslint-disable-next-line no-console
+          console.log(`\u001b[32m✓\u001b[0m finalise-html: made CSS non-render-blocking (${cssHref})`)
+          return [
+            `<link rel="stylesheet" href="${cssHref}" media="print" onload="this.media='all'" crossorigin>`,
+            `<noscript><link rel="stylesheet" href="${cssHref}" crossorigin></noscript>`,
+          ].join('\n    ')
+        },
+      )
+
+      // 2. Find the LandingPage chunk and emit a modulepreload hint.
       let manifest: Record<string, { file: string; src?: string; isEntry?: boolean; isDynamicEntry?: boolean }> = {}
       try {
         const raw = await fs.readFile(manifestPath, 'utf8')

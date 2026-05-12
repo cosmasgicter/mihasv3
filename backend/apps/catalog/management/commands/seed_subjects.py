@@ -25,8 +25,8 @@ GRADE_12_SUBJECTS = [
     # "Ordinary Mathematics" (OMATH) and "Ordinary Science" (OSCI) removed
     # May 2026 — not real ECZ syllabus entries. Canonical names are
     # "Mathematics" (core) and "Science" (combined elective).
-    # remove_phantom_subjects.sql handles the data migration for any
-    # existing rows in pre-cleanup databases.
+    # scripts/migrations/0002_remove_phantom_subjects.sql handles the
+    # data migration for existing rows.
     # Commercial
     ("Commerce", "COM", "commercial", False, "ecz"),
     ("Principles of Accounts", "POA", "commercial", False, "ecz"),
