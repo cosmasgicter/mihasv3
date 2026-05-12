@@ -80,12 +80,13 @@ export async function initiatePayment(
 /**
  * Initiate a mobile-money collection via Lenco.
  *
- * Only `application_id` and `phone` are sent to the backend — `operator`
- * is derived server-side from the MSISDN (see ADR in the design doc).
+ * Sends `application_id`, `phone`, and `operator` to the backend.
+ * The `operator` field is required by the legacy (non-hardened) path.
+ * The hardened path derives operator server-side but accepts it for compat.
  * The `idempotency-key` header guards against double-submission.
  */
 export async function initiateMobileMoney(
-  request: { application_id: string; phone: string },
+  request: { application_id: string; phone: string; operator?: string },
   options?: InitiateOptions,
 ): Promise<PaymentInitiateData> {
   return apiClient.request('/payments/mobile-money/', {

@@ -105,24 +105,28 @@ export function ContinueApplication() {
     })
     if (!confirmed) return
 
-    try {
-      setDeleting(true)
-      if (!draftInfo.exists && serverDraftCount === 0) {
-        toast.error('Delete Failed', 'We could not remove your saved draft. Please try again.')
-        return
-      }
+    if (!draftInfo.exists && serverDraftCount === 0) {
+      toast.error('Delete Failed', 'We could not remove your saved draft. Please try again.')
+      return
+    }
 
+    // Optimistic UI: hide draft immediately before server responds
+    setDraftInfo({ exists: false })
+    setDeleting(true)
+    toast.success('Draft Deleted', 'Your saved draft was removed.')
+    window.dispatchEvent(new CustomEvent('draftCleared'))
+
+    try {
       const result = await draftManager.clearAllDrafts(ownerId)
       if (!result.success) {
+        // Rollback: restore draft visibility on failure
+        setDraftInfo({ exists: true })
         toast.error('Delete Failed', result.error || 'We could not remove your saved draft. Please try again.')
-        return
       }
-
-      setDraftInfo({ exists: false })
       await refetchServerDrafts()
-      window.dispatchEvent(new CustomEvent('draftCleared'))
-      toast.success('Draft Deleted', 'Your saved draft was removed.')
     } catch {
+      // Rollback on error
+      setDraftInfo({ exists: true })
       toast.error('Delete Failed', 'We could not remove your saved draft. Please try again.')
     } finally {
       setDeleting(false)

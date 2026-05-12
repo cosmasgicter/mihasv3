@@ -296,6 +296,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const [programs, setPrograms] = useState<WizardProgram[]>([])
   const [intakes, setIntakes] = useState<WizardIntake[]>([])
   const isSavingRef = useRef(false)
+  const pendingSaveRef = useRef(false)
   const createBlockedRef = useRef(false)
   const isSubmittingRef = useRef(false)
   const authRecoveryInFlightRef = useRef(false)
@@ -1434,8 +1435,11 @@ const useWizardController = (): UseWizardControllerResult => {
     if (!user || restoringDraft || success) return
     const syncServer = options.syncServer ?? true
     
-    // Prevent concurrent saves
-    if (isSavingRef.current) return
+    // Prevent concurrent saves — queue a follow-up instead of dropping
+    if (isSavingRef.current) {
+      pendingSaveRef.current = true
+      return
+    }
     
     try {
       isSavingRef.current = true
@@ -1584,6 +1588,11 @@ const useWizardController = (): UseWizardControllerResult => {
     } finally {
       setIsDraftSaving(false)
       isSavingRef.current = false
+      // Process queued save if one was requested while we were saving
+      if (pendingSaveRef.current) {
+        pendingSaveRef.current = false
+        void saveDraft(options)
+      }
     }
   }, [
     user,
