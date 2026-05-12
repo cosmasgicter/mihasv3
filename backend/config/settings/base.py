@@ -602,11 +602,9 @@ PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
 # Payment hardening feature flags — see .kiro/specs/payment-hardening/
 # ---------------------------------------------------------------------------
 # Phase 2: gates ``PaymentService._transition()`` enforcement and the
-# hardened view branches (new stable codes, audit, metrics). When False the
-# legacy code paths remain in effect so the flag can be flipped per env.
-PAYMENT_HARDENING_FORWARD_ONLY = os.environ.get(
-    "PAYMENT_HARDENING_FORWARD_ONLY", ""
-).lower() in ("1", "true", "yes")
+# hardened view branches (new stable codes, audit, metrics). The forward-only
+# path is now the sole canonical path — legacy branches have been removed.
+PAYMENT_HARDENING_FORWARD_ONLY = True
 
 # Phase 3: gates canonical-JSON + ``WebhookEventIdentity`` strict dedup on
 # the webhook path. When False the previous dedup behaviour remains.

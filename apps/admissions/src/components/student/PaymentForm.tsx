@@ -271,12 +271,17 @@ export function PaymentForm({
       setMomoError('Please enter a valid phone number.')
       return
     }
+    const operator = detectOperator(momoPhone)
+    if (!operator) {
+      setMomoError('Unable to detect mobile money operator. Please check your number.')
+      return
+    }
     setMomoLoading(true)
     setMomoError(null)
     setActivePendingMethod('mobile-money')
     try {
       const data = await initiateMobileMoney(
-        { application_id: applicationId, phone: normalized },
+        { application_id: applicationId, phone: normalized, operator },
         { idempotencyKey: generateIdempotencyKey(applicationId) },
       ) as MobileMoneyResponse
       if (!data) throw new Error('No response from payment service')
