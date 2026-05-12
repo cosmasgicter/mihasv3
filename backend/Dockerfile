@@ -62,4 +62,4 @@ EXPOSE 8000
 # Run as non-root user
 USER app
 
-CMD ["sh", "-c", "python manage.py seed_subjects --no-color 2>/dev/null; uvicorn config.asgi:application --host 0.0.0.0 --port ${PORT:-8000} --workers ${WEB_CONCURRENCY:-3} --lifespan off --timeout-keep-alive 30"]
+CMD ["sh", "-c", "python manage.py apply_sql_migrations --no-color && python manage.py seed_subjects --no-color && python manage.py check_schema_drift --no-color && uvicorn config.asgi:application --host 0.0.0.0 --port ${PORT:-8000} --workers ${WEB_CONCURRENCY:-3} --lifespan off --timeout-keep-alive 30"]

@@ -135,6 +135,43 @@ SMOKE_CHECKS: List[Dict[str, Any]] = [
         "expected_status_any": [200, 401],
         "needs_auth": True,
     },
+    # --- Schema-drift regression guard (incident: May 2026) ---
+    # If application_documents has a declared Django column that doesn't
+    # exist on the DB, this endpoint 500s on every request. The shape
+    # test below returns 404 on an unknown UUID instead of 500 — and
+    # a 500 here is what the production incident looked like.
+    {
+        "name": "ApplicationDocuments — unknown UUID returns 404 not 500",
+        "method": "GET",
+        "path": "/api/v1/applications/00000000-0000-0000-0000-000000000000/documents/",
+        "expected_status_any": [401, 403, 404],
+        "require_envelope": True,
+        "require_no_5xx": True,
+        "needs_auth": True,
+    },
+    # Same guard for the grades endpoint — also hits ApplicationDocument-
+    # adjacent models via serializers.
+    {
+        "name": "ApplicationGrades — unknown UUID returns 404 not 500",
+        "method": "GET",
+        "path": "/api/v1/applications/00000000-0000-0000-0000-000000000000/grades/",
+        "expected_status_any": [401, 403, 404],
+        "require_envelope": True,
+        "require_no_5xx": True,
+        "needs_auth": True,
+    },
+    # Document upload — validation error on empty body. Also verifies
+    # the upload view is reachable (was 500ing during the drift).
+    {
+        "name": "DocumentUpload — empty body validation",
+        "method": "POST",
+        "path": "/api/v1/documents/upload/",
+        "body": {},
+        "expected_status_any": [400, 401, 403, 415],
+        "require_envelope": True,
+        "require_no_5xx": True,
+        "needs_auth": True,
+    },
 ]
 
 
@@ -165,6 +202,16 @@ def run_check(
         return result
     result.latency_ms = (time.monotonic() - t0) * 1000
     result.actual_status = resp.status_code
+
+    # Explicit 5xx guard — used by schema-drift regression checks where
+    # the status might be in expected_status_any (e.g. 404) but a 500
+    # from the same endpoint would indicate a real regression.
+    if check.get("require_no_5xx") and 500 <= resp.status_code < 600:
+        result.notes.append(
+            f"5xx response on endpoint marked require_no_5xx: {resp.status_code}"
+        )
+        result.passed = False
+        return result
 
     # Check status
     expected = check.get("expected_status_any", [])
