@@ -103,13 +103,17 @@ Implemented:
 - Added optional `LENCO_WEBHOOK_ALLOWED_IPS` source allowlisting for Lenco webhooks
 - Added [docs/production-readiness-status-2026-05-04.md](docs/production-readiness-status-2026-05-04.md)
 - Hardened the student application wizard contract: unique grade subjects, explicit submit confirmation, no automatic submit retries, safe repeat-submit response, and stable preview/OCR fallback behavior
+- **(2026-05-15) Fixed live-site styling regression caused by CSP↔HTML mismatch.** The post-build HTML finaliser was rewriting the main CSS `<link>` to use the `media="print" onload="this.media='all'"` pattern. Once `script-src 'unsafe-inline'` was removed from the production CSP, the inline `onload` was blocked, so the browser downloaded the CSS but never applied it for screen rendering — the page only had the inline preloader styles. Replaced the broken transformation with `critters`-based critical-CSS inlining (`preload: 'body'`, `pruneSource: false`), which produces inline `<style>` blocks (allowed by `style-src 'unsafe-inline'`) and moves the main `<link rel="stylesheet">` to the end of `<body>`. No inline JS, fully CSP-safe. See `apps/admissions/vite.config.ts` `finaliseHtmlPlugin`.
+- **(2026-05-15) Added build-time CSP-aware HTML linter** at `apps/admissions/scripts/check-html-csp.ts` (npm script `check:html`, also wired into `bun run build`). Parses `dist/index.html` and fails the build if any inline event handler attribute, inline `<script>` body, `media="print"` deferral pattern, `javascript:` URL, or other CSP-incompatible construct is emitted. This is the test that would have caught the May 2026 regression before deploy.
+- **(2026-05-15) Added Playwright styling smoke test** at `apps/admissions/tests/e2e/styling-smoke.spec.ts`. Boots the build under the production CSP injected via route handler, asserts no CSP-violation console messages, asserts the body's computed background colour comes from design tokens (not the browser default), and asserts a non-trivial number of CSS rules are loaded. Run before each production deploy via `PLAYWRIGHT_BASE_URL=…`.
 
 Remaining:
 - Run the full required frontend and backend gates in CI or an equivalent production-parity environment
 - Capture E2E evidence for the hardened wizard path: 5 unique subjects, result slip/NRC upload, payment success or deferment, confirmation checkbox, first submit, repeat submit, and OCR/manual-entry fallback
 - Capture the first production release tag, deploy record, smoke result, and Neon restore drill evidence before declaring production-ready
 - Rotate/document any historical secrets referenced by `.kiro`/Context7/Supabase-style findings and re-run secret scanning
-- Revalidate whether frontend `style-src 'unsafe-inline'` can be removed without breaking runtime styles
+- Revalidate whether frontend `style-src 'unsafe-inline'` can be removed without breaking runtime styles. **Note:** removing `style-src 'unsafe-inline'` would also break the critters-based critical-CSS inlining; if that directive is ever tightened, replace inline `<style>` blocks with hash-based CSP allowances and update `check-html-csp.ts` to enforce the hashes.
+- Reduce admissions entry chunk (`assets/js/index-*.js`) below the 650 KB Vite warning threshold (currently 1.4 MB).
 
 ## Recommended Operating Model
 

@@ -8,7 +8,7 @@
     "dev": "node ./scripts/prepare-ocr-assets.mjs && bun x --bun vite",
     "dev:network": "node ./scripts/prepare-ocr-assets.mjs && bun x --bun vite --host 0.0.0.0",
     "dev:prod": "bun run build && bun x --bun vite preview",
-    "build": "node ./scripts/prepare-ocr-assets.mjs && tsc -p tsconfig.build.json --noEmit && ./node_modules/.bin/vite build",
+    "build": "node ./scripts/prepare-ocr-assets.mjs && tsc -p tsconfig.build.json --noEmit && ./node_modules/.bin/vite build && bun scripts/check-html-csp.ts",
     "build:prod": "bun run build",
     "build:analyze": "node ./scripts/prepare-ocr-assets.mjs && tsc -p tsconfig.build.json --noEmit && ./node_modules/.bin/vite build --mode production && bun x vite-bundle-analyzer dist/stats.html",
     "preview": "bun x --bun vite preview",
@@ -20,7 +20,8 @@
     "validate:tailwind": "./scripts/validate-tailwind-classes.sh",
     "check:imports": "bun scripts/check-dynamic-imports.ts",
     "check:entry": "bun scripts/check-entry-chunk.ts",
-    "check:all": "bun run check:imports && bun run check:entry",
+    "check:html": "bun scripts/check-html-csp.ts",
+    "check:all": "bun run check:imports && bun run check:entry && bun run check:html",
     "security-audit": "bun run security-audit.js"
   },
   "dependencies": {

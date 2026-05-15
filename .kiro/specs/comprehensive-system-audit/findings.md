@@ -1831,15 +1831,17 @@ No serializer uses `fields = "__all__"` — all serializers define explicit fiel
 **Finding ID:** P2-PERF-003
 **Severity:** Medium
 **Requirement:** Req 14.1, 14.2, 14.3, 14.4, 14.5
-**Summary:** CWV measurement requires Lighthouse CI (not available in this environment). However, critical rendering path analysis shows no render-blocking resources in `index.html` — no external fonts, no blocking CSS links, no synchronous scripts. The 8.7MB main bundle (P2-PERF-001) is the primary CWV risk factor.
+**Summary:** CWV measurement requires Lighthouse CI (not available in this environment). Critical rendering path analysis (post-2026-05-15 fix): the main CSS `<link rel="stylesheet">` is non-render-blocking via `critters` critical-CSS inlining (inline `<style>` with design tokens + Tailwind reset in `<head>`, full stylesheet moved to end of `<body>`). The 8.7MB main bundle (P2-PERF-001) and the 1.4MB entry chunk are the primary CWV risk factors.
 
 **Evidence:**
 - No external font loading — uses system font stack (Inter or fallback) ✅
-- No render-blocking `<link rel="stylesheet">` in `<head>` — CSS is code-split by Vite ✅
-- Single `<script type="module">` at end of `<body>` — non-blocking ✅
+- Critical CSS inlined via `critters` (`<style>` block ~14 KB in `<head>`); main stylesheet at end of `<body>` so it does not block first paint ✅
+- Single `<script type="module">` at end of `<head>`, deferred by default — non-blocking ✅
 - `modulePreload.polyfill = false` — no polyfill overhead ✅
 - `cssCodeSplit = true` — CSS loaded per-route ✅
 - Structured data (JSON-LD) is non-blocking ✅
+
+**Earlier discrepancy (resolved 2026-05-15):** an earlier version of this finding stated *"No render-blocking `<link rel='stylesheet'>` in `<head>` — CSS is code-split by Vite ✅"*. That was based on an earlier post-build transformation (`media="print" onload=...`) which silently broke production once the admissions CSP was tightened to remove `script-src 'unsafe-inline'`. See `production-hardening.md` and `apps/admissions/scripts/check-html-csp.ts` for the regression-protection enforced at build time now.
 
 **Risk:** The 8.7MB main bundle will dominate FCP and LCP on 3G connections. Estimated FCP on 3G (~1.5 Mbps): ~12 seconds for the gzipped 2.3MB download alone, far exceeding the 1.5s target.
 
