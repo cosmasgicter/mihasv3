@@ -2,6 +2,7 @@ import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import fs from 'node:fs/promises'
+import Critters from 'critters'
 
 /**
  * Build-time validation for required VITE_* environment variables.
@@ -72,20 +73,26 @@ function normalizeProxyTarget(value: string): string {
 /**
  * Post-build HTML finaliser.
  *
- * PRIMARY FIX: Makes the main CSS stylesheet non-render-blocking.
+ * Currently does ONE thing: injects a `modulepreload` hint for the
+ * LandingPage chunk so the browser can start fetching the marketing-route
+ * code in parallel with the entry bundle.
  *
- * Problem: Vite injects `<link rel="stylesheet" href="/assets/index-[hash].css">`
- * into <head>. This 142KB file blocks the browser from painting ANYTHING —
- * including the inline preloader — until it fully downloads. On slow mobile
- * (3G/4G in Zambia), this means 10-30s of white screen.
+ * HISTORY (2026-05): an earlier version of this plugin also rewrote the
+ * main CSS `<link>` into the `media="print" onload="this.media='all'"`
+ * pattern to make it non-render-blocking. That broke production once the
+ * admissions CSP was tightened to remove `script-src 'unsafe-inline'`,
+ * because inline event-handler attributes (including `onload`) count as
+ * inline script under CSP. The browser would download the CSS but never
+ * apply it to the screen — leaving the page styled only by the inline
+ * preloader. The rewrite has been removed.
  *
- * Solution: Transform the CSS link to use the `media="print" onload` pattern.
- * The browser fetches the CSS at high priority but does NOT block rendering.
- * The preloader (with inline styles) paints immediately (~100ms). Once the
- * CSS loads, `onload` flips `media` to "all" and styles apply instantly.
- * A <noscript> fallback ensures CSS still works without JS.
+ * Critical-CSS inlining (via `critters`) is reintroduced in Phase 1; that
+ * approach is CSP-safe because it produces inline `<style>` blocks (allowed
+ * by `style-src 'unsafe-inline'`) instead of inline JS.
  *
- * Also injects a single modulepreload hint for the LandingPage chunk.
+ * Vite's default emission of `<link rel="stylesheet" crossorigin href=…>`
+ * is left untouched here so the page is guaranteed to be styled even if a
+ * future plugin in this pipeline misbehaves.
  */
 function finaliseHtmlPlugin(): Plugin {
   return {
@@ -104,22 +111,7 @@ function finaliseHtmlPlugin(): Plugin {
         return
       }
 
-      // 1. Make the main CSS non-render-blocking.
-      //    Match: <link rel="stylesheet" crossorigin href="/assets/index-HASH.css">
-      //    Replace with async pattern + noscript fallback.
-      html = html.replace(
-        /<link rel="stylesheet" crossorigin href="(\/assets\/index-[^"]+\.css)">/,
-        (_, cssHref) => {
-          // eslint-disable-next-line no-console
-          console.log(`\u001b[32m✓\u001b[0m finalise-html: made CSS non-render-blocking (${cssHref})`)
-          return [
-            `<link rel="stylesheet" href="${cssHref}" media="print" onload="this.media='all'" crossorigin>`,
-            `<noscript><link rel="stylesheet" href="${cssHref}" crossorigin></noscript>`,
-          ].join('\n    ')
-        },
-      )
-
-      // 2. Find the LandingPage chunk and emit a modulepreload hint.
+      // Find the LandingPage chunk and emit a modulepreload hint.
       let manifest: Record<string, { file: string; src?: string; isEntry?: boolean; isDynamicEntry?: boolean }> = {}
       try {
         const raw = await fs.readFile(manifestPath, 'utf8')
@@ -140,6 +132,67 @@ function finaliseHtmlPlugin(): Plugin {
         // eslint-disable-next-line no-console
         console.log(
           `\u001b[32m✓\u001b[0m finalise-html: preload hint for LandingPage (${landingEntry.file})`,
+        )
+      }
+
+      // Inline critical CSS via critters.
+      //
+      // Critters parses the rendered HTML, walks the linked stylesheet(s),
+      // extracts only the rules used by elements in the static HTML, and
+      // inlines them as a `<style>` block in `<head>`. With `preload: 'body'`
+      // the original `<link rel="stylesheet">` is moved to the end of
+      // `<body>` so above-the-fold content paints immediately from the
+      // inlined critical CSS while the rest of the stylesheet loads.
+      //
+      // CSP-safety:
+      // - inline `<style>` is allowed by `style-src 'unsafe-inline'`
+      //   (already required for Radix UI runtime styles).
+      // - NO inline `<script>` and NO inline event handlers are emitted.
+      // - This is the only critters preload mode that works under our CSP;
+      //   `media`, `swap`, `js`, and `js-lazy` all rely on inline JS.
+      //
+      // pruneSource is false: the main CSS file remains on disk and the
+      // <link> still points to it. Critters only adds critical rules to
+      // the inline <style>; it does NOT delete them from the file. This
+      // keeps below-the-fold styles, dynamically rendered components,
+      // and runtime-injected classes (e.g. Radix portals) covered.
+      try {
+        const critters = new Critters({
+          path: distDir,
+          publicPath: '/',
+          preload: 'body',
+          pruneSource: false,
+          mergeStylesheets: true,
+          inlineFonts: false,
+          fonts: false,
+          noscriptFallback: false,
+          compress: true,
+          logLevel: 'silent',
+        })
+        const before = html.length
+        html = await critters.process(html)
+        // critters strips the `crossorigin` attribute when it rewrites the
+        // `<link rel="stylesheet">`; add it back so the loaded CSS still
+        // matches Vite's emitted asset (which is served with CORS) and
+        // matches the cached entry from any preload hints.
+        html = html.replace(
+          /<link rel="stylesheet"((?:(?!crossorigin)[^>])*?)href="(\/assets\/[^"]+\.css)"([^>]*)>/g,
+          (_match, pre, href, post) =>
+            `<link rel="stylesheet"${pre}href="${href}"${post} crossorigin>`,
+        )
+        // eslint-disable-next-line no-console
+        console.log(
+          `\u001b[32m✓\u001b[0m finalise-html: critters inlined critical CSS (HTML ${before} → ${html.length} bytes)`,
+        )
+      } catch (err) {
+        // If critters fails for any reason, fall through with the original
+        // HTML. The page is still styled by the regular `<link>` in <head>;
+        // we just lose the FCP optimization. This is the safe failure mode
+        // — never ship an unstyled page.
+        // eslint-disable-next-line no-console
+        console.warn(
+          `\u001b[33m⚠\u001b[0m finalise-html: critters failed, leaving stylesheet untouched:`,
+          err instanceof Error ? err.message : err,
         )
       }
 
@@ -168,9 +221,9 @@ export default defineConfig(({ mode, command }) => {
     plugins: [
       envValidationPlugin(),
       react(),
-      // Single post-build plugin: inline critical CSS via critters,
-      // then inject modulepreload hints for marketing-route chunks.
-      // Ordering is handled inside the plugin (see finaliseHtmlPlugin).
+      // Single post-build plugin: injects a modulepreload hint for the
+      // LandingPage chunk. CSS rewrite is deliberately not done here —
+      // see finaliseHtmlPlugin docstring for history.
       finaliseHtmlPlugin(),
     ],
     resolve: {
@@ -209,6 +262,30 @@ export default defineConfig(({ mode, command }) => {
               // PDF libraries — dynamically imported
               if (id.includes('/jspdf/') || id.includes('/jspdf-autotable/') || id.includes('/pdf-lib/')) {
                 return 'vendor-pdf'
+              }
+
+              // @react-pdf/renderer + its transitive font/layout deps.
+              // This bundle is ~470KB gzipped (fontkit metrics tables +
+              // pdfkit + a base64-embedded yoga WASM module). Pinning it
+              // into its own named chunk means:
+              //   1. It only re-downloads when @react-pdf updates, not
+              //      when our document templates change.
+              //   2. The 1-year `Cache-Control: immutable` set on
+              //      `/assets/*` fully applies — repeat PDF generations
+              //      after the first never re-download the engine.
+              //   3. The chunk has a stable, recognisable name in the
+              //      Network tab and bundle analyser.
+              if (
+                id.includes('/@react-pdf/') ||
+                id.includes('/fontkit/') ||
+                id.includes('/pdfkit/') ||
+                id.includes('/yoga-layout') ||
+                id.includes('/restructure/') ||
+                id.includes('/dfa/') ||
+                id.includes('/unicode-properties/') ||
+                id.includes('/unicode-trie/')
+              ) {
+                return 'vendor-react-pdf'
               }
 
               // OCR — tesseract.js, dynamically imported
