@@ -166,14 +166,14 @@ export const programs: ProgramItem[] = [
     ],
     highlight: 'Professional Excellence',
     accreditation: 'HPCZ, ECZ & UNZA Certified',
-    image: '/images/programs/katc-campus.webp',
+    logo: '/images/logos/katc-logo.webp',
   },
   {
     institution: 'Mukuba Institute of Health and Applied Sciences',
     courses: ['Diploma in Registered Nursing (NMCZ Accredited)'],
     highlight: 'NMCZ Certified',
     accreditation: 'NMCZ Approved',
-    image: '/images/programs/mihas-campus.webp',
+    logo: '/images/logos/mihas-logo.webp',
   },
 ];
 

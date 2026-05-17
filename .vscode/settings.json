@@ -1,3 +1,33 @@
 {
-    "typescript.autoClosingTags": false
+    // ─── Editor ──────────────────────────────────────────────────────
+    "typescript.autoClosingTags": false,
+
+    // ─── Python / pytest (backend/) ──────────────────────────────────
+    // pytest config + DJANGO_SETTINGS_MODULE live in backend/pyproject.toml,
+    // so we point cwd at backend/ and pass "tests" relative to it.
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.cwd": "${workspaceFolder}/backend",
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+
+    // ─── Vitest (apps/admissions, apps/jobs-ops) ────────────────────
+    // Extension: vitest.explorer (Vitest)
+    // Auto-discovers each app's vitest.config.ts. We bump maximumConfigs
+    // above the default of 3 so both apps light up in Test Explorer, and
+    // narrow the file watcher to the actual test trees to keep CPU low.
+    "vitest.maximumConfigs": 4,
+    "vitest.disabledWorkspaceFolders": [],
+    "vitest.filesWatcherInclude": [
+        "apps/admissions/tests/**/*.{test,spec,property}.{ts,tsx}",
+        "apps/jobs-ops/tests/**/*.{test,spec,property}.{ts,tsx}"
+    ],
+
+    // ─── Playwright E2E (apps/admissions/tests/e2e/) ────────────────
+    // Extension: ms-playwright.playwright (Playwright Test for VSCode)
+    // Auto-discovers apps/admissions/playwright.config.ts.
+    "playwright.reuseBrowser": true,
+    "playwright.showTrace": true
 }

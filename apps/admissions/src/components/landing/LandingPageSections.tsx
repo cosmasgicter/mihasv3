@@ -286,18 +286,18 @@ function ProgramsSection() {
             <StaggerItem key={program.institution}>
               <Card className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                 <CardContent className="p-0">
-                  <div className="relative mb-6 overflow-hidden rounded-lg">
-                    <OptimizedImage
-                      src={program.image}
-                      alt={`Photo of ${program.institution} campus and facilities`}
-                      className="h-52 w-full object-cover sm:h-60"
-                      width={640}
-                      height={256}
-                      srcSetWidths={[320]}
-                      sizes="(min-width: 1024px) 32rem, (min-width: 640px) 80vw, 100vw"
+                  <div className="relative mb-6 flex h-52 items-center justify-center overflow-hidden rounded-lg bg-muted sm:h-60">
+                    <img
+                      src={program.logo}
+                      alt={`${program.institution} logo`}
+                      width={128}
+                      height={128}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-24 w-24 object-contain sm:h-28 sm:w-28"
                     />
                     <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-                      <Badge className="rounded-md border border-white/40 bg-card text-xs text-foreground shadow-sm">
+                      <Badge className="rounded-md border border-border bg-card text-xs text-foreground shadow-sm">
                         {program.highlight}
                       </Badge>
                       <Badge className="rounded-md bg-primary text-xs text-primary-foreground shadow-sm">
