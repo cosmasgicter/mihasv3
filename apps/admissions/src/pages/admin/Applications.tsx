@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { animateClasses } from '@/lib/animations'
 import { useSearchParams } from 'react-router-dom'
 import {
   FiltersPanel,
@@ -41,7 +40,6 @@ import {
   FileText, 
   Filter, 
   RefreshCw, 
-  Download,
   LayoutGrid,
   Table,
   Keyboard
@@ -623,7 +621,7 @@ export default function Applications() {
             <button
               type="button"
               onClick={() => setViewMode('cards')}
-              className={`p-1.5 rounded-md transition-colors ${
+              className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md transition-colors ${
                 viewMode === 'cards'
                   ? 'bg-card text-primary shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -636,7 +634,7 @@ export default function Applications() {
             <button
               type="button"
               onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-md transition-colors ${
+              className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md transition-colors ${
                 viewMode === 'table'
                   ? 'bg-card text-primary shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -668,7 +666,7 @@ export default function Applications() {
           <div className="relative hidden sm:block">
             <button
               type="button"
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Keyboard shortcuts"
               onMouseEnter={() => setShowShortcuts(true)}
               onMouseLeave={() => setShowShortcuts(false)}
@@ -691,83 +689,44 @@ export default function Applications() {
         </div>
       }
     >
-      {/* Review posture and operator tools */}
+      {/* Filters and content */}
       <div className="px-4 py-4 sm:px-6">
-        <div className="mb-6 grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.8fr)]">
-          <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
-            <div className="flex flex-wrap items-center gap-2">
-              {['High-confidence approvals', 'Payment-first decisioning', 'Queue visibility'].map((item) => (
-                <span key={item} className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">
-                  {item}
-                </span>
-              ))}
-            </div>
-            <h2 className="mt-4 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-              Built for fast triage without sacrificing judgment
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-              The review flow now emphasizes what admissions officers need first: today’s intake pressure, payment proof requiring attention, and the exact queue that still needs a decision.
-            </p>
-          </div>
-          <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
-            <p className="text-xs font-semibold uppercase text-primary">Review posture</p>
-            <div className="mt-4 grid gap-3">
-              <div className="rounded-lg border border-border bg-muted px-4 py-3">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">Today</p>
-                <p className="mt-1 text-lg font-semibold text-foreground">{stats.todaySubmissions} new submissions landed</p>
-              </div>
-              <div className="rounded-lg border border-border bg-muted px-4 py-3">
-                <p className="text-xs font-semibold uppercase text-muted-foreground">Most urgent</p>
-                <p className="mt-1 text-lg font-semibold text-foreground">
-                  {stats.paymentPending > 0 ? 'Payment proof review is active' : stats.decisionQueue > 0 ? 'Decision queue needs attention' : 'Queue is under control'}
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* Export bar */}
+        <div className="mb-4 flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { void handleExport('csv') }}
+            loading={exportingFormat === 'csv'}
+            disabled={isExporting && exportingFormat !== 'csv'}
+            className="text-xs"
+          >
+            <FileDown className="mr-1 h-3 w-3" />
+            CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { void handleExport('excel') }}
+            loading={exportingFormat === 'excel'}
+            disabled={isExporting && exportingFormat !== 'excel'}
+            className="text-xs"
+          >
+            <FileSpreadsheet className="mr-1 h-3 w-3" />
+            Excel
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { void handleExport('pdf') }}
+            loading={exportingFormat === 'pdf'}
+            disabled={isExporting && exportingFormat !== 'pdf'}
+            className="text-xs"
+          >
+            <FileText className="mr-1 h-3 w-3" />
+            PDF
+          </Button>
         </div>
-        {/* Mobile Export Actions */}
-        <div className="mb-6 rounded-lg border border-border bg-card p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-foreground">Export Data</h3>
-            <Download className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => { void handleExport('csv') }}
-              loading={exportingFormat === 'csv'}
-              disabled={isExporting && exportingFormat !== 'csv'}
-              className="text-xs"
-            >
-              <FileDown className="mr-1 h-3 w-3" />
-              CSV
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => { void handleExport('excel') }}
-              loading={exportingFormat === 'excel'}
-              disabled={isExporting && exportingFormat !== 'excel'}
-              className="text-xs"
-            >
-              <FileSpreadsheet className="mr-1 h-3 w-3" />
-              Excel
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => { void handleExport('pdf') }}
-              loading={exportingFormat === 'pdf'}
-              disabled={isExporting && exportingFormat !== 'pdf'}
-              className="text-xs"
-            >
-              <FileText className="mr-1 h-3 w-3" />
-              PDF
-            </Button>
-          </div>
-        </div>
-
         {/* Mobile Filters Panel */}
         {showFilters && (
           <div className="mb-6 rounded-lg border border-border bg-card p-4 shadow-sm sm:hidden">

@@ -63,15 +63,24 @@ export function AuthShell({
   return (
     <div className="min-h-dvh bg-muted">
       <div className="mx-auto flex min-h-dvh max-w-md flex-col px-4 py-10 sm:px-6 sm:py-16">
-        {/* Brand identity — small, top-center, calm */}
+        {/* Brand identity — dual-institutional, top-center, calm */}
         <Link
           to="/"
-          className="mx-auto mb-10 flex items-center gap-2 rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted"
+          className="mx-auto mb-10 flex items-center gap-3 rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted"
           aria-label="MIHAS-KATC home"
         >
           <img
             src="/images/logos/mihas-logo.webp"
             alt="MIHAS"
+            width={32}
+            height={32}
+            loading="eager"
+            decoding="async"
+            className="h-8 w-8"
+          />
+          <img
+            src="/images/logos/katc-logo.webp"
+            alt="Kalulushi Training Centre"
             width={32}
             height={32}
             loading="eager"

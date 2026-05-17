@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/Button'
 import { useAdminDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useToastStore } from '@/hooks/useToast'
 import { AlertTriangle, BarChart3, Activity, RefreshCw, ClipboardList, FileCheck, CreditCard, Video, ArrowRight, TimerReset, CircleAlert } from 'lucide-react'
-import { animateClasses } from '@/lib/animations'
 import { Seo } from '@/components/seo/Seo'
 import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
 import { RealtimeMetricsDisplay } from '@/components/admin/RealtimeMetricsDisplay'
@@ -362,7 +361,7 @@ export default function AdminDashboard() {
     >
         {/* System Status Bar */}
         <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.SystemStatus', ...errorInfo })}>
-        <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
+        <div className="mb-6 sm:mb-8">
           <div className="rounded-lg border border-border/60 bg-card p-4 sm:p-6 shadow-sm">
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
               <div className="flex items-center space-x-2">
@@ -393,7 +392,7 @@ export default function AdminDashboard() {
 
         {/* Needs Attention */}
         <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.NeedsAttention', ...errorInfo })}>
-        <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
+        <div className="mb-6 sm:mb-8">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Needs attention</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             <Link to="/admin/applications?overdueReviewFilter=true" className="group rounded-lg border border-red-500/30 bg-red-500/5 p-4 transition-colors hover:bg-red-500/10">
@@ -436,15 +435,15 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-rose-600">Review payments <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
-            <Link to="/admin/applications?upcomingInterviewsFilter=true" className="group rounded-lg border border-violet-500/30 bg-violet-500/5 p-4 transition-colors hover:bg-violet-500/10">
+            <Link to="/admin/applications?upcomingInterviewsFilter=true" className="group rounded-lg border border-sky-500/30 bg-sky-500/5 p-4 transition-colors hover:bg-sky-500/10">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="shrink-0 rounded-lg bg-violet-500/10 p-2"><Video className="h-5 w-5 text-violet-600" /></div>
+                <div className="shrink-0 rounded-lg bg-sky-500/10 p-2"><Video className="h-5 w-5 text-sky-600" /></div>
                 <div className="min-w-0">
                   <p className="break-words text-2xl font-bold text-foreground">{stats.upcomingInterviews}</p>
                   <p className="break-words text-xs text-muted-foreground">Upcoming interviews</p>
                 </div>
               </div>
-              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-violet-600">View schedule <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
+              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-sky-600">View schedule <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
             <Link to="/admin/applications?statusFilter=conditionally_approved" className="group rounded-lg border border-orange-500/30 bg-orange-500/5 p-4 transition-colors hover:bg-orange-500/10">
               <div className="flex min-w-0 items-center gap-3">
@@ -473,7 +472,7 @@ export default function AdminDashboard() {
         {/* Error Display */}
           {error && (
             <div 
-              className={`mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 sm:p-5 ${animateClasses.fadeIn}`}
+              className="mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 sm:p-5"
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center space-x-3">
@@ -525,7 +524,7 @@ export default function AdminDashboard() {
         {/* Requirements: 6.2, 6.4 - Real-time metrics display with animated counters and visual indicators */}
         <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.RealtimeMetrics', ...errorInfo })}>
         <div 
-          className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}
+          className="mb-6 sm:mb-8"
         >
           <RealtimeMetricsDisplay
             todayApplications={stats.todayApplications}
@@ -562,7 +561,7 @@ export default function AdminDashboard() {
         {/* Weekly Overview */}
         <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.WeeklyOverview', ...errorInfo })}>
         <div 
-          className={`mt-8 rounded-lg border border-border/60 bg-card shadow-sm ${animateClasses.slideUp}`}
+          className="mt-8 rounded-lg border border-border/60 bg-card shadow-sm"
         >
           <div className="px-6 py-4 border-b border-border/40">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">

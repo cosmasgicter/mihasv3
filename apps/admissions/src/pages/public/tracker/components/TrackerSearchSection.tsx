@@ -37,7 +37,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
   return (
     <SectionCard
       title="Find Your Application"
-      description="Enter your application number (e.g., MIHAS123456) or tracking code to check status."
+      description="Enter your application number or tracking code to check status."
       icon={<Search className="h-5 w-5" />}
       headerVariant="default"
     >
@@ -55,13 +55,13 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
                 onChange={(e) => onSearchTermChange(e.target.value)}
                 onPaste={onPaste}
                 onKeyPress={onKeyPress}
-                placeholder="Enter application number..."
+                placeholder="MIHAS123456 or TRK-XXXXXXXXXXXX"
                 autoComplete="off"
                 inputMode="text"
-                aria-describedby={error ? 'tracker-search-error' : undefined}
+                aria-describedby={error ? 'tracker-search-error' : 'tracker-search-hint'}
                 aria-invalid={Boolean(error)}
                 disabled={loading}
-                className="h-14 w-full rounded-lg border border-border bg-card pl-12 pr-4 text-base shadow-sm focus:border-primary"
+                className="h-14 w-full rounded-lg border border-border bg-card pl-12 pr-4 text-lg shadow-sm focus:border-primary"
               />
             </div>
             <Button
@@ -69,24 +69,27 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               loading={loading}
               size="lg"
               disabled={loading || searchTerm.trim().length === 0}
-              className="h-14 w-full rounded-lg bg-primary px-8 font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 sm:w-auto"
+              className="h-14 min-h-[44px] w-full rounded-lg bg-primary px-8 font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 sm:w-auto"
             >
               <Search className="h-5 w-5 mr-2" aria-hidden="true" />
               {loading ? 'Searching...' : 'Search'}
             </Button>
           </div>
+          <p id="tracker-search-hint" className="mt-2 text-sm text-muted-foreground">
+            Format: <span className="font-mono">MIHAS123456</span>, <span className="font-mono">KATC123456</span>, or <span className="font-mono">TRK-XXXXXXXXXXXX</span>
+          </p>
           
           {error && (
             <div
               id="tracker-search-error"
               role="alert"
-              className={`mt-4 rounded-lg bg-error/10 border border-error/30 p-4 transition-all duration-300 ease-out ${
+              className={`mt-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4 transition-all duration-200 ease-out ${
                 errorVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
               }`}
             >
               <div className="flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-error flex-shrink-0" />
-                <p className="text-sm font-medium text-error">{error}</p>
+                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" aria-hidden="true" />
+                <p className="text-sm font-medium text-destructive">{error}</p>
               </div>
             </div>
           )}
@@ -94,8 +97,8 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
         
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
-            <div className="flex-shrink-0 rounded-lg bg-card p-2.5 text-primary">
-              <Mail className="h-5 w-5 text-primary" />
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-card">
+              <Mail className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-foreground">Check Your Email</h3>
@@ -103,8 +106,8 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
             </div>
           </div>
           <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
-            <div className="flex-shrink-0 rounded-lg bg-card p-2.5 text-primary">
-              <Hash className="h-5 w-5 text-primary" />
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-card">
+              <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-foreground">Format Example</h3>
@@ -112,8 +115,8 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
             </div>
           </div>
           <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
-            <div className="flex-shrink-0 rounded-lg bg-card p-2.5 text-primary">
-              <Zap className="h-5 w-5 text-primary" />
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-card">
+              <Zap className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-foreground">Instant Results</h3>

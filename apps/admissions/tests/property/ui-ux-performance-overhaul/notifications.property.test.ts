@@ -138,8 +138,8 @@ describe('Property 18: Notification Variant ARIA Roles', () => {
         // Banner uses getRole(variant) which checks alertVariants set
         expect(bannerSource).toContain('role={getRole(variant)}')
 
-        // Verify the alertVariants set contains error and warning.
-        expect(bannerSource).toMatch(/alertVariants.*Set.*\[.*'error'.*'warning'/)
+        // Verify the alertVariants set contains the alert-level variants.
+        expect(bannerSource).toContain("['danger', 'warning', 'error']")
 
         if (variant === 'error' || variant === 'warning') {
           // These should produce role="alert"

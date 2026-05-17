@@ -58,8 +58,8 @@ class AdminExportHardeningTests(SimpleTestCase):
 
         with (
             patch("apps.applications.admin_views.Application.objects") as objects,
-            patch("apps.applications.admin_views._with_payment_summary", return_value=queryset),
-            patch("apps.applications.admin_views.ApplicationFilter", return_value=SimpleNamespace(qs=queryset)),
+            patch("apps.applications.admin_export_views._with_payment_summary", return_value=queryset),
+            patch("apps.applications.admin_export_views.ApplicationFilter", return_value=SimpleNamespace(qs=queryset)),
         ):
             objects.all.return_value = queryset
             response = ApplicationExportView().get(request)
@@ -88,8 +88,8 @@ class AdminExportHardeningTests(SimpleTestCase):
 
         with (
             patch("apps.applications.admin_views.Application.objects") as objects,
-            patch("apps.applications.admin_views._with_payment_summary", return_value=queryset),
-            patch("apps.applications.admin_views.ApplicationFilter", return_value=SimpleNamespace(qs=queryset)),
+            patch("apps.applications.admin_export_views._with_payment_summary", return_value=queryset),
+            patch("apps.applications.admin_export_views.ApplicationFilter", return_value=SimpleNamespace(qs=queryset)),
         ):
             objects.all.return_value = queryset
             response = ApplicationExportView().get(request)

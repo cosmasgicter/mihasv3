@@ -15,6 +15,36 @@ The principal risk is no longer missing functionality. It is **semantic drift**:
 - several large files have become concentration points for future regression risk
 - operational evidence trails are less mature than the runtime code
 
+## Current Scores
+
+### Production Readiness Score: **89 / 100**
+
+The codebase is close to launchable and materially hardened:
+
+- frontend type-check, lint, CSP guard, bundle guard, production build, and the current targeted critical slice pass
+- backend `manage.py check`, Python compilation, and the current targeted critical slice pass
+- auth/session/CSRF handling, payment hardening, admin redaction, public tracking minimization, and operational runbooks are all stronger than baseline
+
+The score is held below 90+ by evidence gaps rather than missing core capability:
+
+- the full frontend suite is not green after the 2026-05-17 redesign because several assertions still describe older UI contracts
+- the local environment does not yet provide a clean full backend parity run with Postgres + Redis
+- release, restore-drill, deploy, and secret-rotation evidence remain pending
+- one archived SQL artifact referenced by historical governance docs/tests is still absent from disk
+
+### Slop Score: **24 / 100**
+
+Lower is better. This is not a sloppy system; it is a good system with residue.
+
+The score is driven mostly by:
+
+- stale tests and docs that still refer to retired concepts such as `AuthLayout`
+- drift between old invariants and current redesign copy/structure
+- a few obsolete compatibility expectations surviving after module decomposition and payment-throttle hardening
+- documentation archaeology around legacy SQL/env history that is not yet fully reconciled
+
+The strongest anti-slop signal is that most failures are now **drift failures**, not evidence of broken production behavior. The code itself is often ahead of the paperwork around it.
+
 ## System Verdict
 
 | Area | Assessment |
@@ -27,6 +57,21 @@ The principal risk is no longer missing functionality. It is **semantic drift**:
 | Analytics / reporting | Needs alignment with the modern lifecycle |
 | Cross-layer consistency | Needs deliberate cleanup |
 | Production readiness | Code is ahead of release evidence |
+
+## Verification Snapshot — 2026-05-17
+
+| Gate | Result |
+| --- | --- |
+| Admissions frontend type-check | Pass |
+| Admissions frontend lint | Pass |
+| Admissions frontend dynamic import / entry / CSP checks | Pass |
+| Admissions frontend production build | Pass, with large PDF chunk warning |
+| Focused admissions frontend regression slice | Pass |
+| Full admissions frontend suite | Not green: latest full run observed 44 failed files / 62 failed tests before subsequent targeted drift repairs; exact current count needs one more clean full rerun |
+| Backend `manage.py check` | Pass |
+| Backend Python compilation | Pass |
+| Focused backend regression slice | Pass: 60 tests |
+| Exact secret-pattern scan | Clean for checked high-risk patterns |
 
 ## Severity Matrix
 

@@ -48,7 +48,7 @@ export interface ProgramItem {
   courses: string[];
   highlight: string;
   accreditation: string;
-  image: string;
+  logo: string;
 }
 
 export interface QuickLinkItem {

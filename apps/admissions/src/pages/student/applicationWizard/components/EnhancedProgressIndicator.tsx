@@ -91,10 +91,10 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
           />
         )}
 
-        {/* Pulse ring for current step */}
+        {/* Subtle ring for current step */}
         {isCurrent && shouldAnimate && (
           <div
-            className="absolute inset-0 rounded-full border-2 border-primary animate-ping opacity-30"
+            className="absolute inset-0 rounded-full border-2 border-primary/30 transition-opacity duration-150"
           />
         )}
       </div>
@@ -199,7 +199,7 @@ const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       {/* Current step indicator */}
       {isCurrent && !isCompleted && (
         <div
-          className="w-2 h-2 rounded-full bg-primary flex-shrink-0 animate-pulse"
+          className="w-2 h-2 rounded-full bg-primary flex-shrink-0"
         />
       )}
     </button>

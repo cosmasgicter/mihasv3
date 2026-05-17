@@ -34,7 +34,7 @@ import json
 import uuid
 
 import pytest
-from django.test import override_settings
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
 
@@ -142,7 +142,7 @@ def _send(
 
 @pytest.mark.django_db
 @override_settings(DEBUG=False, DJANGO_ENV="production")
-class TestPaymentViewsReturn404OnDevBypassInProduction:
+class TestPaymentViewsReturn404OnDevBypassInProduction(TestCase):
     """5 views × 4 vectors = up to 20 parametrised cases.
 
     The body-field vector is skipped on GET endpoints (no body to populate).

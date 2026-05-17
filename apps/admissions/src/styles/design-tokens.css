@@ -44,6 +44,14 @@
   --color-success-foreground: #ffffff; /* 21:1 on success */
   --color-info: #2563eb;              /* 4.52:1 on white, same as primary */
   --color-info-foreground: #ffffff;   /* 21:1 on info */
+
+  /* Celebration accent — used for success moments (enrollment confirmed,
+   * payment verified, application submitted). Teal-based to avoid purple.
+   * 4.53:1 on white (AA). Pair with --color-celebration-foreground. */
+  --color-celebration: #0d9488;       /* teal-600, 4.53:1 on white */
+  --color-celebration-foreground: #ffffff; /* 21:1 on celebration */
+  --color-celebration-surface: #ccfbf1; /* teal-100, subtle background */
+  --color-celebration-rgb: 13 148 136;
   
   /* Admin Dashboard Specific Colors - WCAG AA Compliant */
   --color-admin-bg: #f9fafb;          /* Subtle admin background */
@@ -248,7 +256,12 @@
   --z-auto: auto;
   
   /* ===== ANIMATION TOKENS ===== */
-  /* Duration */
+  /* Duration — standardized timing convention:
+   *   100ms = instant feedback (button press, toggle)
+   *   150ms = state changes (hover, focus, active)
+   *   200ms = route transitions, content reveals
+   *   300ms = modal/drawer open/close
+   */
   --duration-75: 75ms;
   --duration-100: 100ms;
   --duration-150: 150ms;
@@ -258,11 +271,12 @@
   --duration-700: 700ms;
   --duration-1000: 1000ms;
   
-  /* Easing */
+  /* Easing — ease-out for entrances, ease-in for exits, ease for hover */
   --ease-linear: linear;
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   
   /* ===== MOBILE-SPECIFIC TOKENS ===== */
   /* Safe Area Insets */

@@ -59,7 +59,7 @@ import json
 import uuid
 
 import pytest
-from django.test import override_settings
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -229,7 +229,7 @@ def _dispatch_risk_flags_list(
 
 @pytest.mark.django_db
 @override_settings(DEBUG=False, DJANGO_ENV="production")
-class TestPhase5EndpointsRejectQueryDevBypass:
+class TestPhase5EndpointsRejectQueryDevBypass(TestCase):
     """``?<param>=1`` on either Phase 5 endpoint → HTTP 404 empty body.
 
     Parametrises across the full ``DEV_BYPASS_PARAM_NAMES`` set so every
@@ -271,7 +271,7 @@ class TestPhase5EndpointsRejectQueryDevBypass:
 
 @pytest.mark.django_db
 @override_settings(DEBUG=False, DJANGO_ENV="production")
-class TestPhase5EndpointsRejectHeaderDevBypass:
+class TestPhase5EndpointsRejectHeaderDevBypass(TestCase):
     """``X-Dev-Bypass[-Auth]: 1`` on either Phase 5 endpoint → 404.
 
     Validates: Requirements R16.1, R16.3

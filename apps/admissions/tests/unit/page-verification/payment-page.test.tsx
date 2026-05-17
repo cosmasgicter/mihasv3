@@ -385,8 +385,8 @@ describe('Payment page verification', () => {
     await renderAndWait()
 
     const text = container.textContent || ''
-    expect(text).toContain('No Submitted Fees Yet')
-    expect(text).toContain('Submitted applications with payment records or outstanding fees will appear here')
+    expect(text).toContain('No payments yet')
+    expect(text).toContain('Payment records will appear here once you submit')
   })
 
   // ── Error handling ──────────────────────────────────────────────────

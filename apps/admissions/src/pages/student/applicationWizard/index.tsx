@@ -604,6 +604,13 @@ const ApplicationWizardContent = () => {
                       ? ' · Unsaved changes'
                       : ''}
               </p>
+              {/* Thin step progress bar */}
+              <div className="mt-2 h-1 w-full rounded-full bg-muted" aria-hidden="true">
+                <div
+                  className="h-1 rounded-full bg-primary transition-all duration-200 ease-out"
+                  style={{ width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }}
+                />
+              </div>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                 {currentStepConfig.description}
               </p>
@@ -870,7 +877,7 @@ const ApplicationWizardContent = () => {
             <div className="order-2 sm:order-1">
               {currentStepIndex > 0 && (
                 <div>
-                  <Button type="button" variant="outline" onClick={wrappedHandlePrevStep} className="w-full sm:w-auto" disabled={loading} aria-label={`Go back to ${wizardSteps[currentStepIndex - 1]?.progressTitle || 'previous step'}`}>
+                  <Button type="button" variant="outline" onClick={wrappedHandlePrevStep} className="w-full sm:w-auto min-h-[48px]" disabled={loading} aria-label={`Go back to ${wizardSteps[currentStepIndex - 1]?.progressTitle || 'previous step'}`}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     {previousButtonLabel}
                   </Button>

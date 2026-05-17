@@ -103,7 +103,7 @@ const SubmissionSuccess = ({
             <p className="mt-4 text-sm font-medium text-foreground">
               {persistingSlip ? 'Generating application slip...' : 'Preparing your slip...'}
             </p>
-            <p className="mt-1 text-xs text-caption">
+            <p className="mt-1 text-xs text-muted-foreground">
               You can close this and download the slip later.
             </p>
           </div>
@@ -112,40 +112,45 @@ const SubmissionSuccess = ({
       <div
         className={`bg-card rounded-lg shadow-sm ring-1 ring-border/50 p-5 sm:p-8 text-center ${animateClasses.scaleIn}`}
       >
-        <div className={`relative inline-flex items-center justify-center ${animateClasses.scaleIn}`}>
-          {/* Celebratory ring pulse */}
-          <div className="absolute inset-0 w-20 h-20 rounded-full bg-success/20 animate-ping" style={{ animationDuration: '1.5s', animationIterationCount: '3' }} />
-          <div className="relative w-20 h-20 rounded-full bg-success flex items-center justify-center  ">
+        {/* Institution logo */}
+        <img
+          src="/images/logos/mihas-logo.webp"
+          alt="MIHAS logo"
+          className="mx-auto mb-4 h-14 w-auto object-contain"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+        />
+        <div className="relative inline-flex items-center justify-center">
+          {/* Calm success ring */}
+          <div className="absolute inset-0 w-20 h-20 rounded-full bg-success/10" />
+          <div className="relative w-20 h-20 rounded-full bg-success flex items-center justify-center">
             <CheckCircle className="h-10 w-10 text-white" />
           </div>
         </div>
-        <h2 className="text-2xl font-bold text-foreground mt-6 mb-4">Application Submitted Successfully!</h2>
-
-
-
-        <div
+        <h2 className="text-2xl font-bold text-foreground mt-6 mb-2">Application Submitted</h2>
+        <p className="text-sm text-muted-foreground mb-6">Your application is now with the admissions team.</p>        <div
           className={`bg-accent/10 border border-accent/30 rounded-lg p-4 mb-6 ${animateClasses.slideUp}`}
         >
+          {/* Tracking number — prominent */}
+          <div className="mb-4 rounded-md bg-primary/5 border border-primary/20 px-4 py-3">
+            <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Tracking Code</span>
+            <span className="block font-mono text-lg font-bold text-foreground tracking-wide">{submittedApplication.trackingCode}</span>
+          </div>
           <h3 className="font-semibold text-accent-foreground mb-3">Application Details</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-warning-strong">Application Number:</span>
+              <span className="text-muted-foreground">Application Number:</span>
               <span className="font-mono font-bold text-accent-foreground">{submittedApplication.applicationNumber}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-warning-strong">Tracking Code:</span>
-              <span className="font-mono font-bold text-accent-foreground">{submittedApplication.trackingCode}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-warning-strong">Program:</span>
+              <span className="text-muted-foreground">Program:</span>
               <span className="font-semibold text-accent-foreground">{submittedApplication.program}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-warning-strong">Institution:</span>
+              <span className="text-muted-foreground">Institution:</span>
               <span className="font-semibold text-accent-foreground">{getInstitutionName(submittedApplication.institution ?? undefined)}</span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-accent flex items-center justify-between sm:justify-start">
+              <span className="text-muted-foreground flex items-center justify-between sm:justify-start">
                 <Send className="h-4 w-4 mr-2" />
                 Payment Status:
               </span>
@@ -155,7 +160,7 @@ const SubmissionSuccess = ({
                 {formatPaymentStatusLabel(submittedApplication.paymentStatus)}
               </span>
             </div>
-            <p className="text-left text-xs text-warning-strong">{getPaymentStatusDescription(submittedApplication.paymentStatus)}</p>
+            <p className="text-left text-xs text-muted-foreground">{getPaymentStatusDescription(submittedApplication.paymentStatus)}</p>
           </div>
         </div>
 

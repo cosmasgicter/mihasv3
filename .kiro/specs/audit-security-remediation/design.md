@@ -232,7 +232,7 @@ _For any_ session-authenticated admin user accessing the new admin URL path, the
 **Bug 1: Secrets Replacement**
 
 **File**: `.kiro/mcp.json`
-- Replace `"CONTEXT7_API_KEY": "ctx7sk-dbfa3364-1dd8-484e-bdf0-88016070cee1"` with `"CONTEXT7_API_KEY": ""`
+- Replace `"CONTEXT7_API_KEY": "<REDACTED>"` with `"CONTEXT7_API_KEY": ""`
 
 **File**: `.kiro/settings/mcp.json`
 - Replace `"SUPABASE_URL"` value with `""`

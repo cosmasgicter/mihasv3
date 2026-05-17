@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/Dialog'
 import { DashboardSkeleton } from '@/components/ui'
 import { ResponsiveTable } from '@/components/ui/ResponsiveTable'
-import { Pencil, Trash2, Plus, ArrowLeft, Calendar } from 'lucide-react'
+import { Pencil, Trash2, Plus, ArrowLeft, Calendar, AlertTriangle } from 'lucide-react'
 import { useForm, type Resolver } from 'react-hook-form'
 import { z } from '@/lib/zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -312,7 +312,7 @@ export default function AdminIntakes() {
               </div>
             ) : error ? (
               <div className="rounded-lg bg-destructive/5 border border-destructive/30 p-6 text-center">
-                <div className="text-6xl mb-4">😱</div>
+                <AlertTriangle className="mx-auto h-10 w-10 text-destructive mb-4" aria-hidden="true" />
                 <p className="text-destructive font-medium text-lg">{error}</p>
                 <Button 
                   onClick={() => refetch()} 
@@ -324,7 +324,9 @@ export default function AdminIntakes() {
               </div>
             ) : intakes.length === 0 ? (
               <div className="text-center py-8 sm:py-16">
-                <div className="text-8xl mb-6"><Calendar className="w-5 h-5" aria-hidden="true" /></div>
+                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Calendar className="h-10 w-10" aria-hidden="true" />
+                </div>
                 <h2 className="text-2xl font-bold text-foreground mb-2">No Intakes Yet</h2>
                 <p className="text-foreground mb-6 max-w-md mx-auto">
                   Create admission intakes to define application periods, deadlines, and capacity for student enrollment.

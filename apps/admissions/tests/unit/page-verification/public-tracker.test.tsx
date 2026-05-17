@@ -278,7 +278,7 @@ describe('Public tracker page verification', () => {
     await renderAndWait(500)
 
     const text = container.textContent || ''
-    expect(text).toContain('No Application Found')
+    expect(text).toContain('No application found')
     expect(text).toContain('Try Again')
   })
 

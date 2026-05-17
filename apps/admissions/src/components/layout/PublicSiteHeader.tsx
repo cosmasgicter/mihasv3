@@ -57,15 +57,26 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
         <div className="container-responsive px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-3">
             <Link to="/" className="inline-flex items-center gap-3 font-semibold text-foreground" aria-label="Mukuba Institute of Health and Applied Sciences logo - Home">
-              <img
-                src="/images/logos/mihas-logo.webp"
-                alt="MIHAS"
-                width={40}
-                height={40}
-                loading="eager"
-                decoding="async"
-                className="h-10 w-10 rounded-lg"
-              />
+              <span className="inline-flex items-center gap-2">
+                <img
+                  src="/images/logos/mihas-logo.webp"
+                  alt="MIHAS"
+                  width={40}
+                  height={40}
+                  loading="eager"
+                  decoding="async"
+                  className="h-10 w-10 rounded bg-card p-0.5"
+                />
+                <img
+                  src="/images/logos/katc-logo.webp"
+                  alt="Kalulushi Training Centre"
+                  width={40}
+                  height={40}
+                  loading="eager"
+                  decoding="async"
+                  className="h-10 w-10 rounded bg-card p-0.5"
+                />
+              </span>
               <span className="hidden sm:block">
                 <span className="block text-xs font-semibold uppercase text-muted-foreground">MIHAS-KATC</span>
                 <span className="block text-base font-semibold tracking-tight text-foreground">Admissions</span>
@@ -84,7 +95,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
                     onTouchStart={href.startsWith('/auth') ? warmAuthRoutes : undefined}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-200',
+                      'rounded-lg px-4 py-2 min-h-[44px] inline-flex items-center text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                       active ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                     )}
                   >
@@ -97,7 +108,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
                 onPointerEnter={warmAuthRoutes}
                 onFocus={warmAuthRoutes}
                 onTouchStart={warmAuthRoutes}
-                className="ml-2 inline-flex min-h-[40px] items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-150 hover:bg-primary/90"
+                className="ml-2 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-150 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 <UserPlus className="h-4 w-4" />
                 Apply now

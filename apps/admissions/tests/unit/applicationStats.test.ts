@@ -8,25 +8,31 @@ import { describe, it, expect } from 'vitest';
 import { computeApplicationStats } from '../../src/lib/applicationStats';
 
 describe('computeApplicationStats', () => {
-  it('counts in-progress applications (draft + submitted)', () => {
+  it('counts in-progress applications across the current lifecycle', () => {
     const apps = [
       { status: 'draft' },
       { status: 'submitted' },
+      { status: 'under_review' },
+      { status: 'conditionally_approved' },
+      { status: 'waitlisted' },
       { status: 'approved' },
     ];
     const stats = computeApplicationStats(apps);
-    expect(stats.inProgress).toBe(2);
+    expect(stats.inProgress).toBe(5);
   });
 
-  it('counts completed applications (approved + rejected + waitlisted)', () => {
+  it('counts terminal applications across the current lifecycle', () => {
     const apps = [
       { status: 'approved' },
       { status: 'rejected' },
-      { status: 'waitlisted' },
+      { status: 'enrolled' },
+      { status: 'withdrawn' },
+      { status: 'expired' },
+      { status: 'enrollment_expired' },
       { status: 'draft' },
     ];
     const stats = computeApplicationStats(apps);
-    expect(stats.completed).toBe(3);
+    expect(stats.completed).toBe(6);
   });
 
   it('returns total count of all applications', () => {
@@ -46,29 +52,30 @@ describe('computeApplicationStats', () => {
     expect(stats.total).toBe(0);
   });
 
-  it('handles statuses that are neither in-progress nor completed', () => {
+  it('leaves unknown future statuses uncategorized', () => {
     const apps = [
-      { status: 'under_review' },
       { status: 'interview_scheduled' },
     ];
     const stats = computeApplicationStats(apps);
     expect(stats.inProgress).toBe(0);
     expect(stats.completed).toBe(0);
-    expect(stats.total).toBe(2);
+    expect(stats.total).toBe(1);
   });
 
-  it('handles mixed statuses correctly', () => {
+  it('handles mixed current lifecycle statuses correctly', () => {
     const apps = [
       { status: 'draft' },
       { status: 'submitted' },
       { status: 'under_review' },
-      { status: 'approved' },
-      { status: 'rejected' },
+      { status: 'conditionally_approved' },
       { status: 'waitlisted' },
+      { status: 'approved' },
+      { status: 'enrolled' },
+      { status: 'rejected' },
     ];
     const stats = computeApplicationStats(apps);
-    expect(stats.inProgress).toBe(2);
+    expect(stats.inProgress).toBe(5);
     expect(stats.completed).toBe(3);
-    expect(stats.total).toBe(6);
+    expect(stats.total).toBe(8);
   });
 });

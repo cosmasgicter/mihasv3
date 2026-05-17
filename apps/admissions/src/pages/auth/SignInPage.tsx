@@ -93,15 +93,15 @@ export default function SignInPage() {
 
   const seoByPath = {
     '/auth/signin': {
-      title: 'Sign In | MIHAS Admissions',
-      description: 'Sign in to the MIHAS admissions portal.',
+      title: 'Sign In | MIHAS-KATC Admissions',
+      description: 'Sign in to the MIHAS-KATC admissions portal.',
     },
     '/signin': {
-      title: 'Login | MIHAS Admissions',
-      description: 'Access your MIHAS student admissions account.',
+      title: 'Login | MIHAS-KATC Admissions',
+      description: 'Access your MIHAS-KATC student admissions account.',
     },
     '/login': {
-      title: 'Login | MIHAS Admissions',
+      title: 'Login | MIHAS-KATC Admissions',
       description: 'Sign in to manage applications and status updates.',
     },
   } as const;
@@ -219,22 +219,22 @@ export default function SignInPage() {
     <>
       <Seo title={seoConfig.title} description={seoConfig.description} path={location.pathname} />
       <AuthShell
-        title="Sign in"
+        title="Sign in to your application"
         description={
           <>
-            New to MIHAS-KATC?{' '}
+            Welcome back. Pick up where you left off.{' '}
             <Link
               to="/auth/signup"
               className="font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
             >
-              Create an account
+              New here? Create an account
             </Link>
           </>
         }
         footer={
           <AuthShellFooter>
-            <AuthShellLink to="/auth/forgot-password">Forgot your password?</AuthShellLink>
-            <AuthShellLink to="/auth/signup" emphasis="muted">
+            <AuthShellLink to="/auth/forgot-password" emphasis="muted">Forgot your password?</AuthShellLink>
+            <AuthShellLink to="/auth/signup">
               Create a new account
             </AuthShellLink>
           </AuthShellFooter>
@@ -249,7 +249,7 @@ export default function SignInPage() {
           <FormErrorAnnouncer errors={errors} fieldLabels={{ email: 'Email', password: 'Password' }} />
 
           {activeBannerMessage ? (
-            <Banner variant="error" dismissible onDismiss={dismissBanner}>
+            <Banner variant="danger" dismissible onDismiss={dismissBanner}>
               {activeBannerMessage}
             </Banner>
           ) : null}

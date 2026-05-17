@@ -198,6 +198,8 @@ export function useSessionListener() {
   const signOut = useCallback(async () => {
     const currentUserId = user?.id
 
+    await queryClient.cancelQueries({ queryKey: ['auth'] })
+    await queryClient.cancelQueries({ queryKey: ['user-profile'] })
     await queryClient.cancelQueries()
 
     try {

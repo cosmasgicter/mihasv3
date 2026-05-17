@@ -224,7 +224,7 @@ describe('Property 7: API client single-refresh-then-cascade on 401', () => {
   // ---------------------------------------------------------------------------
 
   describe('source verification', () => {
-    const source = readClientSource();
+    const source = `${readClientSource()}\n${fs.readFileSync(path.join(__dirname, '../../src/services/authInterceptor.ts'), 'utf8')}`;
 
     it('ApiClient has isAuthExcludedEndpoint that excludes refresh, login, register', () => {
       expect(source).toContain('isAuthExcludedEndpoint');
@@ -234,12 +234,12 @@ describe('Property 7: API client single-refresh-then-cascade on 401', () => {
     });
 
     it('401 intercept checks isAuthExcludedEndpoint before attempting refresh', () => {
-      expect(source).toMatch(/response\.status\s*===\s*401\s*&&\s*!this\.isAuthExcludedEndpoint/);
+      expect(source).toMatch(/response\.status\s*===\s*401\s*&&\s*!isAuthExcludedEndpoint/);
     });
 
     it('attemptRefresh uses promise-lock deduplication', () => {
       expect(source).toContain('refreshPromise');
-      expect(source).toMatch(/if\s*\(\s*this\.refreshPromise\s*\)/);
+      expect(source).toMatch(/if\s*\(\s*refreshPromise\s*\)/);
     });
 
     it('on refresh success, original request is retried once', () => {

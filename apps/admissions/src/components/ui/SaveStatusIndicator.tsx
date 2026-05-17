@@ -52,7 +52,7 @@ export const SaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
   const getStatusIcon = () => {
     switch (status) {
       case 'saving':
-        return <RefreshCw className="h-4 w-4 animate-pulse text-primary" />
+        return <RefreshCw className="h-4 w-4 animate-spin text-primary" />
       case 'saved':
         return <CheckCircle className="h-4 w-4 text-success" />
       case 'error':
@@ -120,7 +120,7 @@ export const SaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
     <div className={cn('relative flex flex-col gap-2', className)}>
       <div
         className={cn(
-          'flex flex-col gap-3 rounded-xl border px-3 py-2 shadow-sm transition-all duration-200 sm:flex-row sm:items-start sm:justify-between',
+          'flex flex-col gap-3 rounded-xl border px-3 py-2 shadow-sm transition-opacity duration-150 sm:flex-row sm:items-start sm:justify-between',
           statusToneClasses[status]
         )}
       >
@@ -223,7 +223,7 @@ export const CompactSaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
   const getStatusIcon = () => {
     switch (status) {
       case 'saving':
-        return <RefreshCw className="h-3 w-3 animate-pulse text-primary" />
+        return <RefreshCw className="h-3 w-3 animate-spin text-primary" />
       case 'saved':
         return <CheckCircle className="h-3 w-3 text-success" />
       case 'error':

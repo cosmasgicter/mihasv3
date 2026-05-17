@@ -58,7 +58,13 @@ describe('Feature: frontend-django-alignment, Property 4: Paginated applications
           const result = normalizePaginatedApplications(response);
 
           expect(result.applications).toHaveLength(records.length);
-          expect(result.applications).toBe(records);
+          expect(result.applications).toStrictEqual(
+            [...records].sort((left, right) => {
+              const rightTime = new Date(right.created_at || 0).getTime()
+              const leftTime = new Date(left.created_at || 0).getTime()
+              return rightTime - leftTime || String(right.id).localeCompare(String(left.id))
+            }),
+          );
           expect(result.totalCount).toBe(meta.totalCount);
           expect(result.totalCount).toBeGreaterThanOrEqual(0);
           expect(result.page).toBe(meta.page);
@@ -92,7 +98,13 @@ describe('Feature: frontend-django-alignment, Property 4: Paginated applications
           const result = normalizePaginatedApplications(response);
 
           expect(result.applications).toHaveLength(records.length);
-          expect(result.applications).toBe(records);
+          expect(result.applications).toStrictEqual(
+            [...records].sort((left, right) => {
+              const rightTime = new Date(right.created_at || 0).getTime()
+              const leftTime = new Date(left.created_at || 0).getTime()
+              return rightTime - leftTime || String(right.id).localeCompare(String(left.id))
+            }),
+          );
           expect(result.totalCount).toBe(count);
           expect(result.totalCount).toBeGreaterThanOrEqual(0);
           expect(result.page).toBe(page);
@@ -118,7 +130,13 @@ describe('Feature: frontend-django-alignment, Property 4: Paginated applications
           const result = normalizePaginatedApplications(records);
 
           expect(result.applications).toHaveLength(records.length);
-          expect(result.applications).toBe(records);
+          expect(result.applications).toStrictEqual(
+            [...records].sort((left, right) => {
+              const rightTime = new Date(right.created_at || 0).getTime()
+              const leftTime = new Date(left.created_at || 0).getTime()
+              return rightTime - leftTime || String(right.id).localeCompare(String(left.id))
+            }),
+          );
           expect(result.totalCount).toBe(records.length);
           expect(result.totalCount).toBeGreaterThanOrEqual(0);
           expect(result.page).toBe(1);
@@ -171,7 +189,13 @@ describe('Feature: frontend-django-alignment, Property 4: Paginated applications
           const result = normalizePaginatedApplications(response);
 
           // results takes priority via nullish coalescing (results ?? applications)
-          expect(result.applications).toBe(resultsRecords);
+          expect(result.applications).toStrictEqual(
+            [...resultsRecords].sort((left, right) => {
+              const rightTime = new Date(right.created_at || 0).getTime()
+              const leftTime = new Date(left.created_at || 0).getTime()
+              return rightTime - leftTime || String(right.id).localeCompare(String(left.id))
+            }),
+          );
           expect(result.applications).toHaveLength(resultsRecords.length);
         },
       ),
@@ -488,7 +512,13 @@ describe('Feature: frontend-django-alignment, Property 6: No double envelope unw
           const result = normalizePaginatedApplications(nonEnvelopePayload);
 
           // The normalizer must NOT strip the results key — it should use it
-          expect(result.applications).toBe(records);
+          expect(result.applications).toStrictEqual(
+            [...records].sort((left, right) => {
+              const rightTime = new Date(right.created_at || 0).getTime()
+              const leftTime = new Date(left.created_at || 0).getTime()
+              return rightTime - leftTime || String(right.id).localeCompare(String(left.id))
+            }),
+          );
           expect(result.applications).toHaveLength(records.length);
           expect(result.totalCount).toBe(meta.totalCount);
         },
@@ -511,7 +541,13 @@ describe('Feature: frontend-django-alignment, Property 6: No double envelope unw
 
           const result = normalizePaginatedApplications(nonEnvelopePayload);
 
-          expect(result.applications).toBe(records);
+          expect(result.applications).toStrictEqual(
+            [...records].sort((left, right) => {
+              const rightTime = new Date(right.created_at || 0).getTime()
+              const leftTime = new Date(left.created_at || 0).getTime()
+              return rightTime - leftTime || String(right.id).localeCompare(String(left.id))
+            }),
+          );
           expect(result.totalCount).toBe(count);
         },
       ),
@@ -540,7 +576,13 @@ describe('Feature: frontend-django-alignment, Property 6: No double envelope unw
           const result = normalizePaginatedApplications(payload as any);
 
           // Results must be preserved, not discarded
-          expect(result.applications).toBe(records);
+          expect(result.applications).toStrictEqual(
+            [...records].sort((left, right) => {
+              const rightTime = new Date(right.created_at || 0).getTime()
+              const leftTime = new Date(left.created_at || 0).getTime()
+              return rightTime - leftTime || String(right.id).localeCompare(String(left.id))
+            }),
+          );
           expect(result.applications).toHaveLength(records.length);
         },
       ),

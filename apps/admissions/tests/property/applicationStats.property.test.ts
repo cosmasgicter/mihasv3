@@ -3,11 +3,9 @@
  *
  * Feature: production-remediation
  *
- * For any list of applications with random statuses from
- * {draft, submitted, under_review, approved, rejected, waitlisted},
- * the "in-progress" count must equal the count of applications with status
- * `draft` or `submitted`, and the "completed" count must equal the count of
- * applications with status `approved`, `rejected`, or `waitlisted`.
+ * For any list of applications with random statuses from the current lifecycle,
+ * the "in-progress" count must equal action-bearing statuses and the
+ * "completed" count must equal terminal statuses.
  * The sum of in-progress + completed + other must equal the total count.
  *
  * **Validates: Requirements 19.1, 19.2**
@@ -23,13 +21,18 @@ const ALL_STATUSES = [
   'draft',
   'submitted',
   'under_review',
-  'approved',
-  'rejected',
+  'conditionally_approved',
   'waitlisted',
+  'approved',
+  'enrolled',
+  'rejected',
+  'withdrawn',
+  'expired',
+  'enrollment_expired',
 ] as const;
 
-const IN_PROGRESS_STATUSES = new Set(['draft', 'submitted']);
-const COMPLETED_STATUSES = new Set(['approved', 'rejected', 'waitlisted']);
+const IN_PROGRESS_STATUSES = new Set(['draft', 'submitted', 'under_review', 'conditionally_approved', 'waitlisted']);
+const COMPLETED_STATUSES = new Set(['approved', 'enrolled', 'rejected', 'withdrawn', 'expired', 'enrollment_expired']);
 
 /** Arbitrary: a single application with a random status */
 const applicationArb: fc.Arbitrary<ApplicationStatsInput> = fc
@@ -40,8 +43,8 @@ const applicationArb: fc.Arbitrary<ApplicationStatsInput> = fc
 const applicationListArb = fc.array(applicationArb, { minLength: 0, maxLength: 50 });
 
 describe('Application Statistics Accuracy Property Tests (Property 11)', () => {
-  describe('P11.1: In-progress count equals draft + submitted count', () => {
-    it('inProgress matches the number of draft and submitted applications', () => {
+  describe('P11.1: In-progress count matches action-bearing statuses', () => {
+    it('inProgress matches current lifecycle in-progress statuses', () => {
       fc.assert(
         fc.property(applicationListArb, (apps) => {
           const stats = computeApplicationStats(apps);
@@ -53,8 +56,8 @@ describe('Application Statistics Accuracy Property Tests (Property 11)', () => {
     });
   });
 
-  describe('P11.2: Completed count equals approved + rejected + waitlisted count', () => {
-    it('completed matches the number of approved, rejected, and waitlisted applications', () => {
+  describe('P11.2: Completed count matches terminal statuses', () => {
+    it('completed matches current lifecycle terminal statuses', () => {
       fc.assert(
         fc.property(applicationListArb, (apps) => {
           const stats = computeApplicationStats(apps);

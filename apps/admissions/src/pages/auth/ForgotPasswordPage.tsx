@@ -16,7 +16,6 @@ import { AuthShell, AuthShellFooter, AuthShellLink } from '@/components/auth/Aut
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
-import { animateClasses } from '@/lib/animations';
 import { logApiError } from '@/lib/apiErrorLogger';
 import { Seo } from '@/components/seo/Seo';
 import { 

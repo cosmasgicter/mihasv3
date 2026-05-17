@@ -303,31 +303,6 @@ export default function PublicApplicationTracker() {
               description="Check your application status instantly — no login required. Enter your application number or tracking code below."
               className="border-0 bg-transparent p-0 shadow-none"
             />
-            <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.75fr)]">
-              <div>
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">No sign-in required</span>
-                  <span className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">Live status visibility</span>
-                  <span className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">Slip download and sharing</span>
-                </div>
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                  This tracker is designed for confidence. Students and sponsors can see where an application stands without navigating the full portal, while still keeping the result clear and action-oriented.
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-muted p-5 sm:p-6">
-                <p className="text-xs font-semibold uppercase text-primary">Best input</p>
-                <div className="mt-4 grid gap-3">
-                  <div className="rounded-lg border border-border bg-card px-4 py-3">
-                    <p className="text-xs font-semibold uppercase text-muted-foreground">Use</p>
-                    <p className="mt-1 text-lg font-semibold text-foreground">Application number or tracking code</p>
-                  </div>
-                  <div className="rounded-lg border border-border bg-card px-4 py-3">
-                    <p className="text-xs font-semibold uppercase text-muted-foreground">Outcome</p>
-                    <p className="mt-1 text-lg font-semibold text-foreground">Status, milestones, and application slip</p>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Search Section */}

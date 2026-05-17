@@ -36,7 +36,7 @@ interface MetricData {
   previousValue?: number;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  color: 'blue' | 'yellow' | 'green' | 'purple' | 'orange';
+  color: 'blue' | 'yellow' | 'green' | 'secondary' | 'orange';
   suffix?: string;
   trend?: 'up' | 'down' | 'stable';
   trendValue?: number;
@@ -76,7 +76,7 @@ const colorConfig = {
     icon: 'text-success',
     pulse: 'bg-success',
   },
-  purple: {
+  secondary: {
     bg: 'bg-secondary/10',
     icon: 'text-secondary',
     pulse: 'bg-secondary',
@@ -363,7 +363,7 @@ export function RealtimeMetricsDisplay({
       label: 'Days',
       description: 'Avg Processing',
       icon: Zap,
-      color: 'purple',
+      color: 'secondary',
       trend: 'down',
       trendValue: 15,
     },

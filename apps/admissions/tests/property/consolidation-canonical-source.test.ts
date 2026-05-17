@@ -43,10 +43,6 @@ const CANONICAL_MODULE_MAP: Array<{
     canonicalFile: 'lib/draftManager.ts',
     symbols: ['DraftManager', 'draftManager'],
   },
-  {
-    canonicalFile: 'lib/securityConfig.ts',
-    symbols: ['CSP_CONFIG', 'generateCSPHeader'],
-  },
 ];
 
 /** Recursively collect all .ts and .tsx files under a directory */

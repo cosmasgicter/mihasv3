@@ -96,8 +96,8 @@ function truncateValue(value: string | null | undefined, maxLength: number) {
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="grid gap-1 sm:grid-cols-[minmax(0,9rem)_1fr] sm:items-start">
-      <dt className="text-foreground">{label}</dt>
-      <dd className="font-semibold text-foreground break-words">{value}</dd>
+      <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dd className="text-sm font-medium text-foreground break-words">{value}</dd>
     </div>
   )
 }
@@ -617,32 +617,44 @@ export default function ApplicationStatus() {
                 description="Track how far along your application is in the review process."
                 icon={<CheckCircle className="h-5 w-5" />}
               >
-                <div className="space-y-6">
-                  {timeline.map((step, index) => (
+                <div className="space-y-1">
+                  {timeline.map((step, index) => {
+                    const isActive = !step.completed && index === timeline.findIndex(s => !s.completed)
+                    const isFuture = !step.completed && !isActive
+                    return (
                     <div
                       key={`${step.status}-${index}`}
-                      className={`flex items-start gap-4 ${animateClasses.slideUp}`}
+                      className={`flex items-start gap-4 rounded-lg border-l-2 px-3 py-3 ${
+                        isActive
+                          ? 'border-l-primary bg-primary/5'
+                          : step.completed
+                            ? 'border-l-success/40'
+                            : 'border-l-border'
+                      } ${animateClasses.slideUp}`}
                       style={staggerChild(index, 50)}
                     >
                       <div
-                        className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg border shadow-sm ${
+                        className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
                           step.completed
-                            ? 'border-success/20 bg-success/10 text-success'
-                            : 'border-border bg-accent text-foreground'
+                            ? 'bg-success/10 text-success'
+                            : isActive
+                              ? 'bg-primary/10 text-primary'
+                              : 'bg-muted text-muted-foreground'
                         }`}
                       >
                         {step.completed ? <CheckCircle className="h-5 w-5" /> : getStatusIcon(step.status)}
                       </div>
-                      <div className="flex-1">
-                        <p className={`font-semibold ${step.completed ? 'text-foreground' : 'text-foreground'}`}>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold ${isFuture ? 'text-muted-foreground' : 'text-foreground'}`}>
                           {step.description}
                         </p>
                         {step.date && (
-                          <p className="text-sm text-foreground">{formatDate(step.date)}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{formatDate(step.date)}</p>
                         )}
                       </div>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </SectionCard>
 

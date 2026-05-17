@@ -137,7 +137,7 @@ describe('Contact page verification', () => {
   it('renders without errors and shows the page heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Talk to admissions')
+    expect(text).toContain('Reach the admissions team')
   })
 
   it('renders the back-to-home link', async () => {
@@ -334,17 +334,17 @@ describe('Contact page verification', () => {
     expect(text).not.toContain('Unable to open your email app')
   })
 
-  // ── "Send a Message" card title ─────────────────────────────────────
+  // ── Contact surface titles ───────────────────────────────────────────
 
-  it('renders the "Send a Message" card title', async () => {
+  it('renders the contact form title', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Send a Message')
+    expect(text).toContain('Send a message')
   })
 
-  it('renders the "Talk to our team" card title', async () => {
+  it('renders the WhatsApp primary response surface', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Talk to our team')
+    expect(text).toContain('Fastest response')
   })
 })

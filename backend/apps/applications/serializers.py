@@ -663,7 +663,10 @@ class ApplicationAmendmentRequestSerializer(serializers.Serializer):
         new_value = attrs["new_value"]
 
         if field_name == "email":
-            serializers.EmailField().run_validation(new_value)
+            try:
+                serializers.EmailField().run_validation(new_value)
+            except serializers.ValidationError as exc:
+                raise serializers.ValidationError({"new_value": exc.detail}) from exc
         elif field_name in {"phone", "next_of_kin_phone"}:
             try:
                 attrs["new_value"] = validate_phone_e164(new_value)

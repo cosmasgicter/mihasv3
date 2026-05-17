@@ -93,7 +93,7 @@ describe('ApiClient CSRF 403 Retry Unit Tests', () => {
       }
 
       // Second call: session endpoint GET to re-fetch CSRF token
-      if (urlStr === SESSION_URL) {
+      if (urlStr === `${SESSION_URL}?refresh_csrf=1`) {
         return makeJsonResponse(
           200,
           { success: true, data: { user: { id: '1' } } },
@@ -124,13 +124,12 @@ describe('ApiClient CSRF 403 Retry Unit Tests', () => {
       typeof c[0] === 'string' ? c[0] : ''
     );
     expect(urls[0]).toBe(APPLICATIONS_URL);
-    expect(urls[1]).toBe(SESSION_URL);
+    expect(urls[1]).toBe(`${SESSION_URL}?refresh_csrf=1`);
     expect(urls[2]).toBe(APPLICATIONS_URL);
 
     // Verify the retry request includes the fresh CSRF token
     const retryInit = mockFetch.mock.calls[2][1] as RequestInit;
-    const retryHeaders = retryInit.headers as Record<string, string>;
-    expect(retryHeaders['X-CSRF-Token']).toBe('fresh-csrf-token');
+    expect(new Headers(retryInit.headers).get('X-CSRF-Token')).toBe('fresh-csrf-token');
   });
 
   // _Requirements: 6.7_

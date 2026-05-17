@@ -246,11 +246,11 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 0;
-  height: 0;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(0);
   /* NOTE: 2026-05-17 — animating width/height causes layout thrash
    * (anti-pattern: layout-transition). Use scale transform instead so the
    * ripple animates on the GPU compositor rather than the layout thread. */
@@ -258,8 +258,6 @@
 }
 
 .nav-touch-feedback:active::after {
-  width: 200px;
-  height: 200px;
   transform: translate(-50%, -50%) scale(1);
   opacity: 0;
 }
@@ -280,9 +278,9 @@
 
 /* Active state improvements */
 .mobile-nav-active {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
-  border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.3);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
 }
 
 /* Focus management for navigation */

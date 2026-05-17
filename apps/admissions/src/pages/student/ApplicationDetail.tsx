@@ -42,8 +42,8 @@ type ApplicationRecordWithExtras = ApplicationRecord & {
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="grid gap-1 sm:grid-cols-[minmax(0,9rem)_1fr] sm:items-start">
-      <dt className="text-sm font-medium text-foreground">{label}</dt>
-      <dd className="text-foreground font-medium break-words">{value}</dd>
+      <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dd className="text-sm font-medium text-foreground break-words">{value}</dd>
     </div>
   )
 }
@@ -210,7 +210,9 @@ export default function ApplicationDetail() {
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-1">Documents</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-1">
+                <span className="uppercase tracking-wide text-muted-foreground">Documents</span>
+              </h3>
               <p className="text-foreground text-sm">Download your application documents</p>
             </div>
             <DocumentButtons 
@@ -228,9 +230,9 @@ export default function ApplicationDetail() {
             className={`rounded-lg border border-border bg-card p-6 shadow-sm ${animateClasses.slideUp}`}
             style={staggerChild(3, 100)}
           >
-            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center">
               <User className="h-5 w-5 mr-2 text-primary" />
-              Personal Information
+              <span className="uppercase tracking-wide text-muted-foreground">Personal</span>
             </h3>
             <dl className="space-y-4">
               <DetailRow label="Full Name" value={application.full_name || 'Not provided'} />
@@ -269,9 +271,9 @@ export default function ApplicationDetail() {
             className={`rounded-lg border border-border bg-card p-6 shadow-sm ${animateClasses.slideUp}`}
             style={staggerChild(4, 100)}
           >
-            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center">
               <GraduationCap className="h-5 w-5 mr-2 text-primary" />
-              Program Information
+              <span className="uppercase tracking-wide text-muted-foreground">Academic</span>
             </h3>
             <dl className="space-y-4">
               <DetailRow label="Program" value={application.program || 'Not provided'} />
@@ -298,9 +300,9 @@ export default function ApplicationDetail() {
             className={`rounded-lg border border-border bg-card p-6 shadow-sm ${animateClasses.slideUp}`}
             style={staggerChild(5, 100)}
           >
-            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center">
               <Calendar className="h-5 w-5 mr-2 text-primary" />
-              Timeline
+              <span className="uppercase tracking-wide text-muted-foreground">Timeline</span>
             </h3>
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
@@ -347,9 +349,9 @@ export default function ApplicationDetail() {
             className={`rounded-lg border border-border bg-card p-6 shadow-sm ${animateClasses.slideUp}`}
             style={staggerChild(6, 100)}
           >
-            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center">
               <CreditCard className="h-5 w-5 mr-2 text-primary" />
-              Payment Status
+              <span className="uppercase tracking-wide text-muted-foreground">Payment</span>
             </h3>
             <dl className="space-y-4">
               <DetailRow

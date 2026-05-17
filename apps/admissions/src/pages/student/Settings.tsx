@@ -15,8 +15,10 @@ import { ActiveSessions } from '@/components/ui/ActiveSessions'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageShell } from '@/components/ui/PageShell'
 import {
+  AlertTriangle,
   ArrowLeft,
   Bell,
+  CheckCircle2,
   Mail,
   MapPin,
   Save,
@@ -305,12 +307,15 @@ export default function StudentSettings() {
             <div
               role={saveStatus.tone === 'error' ? 'alert' : 'status'}
               aria-live={saveStatus.tone === 'error' ? 'assertive' : 'polite'}
-              className={
+              className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-sm ${
                 saveStatus.tone === 'error'
-                  ? 'rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive'
-                  : 'rounded-lg border border-success/30 bg-success/5 px-4 py-3 text-sm text-success'
-              }
+                  ? 'border-destructive/30 bg-destructive/5 text-destructive'
+                  : 'border-success/30 bg-success/5 text-success'
+              }`}
             >
+              {saveStatus.tone === 'error'
+                ? <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                : <CheckCircle2 className="h-4 w-4 flex-shrink-0" />}
               {saveStatus.message}
             </div>
           )}

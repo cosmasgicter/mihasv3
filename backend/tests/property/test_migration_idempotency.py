@@ -39,7 +39,11 @@ MIGRATION_SCRIPT_PATH = (
     Path(__file__).resolve().parents[2] / "scripts" / "archive" / "lenco_payment_integration.sql"
 )
 
-MIGRATION_SQL = MIGRATION_SCRIPT_PATH.read_text(encoding="utf-8")
+MIGRATION_SQL = (
+    MIGRATION_SCRIPT_PATH.read_text(encoding="utf-8")
+    if MIGRATION_SCRIPT_PATH.exists()
+    else ""
+)
 
 # ---------------------------------------------------------------------------
 # Parse SQL statements (split on semicolons, strip comments and whitespace)

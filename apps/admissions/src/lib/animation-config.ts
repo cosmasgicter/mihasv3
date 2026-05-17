@@ -41,17 +41,17 @@ export const durations = {
 // Easing functions for smooth animations
 export const easings = {
   default: [0.4, 0, 0.2, 1] as const,
-  bounce: [0.68, -0.55, 0.265, 1.55] as const,
   smooth: [0.25, 0.1, 0.25, 1] as const,
   easeOut: [0, 0, 0.2, 1] as const,
   easeIn: [0.4, 0, 1, 1] as const,
   easeInOut: [0.4, 0, 0.2, 1] as const,
+  /** Confident deceleration — use for entrances and reveals */
+  easeOutQuint: [0.22, 1, 0.36, 1] as const,
 } as const;
 
 // Spring configurations for physics-based animations
 export const springs = {
   gentle: { stiffness: 120, damping: 14 },
-  bouncy: { stiffness: 300, damping: 10 },
   stiff: { stiffness: 400, damping: 30 },
   slow: { stiffness: 100, damping: 20 },
 } as const;

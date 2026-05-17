@@ -49,13 +49,13 @@ type CancelInterviewPayload = {
 
 export type BackendPaginatedApplications =
   | {
-      applications?: Application[]
-      results?: Application[]
-      totalCount?: number
-      count?: number
-      page?: number
-      pageSize?: number
-      limit?: number
+      applications?: unknown
+      results?: unknown
+      totalCount?: unknown
+      count?: unknown
+      page?: unknown
+      pageSize?: unknown
+      limit?: unknown
       stats?: Record<string, unknown>
       next?: string | null
     }
@@ -159,10 +159,27 @@ export function normalizePaginatedApplications(response: BackendPaginatedApplica
     }
   }
 
-  const applications = sortApplicationsByActivity(response?.results ?? response?.applications ?? [])
-  const totalCount = response?.totalCount ?? response?.count ?? applications.length
-  const page = response?.page ?? 1
-  const pageSize = response?.pageSize ?? response?.limit ?? applications.length
+  const rawApplications = Array.isArray(response?.results)
+    ? response.results
+    : Array.isArray(response?.applications)
+      ? response.applications
+      : []
+  const applications = sortApplicationsByActivity(rawApplications)
+  const totalCountCandidate = response?.totalCount ?? response?.count
+  const pageCandidate = response?.page
+  const pageSizeCandidate = response?.pageSize ?? response?.limit
+  const totalCount =
+    typeof totalCountCandidate === 'number' && Number.isFinite(totalCountCandidate) && totalCountCandidate >= 0
+      ? totalCountCandidate
+      : applications.length
+  const page =
+    typeof pageCandidate === 'number' && Number.isFinite(pageCandidate) && pageCandidate >= 1
+      ? pageCandidate
+      : 1
+  const pageSize =
+    typeof pageSizeCandidate === 'number' && Number.isFinite(pageSizeCandidate) && pageSizeCandidate >= 0
+      ? pageSizeCandidate
+      : applications.length
 
   return {
     applications,
