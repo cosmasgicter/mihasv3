@@ -188,12 +188,6 @@ export default function LandingPage() {
           icon: <BookOpen className="w-5 h-5" />,
         }}
         proofPanel={{
-          image: {
-            src: '/images/programs/mihas-campus.webp',
-            alt: 'Students and facilities at the MIHAS-KATC healthcare training campuses',
-            width: 400,
-            height: 300,
-          },
           eyebrow: 'One application. Three diplomas. Real jobs.',
           title: 'Start tonight. Finish when your documents are ready.',
           description: 'K150 for Zambians, USD 20 for international students. Pay by Airtel, MTN, or card. Save your progress and come back. No office visits until your interview.',

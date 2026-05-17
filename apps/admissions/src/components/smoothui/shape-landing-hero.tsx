@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { preloadAuthRoutes } from '@/lib/routePreload';
 import { CheckCircle } from '@/components/icons';
 
@@ -12,7 +11,6 @@ interface ShapeLandingHeroProps {
   primaryCta: { label: string; href: string; icon?: React.ReactNode };
   secondaryCta: { label: string; href: string; icon?: React.ReactNode };
   proofPanel: {
-    image: { src: string; alt: string; width: number; height: number };
     eyebrow: string;
     title: string;
     description: string;
@@ -126,18 +124,38 @@ export function ShapeLandingHero({
 
           <aside className="rounded-lg border border-border bg-card p-3 shadow-md">
             <div className="relative overflow-hidden rounded-lg bg-muted">
-              <OptimizedImage
-                src={proofPanel.image.src}
-                alt={proofPanel.image.alt}
-                width={proofPanel.image.width}
-                height={proofPanel.image.height}
-                lazy={false}
-                fetchPriority="high"
-                decoding="sync"
-                srcSetWidths={[320, 640]}
-                sizes="(min-width: 1024px) 32rem, 100vw"
-                className="aspect-[4/3] h-auto w-full object-cover"
-              />
+              <div className="aspect-[4/3] grid grid-cols-2 gap-3 p-4 sm:p-6">
+                <figure className="flex flex-col items-center justify-center gap-3 rounded-md bg-card p-3 shadow-sm">
+                  <img
+                    src="/images/logos/mihas-logo.webp"
+                    alt="Mukuba Institute of Health and Applied Sciences"
+                    width={96}
+                    height={96}
+                    loading="eager"
+                    decoding="async"
+                    className="h-14 w-14 sm:h-20 sm:w-20 object-contain"
+                  />
+                  <figcaption className="text-center">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">MIHAS</p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">Mukuba Institute · Kitwe</p>
+                  </figcaption>
+                </figure>
+                <figure className="flex flex-col items-center justify-center gap-3 rounded-md bg-card p-3 shadow-sm">
+                  <img
+                    src="/images/logos/katc-logo.webp"
+                    alt="Kalulushi Training Centre"
+                    width={96}
+                    height={96}
+                    loading="eager"
+                    decoding="async"
+                    className="h-14 w-14 sm:h-20 sm:w-20 object-contain"
+                  />
+                  <figcaption className="text-center">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">KATC</p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">Kalulushi Training Centre</p>
+                  </figcaption>
+                </figure>
+              </div>
             </div>
 
             <div className="space-y-5 p-4 sm:p-5">
