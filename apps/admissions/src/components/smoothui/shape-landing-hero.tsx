@@ -137,7 +137,7 @@ export function ShapeLandingHero({
                   />
                   <figcaption className="text-center">
                     <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">MIHAS</p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">Mukuba Institute · Kitwe</p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">Mukuba Institute · Kalulushi</p>
                   </figcaption>
                 </figure>
                 <figure className="flex flex-col items-center justify-center gap-3 rounded-md border border-border bg-card p-3 shadow-sm">

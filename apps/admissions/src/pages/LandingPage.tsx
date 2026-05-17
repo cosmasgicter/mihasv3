@@ -194,7 +194,7 @@ export default function LandingPage() {
           badges: ['NMCZ', 'HPCZ', 'ECZ', 'UNZA'],
           highlights: [...PROOF_HIGHLIGHTS],
           checklist: [
-            'Mukuba Institute (Nursing) in Kitwe and Kalulushi Training Centre (Clinical Medicine, Environmental Health).',
+            'Mukuba Institute (Nursing) and Kalulushi Training Centre (Clinical Medicine, Environmental Health) — both in Kalulushi.',
             'One application form for all three programs — pick the one that fits you best.',
             'On-campus accommodation available. Book through the portal after admission.',
           ],
