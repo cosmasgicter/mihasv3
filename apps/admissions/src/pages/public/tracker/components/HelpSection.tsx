@@ -90,7 +90,7 @@ export const HelpSection: React.FC = () => {
                   <Mail className="h-4 w-4 text-primary" />
                   Email Support
                 </p>
-                <a href="mailto:info@mihas.edu.zm" className="text-primary font-medium hover:underline text-sm min-h-[44px] inline-flex items-center">
+                <a href="mailto:info@mihas.edu.zm" className="text-primary font-medium hover:underline text-sm min-h-touch inline-flex items-center">
                   info@mihas.edu.zm
                 </a>
               </div>
@@ -101,8 +101,8 @@ export const HelpSection: React.FC = () => {
                   Phone Support
                 </p>
                 <div className="space-y-1 text-sm">
-                  <p><strong>KATC:</strong> <a href="tel:0966992299" className="text-primary hover:underline inline-flex min-h-[44px] items-center">0966992299</a></p>
-                  <p><strong>MIHAS:</strong> <a href="tel:0961515151" className="text-primary hover:underline inline-flex min-h-[44px] items-center">0961515151</a></p>
+                  <p><strong>KATC:</strong> <a href="tel:0966992299" className="text-primary hover:underline inline-flex min-h-touch items-center">0966992299</a></p>
+                  <p><strong>MIHAS:</strong> <a href="tel:0961515151" className="text-primary hover:underline inline-flex min-h-touch items-center">0961515151</a></p>
                 </div>
               </div>
             </div>

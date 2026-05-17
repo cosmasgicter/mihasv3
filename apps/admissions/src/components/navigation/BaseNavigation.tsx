@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Menu, X, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 export interface NavigationItem {
   href: string
@@ -41,10 +42,12 @@ export function BaseNavigation({
     }
   }
 
-  const closeMenu = () => {
+  const closeMenu = useCallback(() => {
     setIsOpen(false)
     document.body.style.overflow = ''
-  }
+  }, [])
+
+  const focusTrapRef = useFocusTrap(isOpen, closeMenu)
 
   // Cleanup on unmount and handle escape key
   useEffect(() => {
@@ -109,6 +112,7 @@ export function BaseNavigation({
 
           {/* Mobile Menu */}
           <div
+            ref={focusTrapRef as React.RefObject<HTMLDivElement>}
             className={cn(
               "fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-card shadow-sm lg:hidden border-r border-border overflow-y-auto",
               "transition-transform duration-200 ease-out motion-reduce:transition-none",
@@ -121,7 +125,7 @@ export function BaseNavigation({
               <div className="flex items-center justify-between p-6 border-b border-border/70 bg-card">
                 {mobileHeader}
                 <button
-                  className="p-2 rounded-lg hover:bg-accent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[44px] min-w-[44px] touch-target  motion-reduce:transform-none"
+                  className="p-2 rounded-lg hover:bg-accent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-touch min-w-touch touch-target  motion-reduce:transform-none"
                   onClick={closeMenu}
                   aria-label="Close menu"
                 >

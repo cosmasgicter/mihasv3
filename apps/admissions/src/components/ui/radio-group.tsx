@@ -45,7 +45,7 @@ const RadioGroupItem = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>
 >(({ className, ...props }, ref) => {
   return (
-    <div className="relative inline-flex items-center justify-center min-h-[44px] min-w-[44px]">
+    <div className="relative inline-flex items-center justify-center min-h-touch min-w-touch">
       <RadioGroupPrimitive.Item
         ref={ref}
         className={cn(

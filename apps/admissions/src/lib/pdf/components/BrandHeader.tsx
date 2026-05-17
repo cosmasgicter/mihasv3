@@ -40,13 +40,13 @@ import { borderWidth, semantic, spacing, textStyles, type Institution } from '..
  * column always begins exactly below the header regardless of future
  * padding changes. Stops the "magic 100pt that's now wrong" bug.
  */
-export const BRAND_HEADER_HEIGHT = 44 + 8 + 1 + 12 + 16 + 1 // 82pt
+export const BRAND_HEADER_HEIGHT = 44 + 8 + 1 + 12 + 16 + 1 // ~82pt
 
 const styles = StyleSheet.create({
   wrapper: {
     paddingBottom: spacing[2],
     marginBottom: spacing[4],
-    borderBottomWidth: borderWidth.thin,
+    borderBottomWidth: borderWidth.hairline,
     borderBottomColor: semantic.brandAccent,
   },
   row: {
@@ -65,8 +65,8 @@ const styles = StyleSheet.create({
   institutionName: {
     fontFamily: textStyles.sectionHeading.fontFamily,
     fontWeight: 600,
-    fontSize: 15,
-    lineHeight: 1.2,
+    fontSize: 14,
+    lineHeight: 1.3,
     color: semantic.bodyText,
     marginBottom: spacing[0.5],
   },

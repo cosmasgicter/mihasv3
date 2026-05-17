@@ -37,13 +37,13 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
           <Button 
             variant="outline" 
             size="lg"
-            className="min-h-[44px]"
+            className="min-h-touch"
             onClick={onTryAgain}
           >
             <Search className="h-5 w-5 mr-2" aria-hidden="true" />
             Try Again
           </Button>
-          <Button asChild size="lg" className="min-h-[44px]">
+          <Button asChild size="lg" className="min-h-touch">
             <Link to="/auth/signup">
               <UserPlus className="h-5 w-5 mr-2" aria-hidden="true" />
               Create Account to Apply

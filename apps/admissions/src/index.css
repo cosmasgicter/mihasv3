@@ -71,7 +71,7 @@
   }
   
   button {
-    @apply transition-all duration-200;
+    @apply transition-colors duration-150;
   }
   
   /* Enhanced focus indicators for keyboard navigation (WCAG 2.1 AA)
@@ -107,9 +107,9 @@
   --max-content-width: 1200px;
   --content-padding: 1rem;
   --type-base: 16px;
-  --motion-fast: 160ms;
-  --motion-normal: 240ms;
-  --motion-slow: 360ms;
+  --motion-fast: 150ms;
+  --motion-normal: 200ms;
+  --motion-slow: 300ms;
   --motion-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
   

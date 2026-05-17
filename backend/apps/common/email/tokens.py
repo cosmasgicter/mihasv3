@@ -6,6 +6,13 @@ the same institution.
 
 Email tokens are strings rather than typed objects because every style
 eventually ends up in an ``style="..."`` attribute in HTML.
+
+PDF ↔ Email font mapping:
+    Playfair Display (PDF display)  → Georgia (email display)
+    Source Sans 3 (PDF body)        → Arial (email body)
+    JetBrains Mono (PDF mono)       → Courier New (email mono)
+
+The color palette is shared verbatim — no mapping needed.
 """
 
 # ---------------------------------------------------------------------------

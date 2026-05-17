@@ -38,7 +38,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
               'placeholder:text-muted-foreground',
               'hover:border-primary/50 hover:bg-accent/30',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary',
-              'transition-all duration-200',
+              'transition-[border-color,box-shadow] duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'disabled:hover:border-input disabled:hover:bg-background',
               error && 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 hover:border-destructive/70',

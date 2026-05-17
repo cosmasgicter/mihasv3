@@ -20,32 +20,32 @@ describe('CSS Animation Utilities', () => {
     });
 
     it('should include duration and easing', () => {
-      expect(fadeIn).toContain('duration-300');
-      expect(fadeIn).toContain('ease-out');
+      expect(fadeIn).toContain('duration-240');
+      expect(fadeIn).toContain('ease-smooth-out');
     });
   });
 
   describe('slideUp', () => {
-    it('should include transition-all and transform classes', () => {
-      expect(slideUp).toContain('transition-all');
+    it('should include targeted transition and transform classes', () => {
+      expect(slideUp).toContain('transition-[transform,opacity]');
       expect(slideUp).toContain('transform');
     });
 
     it('should include duration and easing', () => {
-      expect(slideUp).toContain('duration-300');
-      expect(slideUp).toContain('ease-out');
+      expect(slideUp).toContain('duration-240');
+      expect(slideUp).toContain('ease-smooth-out');
     });
   });
 
   describe('scaleIn', () => {
-    it('should include transition-all and transform classes', () => {
-      expect(scaleIn).toContain('transition-all');
+    it('should include targeted transition and transform classes', () => {
+      expect(scaleIn).toContain('transition-[transform,opacity]');
       expect(scaleIn).toContain('transform');
     });
 
     it('should include duration and easing', () => {
       expect(scaleIn).toContain('duration-200');
-      expect(scaleIn).toContain('ease-out');
+      expect(scaleIn).toContain('ease-smooth-out');
     });
   });
 

@@ -35,14 +35,14 @@ const EXPECTED_CACHE_KEYS: Array<{
     expectedKeyPattern: "queryKey:\\s*\\['application'",
   },
   {
-    file: 'hooks/queries/useApplicationDataQueries.ts',
+    file: 'data/catalog.ts',
     hookName: 'usePrograms',
-    expectedKeyPattern: "queryKey:\\s*\\['programs'\\]",
+    expectedKeyPattern: "programs:\\s*\\['catalog',\\s*'programs'\\]",
   },
   {
-    file: 'hooks/queries/useApplicationDataQueries.ts',
+    file: 'data/catalog.ts',
     hookName: 'useIntakes',
-    expectedKeyPattern: "queryKey:\\s*\\['intakes'\\]",
+    expectedKeyPattern: "intakes:\\s*\\['catalog',\\s*'intakes'\\]",
   },
 ];
 

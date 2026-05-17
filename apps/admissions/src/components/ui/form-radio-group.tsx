@@ -131,13 +131,13 @@ export function FormRadioGroup<T extends FieldValues>({
                   className={cn(
                     // Touch target wrapper - ensures 44px minimum
                     'flex items-start gap-3',
-                    'min-h-[44px] py-2',
+                    'min-h-touch py-2',
                     // Disabled styling
                     option.disabled && 'opacity-50 cursor-not-allowed'
                   )}
                 >
                   {/* Touch target area for the radio */}
-                  <div className="relative inline-flex items-center justify-center min-h-[44px] min-w-[44px] -my-2 -ml-3">
+                  <div className="relative inline-flex items-center justify-center min-h-touch min-w-touch -my-2 -ml-3">
                     <RadioGroupItem
                       value={option.value}
                       id={optionId}

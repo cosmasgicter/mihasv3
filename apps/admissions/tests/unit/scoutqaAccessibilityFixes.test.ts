@@ -189,27 +189,27 @@ describe('11.1 inputMode values on auth form fields', () => {
 // ---------------------------------------------------------------------------
 
 describe('11.2 aria-label values on auth form fields', () => {
-  it('SignInPage email input has aria-label="Account email"', () => {
+  it('SignInPage email input has aria-label="Email"', () => {
     const { container, cleanup } = renderToDOM(React.createElement(SignInPage))
     const emailInput = container.querySelector('input[type="email"]')
     expect(emailInput).not.toBeNull()
-    expect(emailInput!.getAttribute('aria-label')).toBe('Account email')
+    expect(emailInput!.getAttribute('aria-label')).toBe('Email')
     cleanup()
   })
 
-  it('SignInPage password input has aria-label="Account password"', () => {
+  it('SignInPage password input has aria-label="Password"', () => {
     const { container, cleanup } = renderToDOM(React.createElement(SignInPage))
     const passwordInput = container.querySelector('input[type="password"]')
     expect(passwordInput).not.toBeNull()
-    expect(passwordInput!.getAttribute('aria-label')).toBe('Account password')
+    expect(passwordInput!.getAttribute('aria-label')).toBe('Password')
     cleanup()
   })
 
-  it('SignUpPage email input has aria-label="Account email"', () => {
+  it('SignUpPage email input has aria-label="Email"', () => {
     const doc = parseMarkup(renderToStaticMarkup(React.createElement(SignUpPage)))
     const emailInput = doc.querySelector('input[type="email"]')
     expect(emailInput).not.toBeNull()
-    expect(emailInput!.getAttribute('aria-label')).toBe('Account email')
+    expect(emailInput!.getAttribute('aria-label')).toBe('Email')
   })
 
   it('SignUpPage first_name input has aria-label="First name"', () => {
@@ -230,9 +230,9 @@ describe('11.2 aria-label values on auth form fields', () => {
     expect(input).not.toBeNull()
   })
 
-  it('SignUpPage password input has aria-label="Create password"', () => {
+  it('SignUpPage password input has aria-label="Password"', () => {
     const doc = parseMarkup(renderToStaticMarkup(React.createElement(SignUpPage)))
-    const input = doc.querySelector('input[aria-label="Create password"]')
+    const input = doc.querySelector('input[aria-label="Password"]')
     expect(input).not.toBeNull()
   })
 
@@ -270,18 +270,18 @@ const mockHeroProps = {
 }
 
 describe('11.3 Landing page contrast verification', () => {
-  it('secondary CTA ("See Our Programs") uses text-white class', () => {
+  it('secondary CTA ("See Our Programs") uses foreground token contrast classes', () => {
     const { container, cleanup } = renderToDOM(
       React.createElement(ShapeLandingHero, mockHeroProps),
     )
     // The secondary CTA is an <a> with aria-label="See Our Programs"
     const secondaryCta = container.querySelector('a[aria-label="See Our Programs"]') as HTMLElement
     expect(secondaryCta).not.toBeNull()
-    expect(secondaryCta.className).toContain('text-white')
+    expect(secondaryCta.className).toContain('text-foreground')
     cleanup()
   })
 
-  it('accreditation badge labels use bg-slate-950/75 for sufficient contrast', () => {
+  it('accreditation badge labels use semantic primary contrast classes', () => {
     const { container, cleanup } = renderToDOM(
       React.createElement(ShapeLandingHero, mockHeroProps),
     )
@@ -291,9 +291,8 @@ describe('11.3 Landing page contrast verification', () => {
 
     for (const span of badges) {
       if (badgeLabels.includes(span.textContent?.trim() ?? '')) {
-        // Badge must have bg-slate-950/75 (or higher opacity) for contrast
-        expect(span.className).toMatch(/bg-slate-950\/7[5-9]|bg-slate-950\/[89]\d|bg-slate-950\/100/)
-        expect(span.className).toContain('text-white')
+        expect(span.className).toContain('bg-primary/10')
+        expect(span.className).toContain('text-primary')
         foundBadges++
       }
     }

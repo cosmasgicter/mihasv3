@@ -321,7 +321,7 @@ function ProgramsSection() {
                       ))}
                     </div>
                     <div className="mt-6">
-                      <Button asChild className="w-full min-h-[44px] bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 sm:w-auto">
+                      <Button asChild className="w-full min-h-touch bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 sm:w-auto">
                         <Link
                           to={`/auth/signup?program=${encodeURIComponent(program.institution)}`}
                           onPointerEnter={warmAuthRoutes}

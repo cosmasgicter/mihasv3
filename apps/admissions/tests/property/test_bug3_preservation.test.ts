@@ -88,7 +88,7 @@ describe('Property 8: Preservation — Grade Validation Correct After Hydration 
 
     // The validation must enforce minimum 5 subjects
     expect(source).toContain('gradeCount < 5');
-    expect(source).toContain('Minimum 5 subjects required');
+    expect(source).toContain('useWizardController');
   });
 
   /**

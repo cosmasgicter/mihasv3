@@ -105,7 +105,7 @@ function MetricCard({
     <div className={cn(
       'rounded-lg border border-border/50 p-4 transition-all duration-200',
       accentStyles[accent],
-      href && 'hover:shadow-md hover:border-primary/20 cursor-pointer min-h-[44px]',
+      href && 'hover:shadow-md hover:border-primary/20 cursor-pointer min-h-touch',
       className
     )}>
       <div className="flex items-start justify-between gap-3">
@@ -259,7 +259,7 @@ export function DashboardStatusOverview({
             Start your admissions journey by creating your first application.
           </p>
           <Link to="/student/application-wizard">
-            <Button variant="primary" size="sm" className="min-h-[44px] transition-colors duration-150">
+            <Button variant="primary" size="sm" className="min-h-touch transition-colors duration-150">
               <Plus className="mr-2 h-4 w-4" />
               New Application
             </Button>
@@ -296,7 +296,7 @@ export function DashboardStatusOverview({
                 </div>
                 <Link 
                   to={latestApplicationLink}
-                  className="min-h-[44px] inline-flex items-center text-sm font-medium text-primary transition-colors duration-200 hover:text-primary/80"
+                  className="min-h-touch inline-flex items-center text-sm font-medium text-primary transition-colors duration-200 hover:text-primary/80"
                 >
                   {latestApplication.status === 'draft' ? 'Continue Application →' : latestApplicationRequiresPayment ? 'Complete Payment →' : 'View Details →'}
                 </Link>
@@ -329,7 +329,7 @@ export function DashboardStatusOverview({
               </p>
               <Link 
                 to={paymentActionHref}
-                className="inline-flex min-h-[44px] items-center gap-1 text-sm font-medium text-warning transition-colors duration-200 hover:text-warning/80"
+                className="inline-flex min-h-touch items-center gap-1 text-sm font-medium text-warning transition-colors duration-200 hover:text-warning/80"
               >
                 Complete Payment →
               </Link>

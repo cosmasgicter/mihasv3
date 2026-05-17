@@ -22,9 +22,9 @@ export const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
     const radioId = id || `radio-${generatedId}`
     
     return (
-      <div className="flex items-start gap-3 min-h-[44px] py-2">
+      <div className="flex items-start gap-3 min-h-touch py-2">
         {/* Touch target wrapper */}
-        <div className="relative inline-flex items-center justify-center min-h-[44px] min-w-[44px] -my-2 -ml-3">
+        <div className="relative inline-flex items-center justify-center min-h-touch min-w-touch -my-2 -ml-3">
           <input
             type="radio"
             id={radioId}

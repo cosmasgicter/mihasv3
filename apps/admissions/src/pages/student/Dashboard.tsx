@@ -823,7 +823,7 @@ export default function StudentDashboard() {
                     </div>
                   </div>
                   <Link to="/student/settings" className="block">
-                    <Button variant="outline" size="sm" className="mt-4 min-h-[44px] w-full transition-colors duration-150 hover:border-primary/30">
+                    <Button variant="outline" size="sm" className="mt-4 min-h-touch w-full transition-colors duration-150 hover:border-primary/30">
                       Update profile
                     </Button>
                   </Link>

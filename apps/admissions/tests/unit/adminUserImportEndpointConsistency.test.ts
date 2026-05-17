@@ -7,7 +7,7 @@ const source = fs.readFileSync(FILE_PATH, 'utf-8')
 
 describe('UserImport endpoint consistency', () => {
   it('uses canonical admin users endpoint via apiClient', () => {
-    expect(source).toContain("apiClient.request<{ id?: string; message?: string }>('/admin/users/'")
+    expect(source).toContain("'/admin/users/batch-import/'")
     expect(source).not.toContain("?action=register")
     expect(source).not.toContain("?action=create-user")
   })

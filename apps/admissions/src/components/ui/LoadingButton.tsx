@@ -28,7 +28,7 @@ export function LoadingButton({
       loading={loading}
       disabled={disabled || loading}
       className={cn(
-        'relative overflow-hidden transition-all duration-200',
+        'relative overflow-hidden transition-opacity duration-200',
         loading && 'cursor-not-allowed opacity-90',
         className
       )}

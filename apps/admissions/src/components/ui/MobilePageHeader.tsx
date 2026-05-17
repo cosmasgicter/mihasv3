@@ -31,7 +31,7 @@ export function MobilePageHeader({
           <button
             type="button"
             onClick={onBack}
-            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex min-h-touch min-w-touch items-center justify-center rounded-lg text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-label="Go back"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -45,7 +45,7 @@ export function MobilePageHeader({
       </h2>
 
       {/* Right: actions slot or spacer */}
-      <div className="flex-shrink-0 min-w-[44px] pr-2 flex items-center justify-end">
+      <div className="flex-shrink-0 min-w-touch pr-2 flex items-center justify-end">
         {actions}
       </div>
     </header>

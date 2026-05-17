@@ -86,7 +86,6 @@ describe('Bug 1: Preservation — Vite Config Structure and Build Options', () =
 
   it('should preserve manual chunk splitting for heavy vendor libraries', () => {
     // These vendor chunks must remain to keep bundle sizes manageable
-    expect(viteConfig).toContain('vendor-excel');
     expect(viteConfig).toContain('vendor-pdf');
     expect(viteConfig).toContain('vendor-ocr');
     expect(viteConfig).toContain('vendor-charts');

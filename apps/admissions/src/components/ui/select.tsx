@@ -28,7 +28,7 @@ const SelectTrigger = React.forwardRef<
     aria-invalid={error ? "true" : "false"}
     className={cn(
       // Touch target compliance - 44px minimum height
-      "flex min-h-[44px] w-full items-start justify-between sm:items-center",
+      "flex min-h-touch w-full items-start justify-between sm:items-center",
       // Styling
       "rounded-md border bg-background px-3 py-2",
       // Border color - normal vs error state
@@ -171,7 +171,7 @@ const SelectItem = React.forwardRef<
     ref={ref}
     className={cn(
       // Touch target compliance - 44px minimum height
-      "relative flex w-full min-h-[44px] cursor-default select-none items-start sm:items-center",
+      "relative flex w-full min-h-touch cursor-default select-none items-start sm:items-center",
       // Padding and spacing
       "rounded-md py-2 pl-10 pr-3",
       // Typography

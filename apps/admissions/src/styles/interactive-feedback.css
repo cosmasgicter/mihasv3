@@ -9,7 +9,7 @@
   
   /* Button hover states - already defined in button component but adding utilities */
   .hover-lift {
-    @apply transition-all duration-100;
+    @apply transition-transform duration-100;
   }
   
   .hover-lift:hover {
@@ -37,7 +37,7 @@
   
   /* Interactive element hover - generic */
   .interactive-hover {
-    @apply transition-all duration-100;
+    @apply transition-colors duration-100;
   }
   
   .interactive-hover:hover {
@@ -46,7 +46,7 @@
   
   /* Icon button hover */
   .icon-hover {
-    @apply transition-all duration-100 rounded-lg;
+    @apply transition-[transform,background-color] duration-100 rounded-lg;
   }
   
   .icon-hover:hover {
@@ -142,17 +142,17 @@
   
   /* Fast transition for immediate feedback */
   .transition-fast {
-    @apply transition-all duration-100;
+    @apply transition-[opacity,transform,background-color,border-color] duration-100;
   }
   
   /* Standard transition */
   .transition-standard {
-    @apply transition-all duration-200;
+    @apply transition-[opacity,transform,background-color,border-color] duration-200;
   }
   
   /* Smooth transition */
   .transition-smooth {
-    @apply transition-all duration-300;
+    @apply transition-[opacity,transform,background-color,border-color,box-shadow] duration-300;
   }
 }
 
@@ -160,7 +160,7 @@
 
 /* Ensure all buttons have consistent hover states */
 button:not(:disabled) {
-  @apply transition-all duration-100;
+  @apply transition-[transform,background-color,border-color,color] duration-100;
 }
 
 button:not(:disabled):hover {
@@ -179,7 +179,7 @@ a:not(.no-hover) {
 /* Ensure all interactive cards have hover feedback */
 [role="button"]:not(:disabled),
 [role="link"]:not(:disabled) {
-  @apply transition-all duration-100;
+  @apply transition-[transform,background-color,border-color,color] duration-100;
 }
 
 [role="button"]:not(:disabled):hover,

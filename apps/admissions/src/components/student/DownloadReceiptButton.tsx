@@ -38,7 +38,7 @@ export function DownloadReceiptButton({
       loading={loading}
       variant="outline"
       size="sm"
-      className="gap-2"
+      className="min-h-touch gap-2"
     >
       <Download className="w-4 h-4" />
       {loading ? 'Generating...' : 'Download Receipt'}

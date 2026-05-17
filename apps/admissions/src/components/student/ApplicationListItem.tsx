@@ -149,7 +149,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
               </span>
             </div>
             <Link to={`/student/application/${application.id}/status`}>
-              <Button variant="primary" size="sm" className="min-h-9 w-full sm:w-auto">
+              <Button variant="primary" size="sm" className="min-h-touch w-full sm:w-auto">
                 Confirm Enrollment
               </Button>
             </Link>
@@ -197,14 +197,14 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
           </div>
           {needsPayment && (
             <Link to={paymentHref} className="w-full sm:order-1 sm:w-auto">
-              <Button variant="warning" size="sm" className="min-h-[44px] w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
+              <Button variant="warning" size="sm" className="min-h-touch w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
                 <CreditCard className="mr-2 h-4 w-4" />
                 Complete Payment
               </Button>
             </Link>
           )}
           <Link to={`/student/application/${application.id}`} className="w-full sm:order-1 sm:w-auto">
-            <Button variant="primary" size="sm" className="min-h-[44px] w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
+            <Button variant="primary" size="sm" className="min-h-touch w-full transition-all duration-200 active:scale-[0.98] sm:w-auto">
               View Details
             </Button>
           </Link>

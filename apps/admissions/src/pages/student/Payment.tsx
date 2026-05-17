@@ -190,7 +190,7 @@ function ApplicationPaymentCard({ app, records, isSelected, onPaymentRefresh }: 
             <DownloadReceiptButton applicationId={app.id} paymentStatus={app.payment_status ?? ''} />
           )}
           {showPayForm && (
-            <Button type="button" size="sm" variant="outline" onClick={() => setExpanded(!expanded)} className="min-h-[44px]">
+            <Button type="button" size="sm" variant="outline" onClick={() => setExpanded(!expanded)} className="min-h-touch">
               {expanded ? <><ChevronUp className="h-3.5 w-3.5 mr-1" />Hide</>: <><ChevronDown className="h-3.5 w-3.5 mr-1" />Pay Now</>}
             </Button>
           )}
@@ -383,7 +383,7 @@ export default function PaymentPage() {
         ]}
       >
         <div className="mb-6">
-          <Link to="/student/dashboard" className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">
+          <Link to="/student/dashboard" className="inline-flex min-h-touch items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">
             <ArrowLeft className="h-4 w-4 mr-1" />Back to Dashboard
           </Link>
         </div>

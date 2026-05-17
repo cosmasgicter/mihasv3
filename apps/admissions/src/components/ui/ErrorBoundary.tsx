@@ -75,7 +75,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               <Button
                 onClick={this.handleReload}
                 variant="destructive"
-                className="min-h-[44px] min-w-[44px]"
+                className="min-h-touch min-w-touch"
               >
                 <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
                 Reload Page

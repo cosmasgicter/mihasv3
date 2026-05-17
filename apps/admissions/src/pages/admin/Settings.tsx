@@ -977,7 +977,7 @@ export default function AdminSettings() {
                                     <p className="text-sm text-foreground">{formatValue(setting.value, inferValueType(setting.value))}</p>
                                     <p className="mt-1 text-xs text-muted-foreground">{setting.description || 'No description'}</p>
                                     <div className="mt-3 flex gap-2">
-                                      <Button size="sm" variant="outline" onClick={() => handleEditStart(setting)} aria-label="Edit setting" className="min-h-[44px] min-w-[44px]">
+                                      <Button size="sm" variant="outline" onClick={() => handleEditStart(setting)} aria-label="Edit setting" className="min-h-touch min-w-touch">
                                         <Edit2 className="h-4 w-4 mr-1" />
                                         Edit
                                       </Button>
@@ -985,7 +985,7 @@ export default function AdminSettings() {
                                         size="sm"
                                         variant="outline"
                                         onClick={() => void handleDelete(setting.id, setting.key)}
-                                        className="min-h-[44px] min-w-[44px] border-destructive/30 text-destructive hover:bg-destructive/5"
+                                        className="min-h-touch min-w-touch border-destructive/30 text-destructive hover:bg-destructive/5"
                                         aria-label="Delete setting"
                                       >
                                         <Trash2 className="h-4 w-4 mr-1" />

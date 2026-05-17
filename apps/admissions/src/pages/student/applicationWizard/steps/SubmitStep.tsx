@@ -310,13 +310,24 @@ const SubmitStep = ({
           </section>
 
           <section className="space-y-4" aria-labelledby="submit-summary-heading">
-            <div>
-              <h3 id="submit-summary-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Application summary
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Confirm the record exactly as admissions should review it.
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 id="submit-summary-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Application summary
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Confirm the record exactly as admissions should review it.
+                </p>
+              </div>
+              {onNavigateToStep && (
+                <button
+                  type="button"
+                  onClick={() => onNavigateToStep('basicKyc')}
+                  className="shrink-0 rounded-lg border border-border/70 px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/5 min-h-[44px] flex items-center"
+                >
+                  Edit details
+                </button>
+              )}
             </div>
 
             <dl className="grid gap-3 sm:grid-cols-2">

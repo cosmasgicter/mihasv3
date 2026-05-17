@@ -3,8 +3,8 @@
  * Property-based test: File upload retries once on auth error
  *
  * For any file upload attempt where the session verification call to
- * `/auth/session/` returns a 401 or 403 status, the hook makes exactly one
- * retry attempt after a delay. If the retry also returns 401 or 403, the hook
+ * `/auth/session/` returns a 401 or CSRF-related 403 status, the hook makes exactly one
+ * retry attempt after a delay. If the retry also returns one of those auth failures, the hook
  * throws an error with the message containing "session has expired". The total
  * number of session verification calls is exactly 2 (initial + one retry).
  *
@@ -53,6 +53,7 @@ describe('Property 6: File upload retries once on auth error', () => {
             const makeAuthError = () =>
               Object.assign(new Error(`HTTP ${authStatus}`), {
                 status: authStatus,
+                code: authStatus === 403 ? 'CSRF_INVALID' : undefined,
               })
             mockRequest.mockRejectedValueOnce(makeAuthError())
             mockRequest.mockRejectedValueOnce(makeAuthError())
@@ -90,13 +91,16 @@ describe('Property 6: File upload retries once on auth error', () => {
   )
 
   it(
-    'isAuthError correctly identifies 401 and 403 status codes as auth errors',
+    'isAuthError correctly identifies 401 and CSRF-related 403 responses as auth errors',
     () => {
       fc.assert(
         fc.property(
           fc.constantFrom(401, 403),
           (status) => {
-            const error = Object.assign(new Error(`HTTP ${status}`), { status })
+            const error = Object.assign(new Error(`HTTP ${status}`), {
+              status,
+              code: status === 403 ? 'CSRF_INVALID' : undefined,
+            })
             expect(isAuthError(error)).toBe(true)
           },
         ),

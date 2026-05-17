@@ -45,7 +45,7 @@ export function ProgressIndicator({
       <div className={cn('w-full bg-muted rounded-full overflow-hidden', sizeClasses[size])}>
         <div
           className={cn(
-            'h-full rounded-full transition-all duration-300 ease-out',
+            'h-full rounded-full transition-[transform,background-color] duration-300 ease-out',
             status === 'success' && 'bg-success',
             status === 'error' && 'bg-destructive',
             status === 'loading' && 'bg-primary',
@@ -128,7 +128,7 @@ export function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className="text-primary transition-all duration-500 ease-out"
+          className="text-primary transition-[stroke-dashoffset] duration-300 ease-out"
         />
       </svg>
       {showPercentage && (

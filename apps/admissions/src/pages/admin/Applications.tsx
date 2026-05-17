@@ -621,7 +621,7 @@ export default function Applications() {
             <button
               type="button"
               onClick={() => setViewMode('cards')}
-              className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md transition-colors ${
+              className={`min-h-touch min-w-touch flex items-center justify-center rounded-md transition-colors ${
                 viewMode === 'cards'
                   ? 'bg-card text-primary shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -634,7 +634,7 @@ export default function Applications() {
             <button
               type="button"
               onClick={() => setViewMode('table')}
-              className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md transition-colors ${
+              className={`min-h-touch min-w-touch flex items-center justify-center rounded-md transition-colors ${
                 viewMode === 'table'
                   ? 'bg-card text-primary shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -666,7 +666,7 @@ export default function Applications() {
           <div className="relative hidden sm:block">
             <button
               type="button"
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
+              className="min-h-touch min-w-touch flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Keyboard shortcuts"
               onMouseEnter={() => setShowShortcuts(true)}
               onMouseLeave={() => setShowShortcuts(false)}

@@ -70,7 +70,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
         aria-label={label}
         className={cn(
           "relative flex flex-col items-center justify-center flex-1 h-full group",
-          "min-h-[44px] min-w-[44px] px-2 rounded-lg",
+          "min-h-touch min-w-touch px-2 rounded-lg",
           "transition-colors duration-150",
           isActive && "bg-primary/10"
         )}
@@ -109,7 +109,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
             aria-haspopup="menu"
             className={cn(
               "relative flex flex-col items-center justify-center flex-1 h-full group",
-              "min-h-[44px] min-w-[44px] px-2 rounded-lg",
+              "min-h-touch min-w-touch px-2 rounded-lg",
               "transition-colors duration-150 hover:bg-muted/50"
             )}
           >
@@ -145,7 +145,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                     role="menuitem"
                     className={cn(
                       "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-150",
-                      "min-h-[44px]",
+                      "min-h-touch",
                       isActive ? "bg-primary/10 text-primary font-semibold" : "text-foreground hover:bg-muted/50"
                     )}
                   >
@@ -190,7 +190,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
                         role="menuitem"
                         className={cn(
                           "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-150",
-                          "min-h-[44px]",
+                          "min-h-touch",
                           isActive ? "bg-primary/10 text-primary font-semibold" : "text-foreground hover:bg-muted/50"
                         )}
                       >

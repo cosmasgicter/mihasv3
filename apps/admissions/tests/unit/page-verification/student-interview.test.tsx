@@ -161,7 +161,9 @@ describe('Student interview page verification', () => {
         </QueryClientProvider>
       )
     })
-    await new Promise((r) => setTimeout(r, ms))
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, ms))
+    })
   }
 
   // ── Page heading and layout ─────────────────────────────────────────
@@ -250,12 +252,13 @@ describe('Student interview page verification', () => {
   // ── Error state ─────────────────────────────────────────────────────
 
   it('renders error state when interviews API fails', async () => {
-    mockInterviewsList.mockRejectedValue(new Error('Network error'))
+    mockInterviewsList.mockRejectedValue(Object.assign(new Error('Network error'), { status: 429 }))
 
     await renderAndWait(800)
 
     // The page should still render without crashing and show an error message
     const text = container.textContent || ''
-    expect(text).toContain('Failed to load interview information')
+    expect(text).toContain('Unable to load interview information')
+    expect(text).toContain('Network error')
   })
 })

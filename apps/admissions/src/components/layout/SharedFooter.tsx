@@ -65,21 +65,21 @@ export function SharedFooter({ className }: SharedFooterProps) {
               </p>
               <a
                 href={`tel:${contactInfo.katcPhone.replace(/\s/g, '')}`}
-                className="flex min-h-[44px] items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
+                className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
               >
                 <Phone className="h-4 w-4 flex-shrink-0" />
                 <span><strong>KATC:</strong> {contactInfo.katcPhone}</span>
               </a>
               <a
                 href={`tel:${contactInfo.mihasPhone.replace(/\s/g, '')}`}
-                className="flex min-h-[44px] items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
+                className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
               >
                 <Phone className="h-4 w-4 flex-shrink-0" />
                 <span><strong>MIHAS:</strong> {contactInfo.mihasPhone}</span>
               </a>
               <a
                 href={`mailto:${contactInfo.email}`}
-                className="flex min-h-[44px] items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
+                className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
               >
                 <Mail className="h-4 w-4 flex-shrink-0" />
                 <span>{contactInfo.katcEmail} | {contactInfo.email}</span>
@@ -97,7 +97,7 @@ export function SharedFooter({ className }: SharedFooterProps) {
                     isLandingPage ? (
                       <a
                         href={link.href}
-                        className="group flex min-h-[44px] items-center gap-2 text-sm text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4 sm:text-base"
+                        className="group flex min-h-touch items-center gap-2 text-sm text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4 sm:text-base"
                         onClick={(event) => handleInPageAnchor(event, link.href.replace('#', ''))}
                       >
                         <ArrowRight className="h-4 w-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
@@ -106,7 +106,7 @@ export function SharedFooter({ className }: SharedFooterProps) {
                     ) : (
                       <Link
                         to={`/${link.href}`}
-                        className="group flex min-h-[44px] items-center gap-2 text-sm text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4 sm:text-base"
+                        className="group flex min-h-touch items-center gap-2 text-sm text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4 sm:text-base"
                       >
                         <ArrowRight className="h-4 w-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
                         {link.name}
@@ -115,7 +115,7 @@ export function SharedFooter({ className }: SharedFooterProps) {
                   ) : (
                     <Link
                       to={link.href}
-                      className="group flex min-h-[44px] items-center gap-2 text-sm text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4 sm:text-base"
+                      className="group flex min-h-touch items-center gap-2 text-sm text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4 sm:text-base"
                     >
                       <ArrowRight className="h-4 w-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
                       {link.name}
@@ -136,7 +136,7 @@ export function SharedFooter({ className }: SharedFooterProps) {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-[44px] items-center gap-2 rounded-lg px-3 py-2 text-sm text-white transition-colors hover:bg-card/10 hover:text-white sm:px-4 sm:py-2 sm:text-base"
+                  className="flex min-h-touch items-center gap-2 rounded-lg px-3 py-2 text-sm text-white transition-colors hover:bg-card/10 hover:text-white sm:px-4 sm:py-2 sm:text-base"
                   aria-label={`Follow us on ${social.name}`}
                 >
                   <social.icon className="h-5 w-5" />

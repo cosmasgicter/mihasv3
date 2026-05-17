@@ -317,7 +317,7 @@ describe('Feature: sse-removal-simplification, Property 5: SignOut flow preserve
       'setQueryData(SESSION_QUERY_KEY, null)',
       'setQueryData(profileQueryKey(',
       'queryClient.clear()',
-      'secureStorage.clearSession()',
+      'clearSession()',
       'localStorage.removeItem',
       'authSignedOut',
       'broadcastLogout',

@@ -80,7 +80,7 @@ describe('PaymentStep / PaymentForm — regression under payment-hardening Phase
     // The card / widget affordance must remain reachable.
     const cardControl =
       screen.queryByRole('tab', { name: /card/i }) ??
-      screen.queryByRole('button', { name: /card/i }) ??
+      screen.queryByText(/^card$/i)?.closest('button') ??
       screen.queryByText(/pay with card/i)
     expect(cardControl).toBeTruthy()
   })

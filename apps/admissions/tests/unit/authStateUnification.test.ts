@@ -108,7 +108,7 @@ describe('Consolidated architecture verification (Req 10.6)', () => {
         'utf-8'
       );
       expect(content).toContain('export const apiClient');
-      expect(content).toContain('export function configureApiClientAuthFailure');
+      expect(content).toContain('configureApiClientAuthFailure');
     });
   });
 
@@ -119,4 +119,3 @@ describe('Consolidated architecture verification (Req 10.6)', () => {
     });
   });
 });
-

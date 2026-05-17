@@ -90,7 +90,7 @@ export function Banner({
         <button
           type="button"
           onClick={handleDismiss}
-          className="shrink-0 rounded-full p-1 transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="shrink-0 rounded-full p-2 min-h-touch min-w-touch flex items-center justify-center transition-colors hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           aria-label="Dismiss banner"
         >
           <X className="h-4 w-4" aria-hidden="true" />

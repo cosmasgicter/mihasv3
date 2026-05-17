@@ -230,7 +230,7 @@ describe('Payment session hardening', () => {
     const fs = await import('fs');
     const path = await import('path');
     const src = fs.readFileSync(
-      path.resolve(__dirname, '../../src/services/client.ts'),
+      path.resolve(__dirname, '../../src/services/authInterceptor.ts'),
       'utf-8'
     );
     expect(src).toContain('dispatchAuthRecovered');

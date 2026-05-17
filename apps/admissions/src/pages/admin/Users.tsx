@@ -432,7 +432,7 @@ export default function AdminUsers() {
       actions={
         <div className="flex flex-wrap gap-2">
           <Link to="/admin">
-            <Button variant="ghost" size="sm" className="min-h-[44px] min-w-[44px]">
+            <Button variant="ghost" size="sm" className="min-h-touch min-w-touch">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
@@ -441,7 +441,7 @@ export default function AdminUsers() {
             onClick={() => setShowStats((current) => !current)}
             variant="ghost"
             size="sm"
-            className="min-h-[44px] min-w-[44px]"
+            className="min-h-touch min-w-touch"
           >
             <BarChart3 className="mr-2 h-4 w-4" />
             {showStats ? 'Hide stats' : 'Show stats'}
@@ -450,7 +450,7 @@ export default function AdminUsers() {
             onClick={() => setShowImportDialog(true)}
             variant="ghost"
             size="sm"
-            className="min-h-[44px] min-w-[44px]"
+            className="min-h-touch min-w-touch"
           >
             <Upload className="mr-2 h-4 w-4" />
             Import
@@ -459,7 +459,7 @@ export default function AdminUsers() {
             onClick={() => setShowExportDialog(true)}
             variant="ghost"
             size="sm"
-            className="min-h-[44px] min-w-[44px]"
+            className="min-h-touch min-w-touch"
           >
             <Download className="mr-2 h-4 w-4" />
             Export
@@ -467,7 +467,7 @@ export default function AdminUsers() {
           <Button
             onClick={() => setShowCreateDialog(true)}
             size="sm"
-            className="min-h-[44px] min-w-[44px]"
+            className="min-h-touch min-w-touch"
           >
             <UserPlus className="mr-2 h-4 w-4" />
             Add user
@@ -485,7 +485,7 @@ export default function AdminUsers() {
             <Button
               variant="outline"
               size="sm"
-              className="min-h-[44px] min-w-[44px]"
+              className="min-h-touch min-w-touch"
               onClick={() => {
                 setSearchTerm('')
                 setRoleFilter('')
@@ -513,7 +513,7 @@ export default function AdminUsers() {
                 <select
                   value={roleFilter}
                   onChange={(event) => setRoleFilter(event.target.value)}
-                  className="min-h-[44px] h-12 w-full rounded-lg border border-input bg-background pl-10 pr-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="min-h-touch h-12 w-full rounded-lg border border-input bg-background pl-10 pr-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">All roles</option>
                   {AVAILABLE_ROLES.map((role) => (
@@ -582,7 +582,7 @@ export default function AdminUsers() {
           description={`${filteredCount} of ${totalCount} active accounts are currently shown.`}
           icon={<User className="h-5 w-5" />}
           actions={(
-            <Button variant="outline" size="sm" className="min-h-[44px] min-w-[44px]" onClick={() => refetch()}>
+            <Button variant="outline" size="sm" className="min-h-touch min-w-touch" onClick={() => refetch()}>
               Refresh users
             </Button>
           )}
@@ -678,7 +678,7 @@ export default function AdminUsers() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={handleSelectAll}
-                            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-primary hover:text-primary"
+                            className="min-h-touch min-w-touch flex items-center justify-center text-primary hover:text-primary"
                             aria-label={selectedUsers.length === filteredUsers.length ? 'Deselect all users' : 'Select all users'}
                           >
                             {selectedUsers.length === filteredUsers.length && filteredUsers.length > 0 ? (
@@ -831,7 +831,7 @@ export default function AdminUsers() {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-[2.75rem] min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground hover:text-foreground"
+                  className="absolute right-3 top-[2.75rem] min-h-touch min-w-touch flex items-center justify-center text-foreground hover:text-foreground"
                   onClick={() => setShowPassword((current) => !current)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -851,7 +851,7 @@ export default function AdminUsers() {
                 <select
                   value={createForm.role}
                   onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })}
-                  className="min-h-[44px] h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="min-h-touch h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
                 >
                   {AVAILABLE_ROLES.map((role) => (
@@ -918,7 +918,7 @@ export default function AdminUsers() {
                 <select
                   value={editForm.role}
                   onChange={(event) => setEditForm({ ...editForm, role: event.target.value })}
-                  className="min-h-[44px] h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="min-h-touch h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
                   disabled={isSuperAdmin(selectedUser)}
                 >

@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
   heroLabel: {
     ...textStyles.label,
-    color: '#B8C3CF',
+    color: colors.ink[300],
     marginBottom: spacing[2],
   },
   heroAmount: {
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
   heroCurrency: {
     ...textStyles.bodyStrong,
-    color: '#B8C3CF',
+    color: colors.ink[300],
     marginLeft: spacing[2],
   },
   heroMethod: {
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   },
   heroMethodLabel: {
     ...textStyles.label,
-    color: '#B8C3CF',
+    color: colors.ink[300],
     marginBottom: spacing[1],
     letterSpacing: 1.4,
   },
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   },
   referenceLine: {
     ...textStyles.code,
-    color: '#B8C3CF',
+    color: colors.ink[300],
     marginTop: spacing[3],
   },
   heroAmountRow: {

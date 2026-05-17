@@ -18,7 +18,7 @@ const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
 >(({ className, ...props }, ref) => (
-  <div className="relative inline-flex items-center justify-center min-h-[44px] min-w-[44px]">
+  <div className="relative inline-flex items-center justify-center min-h-touch min-w-touch">
     <CheckboxPrimitive.Root
       ref={ref}
       className={cn(
@@ -68,8 +68,8 @@ const CheckboxWithLabel = React.forwardRef<
   const checkboxId = id || generatedId
   
   return (
-    <div className="flex items-start gap-3 min-h-[44px] py-2">
-      <div className="relative inline-flex items-center justify-center min-h-[44px] min-w-[44px] -my-2 -ml-3">
+    <div className="flex items-start gap-3 min-h-touch py-2">
+      <div className="relative inline-flex items-center justify-center min-h-touch min-w-touch -my-2 -ml-3">
         <CheckboxPrimitive.Root
           ref={ref}
           id={checkboxId}

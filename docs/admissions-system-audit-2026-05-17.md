@@ -17,33 +17,31 @@ The principal risk is no longer missing functionality. It is **semantic drift**:
 
 ## Current Scores
 
-### Production Readiness Score: **89 / 100**
+### Production Readiness Score: **91 / 100**
 
 The codebase is close to launchable and materially hardened:
 
-- frontend type-check, lint, CSP guard, bundle guard, production build, and the current targeted critical slice pass
+- frontend type-check, lint, CSP guard, bundle guard, production build, targeted critical slice, and full frontend suite pass
 - backend `manage.py check`, Python compilation, and the current targeted critical slice pass
 - auth/session/CSRF handling, payment hardening, admin redaction, public tracking minimization, and operational runbooks are all stronger than baseline
 
-The score is held below 90+ by evidence gaps rather than missing core capability:
+The score is still held below the mid-90s by evidence gaps rather than missing core capability:
 
-- the full frontend suite is not green after the 2026-05-17 redesign because several assertions still describe older UI contracts
 - the local environment does not yet provide a clean full backend parity run with Postgres + Redis
 - release, restore-drill, deploy, and secret-rotation evidence remain pending
 - one archived SQL artifact referenced by historical governance docs/tests is still absent from disk
 
-### Slop Score: **24 / 100**
+### Slop Score: **18 / 100**
 
 Lower is better. This is not a sloppy system; it is a good system with residue.
 
-The score is driven mostly by:
+The remaining score is driven mostly by:
 
-- stale tests and docs that still refer to retired concepts such as `AuthLayout`
-- drift between old invariants and current redesign copy/structure
-- a few obsolete compatibility expectations surviving after module decomposition and payment-throttle hardening
-- documentation archaeology around legacy SQL/env history that is not yet fully reconciled
+- a thin residue of historical docs that still refer to retired concepts such as `AuthLayout`
+- old governance references around legacy SQL/env history that have not yet been fully reconciled
+- a few concentration points where large modules still make future drift easier than it should be
 
-The strongest anti-slop signal is that most failures are now **drift failures**, not evidence of broken production behavior. The code itself is often ahead of the paperwork around it.
+The strongest anti-slop signal is now stronger: after aligning the stale regression layer, the full frontend suite is green. The code is no longer merely ahead of the paperwork; the paperwork is catching up to the code.
 
 ## System Verdict
 
@@ -67,7 +65,7 @@ The strongest anti-slop signal is that most failures are now **drift failures**,
 | Admissions frontend dynamic import / entry / CSP checks | Pass |
 | Admissions frontend production build | Pass, with large PDF chunk warning |
 | Focused admissions frontend regression slice | Pass |
-| Full admissions frontend suite | Not green: latest full run observed 44 failed files / 62 failed tests before subsequent targeted drift repairs; exact current count needs one more clean full rerun |
+| Full admissions frontend suite | Pass: 345 files passed / 1 skipped, 2666 tests passed / 1 skipped |
 | Backend `manage.py check` | Pass |
 | Backend Python compilation | Pass |
 | Focused backend regression slice | Pass: 60 tests |

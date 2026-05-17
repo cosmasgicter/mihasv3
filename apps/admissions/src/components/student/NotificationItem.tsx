@@ -1,7 +1,8 @@
 import React from 'react'
 import { Button } from '@/components/ui/Button'
-import { CheckCircle, AlertTriangle, X, Info, Trash2, ChevronRight } from 'lucide-react'
+import { CheckCircle, AlertTriangle, AlertCircle, Info, Trash2 } from 'lucide-react'
 import { sanitizeText } from '@/lib/sanitize'
+import { cn } from '@/lib/utils'
 import type { StudentNotification } from '@/types/notifications'
 
 /** Compact relative time: "just now", "2m ago", "1h ago", "yesterday", "Apr 20" */
@@ -35,15 +36,15 @@ interface NotificationItemProps {
 }
 
 const TYPE_ICON_STYLES: Record<string, { icon: typeof Info; bg: string; text: string }> = {
-  info:    { icon: Info,          bg: 'bg-blue-100 dark:bg-blue-900/40',   text: 'text-blue-600 dark:text-blue-400' },
-  success: { icon: CheckCircle,   bg: 'bg-green-100 dark:bg-green-900/40', text: 'text-green-600 dark:text-green-400' },
-  warning: { icon: AlertTriangle, bg: 'bg-amber-100 dark:bg-amber-900/40', text: 'text-amber-600 dark:text-amber-400' },
-  error:   { icon: X,             bg: 'bg-red-100 dark:bg-red-900/40',     text: 'text-red-600 dark:text-red-400' },
+  info:    { icon: Info,          bg: 'bg-info/10',        text: 'text-info' },
+  success: { icon: CheckCircle,   bg: 'bg-success/10',     text: 'text-success' },
+  warning: { icon: AlertTriangle, bg: 'bg-warning/10',     text: 'text-warning' },
+  error:   { icon: AlertCircle,   bg: 'bg-destructive/10', text: 'text-destructive' },
 }
 
-const DEFAULT_STYLE: { icon: typeof Info; bg: string; text: string } = TYPE_ICON_STYLES.info!
+const DEFAULT_STYLE = TYPE_ICON_STYLES.info!
 
-function getTypeStyle(type: string): { icon: typeof Info; bg: string; text: string } {
+function getTypeStyle(type: string) {
   return TYPE_ICON_STYLES[type] ?? DEFAULT_STYLE
 }
 
@@ -76,21 +77,26 @@ export const NotificationItem = React.memo<NotificationItemProps>(function Notif
 
   return (
     <div
-      className={`group min-h-[60px] py-3 px-4 cursor-pointer transition-all duration-200 animate-fade-in opacity-0 ${
+      role="button"
+      tabIndex={0}
+      className={cn(
+        'group min-h-[60px] py-3 px-4 cursor-pointer transition-colors duration-150 animate-fade-in opacity-0',
         !notification.read
           ? 'bg-primary/5 border-l-[3px] border-primary'
-          : 'bg-transparent border-l-[3px] border-transparent text-muted-foreground'
-      } hover:bg-muted/50`}
+          : 'bg-transparent border-l-[3px] border-transparent',
+        'hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset'
+      )}
       style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
       onClick={() => onClick(notification)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(notification) } }}
       data-testid="notification-item"
     >
       <div className="flex items-start gap-3">
-        <div className={`flex-shrink-0 mt-0.5 h-8 w-8 rounded-full ${style.bg} flex items-center justify-center`}>
-          <IconComponent className={`h-4 w-4 ${style.text}`} />
+        <div className={cn('flex-shrink-0 mt-0.5 h-8 w-8 rounded-full flex items-center justify-center', style.bg)}>
+          <IconComponent className={cn('h-4 w-4', style.text)} aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className={`text-sm truncate ${!notification.read ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground'}`}>
+          <p className={cn('text-sm truncate', !notification.read ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground')}>
             {sanitizeText(notification.title)}
           </p>
           <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
@@ -100,8 +106,7 @@ export const NotificationItem = React.memo<NotificationItemProps>(function Notif
             {compactRelativeTime(notification.created_at)}
           </span>
         </div>
-        <div className="flex items-center gap-0.5 flex-shrink-0">
-          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30 opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" aria-hidden="true" />
+        <div className="flex items-center flex-shrink-0">
           <Button
             variant="ghost"
             size="sm"
@@ -110,9 +115,9 @@ export const NotificationItem = React.memo<NotificationItemProps>(function Notif
               try { await onDelete(notification.id) } catch { /* handled upstream */ }
             }}
             aria-label={`Delete notification: ${sanitizeText(notification.title)}`}
-            className="p-1 h-auto opacity-60 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
+            className="p-1.5 h-auto min-h-touch min-w-touch opacity-60 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
           >
-            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </div>

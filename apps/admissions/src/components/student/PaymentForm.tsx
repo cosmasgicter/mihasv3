@@ -443,7 +443,7 @@ export function PaymentForm({
             </p>
           )}
 
-          <Button type="button" variant="outline" size="sm" className="mt-4" onClick={async () => { await syncPendingPayment() }}>
+          <Button type="button" variant="outline" size="sm" className="mt-4 min-h-touch" onClick={async () => { await syncPendingPayment() }}>
             <RefreshCw className="mr-1 h-3 w-3" />{isMobileMoneyPending ? "I've approved — check now" : 'Check payment now'}
           </Button>
         </div>
@@ -610,7 +610,7 @@ export function PaymentForm({
           {!isScriptLoaded && !widgetLoading && (
             <div className="rounded-lg border border-warning/30 bg-warning/5 p-4 text-sm">
               <p className="text-muted-foreground">{widgetLoadError || 'The card payment module is loading…'}</p>
-              <Button type="button" variant="outline" size="sm" className="mt-3" onClick={retryWidgetLoad}>
+              <Button type="button" variant="outline" size="sm" className="mt-3 min-h-touch" onClick={retryWidgetLoad}>
                 <RefreshCw className="mr-2 h-3 w-3" />Retry
               </Button>
             </div>

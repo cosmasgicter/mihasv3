@@ -66,7 +66,7 @@ export function PageTransition({
   }
 
   const classes = (modeClasses[mode] ?? modeClasses.fade)!;
-  const durationMs = Math.min((duration ?? 0.3) * 1000, 300);
+  const durationMs = Math.min((duration ?? 0.2) * 1000, 300);
 
   return (
     <div
@@ -155,7 +155,7 @@ export function AnimatedRoutes({ children, locationKey, mode = 'fade' }: Animate
   return (
     <div
       className={cn(
-        'transform-gpu will-change-[opacity,transform] transition-[opacity,transform] duration-300 ease-smooth-out motion-reduce:transition-none',
+        'transform-gpu will-change-[opacity,transform] transition-[opacity,transform] duration-200 ease-smooth-out motion-reduce:transition-none',
         isVisible ? classes.animate : classes.initial
       )}
     >
@@ -179,7 +179,7 @@ export function LayoutTransition({
   return (
     <div
       className={cn(
-        'transform-gpu transition-[opacity,transform] duration-300 ease-smooth-out motion-reduce:transition-none',
+        'transform-gpu transition-[opacity,transform] duration-200 ease-smooth-out motion-reduce:transition-none',
         className
       )}
     >
@@ -224,7 +224,7 @@ export function ContentTransition({
   return (
     <div
       className={cn(
-        'transform-gpu will-change-[opacity,transform] transition-[opacity,transform] duration-300 ease-smooth-out motion-reduce:transition-none',
+        'transform-gpu will-change-[opacity,transform] transition-[opacity,transform] duration-150 ease-smooth-out motion-reduce:transition-none',
         isVisible ? classes.animate : classes.initial,
         className
       )}

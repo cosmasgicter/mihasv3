@@ -584,18 +584,18 @@ const ApplicationWizardContent = () => {
           <div className="mb-8 space-y-4">
             <Link
               to="/student/dashboard"
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-sm font-medium text-primary hover:bg-primary/5"
+              className="inline-flex min-h-touch items-center gap-2 rounded-lg px-2 text-sm font-medium text-primary hover:bg-primary/5"
             >
               <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
               Back to Dashboard
             </Link>
 
             <div>
-              <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                 {currentStepConfig.title}
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Step {currentStepIndex + 1} of {totalSteps} · {currentStepConfig.title}
+              <p className="mt-1 text-sm text-muted-foreground/80">
+                Step {currentStepIndex + 1} of {totalSteps}
                 {smartAutoSave.saveStatus === 'saved' && smartAutoSave.timeSinceLastSave
                   ? ` · Auto-saved ${smartAutoSave.timeSinceLastSave}`
                   : smartAutoSave.saveStatus === 'saving'
@@ -605,13 +605,13 @@ const ApplicationWizardContent = () => {
                       : ''}
               </p>
               {/* Thin step progress bar */}
-              <div className="mt-2 h-1 w-full rounded-full bg-muted" aria-hidden="true">
+              <div className="mt-3 h-1.5 w-full rounded-full bg-muted" aria-hidden="true">
                 <div
-                  className="h-1 rounded-full bg-primary transition-all duration-200 ease-out"
+                  className="h-1.5 rounded-full bg-primary transition-[width] duration-300 ease-out"
                   style={{ width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }}
                 />
               </div>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground/70">
                 {currentStepConfig.description}
               </p>
             </div>
@@ -622,10 +622,10 @@ const ApplicationWizardContent = () => {
           <div className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex-1">
-              <h2 className="text-base sm:text-lg font-semibold text-foreground">
+              <h2 className="text-lg sm:text-xl font-semibold text-foreground">
                 {currentStepConfig.title}
               </h2>
-              <p className="text-sm text-foreground/80 mt-1">
+              <p className="text-sm text-muted-foreground/70 mt-1">
                 {currentStepConfig.description}
               </p>
               <div className="mt-2 space-y-2">
@@ -639,7 +639,7 @@ const ApplicationWizardContent = () => {
                     aria-valuenow={progressPercent}
                   >
                     <div
-                      className="h-2 rounded-full bg-primary transition-all duration-200 ease-out"
+                      className="h-2 rounded-full bg-primary transition-[width] duration-300 ease-out"
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
@@ -742,11 +742,11 @@ const ApplicationWizardContent = () => {
               </div>
               <div className="flex gap-2 flex-shrink-0">
                 {(error.toLowerCase().includes('network') || error.toLowerCase().includes('connection') || error.toLowerCase().includes('failed to') || error.toLowerCase().includes('timeout')) && (
-                  <Button type="button" variant="outline" size="sm" onClick={wrappedHandleNextStep}>
+                  <Button type="button" variant="outline" size="sm" className="min-h-touch" onClick={wrappedHandleNextStep}>
                     Retry
                   </Button>
                 )}
-                <Button type="button" variant="ghost" size="sm" onClick={() => setError('')}>
+                <Button type="button" variant="ghost" size="sm" className="min-h-touch" onClick={() => setError('')}>
                   Dismiss
                 </Button>
               </div>
@@ -872,32 +872,26 @@ const ApplicationWizardContent = () => {
             )}
             </div>
 
-              <div className={`${keyboardOpen ? 'relative' : 'sticky bottom-0'} z-10 -mx-4 border-t border-border/50 bg-background px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none`}>
-              <div className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-            <div className="order-2 sm:order-1">
+              <div className={`${keyboardOpen ? 'relative' : 'sticky bottom-0'} z-10 -mx-4 border-t border-border/40 bg-background/95 backdrop-blur-sm px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none`}>
+              <div className="flex items-center justify-between gap-3 rounded-lg sm:border sm:border-border sm:bg-card sm:px-4 sm:py-4 sm:shadow-sm">
+            <div>
               {currentStepIndex > 0 && (
-                <div>
-                  <Button type="button" variant="outline" onClick={wrappedHandlePrevStep} className="w-full sm:w-auto min-h-[48px]" disabled={loading} aria-label={`Go back to ${wizardSteps[currentStepIndex - 1]?.progressTitle || 'previous step'}`}>
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    {previousButtonLabel}
-                  </Button>
-                </div>
+                <Button type="button" variant="outline" onClick={wrappedHandlePrevStep} className="min-h-[48px]" disabled={loading} aria-label={`Go back to ${wizardSteps[currentStepIndex - 1]?.progressTitle || 'previous step'}`}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  {previousButtonLabel}
+                </Button>
               )}
             </div>
 
-            <div className="order-1 sm:order-2">
+            <div>
               {!isLastStep ? (
-                <div>
-                  <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || (currentStepConfig.key === 'payment' && paymentStatus !== 'successful' && paymentStatus !== 'deferred')} className="w-full sm:w-auto min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
-                    {loading || isUploadBlocking ? nextButtonLabel : (<><span>{nextButtonLabel}</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
-                  </Button>
-                </div>
+                <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || (currentStepConfig.key === 'payment' && paymentStatus !== 'successful' && paymentStatus !== 'deferred')} className="min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
+                  {loading || isUploadBlocking ? nextButtonLabel : (<><span>{nextButtonLabel}</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
+                </Button>
               ) : (
-                <div>
-                  <Button type="submit" variant="success" loading={loading} disabled={loading || !wizardReadiness.canSubmit} className="w-full sm:w-auto min-h-[48px]">
-                    {loading ? 'Submitting...' : (<><Send className="h-4 w-4 mr-2" />Submit Application</>)}
-                  </Button>
-                </div>
+                <Button type="submit" variant="success" loading={loading} disabled={loading || !wizardReadiness.canSubmit} className="min-h-[48px]">
+                  {loading ? 'Submitting...' : (<><Send className="h-4 w-4 mr-2" />Submit Application</>)}
+                </Button>
               )}
               </div>
               </div>

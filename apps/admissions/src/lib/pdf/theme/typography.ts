@@ -102,7 +102,7 @@ export function __resetFontRegistration(): void {
  * Line-heights use the "1.4× for body, 1.2× for display" convention.
  */
 export const typeScale = {
-  micro: { size: 7, lineHeight: 1.3 },
+  micro: { size: 7.5, lineHeight: 1.3 },
   caption: { size: 9, lineHeight: 1.4 },
   label: { size: 10, lineHeight: 1.4 },
   body: { size: 11, lineHeight: 1.5 },

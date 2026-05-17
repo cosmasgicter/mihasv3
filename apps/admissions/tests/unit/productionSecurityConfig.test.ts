@@ -31,7 +31,7 @@ describe('production security config', () => {
   it('documents the remaining style-src inline exception without a script exception', () => {
     const note = getGlobalHeader('X-CSP-Note')
 
-    expect(note).toContain('script-src does not allow unsafe-inline')
+    expect(note).toContain('script-src does NOT allow unsafe-inline')
     expect(note).toContain('style-src unsafe-inline remains')
   })
 

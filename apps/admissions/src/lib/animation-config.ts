@@ -32,10 +32,10 @@ export function useReducedMotion(): boolean {
 
 // Animation durations (in seconds)
 export const durations = {
-  fast: 0.15,
-  normal: 0.3,
-  slow: 0.5,
-  slower: 0.8,
+  fast: 0.1,
+  normal: 0.2,
+  slow: 0.3,
+  slower: 0.4,
 } as const;
 
 // Easing functions for smooth animations

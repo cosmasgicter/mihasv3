@@ -2,25 +2,17 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
 import { APPLICATION_STATUSES } from '@/types/applicationStatus'
+import { BACKEND_APPLICATION_STATUSES } from '@/types/__fixtures__/lifecycleStatusBackendMirror'
 
 /**
  * Validates: Requirements 14.3
  *
- * The backend ALLOWED_TRANSITIONS map defines these valid statuses:
- *   draft, submitted, under_review, approved, rejected, waitlisted
- *
- * The frontend APPLICATION_STATUSES must match exactly — no phantom
- * statuses, no missing statuses.
+ * The generated backend mirror is the canonical cross-layer fixture.
+ * The frontend APPLICATION_STATUSES must match exactly — no phantom statuses,
+ * no missing statuses.
  */
 
-const BACKEND_STATUSES: ReadonlySet<string> = new Set([
-  'draft',
-  'submitted',
-  'under_review',
-  'approved',
-  'rejected',
-  'waitlisted',
-])
+const BACKEND_STATUSES: ReadonlySet<string> = new Set(BACKEND_APPLICATION_STATUSES)
 
 describe('Property 9: Frontend status set matches backend status set', () => {
   it('every frontend status exists in the backend status set', () => {
