@@ -4,7 +4,7 @@
  * Do not hardcode these values inline anywhere else.
  */
 export const INSTITUTION_FACTS = {
-  campuses: 2,                    // Mukuba Institute (Kitwe) + Kalulushi Training Centre
+  campuses: 2,                    // Mukuba Institute (Kalulushi) + Kalulushi Training Centre
   diplomaTracks: 3,               // Clinical Medicine, Environmental Health, Nursing
   accreditations: ['NMCZ', 'HPCZ', 'ECZ', 'UNZA'],
   accommodationOnSite: true,
