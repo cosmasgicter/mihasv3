@@ -16,23 +16,35 @@ class AdmissionsAnalyticsService:
             drafts=Count("id", filter=Q(status="draft")),
             submitted=Count("id", filter=Q(status="submitted")),
             under_review=Count("id", filter=Q(status="under_review")),
+            conditionally_approved=Count("id", filter=Q(status="conditionally_approved")),
             approved=Count("id", filter=Q(status="approved")),
             rejected=Count("id", filter=Q(status="rejected")),
             waitlisted=Count("id", filter=Q(status="waitlisted")),
+            enrolled=Count("id", filter=Q(status="enrolled")),
+            withdrawn=Count("id", filter=Q(status="withdrawn")),
+            expired=Count("id", filter=Q(status="expired")),
+            enrollment_expired=Count("id", filter=Q(status="enrollment_expired")),
         )
 
         total = sum(counts.values())
         submitted_plus = (
             counts["submitted"] + counts["under_review"]
-            + counts["approved"] + counts["rejected"]
-            + counts["waitlisted"]
+            + counts["conditionally_approved"] + counts["approved"]
+            + counts["rejected"] + counts["waitlisted"]
+            + counts["enrolled"] + counts["withdrawn"]
+            + counts["enrollment_expired"]
+        )
+        accepted_plus = (
+            counts["conditionally_approved"]
+            + counts["approved"]
+            + counts["enrolled"]
         )
 
         return {
             **counts,
             "total": total,
             "draft_to_submission_rate": round(submitted_plus / total * 100, 1) if total else 0,
-            "submission_to_approval_rate": round(counts["approved"] / submitted_plus * 100, 1) if submitted_plus else 0,
+            "submission_to_approval_rate": round(accepted_plus / submitted_plus * 100, 1) if submitted_plus else 0,
         }
 
     def timing_metrics(self, filters: dict) -> dict:
@@ -58,8 +70,11 @@ class AdmissionsAnalyticsService:
         return qs.aggregate(
             initiated=Count("id"),
             successful=Count("id", filter=Q(status="successful")),
+            force_approved=Count("id", filter=Q(status="force_approved")),
             failed=Count("id", filter=Q(status="failed")),
             pending=Count("id", filter=Q(status="pending")),
+            deferred=Count("id", filter=Q(status="deferred")),
+            expired=Count("id", filter=Q(status="expired")),
         )
 
     def _apply_filters(self, qs, filters):

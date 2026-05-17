@@ -4,6 +4,7 @@ Shared business logic extracted from views to eliminate duplication.
 """
 
 import logging
+import uuid as _uuid
 
 from django.db import transaction
 from django.utils import timezone
@@ -12,6 +13,23 @@ from apps.applications.models import Application, ApplicationStatusHistory
 from apps.documents.models import ApplicationDocument, Payment
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Canonical system actor — see ADR-013 and backend/scripts/system_actor_seed.sql.
+# ---------------------------------------------------------------------------
+#
+# Automated tasks (draft expiry, condition expiry, enrollment expiry, waitlist
+# auto-promotion) historically passed the string "system" as ``changed_by``.
+# Both ``Application.reviewed_by`` and ``ApplicationStatusHistory.changed_by``
+# are uuid FKs to ``profiles.id``; Postgres rejects "system" as an invalid
+# uuid and the FK write fails. Each Celery task caught the resulting exception
+# inside an outer ``try/except logger.exception(...)`` and continued, so the
+# bug was silent in production — drafts never expired, conditions never
+# auto-rejected, enrollments never released, waitlist never auto-promoted.
+#
+# All automated callers MUST now pass ``SYSTEM_ACTOR_ID``. The seeded profile
+# at this UUID is inactive, so it cannot be authenticated as.
+SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000001"
 
 # Valid status transitions enforced by transition_application_status().
 # Any (old_status, new_status) pair not represented here is rejected.
@@ -78,6 +96,20 @@ def transition_application_status(
     Returns:
         The previous status value (``old_status``).
     """
+    # --- Actor-id type guard (ADR-013) ---
+    # Reject non-UUID changed_by early so the failure mode is loud (ValueError
+    # surfaced in tests/logs) rather than silent (Postgres FK write rejected
+    # inside a Celery task try/except). Automated tasks must pass
+    # SYSTEM_ACTOR_ID instead of the literal string "system".
+    try:
+        _uuid.UUID(str(changed_by))
+    except (ValueError, TypeError, AttributeError) as exc:
+        raise ValueError(
+            f"transition_application_status: changed_by must be a UUID, "
+            f"got {changed_by!r}. Automated tasks must pass SYSTEM_ACTOR_ID "
+            f"from apps.applications.services."
+        ) from exc
+
     old_status = application.status
 
     # --- State machine enforcement (Req 13) ---
@@ -136,7 +168,7 @@ def _application_has_identity_document(application_id) -> bool:
         application_id=application_id,
         document_type__in=["nrc", "passport", "extra_kyc"],
     ).exclude(
-        verification_status="deleted",
+        verification_status__in=["deleted", "rejected"],
     ).exists()
 
 
@@ -144,7 +176,6 @@ def submit_application(
     *,
     application: Application,
     changed_by: str,
-    notes: str = "",
     ip_address: str = "",
     user_agent: str = "",
     admin_force: bool = False,
@@ -254,7 +285,7 @@ def submit_application(
             application=locked_app,
             new_status="submitted",
             changed_by=changed_by,
-            notes=notes,
+            notes="",
             ip_address=ip_address,
             user_agent=user_agent,
         )

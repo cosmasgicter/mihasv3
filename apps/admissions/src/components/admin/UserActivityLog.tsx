@@ -246,7 +246,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                               Payload
                             </p>
-                            <pre className="max-h-48 overflow-auto rounded-lg bg-slate-950 p-3 text-xs text-slate-100">
+                            <pre className="max-h-48 overflow-auto rounded-lg bg-foreground p-3 text-xs text-muted-foreground">
                               {payloadText}
                             </pre>
                           </div>

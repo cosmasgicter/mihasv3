@@ -139,7 +139,7 @@ export function StudentNextActionCard(props: StudentNextActionCardProps) {
   const Icon = action.icon
 
   const toneClasses = {
-    primary: 'border-primary/20 bg-white',
+    primary: 'border-primary/20 bg-card',
     warning: 'border-warning/35 bg-warning/5',
     success: 'border-success/30 bg-success/5',
     neutral: 'border-border bg-card',

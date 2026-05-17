@@ -7,8 +7,9 @@
  * @requirements 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 6.2, 6.3, 6.4
  */
 
-import { useCallback, useEffect, useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { formatDate } from '@/lib/dateFormat'
 import { Seo } from '@/components/seo/Seo'
 import { 
@@ -33,6 +34,7 @@ import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { Skeleton } from '@/components/ui'
 import { interviewsService } from '@/services/interviews'
 import { useAuth } from '@/contexts/AuthContext'
+import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 
 interface Interview {
   id: string
@@ -43,12 +45,6 @@ interface Interview {
   notes: string | null
   application_id: string
   program_name: string | null
-}
-
-interface InterviewPageState {
-  loading: boolean
-  error: string | null
-  interviews: Interview[]
 }
 
 /**
@@ -178,27 +174,18 @@ function formatDateTime(dateString: string): { date: string; time: string } {
 export default function InterviewPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [state, setState] = useState<InterviewPageState>({
-    loading: true,
-    error: null,
-    interviews: []
-  })
-
-  const loadInterviews = useCallback(async () => {
-    if (!user?.id) {
-      setState(prev => ({ ...prev, loading: false }))
-      return
-    }
-
-    setState(prev => ({ ...prev, loading: true, error: null }))
-
-    try {
-      // @requirements 3.2 - Query application_interviews for the student's applications
-      // Uses interviewsService which auto-unwraps the API envelope
+  const {
+    data: interviews = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<Interview[]>({
+    queryKey: ['student-interviews', user?.id],
+    queryFn: async () => {
+      // @requirements 3.2 - Query application_interviews for the student's applications.
+      // Uses interviewsService which auto-unwraps the API envelope.
       const data = await interviewsService.list()
-
-      // Transform data to match Interview interface
-      const interviews: Interview[] = (data?.interviews || []).map((item) => ({
+      return (data?.interviews || []).map((item) => ({
         id: item.id,
         scheduled_at: item.scheduled_at,
         mode: item.mode,
@@ -208,26 +195,10 @@ export default function InterviewPage() {
         application_id: item.application_id,
         program_name: item.program || null
       }))
-
-      setState({
-        interviews,
-        loading: false,
-        error: null,
-      })
-    } catch (err) {
-      console.error('Error fetching interviews:', err)
-      // @requirements 6.2 - Display error message on failure
-      setState(prev => ({
-        ...prev,
-        error: 'Failed to load interview information. Please try again.',
-        loading: false
-      }))
-    }
-  }, [user?.id])
-
-  useEffect(() => {
-    void loadInterviews()
-  }, [loadInterviews])
+    },
+    enabled: Boolean(user?.id),
+    ...CACHE_CONFIG.applications,
+  })
 
   // @requirements 4.6 - Separate upcoming interviews from past interviews
   const { upcomingInterviews, pastInterviews } = useMemo(() => {
@@ -235,7 +206,7 @@ export default function InterviewPage() {
     const upcoming: Interview[] = []
     const past: Interview[] = []
 
-    state.interviews.forEach(interview => {
+    interviews.forEach(interview => {
       const interviewDate = new Date(interview.scheduled_at)
       const activeUpcomingStatus = interview.status === 'scheduled' || interview.status === 'rescheduled'
       if (activeUpcomingStatus && interviewDate >= now) {
@@ -250,10 +221,10 @@ export default function InterviewPage() {
     past.sort((a, b) => new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime())
 
     return { upcomingInterviews: upcoming, pastInterviews: past }
-  }, [state.interviews])
+  }, [interviews])
 
   // @requirements 6.3 - Display loading spinner
-  if (state.loading) {
+  if (isLoading) {
     return (
       <>
       <Seo
@@ -309,15 +280,15 @@ export default function InterviewPage() {
       metrics={[
         { label: 'Upcoming', value: upcomingInterviews.length, helper: 'Interviews still ahead of you' },
         { label: 'Past', value: pastInterviews.length, helper: 'Completed or closed interview records' },
-        { label: 'Total', value: state.interviews.length, helper: 'All interview records tied to your account' },
-        { label: 'State', value: state.error ? 'Needs attention' : 'Ready', helper: state.error || 'Use this page to prepare and review details' },
+        { label: 'Total', value: interviews.length, helper: 'All interview records tied to your account' },
+        { label: 'State', value: error ? 'Needs attention' : 'Ready', helper: error instanceof Error ? error.message : 'Use this page to prepare and review details' },
       ]}
     >
         {/* @requirements 3.5 - Back to Dashboard navigation link */}
         <div className="mb-6">
           <Link 
             to="/student/dashboard" 
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Dashboard
@@ -326,12 +297,12 @@ export default function InterviewPage() {
 
         {/* Error Display */}
         {/* @requirements 6.2 - Display error message on failure */}
-        {state.error && (
+        {error && (
           <ErrorDisplay
             variant="section"
             title="Unable to load interview information"
-            message={state.error}
-            onRetry={() => void loadInterviews()}
+            message={error instanceof Error ? error.message : 'Failed to load interview information. Please try again.'}
+            onRetry={() => void refetch()}
             className="mb-6"
           />
         )}
@@ -385,7 +356,7 @@ export default function InterviewPage() {
 
           {/* Empty State */}
           {/* @requirements 3.4 - Display appropriate empty state message */}
-          {state.interviews.length === 0 && !state.error && (
+          {interviews.length === 0 && !error && (
             <Card className="bg-muted/30">
               <CardContent className="pt-6">
                 <EmptyState

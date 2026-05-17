@@ -58,12 +58,12 @@
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply text-slate-900 font-semibold;
+    @apply text-foreground font-semibold;
     line-height: 1.2;
   }
   
   p {
-    @apply text-slate-700;
+    @apply text-muted-foreground;
   }
   
   a {
@@ -280,15 +280,15 @@ input, textarea, select {
   }
 
   .glass-panel {
-    @apply rounded-lg border border-slate-200 bg-white shadow-sm;
+    @apply rounded-lg border border-border bg-card shadow-sm;
   }
 
   .polished-panel {
-    @apply rounded-lg border border-slate-200 bg-white shadow-sm;
+    @apply rounded-lg border border-border bg-card shadow-sm;
   }
 
   .feature-chip {
-    @apply inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600;
+    @apply inline-flex items-center gap-2 rounded-md border border-border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground;
   }
 
   .ambient-divider {

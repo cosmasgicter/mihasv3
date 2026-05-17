@@ -9,6 +9,7 @@
  *
  * Goal: every page transition feels instant.
  */
+import { isAdmin as checkIsAdmin } from '@/types/roles'
 import { queryClient } from '@/lib/queryClient'
 import { catalogService } from '@/services/catalog'
 import {
@@ -232,7 +233,7 @@ export function onSignInEmailBlur(): void {
  */
 export function onLoginSuccess(_response: unknown, role?: string): void {
   once('login-success', () => {
-    const isAdmin = role === 'admin' || role === 'super_admin'
+    const isAdmin = checkIsAdmin({ role })
 
     if (isAdmin) {
       preloadAdminWorkspaceRoute('post-login')

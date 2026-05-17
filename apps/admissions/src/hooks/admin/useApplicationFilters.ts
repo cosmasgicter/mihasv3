@@ -12,6 +12,10 @@ export interface ApplicationFilters {
   assignedReviewerFilter: string
   lateSubmissionFilter: string
   pendingAmendmentsFilter: string
+  reviewQueueFilter: string
+  overdueReviewFilter: string
+  pendingDocumentsFilter: string
+  upcomingInterviewsFilter: string
 }
 
 export const DEFAULT_APPLICATION_FILTERS: ApplicationFilters = {
@@ -24,6 +28,10 @@ export const DEFAULT_APPLICATION_FILTERS: ApplicationFilters = {
   assignedReviewerFilter: '',
   lateSubmissionFilter: '',
   pendingAmendmentsFilter: '',
+  reviewQueueFilter: '',
+  overdueReviewFilter: '',
+  pendingDocumentsFilter: '',
+  upcomingInterviewsFilter: '',
 }
 
 export const DRAFT_FILTER_OPTIONS = [
@@ -41,7 +49,11 @@ export const APPLICATION_FILTER_KEYS = [
   'draftFilter',
   'assignedReviewerFilter',
   'lateSubmissionFilter',
-  'pendingAmendmentsFilter'
+  'pendingAmendmentsFilter',
+  'reviewQueueFilter',
+  'overdueReviewFilter',
+  'pendingDocumentsFilter',
+  'upcomingInterviewsFilter'
 ] as const satisfies ReadonlyArray<keyof ApplicationFilters>
 
 type ApplicationFilterKey = typeof APPLICATION_FILTER_KEYS[number]

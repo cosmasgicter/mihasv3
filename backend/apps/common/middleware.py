@@ -125,12 +125,38 @@ class MetricsMiddleware:
 
     Skips health-check endpoints to avoid log noise. Wraps metric
     emission in try/except so it never blocks responses.
+
+    Sampling (REQUEST_METRIC_SAMPLE_RATE env var, default 1.0):
+    - Always logs slow requests (>1000ms).
+    - Always logs error responses (status >= 400).
+    - Samples healthy fast requests at the configured rate.
+    Production should set REQUEST_METRIC_SAMPLE_RATE=0.1 (10%) to keep
+    log volume bounded.
     """
 
     SKIP_PATHS = {"/health/live/", "/health/ready/", "/health/redis/"}
 
+    # Always log requests slower than this (ms), even if otherwise sampled out.
+    SLOW_REQUEST_THRESHOLD_MS = 1000.0
+
     def __init__(self, get_response):
+        import os
+        import random as _random
+
         self.get_response = get_response
+        self._random = _random
+
+        # Sample rate is read once at init from env. Default 1.0 (log everything)
+        # so dev environments are unaffected; production overrides via env var.
+        try:
+            self._sample_rate = float(os.environ.get("REQUEST_METRIC_SAMPLE_RATE", "1.0"))
+        except (TypeError, ValueError):
+            self._sample_rate = 1.0
+        # Clamp to [0.0, 1.0] for sanity.
+        if self._sample_rate < 0.0:
+            self._sample_rate = 0.0
+        elif self._sample_rate > 1.0:
+            self._sample_rate = 1.0
 
     def __call__(self, request):
         if request.path in self.SKIP_PATHS:
@@ -141,17 +167,25 @@ class MetricsMiddleware:
 
         try:
             duration_ms = round((time.monotonic() - start) * 1000, 1)
-            logger.info(
-                "request_metric",
-                extra={
-                    "type": "request_metric",
-                    "method": request.method,
-                    "path": request.path,
-                    "status_code": response.status_code,
-                    "duration_ms": duration_ms,
-                    "request_id": getattr(request, "request_id", None),
-                },
+
+            # Sampling decision: always log slow + error; otherwise dice roll.
+            should_log = (
+                duration_ms > self.SLOW_REQUEST_THRESHOLD_MS
+                or response.status_code >= 400
+                or self._random.random() < self._sample_rate
             )
+            if should_log:
+                logger.info(
+                    "request_metric",
+                    extra={
+                        "type": "request_metric",
+                        "method": request.method,
+                        "path": request.path,
+                        "status_code": response.status_code,
+                        "duration_ms": duration_ms,
+                        "request_id": getattr(request, "request_id", None),
+                    },
+                )
         except Exception:
             pass  # Metrics are best-effort — never block the response
 
@@ -288,13 +322,26 @@ class AuditMiddleware:
     - Extract entity_id from URL path segments (UUID-like hex-with-dashes pattern).
     - Hash IP address and user-agent with SHA-256 (never store PII).
     - Assign retention_category: 'security' for auth/session paths, 'standard' otherwise.
+
+    Async write strategy:
+    - Security-retention writes (auth/session paths) stay synchronous so any
+      auth/security audit is durable before the response returns.
+    - Standard-retention writes are dispatched to a Celery task so they don't
+      add DB latency to the request path. Falls back to synchronous if Celery
+      dispatch fails (Redis outage etc.).
     """
 
     STATE_CHANGING_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
     SECURITY_PREFIXES = ("/api/v1/auth/", "/api/v1/sessions/")
 
-    ENTITY_ID_PATTERN = re.compile(r"/api/v1/\w+/([0-9a-f-]+)/", re.IGNORECASE)
+    # Stricter UUID pattern: full 8-4-4-4-12 hex layout, not just any hex run.
+    # Prevents matching strings like 'track' or short ids that happened to be
+    # all-hex characters.
+    ENTITY_ID_PATTERN = re.compile(
+        r"/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+        re.IGNORECASE,
+    )
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -309,16 +356,20 @@ class AuditMiddleware:
             return response
 
         try:
-            self._create_audit_entry(request)
+            self._dispatch_audit_entry(request)
         except Exception:
             # Audit logging must never break the response.
-            logger.exception("Failed to create audit log entry")
+            logger.exception("Failed to dispatch audit log entry")
 
         return response
 
-    def _create_audit_entry(self, request):
-        from apps.common.models import AuditLog
+    def _dispatch_audit_entry(self, request):
+        """Build the audit-entry payload and dispatch sync or async.
 
+        Security-retention entries are written synchronously so they're
+        durable before the response. Standard entries are dispatched to a
+        Celery task to keep request latency low.
+        """
         actor_id = None
         if hasattr(request, "user") and getattr(request.user, "is_authenticated", False):
             actor_id = getattr(request.user, "pk", None)
@@ -328,17 +379,44 @@ class AuditMiddleware:
         retention = self._retention_category(request.path)
         network_fields = build_audit_network_fields(request)
 
-        AuditLog.objects.create(
-            actor_id=actor_id,
-            action=request.method,
-            entity_type=entity_type,
-            entity_id=entity_id,
-            ip_address=network_fields["ip_address"],
-            user_agent=network_fields["user_agent"],
-            ip_address_encrypted=network_fields["ip_address_encrypted"],
-            user_agent_encrypted=network_fields["user_agent_encrypted"],
-            retention_category=retention,
-        )
+        payload = {
+            "actor_id": str(actor_id) if actor_id else None,
+            "action": request.method,
+            "entity_type": entity_type,
+            "entity_id": entity_id,
+            "ip_address": network_fields["ip_address"],
+            "user_agent": network_fields["user_agent"],
+            "ip_address_encrypted": network_fields["ip_address_encrypted"],
+            "user_agent_encrypted": network_fields["user_agent_encrypted"],
+            "retention_category": retention,
+        }
+
+        if retention == "security":
+            # Synchronous write for security-class audit (durable before response).
+            self._write_audit_entry_sync(payload)
+            return
+
+        # Standard retention: dispatch async via Celery; fall back to sync on
+        # dispatch failure (Redis down, broker unreachable, etc.).
+        try:
+            from apps.common.tasks import write_audit_log_task
+            write_audit_log_task.delay(payload)
+        except Exception:
+            logger.warning(
+                "Audit log async dispatch failed; falling back to sync write",
+                exc_info=True,
+            )
+            self._write_audit_entry_sync(payload)
+
+    @staticmethod
+    def _write_audit_entry_sync(payload: dict) -> None:
+        """Synchronously write an audit log row from the dispatch payload."""
+        from apps.common.models import AuditLog
+        AuditLog.objects.create(**payload)
+
+    # Backwards-compatible alias retained for any external caller.
+    def _create_audit_entry(self, request):  # pragma: no cover - back-compat
+        self._dispatch_audit_entry(request)
 
     @staticmethod
     def _extract_entity_type(path: str) -> str:

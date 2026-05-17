@@ -150,3 +150,32 @@ jobs:
         run: bun pm scan
         working-directory: apps/jobs-ops
         continue-on-error: true
+
+  design-audit:
+    runs-on: ubuntu-latest
+    name: Design audit (Impeccable detector)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install Impeccable CLI
+        run: npm install -g impeccable@2.1.9
+      - name: Run design audit gate
+        run: bun scripts/design-audit-gate.ts
+      - name: Upload detector raw output (on failure)
+        if: failure()
+        run: |
+          impeccable detect apps/admissions/src/ > /tmp/imp-admissions.txt 2>&1 || true
+          impeccable detect apps/jobs-ops/src/ > /tmp/imp-jobsops.txt 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: design-audit-detector-output
+          path: |
+            /tmp/imp-admissions.txt
+            /tmp/imp-jobsops.txt
+          retention-days: 7

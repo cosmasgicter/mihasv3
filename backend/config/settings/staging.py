@@ -10,6 +10,13 @@ PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT = True
 PAYMENT_HARDENING_RATE_LIMITS = True
 PAYMENT_HARDENING_FORCE_APPROVED = True
 
+# AI hardening is mandatory in production for PII protection. Mirrors the
+# payment-hardening pattern: env vars cannot silently leave PII redaction off.
+AI_HARDENING_CIRCUIT_BREAKER = True
+AI_HARDENING_RATE_LIMITS = True
+AI_HARDENING_CACHE = True
+AI_HARDENING_REDACTION = True
+
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.environ.get("ALLOWED_HOSTS", "").split(",")  # noqa: F405

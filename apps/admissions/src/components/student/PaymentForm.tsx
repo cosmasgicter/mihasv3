@@ -376,7 +376,7 @@ export function PaymentForm({
               />
             ))}
           </div>
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500 text-white" style={{ animation: 'success-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards' }}>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success text-success-foreground" style={{ animation: 'success-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}>
             <CheckCircle className="h-8 w-8" />
           </div>
           <p className="text-xl font-bold text-green-700 dark:text-green-400">Payment confirmed!</p>

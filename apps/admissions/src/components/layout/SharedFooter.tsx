@@ -6,7 +6,7 @@
  */
 
 import { Link, useLocation } from 'react-router-dom';
-import { GraduationCap, ArrowRight, Mail, Phone, MapPin } from '@/components/icons';
+import { ArrowRight, Mail, Phone, MapPin } from '@/components/icons';
 import { BuildVersionBadge } from '@/components/ui/BuildVersionBadge';
 import { cn } from '@/lib/utils';
 import { contactInfo, quickLinks, socialLinks } from '@/lib/constants/landing';
@@ -37,8 +37,25 @@ export function SharedFooter({ className }: SharedFooterProps) {
           {/* Contact Info */}
           <div>
             <div className="flex items-center space-x-2 mb-6">
-              <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-              <span className="text-xl sm:text-2xl font-bold gradient-text-primary">MIHAS-KATC</span>
+              <img
+                src="/images/logos/mihas-logo.webp"
+                alt="MIHAS"
+                width={32}
+                height={32}
+                loading="lazy"
+                decoding="async"
+                className="h-6 w-6 sm:h-8 sm:w-8 rounded bg-card p-0.5"
+              />
+              <img
+                src="/images/logos/katc-logo.webp"
+                alt="Kalulushi Training Centre"
+                width={32}
+                height={32}
+                loading="lazy"
+                decoding="async"
+                className="h-6 w-6 sm:h-8 sm:w-8 rounded bg-card p-0.5"
+              />
+              <span className="text-xl sm:text-2xl font-bold text-white">MIHAS-KATC</span>
             </div>
             <h3 className="text-lg sm:text-xl font-semibold mb-4 text-white">Apply Today - Contact Us</h3>
             <div className="space-y-2 text-sm text-white sm:text-base">
@@ -119,7 +136,7 @@ export function SharedFooter({ className }: SharedFooterProps) {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-[44px] items-center gap-2 rounded-lg px-3 py-2 text-sm text-white transition-colors hover:bg-white/10 hover:text-white sm:px-4 sm:py-2 sm:text-base"
+                  className="flex min-h-[44px] items-center gap-2 rounded-lg px-3 py-2 text-sm text-white transition-colors hover:bg-card/10 hover:text-white sm:px-4 sm:py-2 sm:text-base"
                   aria-label={`Follow us on ${social.name}`}
                 >
                   <social.icon className="h-5 w-5" />

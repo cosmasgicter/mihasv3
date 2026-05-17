@@ -17,8 +17,3 @@ export {
   TimelineItem 
 } from './timeline';
 
-// Progress/partition bars
-export { 
-  PartitionBar, 
-  ProgressBar 
-} from './partition-bar';

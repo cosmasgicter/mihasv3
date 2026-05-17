@@ -68,7 +68,7 @@ export function IntegrationsPage() {
           <SectionCard title="Provider matrix">
             <div className="grid gap-4 md:grid-cols-2">
               {providers.map((provider) => (
-                <div key={provider.name} className="rounded-[28px] border border-line/70 bg-white/90 p-5 shadow-sm">
+                <div key={provider.name} className="rounded-[28px] border border-line/70 bg-panel/90 p-5 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-display text-2xl font-semibold tracking-tight text-ink">{provider.name}</p>
                     <StatusBadge tone={providerTone(provider.status)}>{labelize(provider.status)}</StatusBadge>
@@ -86,11 +86,11 @@ export function IntegrationsPage() {
                 {platform?.product ?? 'AI Job Hunting Platform'}
               </p>
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <div className="rounded-[24px] border border-white/70 bg-white/80 p-4">
+                <div className="rounded-[24px] border border-panel/70 bg-panel/80 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Creator</p>
                   <p className="mt-2 text-lg font-semibold text-ink">{platform?.creator.name ?? 'Cosmas Kanchepa'}</p>
                 </div>
-                <div className="rounded-[24px] border border-white/70 bg-white/80 p-4">
+                <div className="rounded-[24px] border border-panel/70 bg-panel/80 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Developer</p>
                   <a
                     className="mt-2 inline-block text-lg font-semibold text-primary hover:underline"

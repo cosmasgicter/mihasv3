@@ -45,7 +45,7 @@ export function preloadAuthRoutes(reason = 'interaction'): Promise<void> {
 
   authRoutesPreload ??= Promise.allSettled([
     import('@/components/AuthenticatedRouteShell'),
-    import('@/components/auth/AuthLayout'),
+    import('@/components/auth/AuthShell'),
     import('@/pages/auth/SignInPage'),
     import('@/pages/auth/SignUpPage'),
   ]).then(() => undefined)

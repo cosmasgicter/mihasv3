@@ -177,7 +177,7 @@ export function JobsOpsShell() {
               <button
                 aria-expanded={!sidebarCollapsed}
                 aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                className="rounded-2xl border border-line/80 bg-white/80 p-2 text-muted transition hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="min-h-touch min-w-touch rounded-2xl border border-line/80 bg-panel/80 p-2 text-muted transition hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 onClick={toggleSidebar}
                 type="button"
               >
@@ -191,15 +191,15 @@ export function JobsOpsShell() {
 
             {!sidebarCollapsed ? (
               <div className="mt-4 grid gap-3 md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-                <div aria-label={`Review queue: ${reviewCount} items awaiting approval`} className="rounded-2xl border border-white/70 bg-white/70 px-3 py-3">
+                <div aria-label={`Review queue: ${reviewCount} items awaiting approval`} className="rounded-2xl border border-panel/70 bg-panel/70 px-3 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">Review</p>
                   <p className="mt-2 font-display text-2xl font-semibold text-ink">{reviewCount}</p>
                 </div>
-                <div aria-label={`Blocked runs: ${blockedRuns.length} automation runs blocked`} className="rounded-2xl border border-white/70 bg-white/70 px-3 py-3">
+                <div aria-label={`Blocked runs: ${blockedRuns.length} automation runs blocked`} className="rounded-2xl border border-panel/70 bg-panel/70 px-3 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">Blocked</p>
                   <p className="mt-2 font-display text-2xl font-semibold text-ink">{blockedRuns.length}</p>
                 </div>
-                <div aria-label={`Open threads: ${openThreads} email threads active`} className="rounded-2xl border border-white/70 bg-white/70 px-3 py-3">
+                <div aria-label={`Open threads: ${openThreads} email threads active`} className="rounded-2xl border border-panel/70 bg-panel/70 px-3 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">Threads</p>
                   <p className="mt-2 font-display text-2xl font-semibold text-ink">{openThreads}</p>
                 </div>
@@ -214,16 +214,16 @@ export function JobsOpsShell() {
                 <NavLink
                   key={item.to}
                   className={({ isActive }) =>
-                    `rounded-2xl border px-3 py-3 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                    `min-h-touch rounded-2xl border px-3 py-3 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                       isActive
                         ? 'border-primary/25 bg-[linear-gradient(135deg,rgba(13,91,215,0.12),rgba(255,255,255,0.92))] text-primary'
-                        : 'border-transparent text-ink hover:border-line/80 hover:bg-white/70'
+                        : 'border-transparent text-ink hover:border-line/80 hover:bg-panel/70'
                     }`
                   }
                   to={item.to}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="rounded-xl bg-white/90 p-2 shadow-sm">
+                    <span className="rounded-xl bg-panel/90 p-2 shadow-sm">
                       <Icon className="h-4 w-4" />
                     </span>
                     {!sidebarCollapsed ? (
@@ -239,7 +239,7 @@ export function JobsOpsShell() {
           </nav>
 
           {!sidebarCollapsed ? (
-            <div className="mt-auto rounded-[24px] border border-line/70 bg-white/75 p-4">
+            <div className="mt-auto rounded-[24px] border border-line/70 bg-panel/75 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Live backend</p>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Read models pull from the seeded `/api/v1/...` contracts. Write actions stay policy-gated.
@@ -266,7 +266,7 @@ export function JobsOpsShell() {
               </StatusBadge>
               <button
                 ref={triggerButtonRef}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-2xl border border-line/80 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-primary/50 hover:text-primary"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-2xl border border-line/80 bg-panel px-4 py-2 text-sm font-medium text-ink transition hover:border-primary/50 hover:text-primary"
                 onClick={openPalette}
                 type="button"
               >
@@ -291,11 +291,11 @@ export function JobsOpsShell() {
           <div>
             <span className="eyebrow">Runtime</span>
             <div className="mt-3 grid gap-3">
-              <div className="rounded-2xl border border-line/70 bg-white/80 p-4">
+              <div className="rounded-2xl border border-line/70 bg-panel/80 p-4">
                 <p className="text-xs uppercase tracking-[0.12em] text-muted">API Base</p>
                 <p className="mt-2 break-all font-mono text-sm text-ink">{env.apiBaseUrl}</p>
               </div>
-              <div className="rounded-2xl border border-line/70 bg-white/80 p-4">
+              <div className="rounded-2xl border border-line/70 bg-panel/80 p-4">
                 <p className="text-xs uppercase tracking-[0.12em] text-muted">Creator</p>
                 <p className="mt-2 text-sm font-semibold text-ink">{platformQuery.data?.creator.name ?? 'Loading'}</p>
                 <a
@@ -313,11 +313,11 @@ export function JobsOpsShell() {
           <div>
             <h3 className="font-display text-lg font-semibold text-ink">System pulse</h3>
             <div className="mt-3 grid gap-3">
-              <div className="rounded-2xl border border-line/70 bg-white/75 p-4">
+              <div className="rounded-2xl border border-line/70 bg-panel/75 p-4">
                 <p className="text-xs uppercase tracking-[0.12em] text-muted">Review queue</p>
                 <p className="mt-2 font-display text-3xl font-semibold text-ink">{reviewCount}</p>
               </div>
-              <div className="rounded-2xl border border-line/70 bg-white/75 p-4">
+              <div className="rounded-2xl border border-line/70 bg-panel/75 p-4">
                 <p className="text-xs uppercase tracking-[0.12em] text-muted">Automation</p>
                 <div className="mt-3 grid gap-2">
                   {blockedRuns.length === 0 ? (
@@ -342,7 +342,7 @@ export function JobsOpsShell() {
             <h3 className="font-display text-lg font-semibold text-ink">Pinned handoff anchors</h3>
             <ul className="mt-3 grid gap-2 text-sm text-muted">
               {pinnedArtifacts.map((item) => (
-                <li key={item} className="rounded-2xl border border-line/70 bg-white/75 px-3 py-3 font-mono text-xs">
+                <li key={item} className="rounded-2xl border border-line/70 bg-panel/75 px-3 py-3 font-mono text-xs">
                   {item}
                 </li>
               ))}
@@ -363,7 +363,7 @@ export function JobsOpsShell() {
           aria-label="Command palette"
         >
           <div ref={dialogRef} className="panel w-full max-w-2xl p-5">
-            <div className="flex items-center gap-3 rounded-2xl border border-line/80 bg-white px-4 py-3">
+            <div className="flex items-center gap-3 rounded-2xl border border-line/80 bg-panel px-4 py-3">
               <Search className="h-4 w-4 text-muted" />
               <input
                 aria-label="Search navigation"
@@ -379,7 +379,7 @@ export function JobsOpsShell() {
               />
               <button
                 aria-label="Close command palette"
-                className="rounded-xl p-1 text-muted transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="min-h-touch min-w-touch rounded-xl p-1 text-muted transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 onClick={dismissPalette}
                 type="button"
               >
@@ -391,7 +391,7 @@ export function JobsOpsShell() {
               {quickLinks.map((item) => (
                 <NavLink
                   key={item.to}
-                  className="rounded-2xl border border-line/70 bg-white/75 px-4 py-3 transition hover:border-primary/40 hover:bg-primary/5"
+                  className="min-h-touch rounded-2xl border border-line/70 bg-panel/75 px-4 py-3 transition hover:border-primary/40 hover:bg-primary/5"
                   onClick={dismissPalette}
                   to={item.to}
                 >

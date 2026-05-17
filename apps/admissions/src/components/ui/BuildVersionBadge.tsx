@@ -46,14 +46,14 @@ export function BuildVersionBadge({
       >
         <Badge
           variant="outline"
-          className={cn('border-white/20 bg-white/5 font-medium text-current', muted && 'border-border/60 bg-background/70')}
+          className={cn('border-white/20 bg-card/5 font-medium text-current', muted && 'border-border/60 bg-background/70')}
           title={`Frontend build: ${frontendVersion}`}
         >
           FE {frontendLabel}
         </Badge>
         <Badge
           variant="outline"
-          className={cn('border-white/20 bg-white/5 font-medium text-current', muted && 'border-border/60 bg-background/70')}
+          className={cn('border-white/20 bg-card/5 font-medium text-current', muted && 'border-border/60 bg-background/70')}
           title={`Backend build: ${backendVersion}`}
         >
           BE {backendLabel}

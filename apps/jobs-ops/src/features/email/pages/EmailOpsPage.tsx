@@ -54,7 +54,7 @@ export function EmailOpsPage() {
             {threads.map((thread) => {
               const threadMessages = messages.filter((message) => message.threadId === thread.id)
               return (
-                <div key={thread.id} className="rounded-[28px] border border-line/70 bg-white/90 p-5 shadow-sm">
+                <div key={thread.id} className="rounded-[28px] border border-line/70 bg-panel/90 p-5 shadow-sm">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="font-display text-2xl font-semibold tracking-tight text-ink">{thread.subject}</p>
@@ -90,7 +90,7 @@ export function EmailOpsPage() {
           <SectionCard title="Inbox priorities">
             <div className="grid gap-3">
               {inboundMessages.map((message) => (
-                <div key={message.id} className="rounded-[24px] border border-line/70 bg-white/85 p-4">
+                <div key={message.id} className="rounded-[24px] border border-line/70 bg-panel/85 p-4">
                   <p className="font-semibold text-ink">{message.subject}</p>
                   <p className="mt-2 text-sm text-muted">{message.sender}</p>
                   <div className="mt-3">

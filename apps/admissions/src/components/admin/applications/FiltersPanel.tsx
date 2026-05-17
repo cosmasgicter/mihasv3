@@ -4,6 +4,7 @@ import { Search } from 'lucide-react'
 import type { ApplicationFilters } from '@/hooks/admin/useApplicationFilters'
 import { DRAFT_FILTER_OPTIONS } from '@/hooks/admin/useApplicationFilters'
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback'
+import { STATUS_FILTER_OPTIONS } from '@/lib/applicationStatusUi'
 
 interface FiltersPanelProps {
   searchTerm: string
@@ -15,6 +16,10 @@ interface FiltersPanelProps {
   assignedReviewerFilter?: string
   lateSubmissionFilter?: string
   pendingAmendmentsFilter?: string
+  reviewQueueFilter?: string
+  overdueReviewFilter?: string
+  pendingDocumentsFilter?: string
+  upcomingInterviewsFilter?: string
   programOptions?: string[]
   institutionOptions?: string[]
   onFilterChange: (key: keyof ApplicationFilters, value: string) => void
@@ -30,6 +35,10 @@ export function FiltersPanel({
   assignedReviewerFilter = '',
   lateSubmissionFilter = '',
   pendingAmendmentsFilter = '',
+  reviewQueueFilter = '',
+  overdueReviewFilter = '',
+  pendingDocumentsFilter = '',
+  upcomingInterviewsFilter = '',
   programOptions = [],
   institutionOptions = [],
   onFilterChange
@@ -54,7 +63,7 @@ export function FiltersPanel({
     debouncedSearchChange(value)
   }
 
-  const activeFilterCount = [statusFilter, paymentFilter, programFilter, institutionFilter, draftFilter !== 'all' ? draftFilter : '', assignedReviewerFilter, lateSubmissionFilter, pendingAmendmentsFilter].filter(Boolean).length
+  const activeFilterCount = [statusFilter, paymentFilter, programFilter, institutionFilter, draftFilter !== 'all' ? draftFilter : '', assignedReviewerFilter, lateSubmissionFilter, pendingAmendmentsFilter, reviewQueueFilter, overdueReviewFilter, pendingDocumentsFilter, upcomingInterviewsFilter].filter(Boolean).length
 
   const handleClearAll = () => {
     onFilterChange('searchTerm', '')
@@ -66,6 +75,10 @@ export function FiltersPanel({
     onFilterChange('assignedReviewerFilter', '')
     onFilterChange('lateSubmissionFilter', '')
     onFilterChange('pendingAmendmentsFilter', '')
+    onFilterChange('reviewQueueFilter', '')
+    onFilterChange('overdueReviewFilter', '')
+    onFilterChange('pendingDocumentsFilter', '')
+    onFilterChange('upcomingInterviewsFilter', '')
   }
 
   const selectClasses = "w-full h-11 rounded-lg border border-border/60 bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors hover:border-primary/20"
@@ -90,6 +103,29 @@ export function FiltersPanel({
             Clear all
           </button>
         )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+        <select value={reviewQueueFilter} onChange={(e) => onFilterChange('reviewQueueFilter', e.target.value)} className={selectClasses} aria-label="Review queue filter">
+          <option value="">Review Queue</option>
+          <option value="true">In Review Queue</option>
+          <option value="false">Outside Review Queue</option>
+        </select>
+        <select value={overdueReviewFilter} onChange={(e) => onFilterChange('overdueReviewFilter', e.target.value)} className={selectClasses} aria-label="Overdue review filter">
+          <option value="">Review SLA</option>
+          <option value="true">Overdue Reviews</option>
+          <option value="false">Not Overdue</option>
+        </select>
+        <select value={pendingDocumentsFilter} onChange={(e) => onFilterChange('pendingDocumentsFilter', e.target.value)} className={selectClasses} aria-label="Pending documents filter">
+          <option value="">Documents</option>
+          <option value="true">Documents Pending</option>
+          <option value="false">No Pending Documents</option>
+        </select>
+        <select value={upcomingInterviewsFilter} onChange={(e) => onFilterChange('upcomingInterviewsFilter', e.target.value)} className={selectClasses} aria-label="Upcoming interviews filter">
+          <option value="">Interviews</option>
+          <option value="true">Upcoming Interviews</option>
+          <option value="false">No Upcoming Interviews</option>
+        </select>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
         <div className="md:col-span-2">
@@ -130,11 +166,11 @@ export function FiltersPanel({
             className={selectClasses}
           >
             <option value="">All Statuses</option>
-            <option value="draft">Draft</option>
-            <option value="submitted">Submitted</option>
-            <option value="under_review">Under Review</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
+            {STATUS_FILTER_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
         

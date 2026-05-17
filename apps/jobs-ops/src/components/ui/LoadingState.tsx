@@ -5,7 +5,7 @@ type LoadingStateProps = {
 
 export function LoadingState({ title, message }: LoadingStateProps) {
   return (
-    <div className="rounded-[28px] border border-line/70 bg-white/85 px-5 py-8">
+    <div className="rounded-[28px] border border-line/70 bg-panel/85 px-5 py-8">
       <div className="h-3 w-24 animate-pulse rounded-full bg-canvas" />
       <div className="mt-5 h-8 w-56 animate-pulse rounded-full bg-canvas" />
       <div className="mt-4 h-4 w-full animate-pulse rounded-full bg-canvas" />

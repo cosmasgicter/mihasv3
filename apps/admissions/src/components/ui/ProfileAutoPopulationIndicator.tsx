@@ -56,7 +56,7 @@ export function ProfileCompletionBadge({ completionPercentage, missingFields = [
 
       {hasMissing && expanded && (
         <div
-          className="absolute right-0 top-full mt-2 z-50 w-64 rounded-lg border border-border bg-white shadow-lg p-3"
+          className="absolute right-0 top-full mt-2 z-50 w-64 rounded-lg border border-border bg-card shadow-lg p-3"
           role="tooltip"
         >
           <p className="text-xs font-semibold text-muted-foreground mb-2">

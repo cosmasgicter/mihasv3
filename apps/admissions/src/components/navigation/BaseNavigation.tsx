@@ -102,7 +102,7 @@ export function BaseNavigation({
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/70  lg:hidden transition-opacity duration-250 motion-reduce:transition-none"
+            className="fixed inset-0 bg-scrim/70  lg:hidden transition-opacity duration-250 motion-reduce:transition-none"
             style={{ zIndex: 9998 }}
             onClick={closeMenu}
           />
@@ -110,7 +110,7 @@ export function BaseNavigation({
           {/* Mobile Menu */}
           <div
             className={cn(
-              "fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-sm lg:hidden border-l-4 border-primary overflow-y-auto",
+              "fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-sm lg:hidden border-l border-border overflow-y-auto",
               "transition-transform duration-250 ease-standard motion-reduce:transition-none",
               isOpen ? "translate-x-0" : "translate-x-full"
             )}
@@ -118,7 +118,7 @@ export function BaseNavigation({
           >
             <div className="flex flex-col h-full">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-border/70 bg-white">
+              <div className="flex items-center justify-between p-6 border-b border-border/70 bg-card">
                 {mobileHeader}
                 <button
                   className="p-2 rounded-lg hover:bg-accent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[44px] min-w-[44px] touch-target  motion-reduce:transform-none"

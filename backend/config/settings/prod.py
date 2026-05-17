@@ -50,6 +50,19 @@ PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT = True
 PAYMENT_HARDENING_RATE_LIMITS = True
 PAYMENT_HARDENING_FORCE_APPROVED = True
 
+# AI hardening is mandatory in production for PII protection. Mirrors the
+# payment-hardening pattern: env vars cannot silently leave PII redaction off.
+AI_HARDENING_CIRCUIT_BREAKER = True
+AI_HARDENING_RATE_LIMITS = True
+AI_HARDENING_CACHE = True
+AI_HARDENING_REDACTION = True
+
+# Production log volume: sample healthy 200s at 10%. Slow requests (>1s)
+# and 4xx/5xx responses are always logged regardless of sample rate.
+# Override via REQUEST_METRIC_SAMPLE_RATE env var if needed.
+import os as _os  # noqa: E402
+_os.environ.setdefault("REQUEST_METRIC_SAMPLE_RATE", "0.1")
+
 # CORS — production frontend only
 CORS_ALLOWED_ORIGINS = split_csv_env(  # noqa: F405
     "CORS_ALLOWED_ORIGINS",

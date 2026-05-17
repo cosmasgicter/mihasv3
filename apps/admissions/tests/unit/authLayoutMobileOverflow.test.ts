@@ -1,10 +1,10 @@
 /**
- * Unit Tests — AuthLayout Mobile Overflow Fixes
+ * Unit Tests — AuthShell Layout Structure
  *
  * **Validates: Requirements 2.1, 2.2, 3.1**
  *
- * Verifies that AuthLayout has the correct CSS classes to prevent
- * mobile overflow and preserves desktop layout classes.
+ * Verifies that AuthShell has the correct structure: single-column layout,
+ * brand wordmark, form card, footer divider, and trust note.
  */
 import React from 'react'
 import { describe, it, expect, vi } from 'vitest'
@@ -74,18 +74,17 @@ vi.mock('@/lib/animation-config', () => ({
 // Imports — after mocks
 // ---------------------------------------------------------------------------
 
-import { AuthLayout } from '@/components/auth/AuthLayout'
+import { AuthShell } from '@/components/auth/AuthShell'
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function renderLayout(variant: 'default' | 'signin' | 'signup' = 'default', showBranding = true) {
+function renderShell(title = 'Test', footer?: React.ReactNode) {
   const markup = renderToStaticMarkup(
     React.createElement(
-      AuthLayout,
-      { title: 'Test', variant, showBranding },
-      React.createElement('div', null, 'content'),
+      AuthShell,
+      { title, footer, children: React.createElement('div', null, 'content') },
     ),
   )
   const parser = new DOMParser()
@@ -100,77 +99,60 @@ function classesOf(el: Element): string[] {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('AuthLayout mobile overflow fixes', () => {
-  it('form panel flex column has min-w-0 class', () => {
-    const doc = renderLayout()
-    const flexColumns = doc.querySelectorAll('[class*="flex-1"][class*="flex-col"]')
-    expect(flexColumns.length).toBeGreaterThan(0)
-
-    const cls = classesOf(flexColumns[0]!)
-    expect(cls).toContain('min-w-0')
+describe('AuthShell layout structure', () => {
+  it('outer wrapper has min-h-dvh and bg-muted', () => {
+    const doc = renderShell()
+    const outer = doc.querySelector('[class*="min-h-dvh"][class*="bg-muted"]')
+    expect(outer).not.toBeNull()
   })
 
-  it('form card container has overflow-hidden class', () => {
-    const doc = renderLayout()
-    const allElements = doc.querySelectorAll('*')
-    let card: Element | null = null
-    for (const el of allElements) {
-      const cls = typeof el.className === 'string' ? el.className : ''
-      if (cls.includes('shadow-2xl') && cls.includes('backdrop-blur')) {
-        card = el
-        break
-      }
-    }
-    expect(card).not.toBeNull()
+  it('inner column has max-w-md and mx-auto centering', () => {
+    const doc = renderShell()
+    const inner = doc.querySelector('[class*="max-w-md"]')
+    expect(inner).not.toBeNull()
 
-    const cls = classesOf(card!)
-    expect(cls).toContain('overflow-hidden')
+    const cls = classesOf(inner!)
+    expect(cls).toContain('mx-auto')
+    expect(cls).toContain('flex-col')
   })
 
-  it('desktop layout preserves lg:w-1/2 on branding wrapper', () => {
-    const doc = renderLayout('signin', true)
-    const candidates = doc.querySelectorAll('[class*="lg:w-1/2"]')
-    expect(candidates.length).toBeGreaterThan(0)
+  it('form card is a <main> with rounded-xl border bg-card', () => {
+    const doc = renderShell()
+    const main = doc.querySelector('main')
+    expect(main).not.toBeNull()
 
-    let brandingWrapper: Element | null = null
-    for (const el of candidates) {
-      const cls = classesOf(el)
-      if (cls.includes('hidden') && cls.includes('lg:flex')) {
-        brandingWrapper = el
-        break
-      }
-    }
-    expect(brandingWrapper).not.toBeNull()
-    expect(classesOf(brandingWrapper!)).toContain('lg:w-1/2')
+    const cls = classesOf(main!)
+    expect(cls).toContain('rounded-xl')
+    expect(cls).toContain('bg-card')
+    expect(cls).toContain('border')
   })
 
-  it('desktop layout preserves lg:px-12 on FormPanel', () => {
-    const doc = renderLayout('default', true)
-    const allEls = doc.querySelectorAll('[class*="lg:px-12"]')
-    let formPanel: Element | null = null
-    for (const el of allEls) {
-      const cls = typeof el.className === 'string' ? el.className : ''
-      if (cls.includes('justify-center') && cls.includes('px-4')) {
-        formPanel = el
-        break
-      }
-    }
-    expect(formPanel).not.toBeNull()
-    expect(classesOf(formPanel!)).toContain('lg:px-12')
+  it('form card has p-6 sm:p-8 responsive padding', () => {
+    const doc = renderShell()
+    const main = doc.querySelector('main')
+    expect(main).not.toBeNull()
+
+    const cls = classesOf(main!)
+    expect(cls).toContain('p-6')
+    expect(cls).toContain('sm:p-8')
   })
 
-  it('mobile gradient bar is present with lg:hidden', () => {
-    const doc = renderLayout()
-    const allElements = doc.querySelectorAll('[class*="lg:hidden"]')
-    let gradientBar: Element | null = null
-    for (const el of allElements) {
-      const cls = typeof el.className === 'string' ? el.className : ''
-      if (cls.includes('bg-gradient-to-r') && cls.includes('h-1')) {
-        gradientBar = el
-        break
-      }
-    }
-    expect(gradientBar).not.toBeNull()
-    expect(classesOf(gradientBar!)).toContain('lg:hidden')
+  it('brand link is present with aria-label', () => {
+    const doc = renderShell()
+    const brandLink = doc.querySelector('a[aria-label="MIHAS-KATC home"]')
+    expect(brandLink).not.toBeNull()
+  })
+
+  it('footer divider renders when footer prop is provided', () => {
+    const doc = renderShell('Test', React.createElement('span', null, 'footer'))
+    const divider = doc.querySelector('[class*="border-t"]')
+    expect(divider).not.toBeNull()
+  })
+
+  it('title renders as h1 inside main', () => {
+    const doc = renderShell('Welcome Back')
+    const h1 = doc.querySelector('main h1')
+    expect(h1).not.toBeNull()
+    expect(h1!.textContent).toBe('Welcome Back')
   })
 })

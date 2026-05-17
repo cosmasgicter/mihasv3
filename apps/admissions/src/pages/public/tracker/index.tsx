@@ -293,9 +293,9 @@ export default function PublicApplicationTracker() {
         path="/track-application"
       />
 
-      <div className="bg-slate-50 py-10 sm:py-14 lg:py-16">
+      <div className="bg-muted py-10 sm:py-14 lg:py-16">
         <Container size="lg" className="space-y-8 sm:space-y-10">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-7 lg:p-8">
+          <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-7 lg:p-8">
             <PageHeader
               variant="surface"
               icon={<Search className="h-6 w-6" aria-hidden="true" />}
@@ -306,24 +306,24 @@ export default function PublicApplicationTracker() {
             <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.75fr)]">
               <div>
                 <div className="flex flex-wrap gap-2">
-                  <span className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700">No sign-in required</span>
-                  <span className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700">Live status visibility</span>
-                  <span className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700">Slip download and sharing</span>
+                  <span className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">No sign-in required</span>
+                  <span className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">Live status visibility</span>
+                  <span className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">Slip download and sharing</span>
                 </div>
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
                   This tracker is designed for confidence. Students and sponsors can see where an application stands without navigating the full portal, while still keeping the result clear and action-oriented.
                 </p>
               </div>
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-5 sm:p-6">
+              <div className="rounded-lg border border-border bg-muted p-5 sm:p-6">
                 <p className="text-xs font-semibold uppercase text-primary">Best input</p>
                 <div className="mt-4 grid gap-3">
-                  <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-                    <p className="text-xs font-semibold uppercase text-slate-500">Use</p>
-                    <p className="mt-1 text-lg font-semibold text-slate-950">Application number or tracking code</p>
+                  <div className="rounded-lg border border-border bg-card px-4 py-3">
+                    <p className="text-xs font-semibold uppercase text-muted-foreground">Use</p>
+                    <p className="mt-1 text-lg font-semibold text-foreground">Application number or tracking code</p>
                   </div>
-                  <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-                    <p className="text-xs font-semibold uppercase text-slate-500">Outcome</p>
-                    <p className="mt-1 text-lg font-semibold text-slate-950">Status, milestones, and application slip</p>
+                  <div className="rounded-lg border border-border bg-card px-4 py-3">
+                    <p className="text-xs font-semibold uppercase text-muted-foreground">Outcome</p>
+                    <p className="mt-1 text-lg font-semibold text-foreground">Status, milestones, and application slip</p>
                   </div>
                 </div>
               </div>
@@ -344,7 +344,7 @@ export default function PublicApplicationTracker() {
           {/* Application Results - conditional rendering replaces AnimatePresence */}
           {application && (
             <div className={animateClasses.slideUp}>
-              <SectionCard className="overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm" padding="sm">
+              <SectionCard className="overflow-hidden rounded-lg border-border bg-card shadow-sm" padding="sm">
                 <ApplicationStatusHeader
                   application={application}
                   copied={copied}

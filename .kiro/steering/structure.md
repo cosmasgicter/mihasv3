@@ -18,6 +18,12 @@ inclusion: always
 | `docs/` | Project documentation | Modify when task requires documentation or handoff updates |
 | `.kiro/` | Specs, steering, and Kiro metadata | Keep steering aligned with the real repo state |
 
+## Canonical Truth Map
+
+The master index of canonical sources of truth lives at `docs/canonical-truth-map.md`. It names the single authoritative location for every domain concept (application statuses, payment states, role hierarchies, error codes, etc.) and lists every consumer that mirrors or depends on it.
+
+**Rule:** Any new domain concept added to the platform must register in the canonical truth map before merging. If the concept has a frontend mirror, a drift-guard test is required.
+
 ## Spec Completion Markers
 
 Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a spec's work is fully completed (all tasks done), add `"status": "completed"` to its `.config.kiro` file. This makes the status of past work immediately visible without reading every task file.

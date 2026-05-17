@@ -276,7 +276,7 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
             <div className="rounded-lg border border-border bg-card p-4">
               <h4 className="text-sm font-semibold text-foreground">Change payload</h4>
               {payloadText ? (
-                <pre className="mt-3 max-h-72 overflow-auto rounded-lg bg-slate-950 p-3 text-xs text-slate-100">
+                <pre className="mt-3 max-h-72 overflow-auto rounded-lg bg-foreground p-3 text-xs text-muted-foreground">
                   {payloadText}
                 </pre>
               ) : (

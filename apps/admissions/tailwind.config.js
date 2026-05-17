@@ -77,6 +77,9 @@ module.exports = {
           DEFAULT: 'rgb(var(--color-card-rgb) / <alpha-value>)',
           foreground: 'rgb(var(--color-card-foreground-rgb) / <alpha-value>)',
         },
+        // Modal scrim — brand-tinted near-black for dialog/dropdown overlays.
+        // Use as `bg-scrim/50`. Added 2026-05-17 (replaces `bg-black/N`).
+        scrim: 'rgb(var(--color-scrim-rgb) / <alpha-value>)',
         skeleton: {
           DEFAULT: 'rgb(var(--color-muted-rgb) / <alpha-value>)',
           highlight: 'rgb(226 232 240 / <alpha-value>)',

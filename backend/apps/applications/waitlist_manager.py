@@ -11,7 +11,7 @@ import logging
 from django.db import transaction
 
 from apps.applications.models import Application, ApplicationStatusHistory
-from apps.applications.services import transition_application_status
+from apps.applications.services import SYSTEM_ACTOR_ID, transition_application_status
 
 logger = logging.getLogger(__name__)
 
@@ -75,8 +75,9 @@ class WaitlistManager:
 
         Finds the waitlisted application with the lowest
         ``waitlist_position``, transitions it to ``approved`` via
-        ``transition_application_status()`` with ``changed_by='system'``,
-        sends a notification, and reindexes remaining positions.
+        ``transition_application_status()`` with
+        ``changed_by=SYSTEM_ACTOR_ID``, sends a notification, and reindexes
+        remaining positions.
 
         Args:
             program: Program name string.
@@ -111,7 +112,7 @@ class WaitlistManager:
             transition_application_status(
                 application=next_app,
                 new_status="approved",
-                changed_by="system",
+                changed_by=SYSTEM_ACTOR_ID,
                 notes="Auto-promoted from waitlist — spot opened.",
             )
 

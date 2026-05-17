@@ -38,10 +38,6 @@ export const APP_MAIN_CONTENT_ID = 'app-main-content'
  * 
  * Requirements: 4.4 - Skip links should have correct href targets (main content, not footer)
  */
-export const defaultSkipLinks: SkipLinkConfig[] = [
-  { targetId: APP_MAIN_CONTENT_ID, label: 'Skip to main content' },
-]
-
 /**
  * CSS classes for skip links
  * Uses transform-based hiding for reliable accessibility:
@@ -170,23 +166,6 @@ export const ariaLabels = {
 /**
  * Generate ARIA describedby ID
  */
-export function getAriaDescribedBy(
-  baseId: string,
-  hasError: boolean,
-  hasHelper: boolean
-): string | undefined {
-  const ids: string[] = []
-  
-  if (hasError) {
-    ids.push(`${baseId}-error`)
-  }
-  if (hasHelper) {
-    ids.push(`${baseId}-helper`)
-  }
-  
-  return ids.length > 0 ? ids.join(' ') : undefined
-}
-
 /**
  * Focus trap utilities
  */
@@ -367,23 +346,6 @@ export function announceToScreenReader(
 /**
  * Screen reader only class
  */
-export const srOnlyClass = 'sr-only'
-
-/**
- * CSS for screen reader only content
- */
-export const srOnlyStyles = {
-  position: 'absolute' as const,
-  width: '1px',
-  height: '1px',
-  padding: '0',
-  margin: '-1px',
-  overflow: 'hidden',
-  clip: 'rect(0, 0, 0, 0)',
-  whiteSpace: 'nowrap' as const,
-  border: '0',
-}
-
 // ─── Contrast Checker Utilities (merged from src/utils/contrastChecker.ts) ───
 
 /**

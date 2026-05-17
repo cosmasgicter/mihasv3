@@ -107,7 +107,7 @@ export function ReportsPage() {
                 .slice()
                 .sort((left, right) => right.successRate - left.successRate)
                 .map((source) => (
-                  <div key={source.source} className="rounded-[24px] border border-line/70 bg-white/90 p-4">
+                  <div key={source.source} className="rounded-[24px] border border-line/70 bg-panel/90 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="font-semibold text-ink">{source.source}</p>
                       <StatusBadge tone="success">{formatPercentage(source.successRate, 'ratio')} success</StatusBadge>

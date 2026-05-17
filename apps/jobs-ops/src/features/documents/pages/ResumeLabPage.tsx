@@ -43,7 +43,7 @@ export function ResumeLabPage() {
         <SectionCard title="Document assets">
           <div className="grid gap-4 md:grid-cols-2">
             {assets.map((asset) => (
-              <div key={asset.id} className="rounded-[28px] border border-line/70 bg-white/90 p-5 shadow-sm">
+              <div key={asset.id} className="rounded-[28px] border border-line/70 bg-panel/90 p-5 shadow-sm">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-display text-2xl font-semibold tracking-tight text-ink">{asset.name}</p>
                   <StatusBadge tone={assetTone(asset.status)}>{labelize(asset.status)}</StatusBadge>
@@ -61,13 +61,13 @@ export function ResumeLabPage() {
         <div className="grid gap-5">
           <SectionCard title="Document guardrails">
             <div className="grid gap-3 text-sm leading-6 text-muted">
-              <div className="rounded-[24px] border border-line/70 bg-white/85 p-4">
+              <div className="rounded-[24px] border border-line/70 bg-panel/85 p-4">
                 Never invent education, certifications, or work history.
               </div>
-              <div className="rounded-[24px] border border-line/70 bg-white/85 p-4">
+              <div className="rounded-[24px] border border-line/70 bg-panel/85 p-4">
                 Heavily modified variants should pass through human review before submission.
               </div>
-              <div className="rounded-[24px] border border-line/70 bg-white/85 p-4">
+              <div className="rounded-[24px] border border-line/70 bg-panel/85 p-4">
                 Every generated asset should remain versioned and attributable.
               </div>
             </div>

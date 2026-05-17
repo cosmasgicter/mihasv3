@@ -85,7 +85,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                   >
                     <Button 
                       variant="outline"
-                      className="relative flex h-24 w-full flex-col items-center justify-center space-y-2 overflow-hidden border-slate-200 bg-white transition-colors duration-150 hover:bg-slate-50"
+                      className="relative flex h-24 w-full flex-col items-center justify-center space-y-2 overflow-hidden border-border bg-card transition-colors duration-150 hover:bg-muted"
                     >
                       {action.urgent && (
                         <div className="absolute top-2 right-2">
@@ -128,7 +128,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
                 >
                   <Button 
                     variant="outline" 
-                    className="h-12 w-full justify-start border-slate-200 transition-colors duration-150 hover:border-primary/40 hover:bg-primary/5"
+                    className="h-12 w-full justify-start border-border transition-colors duration-150 hover:border-primary/40 hover:bg-primary/5"
                   >
                     <Icon className="h-4 w-4 mr-3" />
                     <div className="text-left">
@@ -148,7 +148,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
           >
             <Button 
               variant="outline" 
-              className="h-12 w-full justify-start border-slate-200 transition-colors duration-150 hover:border-accent hover:bg-accent/5"
+              className="h-12 w-full justify-start border-border transition-colors duration-150 hover:border-accent hover:bg-accent/5"
               disabled
               title="Coming soon"
             >
@@ -164,7 +164,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
 
       {/* Quick Stats */}
       <div 
-        className={`${animateClasses.slideUp} opacity-0 rounded-lg border border-slate-200 bg-white p-6 shadow-sm`}
+        className={`${animateClasses.slideUp} opacity-0 rounded-lg border border-border bg-card p-6 shadow-sm`}
         style={staggerChild(4)}
       >
         <h3 className="text-lg font-bold text-foreground mb-4"><BarChart3 className="w-5 h-5" /> Quick Stats</h3>

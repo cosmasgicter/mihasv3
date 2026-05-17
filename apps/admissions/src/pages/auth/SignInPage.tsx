@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { AuthLayout } from '@/components/auth/AuthLayout';
+import { AuthShell, AuthShellFooter, AuthShellLink } from '@/components/auth/AuthShell';
 import { Banner } from '@/components/ui/Banner';
 import { FormErrorAnnouncer } from '@/components/ui/FormErrorAnnouncer';
 import { Seo } from '@/components/seo/Seo';
@@ -34,6 +34,8 @@ const ADMIN_REDIRECT_ALLOWLIST = [
 ] as const;
 
 const STUDENT_REDIRECT_ALLOWLIST = [
+  '/apply',
+  '/application',
   '/student/dashboard',
   '/student/application-wizard',
   '/student/application',
@@ -42,6 +44,8 @@ const STUDENT_REDIRECT_ALLOWLIST = [
   '/student/interview',
   '/student/settings',
   '/student/notifications',
+  '/student/communications',
+  '/student/history',
 ] as const;
 
 function matchesAllowlistPath(pathname: string, allowlist: readonly string[]): boolean {
@@ -214,98 +218,79 @@ export default function SignInPage() {
   return (
     <>
       <Seo title={seoConfig.title} description={seoConfig.description} path={location.pathname} />
-      <AuthLayout
-        variant="signin"
+      <AuthShell
         title="Sign in"
         description={
           <>
-            Don&apos;t have an account?{' '}
+            New to MIHAS-KATC?{' '}
             <Link
               to="/auth/signup"
-              className="font-semibold text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
+              className="font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
             >
-              Create one
+              Create an account
             </Link>
           </>
         }
         footer={
-          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-6">
-            <Link
-              to="/auth/forgot-password"
-              className="text-sm font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
-            >
-              Forgot your password?
-            </Link>
-            <Link
-              to="/auth/signup"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
-            >
+          <AuthShellFooter>
+            <AuthShellLink to="/auth/forgot-password">Forgot your password?</AuthShellLink>
+            <AuthShellLink to="/auth/signup" emphasis="muted">
               Create a new account
-            </Link>
-          </div>
+            </AuthShellLink>
+          </AuthShellFooter>
         }
       >
         <form
-          className={cn('space-y-6', signInMutation.isError && 'motion-safe:animate-shake')}
+          className={cn('space-y-5', signInMutation.isError && 'motion-safe:animate-shake')}
           onSubmit={handleSubmit((data) => signInMutation.mutate(data))}
           method="post"
           noValidate
         >
           <FormErrorAnnouncer errors={errors} fieldLabels={{ email: 'Email', password: 'Password' }} />
+
           {activeBannerMessage ? (
             <Banner variant="error" dismissible onDismiss={dismissBanner}>
               {activeBannerMessage}
             </Banner>
           ) : null}
 
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm leading-6 text-slate-600">
-              Sign in to continue saved drafts, check payment status, and review admissions updates.
-            </p>
-          </div>
+          <Input
+            {...emailRegistration}
+            onBlur={emailOnBlur}
+            type="email"
+            inputMode="email"
+            label="Email"
+            aria-label="Email"
+            error={errors.email?.message || serverFieldErrors.email}
+            autoComplete="email"
+            disabled={signInMutation.isPending}
+            required
+            autoFocus
+            className="min-h-[48px]"
+          />
 
-          <fieldset className="space-y-5 rounded-lg border border-border/35 bg-white p-4 sm:p-5">
-            <legend className="px-2 text-sm font-semibold text-foreground">Applicant sign-in details</legend>
-
-            <Input
-              {...emailRegistration}
-              onBlur={emailOnBlur}
-              type="email"
-              inputMode="email"
-              label="Account email"
-              aria-label="Account email"
-              error={errors.email?.message || serverFieldErrors.email}
-              autoComplete="email"
-              disabled={signInMutation.isPending}
-              required
-              className="min-h-[48px]"
-            />
-
-            <PasswordInput
-              {...register('password')}
-              label="Account password"
-              aria-label="Account password"
-              error={errors.password?.message || serverFieldErrors.password}
-              autoComplete="current-password"
-              disabled={signInMutation.isPending}
-              required
-              className="min-h-[48px]"
-            />
-          </fieldset>
+          <PasswordInput
+            {...register('password')}
+            label="Password"
+            aria-label="Password"
+            error={errors.password?.message || serverFieldErrors.password}
+            autoComplete="current-password"
+            disabled={signInMutation.isPending}
+            required
+            className="min-h-[48px]"
+          />
 
           <Button
             type="submit"
             className="w-full min-h-[48px]"
             loading={signInMutation.isPending}
-            variant="gradient"
+            variant="primary"
             size="lg"
           >
             {signInMutation.isPending ? 'Signing in...' : 'Sign in'}
           </Button>
-
-          <p className="text-xs text-muted-foreground text-center mt-4">You'll stay signed in for 7 days</p>
         </form>
-      </AuthLayout>
+      </AuthShell>
     </>
   );
 }

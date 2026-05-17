@@ -207,3 +207,7 @@ class TestAssignedReviewerFilter:
     def test_filter_has_assigned_reviewer_id(self):
         from apps.applications.filters import ApplicationFilter
         assert "assigned_reviewer_id" in ApplicationFilter.declared_filters
+
+    def test_filter_has_reviewer_assignment_alias(self):
+        from apps.applications.filters import ApplicationFilter
+        assert "reviewer_assignment" in ApplicationFilter.declared_filters

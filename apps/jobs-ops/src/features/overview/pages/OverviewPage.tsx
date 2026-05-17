@@ -115,7 +115,7 @@ export function OverviewPage() {
             </p>
 
             <div className="mt-6 grid gap-3 md:grid-cols-3">
-              <div className="rounded-[24px] border border-white/70 bg-white/80 p-4">
+              <div className="rounded-[24px] border border-panel/70 bg-panel/80 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Best source</p>
                 <p className="mt-2 font-display text-2xl font-semibold text-ink">
                   {bestSource?.source ?? 'n/a'}
@@ -124,14 +124,14 @@ export function OverviewPage() {
                   {bestSource ? formatPercentage(bestSource.successRate, 'ratio') : '0%'} extraction success
                 </p>
               </div>
-              <div className="rounded-[24px] border border-white/70 bg-white/80 p-4">
+              <div className="rounded-[24px] border border-panel/70 bg-panel/80 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Applications</p>
                 <p className="mt-2 font-display text-2xl font-semibold text-ink">
                   {funnel?.applied ?? applications.length}
                 </p>
                 <p className="mt-2 text-sm text-muted">Submission flow is already represented end to end.</p>
               </div>
-              <div className="rounded-[24px] border border-white/70 bg-white/80 p-4">
+              <div className="rounded-[24px] border border-panel/70 bg-panel/80 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Positive replies</p>
                 <p className="mt-2 font-display text-2xl font-semibold text-ink">
                   {outreach?.positiveReplies ?? 0}
@@ -228,7 +228,7 @@ export function OverviewPage() {
               {topJobs.map((job) => (
                 <Link
                   key={job.id}
-                  className="rounded-[26px] border border-line/70 bg-white/90 p-4 transition hover:border-primary/35 hover:bg-primary/5"
+                  className="rounded-[26px] border border-line/70 bg-panel/90 p-4 transition hover:border-primary/35 hover:bg-primary/5"
                   to={`/jobs/${job.id}`}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -266,7 +266,7 @@ export function OverviewPage() {
             <SectionCard title="Attention queue" description="Anything risky or blocked stays visible with a concrete next action.">
               <div className="grid gap-3">
                 {approvalQueue.map((application) => (
-                  <div key={application.id} className="rounded-[24px] border border-line/70 bg-white/85 p-4">
+                  <div key={application.id} className="rounded-[24px] border border-line/70 bg-panel/85 p-4">
                     <div className="flex items-center justify-between gap-3">
                       <p className="font-semibold text-ink">{application.title}</p>
                       <StatusBadge tone="warning">{labelize(application.status)}</StatusBadge>
@@ -277,7 +277,7 @@ export function OverviewPage() {
                   </div>
                 ))}
                 {blockedRuns.map((run) => (
-                  <div key={run.id} className="rounded-[24px] border border-line/70 bg-white/85 p-4">
+                  <div key={run.id} className="rounded-[24px] border border-line/70 bg-panel/85 p-4">
                     <div className="flex items-center justify-between gap-3">
                       <p className="font-semibold text-ink">{labelize(run.runType)}</p>
                       <StatusBadge tone="danger">{labelize(run.status)}</StatusBadge>

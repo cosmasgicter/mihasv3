@@ -41,7 +41,7 @@
   }
   
   .interactive-hover:hover {
-    @apply bg-slate-50;
+    @apply bg-muted;
   }
   
   /* Icon button hover */
@@ -50,7 +50,7 @@
   }
   
   .icon-hover:hover {
-    @apply bg-slate-100 scale-105;
+    @apply bg-muted scale-105;
   }
   
   /* Table row hover */
@@ -59,7 +59,7 @@
   }
   
   .table-row-hover:hover {
-    @apply bg-slate-50;
+    @apply bg-muted;
   }
   
   /* Menu item hover */
@@ -68,7 +68,7 @@
   }
   
   .menu-item-hover:hover {
-    @apply bg-slate-100;
+    @apply bg-muted;
   }
   
   /* ===== FOCUS STATES ===== */
@@ -118,7 +118,7 @@
   
   /* Loading overlay */
   .loading-overlay {
-    @apply absolute inset-0 bg-white/80 flex items-center justify-center z-10;
+    @apply absolute inset-0 bg-card/80 flex items-center justify-center z-10;
   }
   
   /* Skeleton loader */
@@ -213,7 +213,7 @@ select:focus-visible {
   button:active,
   [role="button"]:active,
   a:active {
-    @apply bg-slate-100;
+    @apply bg-muted;
   }
 }
 

@@ -3,5 +3,5 @@
  * Exports all authentication-related components
  */
 
-export { AuthLayout } from './AuthLayout';
+export { AuthShell, AuthShellFooter, AuthShellLink } from './AuthShell';
 export { SessionMonitor } from './SessionMonitor';

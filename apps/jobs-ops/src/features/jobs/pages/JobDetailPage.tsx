@@ -90,7 +90,7 @@ export function JobDetailPage() {
               </div>
 
               <a
-                className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-line/70 bg-white/85 px-4 py-3 text-sm font-medium text-ink transition hover:border-primary/35 hover:text-primary"
+                className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-line/70 bg-panel/85 px-4 py-3 text-sm font-medium text-ink transition hover:border-primary/35 hover:text-primary"
                 href={job.applicationUrl}
                 rel="noreferrer"
                 target="_blank"
@@ -101,19 +101,19 @@ export function JobDetailPage() {
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <div className="rounded-[24px] border border-white/70 bg-white/80 p-4">
+              <div className="rounded-[24px] border border-panel/70 bg-panel/80 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Match score</p>
                 <p className="mt-2 font-display text-3xl font-semibold text-ink">{job.matchScore}%</p>
                 <div className="mt-3">
                   <ProgressBar tone="success" value={job.matchScore} />
                 </div>
               </div>
-              <div className="rounded-[24px] border border-white/70 bg-white/80 p-4">
+              <div className="rounded-[24px] border border-panel/70 bg-panel/80 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Recommendation</p>
                 <p className="mt-2 text-lg font-semibold text-ink">{labelize(job.recommendation)}</p>
                 <p className="mt-2 text-sm text-muted">The system already exposes score, tailor, watch, and dismiss routes.</p>
               </div>
-              <div className="rounded-[24px] border border-white/70 bg-white/80 p-4">
+              <div className="rounded-[24px] border border-panel/70 bg-panel/80 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Sources</p>
                 <p className="mt-2 text-lg font-semibold text-ink">{job.sourceNames.length}</p>
                 <p className="mt-2 text-sm text-muted">Lineage stays visible so source quality is inspectable.</p>
@@ -124,7 +124,7 @@ export function JobDetailPage() {
           <SectionCard title="Why this role fits" description="Fit explanations are presented as operator-legible evidence, not opaque scoring output.">
             <ul className="grid gap-3 text-sm text-muted">
               {job.fitReasons.map((reason) => (
-                <li key={reason} className="rounded-[24px] border border-line/70 bg-white/90 px-4 py-4">
+                <li key={reason} className="rounded-[24px] border border-line/70 bg-panel/90 px-4 py-4">
                   <div className="flex items-start gap-3">
                     <CircleCheckBig className="mt-0.5 h-4 w-4 shrink-0 text-success" />
                     <span className="leading-6">{reason}</span>
@@ -137,7 +137,7 @@ export function JobDetailPage() {
           <SectionCard title="Gaps to close before submission" description="Missing signals are framed as concrete resume or narrative improvements.">
             <ul className="grid gap-3 text-sm text-muted">
               {job.missingSignals.map((signal) => (
-                <li key={signal} className="rounded-[24px] border border-line/70 bg-white/90 px-4 py-4">
+                <li key={signal} className="rounded-[24px] border border-line/70 bg-panel/90 px-4 py-4">
                   <div className="flex items-start gap-3">
                     <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
                     <span className="leading-6">{signal}</span>
@@ -163,7 +163,7 @@ export function JobDetailPage() {
                   Updated {formatRelativeTime(relatedApplication.updatedAt)}
                 </p>
                 <Link
-                  className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-line/70 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-primary/35 hover:text-primary"
+                  className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-line/70 bg-panel px-4 py-2 text-sm font-medium text-ink transition hover:border-primary/35 hover:text-primary"
                   to="/job-applications"
                 >
                   Open application queue
@@ -179,7 +179,7 @@ export function JobDetailPage() {
           <SectionCard title="Source lineage">
             <div className="grid gap-3">
               {job.sourceNames.map((source) => (
-                <div key={source} className="rounded-[24px] border border-line/70 bg-white/85 px-4 py-4">
+                <div key={source} className="rounded-[24px] border border-line/70 bg-panel/85 px-4 py-4">
                   <p className="text-sm font-semibold text-ink">{source}</p>
                 </div>
               ))}

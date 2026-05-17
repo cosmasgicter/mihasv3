@@ -101,7 +101,7 @@ export function NotificationBell() {
         aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
         data-testid="notification-bell"
       >
-        <Bell className={`h-5 w-5 text-muted-foreground${unreadCount > 0 ? ' motion-safe:animate-bounce' : ''}`} aria-hidden="true" style={unreadCount > 0 ? { animationIterationCount: 1 } : undefined} />
+        <Bell className={`h-5 w-5 text-muted-foreground${unreadCount > 0 ? ' motion-safe:animate-pulse' : ''}`} aria-hidden="true" style={unreadCount > 0 ? { animationIterationCount: 1 } : undefined} />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5" data-testid="unread-count">
             {isPulsing && (
@@ -119,7 +119,7 @@ export function NotificationBell() {
           <>
             {/* Backdrop */}
             <div 
-              className="fixed inset-0 z-40 bg-black bg-opacity-20 md:hidden"
+              className="fixed inset-0 z-40 bg-scrim/20 md:hidden"
               onClick={() => setShowPanel(false)}
             />
             

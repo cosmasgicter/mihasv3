@@ -39,7 +39,7 @@ interface ContactItemProps {
 
 function ContactItem({ href, icon, label, children }: ContactItemProps) {
   const content = (
-    <div className="flex items-center gap-4 rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:border-primary/30 hover:bg-slate-50">
+    <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-muted">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-primary/15 bg-primary/10">
         {icon}
       </div>
@@ -78,49 +78,49 @@ export default function ContactPage() {
         description="Reach the MIHAS-KATC admissions team for application help, program guidance, payment questions, and international student support. WhatsApp is fastest."
         path="/contact"
       />
-      <div className="bg-slate-50">
+      <div className="bg-muted">
       <div className="container-responsive px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
         <ScrollReveal className="mx-auto max-w-5xl space-y-8">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-7 lg:p-8">
+          <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-7 lg:p-8">
             <Link
               to="/"
-              className="mb-6 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+              className="mb-6 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Back to Home
             </Link>
             <div className="flex flex-wrap gap-2" aria-label="Contact support topics">
               {['Application help', 'Program guidance', 'Payment issues', 'International students'].map((topic) => (
-                <span key={topic} className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700">
+                <span key={topic} className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">
                   {topic}
                 </span>
               ))}
             </div>
-            <h1 className="mt-5 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+            <h1 className="mt-5 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               Talk to admissions
             </h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
               Stuck on the application, not sure which program to pick, or waiting on a payment? Reach out through whichever channel you prefer. WhatsApp is fastest.
             </p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-              <h2 className="text-xl font-semibold tracking-tight text-slate-950">How to reach us, fast</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+            <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
+              <h2 className="text-xl font-semibold tracking-tight text-foreground">How to reach us, fast</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
                 WhatsApp for quick questions — we usually reply within an hour during working days. Call if your payment did not go through. Email if it is long or you need to attach documents. If you are near Kalulushi, you can also walk into the KATC campus and someone will help you at reception.
               </p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
               <p className="text-xs font-semibold uppercase text-primary">Fastest route</p>
               <div className="mt-4 grid gap-3">
                 <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
                   <p className="text-xs font-semibold uppercase text-emerald-700">WhatsApp</p>
-                  <a href={`https://wa.me/${contactInfo.katcPhone.replace(/[\s+]/g, '')}`} className="mt-1 text-lg font-semibold text-slate-950 hover:underline block">{contactInfo.katcPhone}</a>
+                  <a href={`https://wa.me/${contactInfo.katcPhone.replace(/[\s+]/g, '')}`} className="mt-1 text-lg font-semibold text-foreground hover:underline block">{contactInfo.katcPhone}</a>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase text-slate-500">Phone support</p>
-                  <p className="mt-1 text-lg font-semibold text-slate-950">{contactInfo.katcPhone}</p>
+                <div className="rounded-lg border border-border bg-muted px-4 py-3">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Phone support</p>
+                  <p className="mt-1 text-lg font-semibold text-foreground">{contactInfo.katcPhone}</p>
                 </div>
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function ContactPage() {
           {/* Two-column layout */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             {/* Contact info */}
-            <Card className="rounded-lg border border-slate-200 bg-white shadow-sm">
+            <Card className="rounded-lg border border-border bg-card shadow-sm">
               <CardContent className="space-y-5 p-6 sm:p-8">
                 <CardTitle className="text-xl font-semibold">Talk to our team</CardTitle>
                 <div className="space-y-3">
@@ -157,7 +157,7 @@ export default function ContactPage() {
             </Card>
 
             {/* Contact form */}
-            <Card className="rounded-lg border border-slate-200 bg-white shadow-sm">
+            <Card className="rounded-lg border border-border bg-card shadow-sm">
               <CardContent className="p-6 sm:p-8">
                 <CardTitle className="mb-6 text-xl font-semibold">Send a Message</CardTitle>
 

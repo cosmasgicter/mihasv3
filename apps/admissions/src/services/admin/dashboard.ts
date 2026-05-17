@@ -3,7 +3,15 @@ import { logApiError } from '@/lib/apiErrorLogger'
 
 export type AdminDashboardStatusBreakdown = Record<string, number>
 
-export const ADMIN_DASHBOARD_STATUS_KEYS = ['approved', 'pending', 'rejected', 'submitted', 'under_review'] as const
+export const ADMIN_DASHBOARD_STATUS_KEYS = [
+  'approved',
+  'conditionally_approved',
+  'enrolled',
+  'pending',
+  'rejected',
+  'submitted',
+  'under_review',
+] as const
 
 export type AdminDashboardPeriodTotals = Record<string, number>
 
@@ -21,6 +29,9 @@ export interface AdminDashboardStats {
   totalApplications: number
   pendingApplications: number
   approvedApplications: number
+  conditionallyApprovedApplications: number
+  enrolledApplications: number
+  acceptedApplications: number
   rejectedApplications: number
   totalPrograms: number
   activeIntakes: number
@@ -39,6 +50,9 @@ export interface AdminDashboardStats {
   pendingPayments: number
   pendingDocuments: number
   upcomingInterviews: number
+  overdueReviews: number
+  conditionsExpiringSoon: number
+  enrollmentsExpiringSoon: number
 }
 
 export type AdminDashboardActivityType =
@@ -97,6 +111,9 @@ const DEFAULT_STATS: AdminDashboardStats = {
   totalApplications: 0,
   pendingApplications: 0,
   approvedApplications: 0,
+  conditionallyApprovedApplications: 0,
+  enrolledApplications: 0,
+  acceptedApplications: 0,
   rejectedApplications: 0,
   totalPrograms: 0,
   activeIntakes: 0,
@@ -114,7 +131,10 @@ const DEFAULT_STATS: AdminDashboardStats = {
   systemHealth: 'good',
   pendingPayments: 0,
   pendingDocuments: 0,
-  upcomingInterviews: 0
+  upcomingInterviews: 0,
+  overdueReviews: 0,
+  conditionsExpiringSoon: 0,
+  enrollmentsExpiringSoon: 0
 }
 
 const DEFAULT_PROCESSING_METRICS: AdminDashboardProcessingMetrics = {
@@ -227,6 +247,9 @@ const normalizeStats = (stats?: Record<string, unknown>): AdminDashboardStats =>
     totalApplications: toNumber(stats?.totalApplications ?? stats?.total_applications),
     pendingApplications: toNumber(stats?.pendingApplications ?? stats?.pending_applications),
     approvedApplications: toNumber(stats?.approvedApplications ?? stats?.approved_applications),
+    conditionallyApprovedApplications: toNumber(stats?.conditionallyApprovedApplications ?? stats?.conditionally_approved_applications),
+    enrolledApplications: toNumber(stats?.enrolledApplications ?? stats?.enrolled_applications),
+    acceptedApplications: toNumber(stats?.acceptedApplications ?? stats?.accepted_applications),
     rejectedApplications: toNumber(stats?.rejectedApplications ?? stats?.rejected_applications),
     totalPrograms: toNumber(stats?.totalPrograms ?? stats?.total_programs),
     activeIntakes: toNumber(stats?.activeIntakes ?? stats?.active_intakes),
@@ -244,6 +267,9 @@ const normalizeStats = (stats?: Record<string, unknown>): AdminDashboardStats =>
     pendingPayments: toNumber(stats?.pendingPayments ?? stats?.pending_payments),
     pendingDocuments: toNumber(stats?.pendingDocuments ?? stats?.pending_documents),
     upcomingInterviews: toNumber(stats?.upcomingInterviews ?? stats?.upcoming_interviews),
+    overdueReviews: toNumber(stats?.overdueReviews ?? stats?.overdue_reviews),
+    conditionsExpiringSoon: toNumber(stats?.conditionsExpiringSoon ?? stats?.conditions_expiring_soon),
+    enrollmentsExpiringSoon: toNumber(stats?.enrollmentsExpiringSoon ?? stats?.enrollments_expiring_soon),
     systemHealth
   }
 }
@@ -456,6 +482,12 @@ export const adminDashboardService = {
           toNumber(applicationStatusBreakdown?.submitted) +
           toNumber(applicationStatusBreakdown?.under_review),
         approved_applications: applicationStatusBreakdown?.approved,
+        conditionally_approved_applications: applicationStatusBreakdown?.conditionally_approved,
+        enrolled_applications: applicationStatusBreakdown?.enrolled,
+        accepted_applications:
+          toNumber(applicationStatusBreakdown?.conditionally_approved) +
+          toNumber(applicationStatusBreakdown?.approved) +
+          toNumber(applicationStatusBreakdown?.enrolled),
         rejected_applications: applicationStatusBreakdown?.rejected,
         today_applications: applications?.today_activity ?? applications?.today,
         week_applications: applications?.this_week,
@@ -465,6 +497,9 @@ export const adminDashboardService = {
         pending_payments: needsAttention?.pending_payments,
         pending_documents: needsAttention?.pending_documents,
         upcoming_interviews: needsAttention?.upcoming_interviews,
+        overdue_reviews: needsAttention?.overdue_reviews,
+        conditions_expiring_soon: needsAttention?.conditions_expiring_soon,
+        enrollments_expiring_soon: needsAttention?.enrollments_expiring_soon,
       })
       const statusBreakdown = normalizeNumberRecord(
         raw.statusBreakdown ??

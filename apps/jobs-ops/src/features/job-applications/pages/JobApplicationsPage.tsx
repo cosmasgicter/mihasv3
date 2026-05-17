@@ -90,7 +90,7 @@ export function JobApplicationsPage() {
 
                   <div className="mt-4 grid gap-3">
                     {items.map((application) => (
-                      <div key={application.id} className="rounded-[24px] border border-line/70 bg-white/90 p-4 shadow-sm">
+                      <div key={application.id} className="rounded-[24px] border border-line/70 bg-panel/90 p-4 shadow-sm">
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <p className="font-semibold text-ink">{application.title}</p>
@@ -131,7 +131,7 @@ export function JobApplicationsPage() {
                 </div>
               ) : (
                 blockedRuns.map((run) => (
-                  <div key={run.id} className="rounded-[24px] border border-line/70 bg-white/90 p-4">
+                  <div key={run.id} className="rounded-[24px] border border-line/70 bg-panel/90 p-4">
                     <div className="flex items-center justify-between gap-3">
                       <p className="font-semibold text-ink">{labelize(run.runType)}</p>
                       <StatusBadge tone="danger">{labelize(run.status)}</StatusBadge>

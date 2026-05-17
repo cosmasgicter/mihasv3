@@ -57,6 +57,26 @@ class IntakeEnforcer:
                 return IntakeCheckResult(False, "INTAKE_CAPACITY_REACHED",
                     f"This intake has reached maximum capacity ({live_count}/{intake.max_capacity}).")
 
+        # Per-program capacity check
+        if program_name:
+            from apps.applications.identifier_resolver import IdentifierResolver
+            from apps.catalog.models import ProgramIntake
+            prog_resolved = IdentifierResolver.resolve_program(program_name)
+            intake_resolved_pi = IdentifierResolver.resolve_intake(intake_name)
+            if prog_resolved.id and intake_resolved_pi.id:
+                pi = ProgramIntake.objects.filter(program_id=prog_resolved.id, intake_id=intake_resolved_pi.id).first()
+                if pi and pi.max_capacity is not None:
+                    from apps.applications.models import Application
+                    live_pi_count = Application.objects.filter(
+                        program=program_name, intake=intake_name,
+                        status__in=("submitted", "under_review", "approved", "waitlisted"),
+                    ).count()
+                    if live_pi_count >= pi.max_capacity:
+                        return IntakeCheckResult(
+                            False, "PROGRAM_CAPACITY_REACHED",
+                            f"Program '{program_name}' for intake '{intake_name}' is full ({live_pi_count}/{pi.max_capacity}).",
+                        )
+
         return IntakeCheckResult(True)
 
     @staticmethod

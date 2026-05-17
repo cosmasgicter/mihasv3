@@ -1,0 +1,12 @@
+[
+  {
+    "rule": "overused-font",
+    "file": "apps/admissions/src/index.css",
+    "reason": "Inter is the project font, documented in DESIGN.md §2 Typography. Full Tailwind sans fallback chain mitigates the AI-tell concern. Decision baselined 2026-05-17 design audit."
+  },
+  {
+    "rule": "overused-font",
+    "file": "apps/jobs-ops/src/index.css",
+    "reason": "Space Grotesk is the jobs-ops display font. Replacing requires a separate brand decision; tracked as P1 #13 in AUDIT-REPORT-2026-05-17.md. Baselined to allow incremental progress without blocking CI."
+  }
+]

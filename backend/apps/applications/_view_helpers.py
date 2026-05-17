@@ -104,12 +104,44 @@ def _generate_application_number(institution_name: str = '') -> str:
     """Generate application number: {CODE}{YEAR}{SEQUENCE}.
 
     Format: MIHAS202500001, KATC202500002, etc.
-    Uses DB count + random offset to avoid collisions without sequences.
+
+    Uses a per-(institution_code, year) Postgres sequence via the SQL helper
+    function ``next_application_number(p_code, p_year)`` defined in
+    ``backend/scripts/application_number_sequences.sql``. Sequences are
+    atomic — the previous count+attempt loop with random-hex fallback is
+    eliminated.
+
+    Falls back to the legacy count+attempt path only if the SQL function is
+    not available (for example in unit tests against SQLite where the helper
+    function does not exist). The fallback preserves the public API.
     """
     code = _resolve_institution_code(institution_name)
     year = timezone.now().year
     prefix = f"{code}{year}"
 
+    # Preferred path: per-sequence atomic generation.
+    try:
+        from django.db import connection
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT next_application_number(%s, %s)", [code, year]
+            )
+            result = cursor.fetchone()
+            if result and result[0]:
+                return result[0]
+    except Exception:
+        # If the SQL function is missing (older schema, SQLite tests, etc.)
+        # fall through to the legacy implementation. The legacy path is racy
+        # under burst load but preserves the format in steady state.
+        logger.warning(
+            "next_application_number SQL helper unavailable, "
+            "falling back to count+attempt for code=%s year=%s",
+            code,
+            year,
+        )
+
+    # Legacy fallback (kept for back-compat and SQLite test environments).
     for attempt in range(5):
         count = Application.objects.filter(
             application_number__startswith=prefix

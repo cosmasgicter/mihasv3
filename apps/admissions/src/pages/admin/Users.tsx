@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { isSuperAdmin } from '@/types/roles'
 import { useDebounce } from '@/hooks/useDebounce'
 import { Link } from 'react-router-dom'
 import type { UserProfile } from '@/types/database'
@@ -919,7 +920,7 @@ export default function AdminUsers() {
                   onChange={(event) => setEditForm({ ...editForm, role: event.target.value })}
                   className="min-h-[44px] h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
-                  disabled={selectedUser?.role === 'super_admin'}
+                  disabled={isSuperAdmin(selectedUser)}
                 >
                   {AVAILABLE_ROLES.map((role) => (
                     <option key={role.value} value={role.value}>
@@ -927,7 +928,7 @@ export default function AdminUsers() {
                     </option>
                   ))}
                 </select>
-                {selectedUser?.role === 'super_admin' ? (
+                {isSuperAdmin(selectedUser) ? (
                   <p className="mt-1.5 text-sm text-foreground">Super admin access is locked from this dialog.</p>
                 ) : (
                   <p className="mt-1.5 text-sm text-foreground">Role changes end active sessions and require the user to sign in again.</p>

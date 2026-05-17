@@ -616,22 +616,22 @@ export default function AdminSettings() {
             ) : (
               <>
                 <div className="grid gap-4 md:grid-cols-4">
-                  <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Guided Controls</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{configuredBlueprintCount}/{SETTING_BLUEPRINTS.length}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Operational settings configured</p>
                   </div>
-                  <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Public Settings</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{publicSettingsCount}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Visible to applicants and portal surfaces</p>
                   </div>
-                  <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Private Settings</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{privateSettingsCount}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Operational settings only for staff workflows</p>
                   </div>
-                  <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                     <p className="text-xs font-semibold uppercase tracking-wide text-primary">Advanced Keys</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{advancedSettingsCount}</p>
                     <p className="mt-1 text-sm text-muted-foreground">Custom keys outside the guided configuration</p>

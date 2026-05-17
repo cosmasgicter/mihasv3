@@ -15,7 +15,7 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
       <div className={`py-8 space-y-6 ${animateClasses.slideUp}`}>
         {/* Icon */}
         <div className="flex justify-center">
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div className="rounded-lg border border-border bg-muted p-4">
             <FileQuestion className="h-12 w-12 text-muted-foreground" />
           </div>
         </div>

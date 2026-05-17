@@ -40,7 +40,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-black/50  z-[200] transition-opacity duration-200"
+        className="fixed inset-0 bg-scrim/50  z-[200] transition-opacity duration-200"
       />
 
       {/* Dialog — scrollable container for mobile */}
@@ -78,7 +78,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 </div>
                 <button
                   onClick={onClose}
-                  className="flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-foreground hover:bg-black/5 transition-colors touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-foreground hover:bg-foreground/5 transition-colors touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   aria-label="Close dialog"
                 >
                   <X className="h-5 w-5" aria-hidden="true" />

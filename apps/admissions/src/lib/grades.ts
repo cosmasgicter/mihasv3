@@ -2,20 +2,6 @@
 // LOWER TOTAL = BETTER PERFORMANCE
 // Best 5 = sum of 5 lowest grade numbers
 
-export const gradeCalculator = {
-  calculate: (grades: Array<{ grade: number }>) => {
-    if (!grades || grades.length === 0) {
-      return { total: 0, average: 0 };
-    }
-    
-    const gradeValues = grades.map(g => g.grade).filter(g => g >= 1 && g <= 9);
-    const total = gradeValues.reduce((sum, g) => sum + g, 0);
-    const average = total / gradeValues.length;
-    
-    return { total, average };
-  }
-};
-
 export function calculatePointsFromSummary(summary: any): number {
   if (!summary) return 0;
   
@@ -77,47 +63,3 @@ export function sanitizeGradeValue(value: any): number {
   return 0;
 }
 
-export function getGradeLabel(grade: number): string {
-  const labels: Record<number, string> = {
-    1: 'Distinction',
-    2: 'Merit',
-    3: 'Credit',
-    4: 'Credit',
-    5: 'Credit',
-    6: 'Pass',
-    7: 'Pass',
-    8: 'Pass',
-    9: 'Fail'
-  };
-  return labels[grade] || 'Unknown';
-}
-
-export function parseGradesFromSummary(summary: string): Array<{ subject: string; grade: number }> {
-  if (!summary) return [];
-  
-  try {
-    const parsed = JSON.parse(summary);
-    if (Array.isArray(parsed)) {
-      return parsed.map(g => ({
-        subject: g.subject_name || g.subject || 'Unknown',
-        grade: sanitizeGradeValue(g.grade)
-      }));
-    }
-  } catch {
-    // Parse from text format
-    const lines = summary.split('\n').filter(l => l.trim());
-    return lines.map(line => {
-      const match = line.match(/(.+?):\s*Grade\s*(\d)/i);
-      if (match) {
-        const grade = parseInt(match[2]!);
-        return {
-          subject: match[1]!.trim(),
-          grade
-        };
-      }
-      return null;
-    }).filter(Boolean) as Array<{ subject: string; grade: number }>;
-  }
-  
-  return [];
-}

@@ -36,7 +36,7 @@ export function ScaffoldPage({
         <SectionCard title="Core entities" description="Use these names consistently across the repo to avoid drift.">
           <ul className="grid gap-2 text-sm text-muted">
             {entities.map((entity) => (
-              <li key={entity} className="rounded-2xl border border-line/70 bg-white/80 px-3 py-3">
+              <li key={entity} className="rounded-2xl border border-line/70 bg-panel/80 px-3 py-3">
                 {entity}
               </li>
             ))}
@@ -46,7 +46,7 @@ export function ScaffoldPage({
         <SectionCard title="Next implementation steps" description="These are the first worthwhile follow-ups after scaffold wiring.">
           <ol className="grid gap-2 text-sm text-muted">
             {nextSteps.map((step, index) => (
-              <li key={step} className="rounded-2xl border border-line/70 bg-white/80 px-3 py-3">
+              <li key={step} className="rounded-2xl border border-line/70 bg-panel/80 px-3 py-3">
                 <span className="mr-2 font-mono text-xs text-primary">{String(index + 1).padStart(2, '0')}</span>
                 {step}
               </li>

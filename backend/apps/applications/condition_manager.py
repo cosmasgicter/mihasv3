@@ -13,7 +13,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.applications.models import Application, ApplicationCondition
-from apps.applications.services import transition_application_status
+from apps.applications.services import SYSTEM_ACTOR_ID, transition_application_status
 
 logger = logging.getLogger(__name__)
 
@@ -283,7 +283,7 @@ class ConditionManager:
                 transition_application_status(
                     application=locked_app,
                     new_status="rejected",
-                    changed_by="system",
+                    changed_by=SYSTEM_ACTOR_ID,
                     notes=notes,
                 )
 
@@ -310,7 +310,7 @@ class ConditionManager:
                 transition_application_status(
                     application=locked_app,
                     new_status="approved",
-                    changed_by="system",
+                    changed_by=SYSTEM_ACTOR_ID,
                     notes="All conditions met/waived — auto-promoted to approved.",
                 )
 

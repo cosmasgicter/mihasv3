@@ -111,19 +111,19 @@ export default function NotFoundPage() {
         path="/404"
         noindex
       />
-      <div className="flex min-h-[60vh] flex-col justify-center bg-slate-50 px-4 py-10 sm:px-6 sm:py-14">
+      <div className="flex min-h-[60vh] flex-col justify-center bg-muted px-4 py-10 sm:px-6 sm:py-14">
         <div className="mx-auto w-full max-w-2xl">
-            <div className="rounded-lg border border-slate-200 bg-white px-5 py-8 shadow-sm sm:px-8">
+            <div className="rounded-lg border border-border bg-card px-5 py-8 shadow-sm sm:px-8">
               <div className="mb-8 text-center">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/10">
                   <span className="text-3xl font-semibold text-destructive">404</span>
                 </div>
-                <h1 className="mb-2 text-2xl font-semibold tracking-tight text-slate-950">Page Not Found</h1>
-                <p className="mb-2 text-sm text-slate-600">
+                <h1 className="mb-2 text-2xl font-semibold tracking-tight text-foreground">Page Not Found</h1>
+                <p className="mb-2 text-sm text-muted-foreground">
                   The page you're looking for doesn't exist or has been moved.
                 </p>
-                <p className="text-xs text-slate-500">
-                  Attempted path: <code className="rounded bg-slate-100 px-2 py-1">{location.pathname}</code>
+                <p className="text-xs text-muted-foreground">
+                  Attempted path: <code className="rounded bg-muted px-2 py-1">{location.pathname}</code>
                 </p>
               </div>
 
@@ -147,7 +147,7 @@ export default function NotFoundPage() {
               {/* Suggested Pages */}
               {suggestedPages.length > 0 && (
                 <div>
-                  <h2 className="mb-3 text-sm font-semibold text-slate-950">
+                  <h2 className="mb-3 text-sm font-semibold text-foreground">
                     You might be looking for:
                   </h2>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -155,17 +155,17 @@ export default function NotFoundPage() {
                       <Link
                         key={page.path}
                         to={page.path}
-                        className="block rounded-lg border border-slate-200 p-4 transition-colors hover:border-primary/40 hover:bg-slate-50"
+                        className="block rounded-lg border border-border p-4 transition-colors hover:border-primary/40 hover:bg-muted"
                       >
                         <div className="flex items-start gap-3">
                           <div className="mt-0.5 flex-shrink-0 text-primary">
                             {page.icon}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h3 className="mb-1 text-sm font-medium text-slate-950">
+                            <h3 className="mb-1 text-sm font-medium text-foreground">
                               {page.label}
                             </h3>
-                            <p className="text-xs text-slate-600">
+                            <p className="text-xs text-muted-foreground">
                               {page.description}
                             </p>
                           </div>
@@ -177,8 +177,8 @@ export default function NotFoundPage() {
               )}
 
               {/* Help Text */}
-              <div className="mt-8 border-t border-slate-200 pt-6 text-center">
-                <p className="text-xs text-slate-500">
+              <div className="mt-8 border-t border-border pt-6 text-center">
+                <p className="text-xs text-muted-foreground">
                   If you believe this is an error, please contact support or try refreshing the page.
                 </p>
               </div>

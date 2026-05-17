@@ -93,7 +93,7 @@ export function JobsInboxPage() {
           >
             <div className="grid gap-4">
               <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
-                <label className="rounded-[24px] border border-line/70 bg-white/80 px-4 py-3">
+                <label className="rounded-[24px] border border-line/70 bg-panel/80 px-4 py-3">
                   <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Search jobs</span>
                   <input
                     className="mt-2 w-full border-0 bg-transparent text-sm text-ink outline-none placeholder:text-muted"
@@ -102,7 +102,7 @@ export function JobsInboxPage() {
                     value={searchValue}
                   />
                 </label>
-                <div className="rounded-[24px] border border-line/70 bg-white/80 px-4 py-3">
+                <div className="rounded-[24px] border border-line/70 bg-panel/80 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Visible jobs</p>
                   <p className="mt-2 font-display text-3xl font-semibold text-ink">{filteredJobs.length}</p>
                 </div>
@@ -120,7 +120,7 @@ export function JobsInboxPage() {
                     className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${
                       activeRecommendation === recommendation
                         ? 'border-primary/40 bg-primary/8 text-primary'
-                        : 'border-line/70 bg-white/80 text-ink hover:border-primary/25'
+                        : 'border-line/70 bg-panel/80 text-ink hover:border-primary/25'
                     }`}
                     onClick={() => setActiveRecommendation(recommendation as 'all' | Recommendation)}
                     type="button"
@@ -163,7 +163,7 @@ export function JobsInboxPage() {
             {filteredJobs.map((job) => (
                 <Link
                   key={job.id}
-                  className="rounded-[30px] border border-line/70 bg-white/90 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/35 hover:bg-primary/5"
+                  className="rounded-[30px] border border-line/70 bg-panel/90 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/35 hover:bg-primary/5"
                   to={`/jobs/${job.id}`}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -209,7 +209,7 @@ export function JobsInboxPage() {
                       </div>
                     </div>
 
-                    <div className="inline-flex min-h-[52px] items-center justify-between rounded-2xl border border-line/70 bg-white/80 px-4 py-3 text-sm font-medium text-ink">
+                    <div className="inline-flex min-h-[52px] items-center justify-between rounded-2xl border border-line/70 bg-panel/80 px-4 py-3 text-sm font-medium text-ink">
                       Open job detail
                       <ArrowRight className="h-4 w-4" />
                     </div>
@@ -222,18 +222,18 @@ export function JobsInboxPage() {
         <div className="grid gap-5">
           <SectionCard title="Decision framing">
             <div className="grid gap-3 text-sm leading-6 text-muted">
-              <div className="rounded-[24px] border border-line/70 bg-white/80 p-4">
+              <div className="rounded-[24px] border border-line/70 bg-panel/80 p-4">
                 <div className="flex items-center gap-2 text-ink">
                   <Sparkles className="h-4 w-4 text-primary" />
                   <span className="font-semibold">Apply now</span>
                 </div>
                 <p className="mt-2">High-fit roles where the score and profile alignment justify immediate pursuit.</p>
               </div>
-              <div className="rounded-[24px] border border-line/70 bg-white/80 p-4">
+              <div className="rounded-[24px] border border-line/70 bg-panel/80 p-4">
                 <p className="font-semibold text-ink">Review</p>
                 <p className="mt-2">Promising roles that need a better variant, stronger evidence, or manual judgment.</p>
               </div>
-              <div className="rounded-[24px] border border-line/70 bg-white/80 p-4">
+              <div className="rounded-[24px] border border-line/70 bg-panel/80 p-4">
                 <p className="font-semibold text-ink">Watch</p>
                 <p className="mt-2">Strategic roles worth monitoring when location, compensation, or timing shifts.</p>
               </div>

@@ -30,3 +30,14 @@ from apps.applications._view_helpers import (  # noqa: F401
     _with_payment_summary,
 )
 from apps.common.audit_network import build_audit_network_fields  # noqa: F401
+
+# Test patch backward-compat: existing tests use
+# ``@patch("apps.applications.views.X")`` for these symbols.
+from apps.applications.models import (  # noqa: F401
+    Application,
+    ApplicationAmendment,
+    ApplicationCondition,
+    ApplicationDraft,
+    ApplicationInterview,
+    ApplicationStatusHistory,
+)

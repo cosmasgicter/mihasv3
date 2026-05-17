@@ -603,14 +603,18 @@ export default function StudentDashboard() {
           helper: profileMissingFields.length > 0 ? `${profileMissingFields.length} details still missing` : 'Profile ready for support workflows',
         },
         {
-          label: 'Pending payments',
-          value: hasPendingPayment ? 'Action needed' : 'Clear',
-          helper: hasPendingPayment ? 'At least one application fee still needs attention' : 'All tracked fees are resolved',
-        },
-        {
-          label: 'Interviews',
-          value: hasScheduledInterview ? scheduledInterviews.length : 'None',
-          helper: hasScheduledInterview ? 'Upcoming interview activity detected' : 'No active interview events right now',
+          label: 'Action needed',
+          value: (() => {
+            const count = (hasPendingPayment ? 1 : 0) + (hasScheduledInterview ? scheduledInterviews.length : 0)
+            return count > 0 ? `${count} item${count > 1 ? 's' : ''}` : 'Clear'
+          })(),
+          helper: hasPendingPayment && hasScheduledInterview
+            ? 'Payment and interview need attention'
+            : hasPendingPayment
+              ? 'Application fee needs attention'
+              : hasScheduledInterview
+                ? 'Upcoming interview activity'
+                : 'No outstanding actions right now',
         },
       ]}
       actions={
@@ -652,47 +656,58 @@ export default function StudentDashboard() {
             )}
 
             <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.NextActionCards', ...errorInfo })}>
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.75fr)]">
-              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-                <p className="text-xs font-semibold uppercase text-primary">Next action</p>
-                <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-                  {totalDraftCount > 0
-                    ? 'Finish your saved application draft'
-                    : hasPendingPayment
-                      ? 'Resolve the pending payment'
-                      : hasScheduledInterview
-                        ? 'Prepare for your scheduled interview'
-                        : submittedApplications.length > 0
-                          ? 'Monitor your submitted application'
-                          : 'Start a new application'}
-                </h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                  {totalDraftCount > 0
-                    ? 'Open the draft and complete the remaining fields before submission.'
-                    : hasPendingPayment
-                      ? 'Review the payment section so admissions can continue processing your application.'
-                      : hasScheduledInterview
-                        ? 'Check your interview schedule and any required preparation notes.'
-                        : submittedApplications.length > 0
-                          ? 'Keep an eye on status updates, document requests, and admissions decisions.'
-                          : 'Create your first application and save progress as you go.'}
-                </p>
+            <div className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-6">
+              <p className="text-xs font-semibold uppercase text-primary">Next action</p>
+              <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                {totalDraftCount > 0
+                  ? 'Finish your saved application draft'
+                  : hasPendingPayment
+                    ? 'Resolve the pending payment'
+                    : hasScheduledInterview
+                      ? 'Prepare for your scheduled interview'
+                      : submittedApplications.length > 0
+                        ? 'Monitor your submitted application'
+                        : 'Start a new application'}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                {totalDraftCount > 0
+                  ? 'Open the draft and complete the remaining fields before submission.'
+                  : hasPendingPayment
+                    ? 'Review the payment section so admissions can continue processing your application.'
+                    : hasScheduledInterview
+                      ? 'Check your interview schedule and any required preparation notes.'
+                      : submittedApplications.length > 0
+                        ? 'Keep an eye on status updates, document requests, and admissions decisions.'
+                        : 'Create your first application and save progress as you go.'}
+              </p>
+              <div className="mt-4">
+                <Button variant="primary" size="lg" asChild>
+                  <Link to={
+                    totalDraftCount > 0
+                      ? '/student/applications'
+                      : hasPendingPayment
+                        ? '/student/payment'
+                        : hasScheduledInterview
+                          ? '/student/interview'
+                          : submittedApplications.length > 0
+                            ? '/student/application-status'
+                            : '/student/applications/new'
+                  }>
+                    {totalDraftCount > 0
+                      ? 'Continue draft'
+                      : hasPendingPayment
+                        ? 'Resolve payment'
+                        : hasScheduledInterview
+                          ? 'View interview'
+                          : submittedApplications.length > 0
+                            ? 'View status'
+                            : 'Start application'}
+                  </Link>
+                </Button>
               </div>
-              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-                <p className="text-xs font-semibold uppercase text-primary">Today’s readiness</p>
-                <div className="mt-4 grid gap-3">
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-xs font-medium uppercase text-slate-500">Drafts</p>
-                    <p className="mt-1 text-base font-semibold text-slate-950">{totalDraftCount > 0 ? `${totalDraftCount} awaiting completion` : 'All drafts resolved'}</p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-xs font-medium uppercase text-slate-500">Immediate focus</p>
-                    <p className="mt-1 text-base font-semibold text-slate-950">
-                      {hasPendingPayment ? 'Payment follow-up' : hasScheduledInterview ? 'Interview preparation' : 'Application progress'}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <p className="mt-4 border-t border-border/60 pt-3 text-xs text-muted-foreground">
+                Today's focus: {hasPendingPayment ? 'Payment follow-up' : hasScheduledInterview ? 'Interview preparation' : totalDraftCount > 0 ? `${totalDraftCount} draft${totalDraftCount > 1 ? 's' : ''} awaiting completion` : 'Application progress'}
+              </p>
             </div>
             </ErrorBoundary>
 
@@ -763,23 +778,23 @@ export default function StudentDashboard() {
                   icon={<User className="h-5 w-5" />}
                 >
                   <div className="grid gap-2.5">
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                    <div className="rounded-lg border border-border bg-muted px-4 py-3">
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Full name</p>
                       <p className="mt-0.5 text-sm font-semibold text-foreground break-words">
                         {sanitizeForDisplay(getBestValue(profile?.full_name, metadata.full_name, user?.email?.split('@')[0]))}
                       </p>
                     </div>
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                    <div className="rounded-lg border border-border bg-muted px-4 py-3">
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</p>
                       <p className="mt-0.5 text-sm font-semibold text-foreground break-all">{sanitizeForDisplay(user?.email) || 'Not provided'}</p>
                     </div>
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                    <div className="rounded-lg border border-border bg-muted px-4 py-3">
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Phone</p>
                       <p className="mt-0.5 text-sm font-semibold text-foreground break-words">
                         {sanitizeForDisplay(getBestValue(profile?.phone, metadata.phone, 'Not provided'))}
                       </p>
                     </div>
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                    <div className="rounded-lg border border-border bg-muted px-4 py-3">
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Residence</p>
                       <p className="mt-0.5 text-sm font-semibold text-foreground break-words">
                         {sanitizeForDisplay(getBestValue(profile?.address, metadata.address, 'Not provided'))}

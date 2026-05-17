@@ -65,7 +65,7 @@ export function AutomationRunsPage() {
           <SectionCard title="Policy rules" description="Approval thresholds, cooldowns, and caps stay visible beside the execution layer they control.">
             <div className="grid gap-4 md:grid-cols-2">
               {rules.map((rule) => (
-                <div key={rule.id} className="rounded-[28px] border border-line/70 bg-white/90 p-5 shadow-sm">
+                <div key={rule.id} className="rounded-[28px] border border-line/70 bg-panel/90 p-5 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-display text-xl font-semibold tracking-tight text-ink">{rule.name}</p>
                     <StatusBadge tone={ruleTone(rule.isEnabled)}>
@@ -84,7 +84,7 @@ export function AutomationRunsPage() {
           <SectionCard title="Run timeline" description="Runs are legible as operational artifacts with trigger source, blocker reason, and freshness.">
             <div className="grid gap-4">
               {runs.map((run) => (
-                <div key={run.id} className="rounded-[28px] border border-line/70 bg-white/90 p-5 shadow-sm">
+                <div key={run.id} className="rounded-[28px] border border-line/70 bg-panel/90 p-5 shadow-sm">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="font-display text-xl font-semibold tracking-tight text-ink">
@@ -118,13 +118,13 @@ export function AutomationRunsPage() {
         <div className="grid gap-5">
           <SectionCard title="Control notes">
             <div className="grid gap-3 text-sm leading-6 text-muted">
-              <div className="rounded-[24px] border border-line/70 bg-white/85 p-4">
+              <div className="rounded-[24px] border border-line/70 bg-panel/85 p-4">
                 Every risky automation remains approval-gated.
               </div>
-              <div className="rounded-[24px] border border-line/70 bg-white/85 p-4">
+              <div className="rounded-[24px] border border-line/70 bg-panel/85 p-4">
                 Each run preserves trigger source and blocker reason for auditability.
               </div>
-              <div className="rounded-[24px] border border-line/70 bg-white/85 p-4">
+              <div className="rounded-[24px] border border-line/70 bg-panel/85 p-4">
                 The backend already exposes approve and cancel endpoints for run control.
               </div>
             </div>

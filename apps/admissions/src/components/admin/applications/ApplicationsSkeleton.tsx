@@ -9,7 +9,7 @@ export function ApplicationsSkeleton() {
         ))}
       </div>
       
-      <div className="bg-white rounded-lg p-4 sm:p-6 border border-gray-200">
+      <div className="bg-card rounded-lg p-4 sm:p-6 border border-gray-200">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <Skeleton className="h-4 w-48" />
           <Skeleton className="h-10 w-full sm:w-32" />

@@ -1,61 +1,4 @@
 import { z } from '@/lib/zod'
-import type { Program, Intake } from '@/types/database'
-
-export const DEFAULT_PROGRAMS: Program[] = [
-  {
-    id: 'diploma-clinical-medicine',
-    name: 'Diploma in Clinical Medicine',
-    description: 'HPCZ Accredited - Prepares students for clinical officer practice',
-    duration_months: 36,
-    institution_id: 'katc',
-    is_active: true,
-    created_at: '',
-    updated_at: ''
-  },
-  {
-    id: 'diploma-environmental-health',
-    name: 'Diploma in Environmental Health',
-    description: 'ECZ Accredited - Environmental health and safety specialization',
-    duration_months: 36,
-    institution_id: 'katc',
-    is_active: true,
-    created_at: '',
-    updated_at: ''
-  },
-  {
-    id: 'diploma-registered-nursing',
-    name: 'Diploma in Registered Nursing',
-    description: 'NMCZ Accredited - Professional nursing practice preparation',
-    duration_months: 36,
-    institution_id: 'mihas',
-    is_active: true,
-    created_at: '',
-    updated_at: ''
-  }
-]
-
-export const DEFAULT_INTAKES: Intake[] = [
-  {
-    id: 'january-2026',
-    name: 'January 2026 Intake',
-    start_date: '2026-01-15',
-    end_date: '2026-06-30',
-    application_deadline: '2025-12-15',
-    is_active: true,
-    created_at: '',
-    updated_at: ''
-  },
-  {
-    id: 'july-2026',
-    name: 'July 2026 Intake',
-    start_date: '2026-07-15',
-    end_date: '2026-12-31',
-    application_deadline: '2026-06-15',
-    is_active: true,
-    created_at: '',
-    updated_at: ''
-  }
-]
 
 export const applicationSchema = z.object({
   program_id: z.string().min(1, 'Please select a program'),
@@ -126,23 +69,6 @@ export const applicationSchema = z.object({
 })
 
 export type ApplicationFormData = z.infer<typeof applicationSchema>
-
-export interface UploadedFile {
-  id: string
-  name: string
-  size: number
-  type: string
-  url: string
-}
-
-export interface Subject {
-  id: string
-  name: string
-  code: string
-  category: 'core' | 'elective'
-  grade?: string
-  score?: number
-}
 
 export interface ProfileData {
   date_of_birth?: string

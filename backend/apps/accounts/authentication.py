@@ -44,6 +44,15 @@ def _is_csrf_exempt(path: str) -> bool:
 
 
 def validate_csrf_token_for_user(user_id: str, csrf_token: str | None) -> None:
+    """Validate a CSRF token against the database, with a 60-second Redis cache.
+
+    The cache is keyed on ``(user_id, sha256(token))`` so identical re-uses of
+    the same token within 60 seconds skip the DB roundtrip. Negative results
+    are also cached for 60 seconds to short-circuit replays of an invalid
+    token. Both windows are short enough that a token rotation propagates
+    quickly; cache failure is fail-open (DB fallback) so a Redis outage
+    cannot lock users out.
+    """
     from apps.accounts.models import CSRFToken
 
     if not csrf_token:
@@ -53,13 +62,38 @@ def validate_csrf_token_for_user(user_id: str, csrf_token: str | None) -> None:
         )
 
     import hashlib
+    from django.core.cache import cache
 
     token_hash = hashlib.sha256(csrf_token.encode()).hexdigest()
+    cache_key = f"csrf:valid:{user_id}:{token_hash}"
+
+    # Cache short-circuit. "1" = valid, "0" = invalid.
+    try:
+        cached = cache.get(cache_key)
+    except Exception:
+        cached = None  # Fail open on cache outage.
+
+    if cached == "1":
+        return
+    if cached == "0":
+        emit_metric("csrf.cache_hit_negative", user_id=user_id)
+        raise CSRFPermissionDenied(
+            "CSRF validation failed. Please refresh and try again.",
+            code="CSRF_INVALID",
+        )
+
     exists = CSRFToken.objects.filter(
         token_hash=token_hash,
         expires_at__gt=tz.now(),
         user_id=user_id,
     ).exists()
+
+    # Best-effort cache write — never blocks the request.
+    try:
+        cache.set(cache_key, "1" if exists else "0", timeout=60)
+    except Exception:
+        pass
+
     if not exists:
         raise CSRFPermissionDenied(
             "CSRF validation failed. Please refresh and try again.",

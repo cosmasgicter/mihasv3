@@ -167,24 +167,24 @@ export function AuthSkeleton() {
             <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-foreground" />
             <div className="relative z-10 max-w-lg space-y-6">
               {/* Badge placeholder */}
-              <Skeleton className="h-8 w-48 rounded-full bg-white/10" />
+              <Skeleton className="h-8 w-48 rounded-full bg-card/10" />
               {/* Hero title */}
               <div className="space-y-3">
-                <Skeleton className="h-10 w-full bg-white/15" />
-                <Skeleton className="h-10 w-3/4 bg-white/15" />
+                <Skeleton className="h-10 w-full bg-card/15" />
+                <Skeleton className="h-10 w-3/4 bg-card/15" />
               </div>
               {/* Description */}
               <div className="space-y-2">
-                <Skeleton className="h-5 w-full bg-white/10" />
-                <Skeleton className="h-5 w-5/6 bg-white/10" />
+                <Skeleton className="h-5 w-full bg-card/10" />
+                <Skeleton className="h-5 w-5/6 bg-card/10" />
               </div>
               {/* Feature cards grid */}
               <div className="grid grid-cols-2 gap-4 mt-8">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="rounded-lg border border-white/20 bg-white/10 p-4">
-                    <Skeleton className="h-6 w-6 rounded bg-white/20 mb-2" />
-                    <Skeleton className="h-4 w-24 bg-white/15 mb-1" />
-                    <Skeleton className="h-3 w-full bg-white/10" />
+                  <div key={i} className="rounded-lg border border-white/20 bg-card/10 p-4">
+                    <Skeleton className="h-6 w-6 rounded bg-card/20 mb-2" />
+                    <Skeleton className="h-4 w-24 bg-card/15 mb-1" />
+                    <Skeleton className="h-3 w-full bg-card/10" />
                   </div>
                 ))}
               </div>
@@ -192,10 +192,10 @@ export function AuthSkeleton() {
               <div className="flex items-center gap-8 mt-8">
                 {[...Array(3)].map((_, i) => (
                   <div key={i} className="flex items-center gap-8">
-                    {i > 0 && <div className="h-12 w-px bg-white/20" />}
+                    {i > 0 && <div className="h-12 w-px bg-card/20" />}
                     <div>
-                      <Skeleton className="h-8 w-14 bg-white/15 mb-1" />
-                      <Skeleton className="h-3 w-20 bg-white/10" />
+                      <Skeleton className="h-8 w-14 bg-card/15 mb-1" />
+                      <Skeleton className="h-3 w-20 bg-card/10" />
                     </div>
                   </div>
                 ))}

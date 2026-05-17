@@ -15,12 +15,12 @@ interface ApplicationDetailPaymentProps {
 
 function getPaymentIcon(status: string) {
   switch (normalizePaymentStatus(status)) {
-    case 'not_paid': return <Clock className="h-5 w-5 text-slate-700" />
+    case 'not_paid': return <Clock className="h-5 w-5 text-muted-foreground" />
     case 'pending_review': return <Clock className="h-5 w-5 text-orange-700" />
     case 'verified': return <CheckCircle className="h-5 w-5 text-accent" />
     case 'rejected': return <XCircle className="h-5 w-5 text-destructive" />
     case 'deferred': return <AlertTriangle className="h-5 w-5 text-amber-600" />
-    default: return <Clock className="h-5 w-5 text-slate-700" />
+    default: return <Clock className="h-5 w-5 text-muted-foreground" />
   }
 }
 
@@ -29,7 +29,7 @@ export function ApplicationDetailPayment({
 }: ApplicationDetailPaymentProps) {
   const paymentStatusLabel = getPaymentStatusLabel(application.payment_status)
   const paymentStatusTextClass = {
-    'Awaiting Payment': 'text-slate-900',
+    'Awaiting Payment': 'text-foreground',
     'Awaiting Payment Review': 'text-orange-900',
     Verified: 'text-green-900',
     'Payment Rejected': 'text-red-900',
@@ -37,13 +37,13 @@ export function ApplicationDetailPayment({
   }[paymentStatusLabel] || 'text-foreground'
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
+    <div className="rounded-lg border border-border bg-card p-6">
       <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
         <CreditCard className="h-5 w-5 text-primary" />
         Payment Information
       </h3>
 
-      <div className="mb-4 rounded-lg border border-border bg-slate-50 p-3">
+      <div className="mb-4 rounded-lg border border-border bg-muted p-3">
         <div className="flex items-center gap-3">
           {getPaymentIcon(application.payment_status || 'not_paid')}
           <div>
@@ -165,7 +165,7 @@ export function FeeWaiverDialog({ open, onClose, onApply, saving }: FeeWaiverDia
   if (!open) return null
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+    <div className="rounded-lg border border-border bg-card p-4 shadow-sm space-y-3">
       <h4 className="text-sm font-semibold text-foreground">Apply Fee Waiver</h4>
       <div className="grid grid-cols-2 gap-3">
         <div>

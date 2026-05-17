@@ -15,7 +15,7 @@ import { normalizePaymentStatusValue, usePaymentStatus } from '@/hooks/usePaymen
 import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibilityEngine'
 import { createApplicationSlip } from '@/lib/slipService'
 import type { ApplicationSlipData } from '@/lib/applicationSlip'
-import { sanitizeForLog } from '@/lib/security'
+import { sanitizeForLog, sanitizeInput } from '@/lib/security'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { extractAuthUser } from '@/lib/authSession'
 import { toError } from '@/lib/toError'
@@ -56,6 +56,7 @@ import useApplicationSlip, { SubmittedApplicationSummary } from './useApplicatio
 import useApplicationFileUploads, { type ApplicationUploadState } from './useApplicationFileUploads'
 import { useOcrGradeExtraction } from './useOcrGradeExtraction'
 import { selectLatestDocumentByType, type UploadedApplicationDocument } from '../lib/documentSelection'
+import { useWizardNavigation } from './wizard/useWizardNavigation'
 import {
   createWizardSchema,
   normalizePhoneNumberInput,
@@ -248,13 +249,6 @@ export const resolveWizardIntakeIdentity = (
   return null
 }
 
-function sanitizeInput(value: string | undefined | null): string {
-  if (typeof value === 'string') {
-    return value.trim().replace(/<script[^>]*>.*?<\/script>/gi, '').replace(/<[^>]+>/g, '')
-  }
-  return ''
-}
-
 function sanitizePhoneInput(value: string | undefined | null): string {
   return sanitizeInput(normalizePhoneNumberInput(value || ''))
 }
@@ -276,7 +270,8 @@ const useWizardController = (): UseWizardControllerResult => {
   const showSuccess = useCallback((message: string) => addToast('success', message), [addToast])
   const showInfo = useCallback((title: string, message?: string) => addToast('info', message || title), [addToast])
 
-  const [currentStepIndex, setCurrentStepIndex] = useState(0)
+  const navigation = useWizardNavigation()
+  const { currentStepIndex, totalSteps, currentStepConfig, isLastStep, goToStep } = navigation
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -393,10 +388,6 @@ const useWizardController = (): UseWizardControllerResult => {
     }
     return 'MIHAS'
   }, [])
-
-  const totalSteps = wizardSteps.length
-  const currentStepConfig = (wizardSteps[currentStepIndex] ?? wizardSteps[0])!
-  const isLastStep = currentStepConfig.key === 'submit'
 
   const programIds = useMemo(() => programs.map(program => program.id).filter(Boolean), [programs])
   const intakeIds = useMemo(
@@ -1188,11 +1179,11 @@ const useWizardController = (): UseWizardControllerResult => {
             if (localDraft.currentStepKey) {
               const index = wizardSteps.findIndex(step => step.key === localDraft.currentStepKey)
               if (index >= 0) {
-                setCurrentStepIndex(index)
+                goToStep(index)
               }
             } else if (typeof localDraft.currentStep === 'number') {
               const index = getStepIndexById(localDraft.currentStep)
-              setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(localDraft.currentStep - 1, 0), totalSteps - 1))
+              goToStep(index >= 0 ? index : Math.min(Math.max(localDraft.currentStep - 1, 0), totalSteps - 1))
             }
             
             if (localApplicationId) {
@@ -1255,7 +1246,7 @@ const useWizardController = (): UseWizardControllerResult => {
           // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
           const stepId = resolveDraftResumeStepId(app, restoredGrades, restoredUploads)
           const index = getStepIndexById(stepId)
-          setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(stepId - 1, 0), totalSteps - 1))
+          goToStep(index >= 0 ? index : Math.min(Math.max(stepId - 1, 0), totalSteps - 1))
 
           draftRestored = true
           
@@ -1285,7 +1276,7 @@ const useWizardController = (): UseWizardControllerResult => {
           if (stepFromQuery) {
             const stepIndexFromQuery = wizardSteps.findIndex(step => step.key === stepFromQuery)
             if (stepIndexFromQuery >= 0) {
-              setCurrentStepIndex(stepIndexFromQuery)
+              goToStep(stepIndexFromQuery)
             }
           }
         }
@@ -1386,7 +1377,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
       const stepId = resolveDraftResumeStepId(draft, restoredGrades, restoredUploads)
       const index = getStepIndexById(stepId)
-      setCurrentStepIndex(index >= 0 ? index : Math.min(Math.max(stepId - 1, 0), totalSteps - 1))
+      goToStep(index >= 0 ? index : Math.min(Math.max(stepId - 1, 0), totalSteps - 1))
 
       const syncDraft = {
         formData: getValues(),
@@ -1711,10 +1702,6 @@ const useWizardController = (): UseWizardControllerResult => {
     apiClient.request(`/documents/${docId}/extract/`, { method: 'POST', body: JSON.stringify({ force: true }), headers: { 'Content-Type': 'application/json' } }).catch(() => {})
     startOcrPolling(docId)
   }, [ocrDocumentId, startOcrPolling])
-
-  const goToStep = useCallback((index: number) => {
-    setCurrentStepIndex(Math.min(Math.max(index, 0), totalSteps - 1))
-  }, [totalSteps])
 
   const handleNextStep = useCallback(async () => {
     await saveDraft({ syncServer: false })

@@ -2,6 +2,7 @@ import { formatDate } from '@/lib/dateFormat'
 import { XCircle, Clock, CheckCircle, Eye, History } from 'lucide-react'
 import { Skeleton } from '@/components/ui'
 import type { StatusHistoryItem } from './applicationDetailTypes'
+import { formatApplicationStatus } from '@/types/applicationStatus'
 
 interface ApplicationDetailTimelineProps {
   history: StatusHistoryItem[]
@@ -13,7 +14,7 @@ export function ApplicationDetailTimeline({ history, loading }: ApplicationDetai
     return (
       <div className="space-y-3" role="status" aria-label="Loading status history">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="flex gap-4 rounded-lg border border-border bg-white p-4">
+          <div key={i} className="flex gap-4 rounded-lg border border-border bg-card p-4">
             <Skeleton className="w-8 h-8 rounded-md flex-shrink-0" />
             <div className="flex-1 space-y-2">
               <div className="flex justify-between">
@@ -43,10 +44,10 @@ export function ApplicationDetailTimeline({ history, loading }: ApplicationDetai
         const status = item.status || item.new_status || 'unknown'
         const actor = item.changed_by_profile?.full_name || item.changed_by_profile?.email || item.changed_by_name || item.changed_by || 'System'
         const transition = item.old_status && item.new_status
-          ? `${item.old_status.replace('_', ' ')} → ${item.new_status.replace('_', ' ')}`
-          : status.replace('_', ' ')
+          ? `${formatApplicationStatus(item.old_status)} → ${formatApplicationStatus(item.new_status)}`
+          : formatApplicationStatus(status)
         return (
-          <div key={item.id || `${status}-${item.created_at}-${index}`} className="flex gap-4 p-4 rounded-lg border border-border bg-white">
+          <div key={item.id || `${status}-${item.created_at}-${index}`} className="flex gap-4 p-4 rounded-lg border border-border bg-card">
             <div className="flex-shrink-0">
               <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
                 status === 'approved' ? 'bg-green-100' :
@@ -62,7 +63,7 @@ export function ApplicationDetailTimeline({ history, loading }: ApplicationDetai
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
-                <p className="font-medium text-foreground capitalize">{transition}</p>
+                <p className="font-medium text-foreground">{transition}</p>
                 <p className="text-xs text-foreground">{formatDate(item.created_at)}</p>
               </div>
               <p className="text-sm text-foreground mb-2">Changed by {actor}</p>
