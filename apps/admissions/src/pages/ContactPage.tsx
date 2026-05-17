@@ -59,7 +59,7 @@ export default function ContactPage() {
             <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-7 lg:p-8">
               <Link
                 to="/"
-                className="mb-6 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+                className="mb-6 inline-flex min-h-touch items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
               >
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 Back to Home
@@ -84,7 +84,7 @@ export default function ContactPage() {
                     <p className="text-base text-foreground">WhatsApp — usually within an hour on working days</p>
                   </div>
                 </div>
-                <Button asChild size="lg" className="min-h-[44px] bg-success text-white hover:bg-success/90 sm:w-auto">
+                <Button asChild size="lg" className="min-h-touch bg-success text-white hover:bg-success/90 sm:w-auto">
                   <a href={`https://wa.me/${contactInfo.katcPhone.replace(/[\s+]/g, '')}`}>
                     <MessageCircle className="mr-2 h-5 w-5" aria-hidden="true" />
                     Chat on WhatsApp
@@ -180,14 +180,14 @@ export default function ContactPage() {
                     If no email app is available, use the contact details shown on this page.
                   </p>
                   <div className="flex flex-col gap-3 sm:flex-row">
-                    <Button asChild size="lg" className="min-h-[44px] w-full sm:w-auto">
+                    <Button asChild size="lg" className="min-h-touch w-full sm:w-auto">
                       <a href={draftUrl}>Open Email App</a>
                     </Button>
                     <Button
                       type="button"
                       variant="outline"
                       size="lg"
-                      className="min-h-[44px] w-full sm:w-auto"
+                      className="min-h-touch w-full sm:w-auto"
                       onClick={() => { setSubmitState('idle'); setDraftUrl('') }}
                     >
                       Edit Message
@@ -239,7 +239,7 @@ export default function ContactPage() {
                     </p>
                   )}
                 </div>
-                <Button type="submit" size="lg" className="min-h-[44px] w-full">
+                <Button type="submit" size="lg" className="min-h-touch w-full">
                   {submitState === 'draft_ready' ? 'Update Email Draft' : 'Prepare Email Draft'}
                 </Button>
               </form>

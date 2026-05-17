@@ -333,7 +333,7 @@ export default function Communications() {
                         type="button"
                         onClick={() => deleteMutation.mutate(id)}
                         disabled={deleteMutation.isPending}
-                        className="mt-1 shrink-0 rounded-lg p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground sm:opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100"
+                        className="mt-1 shrink-0 rounded-lg p-2 min-h-touch min-w-touch flex items-center justify-center text-muted-foreground sm:opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100"
                         aria-label={`Delete notification: ${title}`}
                       >
                         <Trash2 className="h-4 w-4" />

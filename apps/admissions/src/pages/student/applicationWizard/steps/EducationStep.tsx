@@ -307,7 +307,7 @@ const EducationStep = ({
                   event.preventDefault()
                   addGrade()
                 }}
-                className="mt-5 bg-primary hover:bg-primary touch-manipulation min-h-[44px]"
+                className="mt-5 bg-primary hover:bg-primary touch-manipulation min-h-touch"
               >
                 + Add First Subject
               </Button>
@@ -426,7 +426,7 @@ const EducationStep = ({
                       removeGrade(index)
                     }}
                     aria-label={`Remove subject ${index + 1}`}
-                    className="flex-1 sm:flex-none touch-manipulation min-h-[44px]"
+                    className="flex-1 sm:flex-none touch-manipulation min-h-touch"
                   >
                     <X className="h-4 w-4 sm:mr-0 mr-2" />
                     <span className="sm:hidden">Remove</span>
@@ -440,7 +440,7 @@ const EducationStep = ({
                       }}
                       size="sm"
                       aria-label="Add another subject"
-                      className="flex-1 sm:hidden bg-primary hover:bg-primary touch-manipulation min-h-[44px]"
+                      className="flex-1 sm:hidden bg-primary hover:bg-primary touch-manipulation min-h-touch"
                     >
                       + Add
                     </Button>
@@ -460,7 +460,7 @@ const EducationStep = ({
                   event.preventDefault()
                   addGrade()
                 }}
-                className="w-full min-h-[44px] border-dashed"
+                className="w-full min-h-touch border-dashed"
               >
                 + Add another subject below
               </Button>

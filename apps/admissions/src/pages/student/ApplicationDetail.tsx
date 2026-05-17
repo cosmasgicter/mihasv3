@@ -177,7 +177,7 @@ export default function ApplicationDetail() {
           <span className={`rounded-md px-4 py-2 text-sm font-bold ${getStatusColor(application.status)}`}>
             {application.status?.replace('_', ' ').toUpperCase() || 'PENDING'}
           </span>
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" className="min-h-touch">
             <Link to={`/student/application/${application.id}/status`}>
               View Status
             </Link>
@@ -187,7 +187,7 @@ export default function ApplicationDetail() {
     >
         {/* Back link */}
         <div className={`mb-8 ${animateClasses.slideUp}`}>
-          <Link to="/student/dashboard" className="mb-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">
+          <Link to="/student/dashboard" className="mb-4 inline-flex min-h-touch items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>

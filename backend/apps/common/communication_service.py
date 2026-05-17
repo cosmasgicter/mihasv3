@@ -219,8 +219,14 @@ def _html_to_notification_text(value: str) -> str:
 
 def _build_context(application, extra_context: dict | None = None) -> dict:
     """Build a standard context dict from an application object."""
+    # Use first_name only for notification personalization (PII rule: no full_name in notifications)
+    first_name = getattr(application, "first_name", "")
+    if not first_name:
+        full = getattr(application, "full_name", "")
+        first_name = full.split()[0] if full else ""
+
     ctx = {
-        "student_name": getattr(application, "full_name", ""),
+        "student_name": first_name,
         "application_number": getattr(application, "application_number", ""),
         "program_name": str(getattr(application, "program", "")),
         "intake_name": str(getattr(application, "intake", "")),

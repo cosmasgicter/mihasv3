@@ -95,7 +95,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
                     onTouchStart={href.startsWith('/auth') ? warmAuthRoutes : undefined}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'rounded-lg px-4 py-2 min-h-[44px] inline-flex items-center text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                      'rounded-lg px-4 py-2 min-h-touch inline-flex items-center text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                       active ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                     )}
                   >
@@ -108,7 +108,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
                 onPointerEnter={warmAuthRoutes}
                 onFocus={warmAuthRoutes}
                 onTouchStart={warmAuthRoutes}
-                className="ml-2 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-150 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="ml-2 inline-flex min-h-touch items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-150 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 <UserPlus className="h-4 w-4" />
                 Apply now
@@ -117,7 +117,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
 
             <button
               type="button"
-              className="grid h-11 w-11 min-h-[44px] min-w-[44px] place-items-center rounded-lg border border-border bg-card/90 md:hidden"
+              className="grid h-11 w-11 min-h-touch min-w-touch place-items-center rounded-lg border border-border bg-card/90 md:hidden"
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
               aria-controls="public-mobile-menu"
@@ -152,7 +152,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
                   onTouchStart={href.startsWith('/auth') ? warmAuthRoutes : undefined}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'flex min-h-[44px] items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium',
+                    'flex min-h-touch items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium',
                     active ? 'bg-muted text-foreground' : 'hover:bg-muted'
                   )}
                 >
@@ -166,7 +166,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
               onPointerEnter={warmAuthRoutes}
               onFocus={warmAuthRoutes}
               onTouchStart={warmAuthRoutes}
-              className="mt-2 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-150 hover:bg-primary/90"
+              className="mt-2 inline-flex min-h-touch w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-150 hover:bg-primary/90"
             >
               <UserPlus className="h-4 w-4" />
               Start application

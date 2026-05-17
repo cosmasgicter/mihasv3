@@ -17,7 +17,7 @@
  *   ink-700  : 11.5:1  (AAA)
  *   ink-500  : 5.1:1   (AA, body ≥14pt only)
  *   ink-300  : 2.3:1   (decorative, NOT text)
- *   gold     : 4.6:1   (AA, large text only)
+ *   gold     : 5.4:1   (AA, body text)
  *   green    : 7.6:1   (AAA)
  *   red      : 8.4:1   (AAA)
  *
@@ -40,9 +40,16 @@ export const colors = {
 
   // Accent colors — one chosen per document, used once or twice max.
   accent: {
-    gold: '#B8860B', // warm institutional accent
+    gold: '#A67C00', // warm institutional gold — slightly desaturated for print elegance
     green: '#2F6B3A', // verified / paid / approved
     red: '#8B1E3F', // conditional warnings
+  },
+
+  // Badge backgrounds — tinted surfaces for StatusBadge pills.
+  // Kept here (not inline) so every badge instance shares the same tone.
+  badge: {
+    greenBg: '#E8F2EA', // subtle green tint for verified/approved
+    redBg: '#F5E6EB', // subtle burgundy tint for conditional
   },
 } as const
 

@@ -318,7 +318,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         <button
           type="button"
           onClick={() => onViewDetails(app.id)}
-          className="flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary/90"
+          className="flex min-h-touch flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary/90"
         >
           <Eye className="h-4 w-4" />
           View Details
@@ -329,7 +329,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
           <button
             type="button"
             onClick={() => setShowCommunicationModal(true)}
-            className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition-colors duration-200 hover:bg-secondary/80"
+            className="flex min-h-touch items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition-colors duration-200 hover:bg-secondary/80"
             title="Contact Applicant"
           >
             <MessageSquare className="h-4 w-4" />
@@ -343,7 +343,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
               <button
                 type="button"
                 onClick={() => onViewDetails(app.id)}
-                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="flex min-h-touch min-w-touch items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 title="Result Slip"
               >
                 <FileText className="h-4 w-4" />

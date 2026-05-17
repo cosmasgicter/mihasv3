@@ -263,22 +263,22 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
   const isAlertRole = toast.type === 'error' || toast.type === 'warning';
   const itemRef = useRef<HTMLDivElement>(null);
 
-  // Animate in on mount (slide down from top, 200ms)
+  // Animate in on mount (slide from right, 300ms)
   useEffect(() => {
     const el = itemRef.current;
     if (!el) return;
     // Force reflow then remove the initial transform
     el.getBoundingClientRect();
-    el.style.transform = 'translateY(0)';
+    el.style.transform = 'translateX(0)';
     el.style.opacity = '1';
   }, []);
 
   const handleClose = () => {
     const el = itemRef.current;
     if (el) {
-      el.style.transform = 'translateY(-100%)';
+      el.style.transform = 'translateX(100%)';
       el.style.opacity = '0';
-      setTimeout(onClose, 150);
+      setTimeout(onClose, 200);
     } else {
       onClose();
     }
@@ -298,10 +298,10 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
       aria-atomic="true"
       className={cn(
         'pointer-events-auto rounded-lg border shadow-lg p-4 min-w-[280px]',
-        'transition-all duration-200 ease-out',
+        'transition-[transform,opacity] duration-300 ease-out',
         typeStyles[toast.type]
       )}
-      style={{ transform: 'translateY(-100%)', opacity: '0' }}
+      style={{ transform: 'translateX(100%)', opacity: '0' }}
     >
       <div className="flex items-start gap-3">
         <Icon className={cn('h-5 w-5 flex-shrink-0 mt-0.5', iconStyles[toast.type])} aria-hidden="true" />
@@ -319,7 +319,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
                 'mt-2 inline-flex items-center gap-1.5 text-sm font-medium',
                 'rounded-md px-3 py-1.5 transition-colors',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring',
-                'bg-destructive/10 hover:bg-destructive/20 text-destructive min-h-[44px] min-w-[44px]'
+                'bg-destructive/10 hover:bg-destructive/20 text-destructive min-h-touch min-w-touch'
               )}
             >
               <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
@@ -331,7 +331,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
         <button
           onClick={handleClose}
           className={cn(
-            'p-1 rounded-sm transition-colors flex-shrink-0',
+            'p-2 rounded-sm transition-colors flex-shrink-0 min-h-touch min-w-touch flex items-center justify-center',
             'hover:bg-foreground/10',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
           )}

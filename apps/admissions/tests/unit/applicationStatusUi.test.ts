@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { APPLICATION_STATUSES, formatApplicationStatus } from '@/types/applicationStatus'
+import { BACKEND_APPLICATION_STATUSES } from '@/types/__fixtures__/lifecycleStatusBackendMirror'
 import {
   BULK_ACTION_STATUS_MAP,
   STATUS_FILTER_OPTIONS,
@@ -8,14 +9,7 @@ import {
 
 describe('application status canonical values', () => {
   it('defines the single canonical status source', () => {
-    expect(APPLICATION_STATUSES).toEqual([
-      'draft',
-      'submitted',
-      'under_review',
-      'approved',
-      'rejected',
-      'waitlisted'
-    ])
+    expect(APPLICATION_STATUSES).toEqual(BACKEND_APPLICATION_STATUSES)
   })
 
   it('formats display labels without changing stored values', () => {

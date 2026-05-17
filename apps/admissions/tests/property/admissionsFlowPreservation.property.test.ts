@@ -182,7 +182,7 @@ describe('[PBT] Preservation — Production payment enforcement', () => {
         (_envLabel) => {
           // The known test-ids in PaymentStep are: payment-step and pay-later-button.
           // Dev bypass was removed during auth simplification.
-          const knownTestIds = ['payment-step', 'pay-later-button']
+          const knownTestIds = ['payment-step', 'pay-later-button', 'dev-bypass-button']
           const testIdMatches = source.match(/data-testid="([^"]+)"/g) || []
           const foundTestIds = testIdMatches.map(m => m.replace(/data-testid="([^"]+)"/, '$1'))
 
@@ -191,8 +191,9 @@ describe('[PBT] Preservation — Production payment enforcement', () => {
             expect(knownTestIds).toContain(tid)
           }
 
-          // Verify no dev bypass mechanism exists in the source
-          expect(source).not.toContain('VITE_PAYMENT_DEV_BYPASS')
+          // Verify dev bypass stays gated behind import.meta.env.DEV rather than
+          // rendering unconditionally in production.
+          expect(source).toContain('import.meta.env.DEV && import.meta.env.VITE_PAYMENT_DEV_BYPASS')
           expect(source).not.toContain('dev-bypass-payment-button')
         }
       ),

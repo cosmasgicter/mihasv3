@@ -22,8 +22,8 @@ import {
 
 const entryArb = fc
   .record({
-    application_id: fc.uuidV(4),
-    payment_id: fc.uuidV(4),
+    application_id: fc.uuid({ version: 4 }),
+    payment_id: fc.uuid({ version: 4 }),
     reference: fc.stringMatching(/^REF-[A-Z0-9]{4,20}$/),
     method: fc.constantFrom<'card' | 'mobile_money'>('card', 'mobile_money'),
     initiated_at: fc.integer({ min: 0, max: 2 ** 40 }),

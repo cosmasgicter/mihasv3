@@ -168,18 +168,17 @@ module.exports = {
         'gradient-vibrant': 'var(--gradient-primary)',
       },
       animation: {
-        'fade-in': 'fadeIn 0.3s ease-out',
-        'fade-in-up': 'fadeInUp 0.5s ease-out',
-        'fade-in-right': 'fadeInRight 0.3s ease-out forwards',
-        'slide-in-left': 'slideInLeft 0.3s ease-out',
+        'fade-in': 'fadeIn 200ms ease-out',
+        'fade-in-up': 'fadeInUp 300ms ease-out',
+        'fade-in-right': 'fadeInRight 200ms ease-out forwards',
+        'slide-in-left': 'slideInLeft 200ms ease-out',
         'slide-up': 'slideUp 300ms ease-out',
         'scale-in': 'scaleIn 200ms ease-out',
         'shimmer': 'shimmer 1.5s ease-in-out infinite',
-        'bounce-gentle': 'bounceGentle 2s infinite',
         'dialog-in': 'dialogIn 200ms ease-out',
         'backdrop-in': 'backdropIn 150ms ease-out',
-        'toast-in': 'toastIn 200ms ease-out',
-        'toast-out': 'toastOut 150ms ease-in',
+        'toast-in': 'toastIn 300ms ease-out',
+        'toast-out': 'toastOut 200ms ease-in',
         'shake': 'shake 0.5s ease-in-out',
       },
       keyframes: {
@@ -203,10 +202,6 @@ module.exports = {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
         },
-        bounceGentle: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-5px)' },
-        },
         slideUp: {
           '0%': { opacity: '0', transform: 'translateY(20px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
@@ -224,12 +219,12 @@ module.exports = {
           '100%': { opacity: '1' },
         },
         toastIn: {
-          '0%': { opacity: '0', transform: 'translateY(-100%)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+          '0%': { opacity: '0', transform: 'translateX(100%)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
         },
         toastOut: {
-          '0%': { opacity: '1', transform: 'translateY(0)' },
-          '100%': { opacity: '0', transform: 'translateY(-100%)' },
+          '0%': { opacity: '1', transform: 'translateX(0)' },
+          '100%': { opacity: '0', transform: 'translateX(100%)' },
         },
         shake: {
           '0%, 100%': { transform: 'translateX(0)' },

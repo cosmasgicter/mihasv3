@@ -34,7 +34,7 @@ function ViewDocButton({ doc }: { doc: DocumentItem }) {
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 hover:text-blue-900 disabled:opacity-50"
+      className="inline-flex min-h-touch items-center justify-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 hover:text-blue-900 disabled:opacity-50"
     >
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
       View

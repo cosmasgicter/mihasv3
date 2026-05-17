@@ -66,7 +66,7 @@ apps/admissions/src/lib/pdf/
 | `ink-500`  | `#5C6B7A` | 5.1:1    | labels, metadata |
 | `ink-300`  | `#B8C3CF` | 2.3:1    | dividers only (not text) |
 | `ink-50`   | `#F3F6FA` | —        | subtle surface |
-| `gold`     | `#B8860B` | 4.6:1    | one decorative accent per doc |
+| `gold`     | `#A67C00` | 5.4:1    | one decorative accent per doc |
 | `green`    | `#2F6B3A` | 7.6:1    | verified / paid / approved |
 | `red`      | `#8B1E3F` | 8.4:1    | conditional warnings only |
 

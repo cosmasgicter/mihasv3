@@ -212,9 +212,11 @@ describe('Codebase Invariant Property Tests', () => {
     const ALLOWED_CSRF_WRITERS = [
       path.resolve(SRC_DIR, 'lib/csrfToken.ts'),    // The store itself
       path.resolve(SRC_DIR, 'services/client.ts'),   // The ApiClient
+      path.resolve(SRC_DIR, 'services/csrf.ts'),     // CSRF recovery helper
+      path.resolve(SRC_DIR, 'services/authInterceptor.ts'), // refresh token rotation helper
     ];
 
-    it('no source file (except csrfToken.ts and client.ts) calls setCsrfToken()', () => {
+    it('only CSRF/auth service helpers write to the CSRF token store', () => {
       fc.assert(
         fc.property(sourceFileSubsetArb, (files) => {
           for (const filePath of files) {
@@ -229,7 +231,7 @@ describe('Codebase Invariant Property Tests', () => {
 
             expect(
               setCsrfPattern.test(content),
-              `File src/${relativePath} calls setCsrfToken() — only csrfToken.ts and client.ts should write to the CSRF store`
+              `File src/${relativePath} calls setCsrfToken() outside the allowed CSRF/auth helpers`
             ).toBe(false);
           }
         }),

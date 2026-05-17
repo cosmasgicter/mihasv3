@@ -15,26 +15,27 @@ import { cardVariants } from '@/components/ui';
 // Expected class substrings for each variant
 const VARIANT_CLASSES = {
   elevated: {
-    must: ['bg-card', 'shadow-md'],
-    mustNot: ['border', 'bg-muted'],
+    must: ['border', 'border-border/35', 'bg-card', 'shadow-sm'],
+    mustNot: ['bg-muted'],
   },
   outlined: {
-    must: ['border', 'border-border', 'bg-card'],
+    must: ['border', 'border-border/45', 'bg-card', 'shadow-sm'],
     mustNot: ['bg-muted'],
   },
   flat: {
     must: ['bg-muted'],
-    mustNot: ['border', 'shadow-md'],
+    mustNot: ['border', 'shadow-sm'],
   },
 } as const;
 
 // Base classes present on all variants
-const BASE_CLASSES = ['rounded-2xl', 'text-card-foreground', 'transition-shadow'];
+const BASE_CLASSES = ['rounded-lg', 'text-card-foreground', 'transition-shadow'];
 
 // Interactive classes added when interactive=true
 const INTERACTIVE_CLASSES = [
   'cursor-pointer',
-  'hover:shadow-md',
+  'hover:border-primary/35',
+  'hover:shadow-sm',
   'focus-visible:outline-none',
   'focus-visible:ring-2',
   'focus-visible:ring-ring',

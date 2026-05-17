@@ -32,7 +32,7 @@ describe('usePaymentStatus', () => {
     vi.useRealTimers()
   })
 
-  it('verifies the latest pending payment and promotes it to successful', async () => {
+  it('reads the latest pending payment and surfaces the pending status', async () => {
     const requestMock = vi.mocked(apiClient.request)
     const observedStatuses: Array<string | null> = []
 
@@ -44,9 +44,6 @@ describe('usePaymentStatus', () => {
           created_at: '2026-04-24T19:20:25.000Z',
         },
       ] as never)
-      .mockResolvedValueOnce({
-        status: 'successful',
-      } as never)
 
     function Harness() {
       const { status } = usePaymentStatus('app-1', null)
@@ -71,11 +68,7 @@ describe('usePaymentStatus', () => {
       1,
       '/payments/?application_id=app-1'
     )
-    expect(requestMock).toHaveBeenNthCalledWith(
-      2,
-      '/payments/payment-1/verify/',
-      { method: 'POST' }
-    )
-    expect(observedStatuses).toContain('successful')
+    expect(requestMock).toHaveBeenCalledTimes(1)
+    expect(observedStatuses).toContain('pending')
   })
 })

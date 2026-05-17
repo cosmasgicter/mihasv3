@@ -71,12 +71,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing[2],
   },
   salutation: {
-    ...textStyles.body,
+    ...textStyles.bodyProse,
     color: semantic.bodyText,
     marginBottom: spacing[2],
   },
   bodyParagraph: {
-    ...textStyles.body,
+    ...textStyles.bodyProse,
     color: semantic.bodyText,
     marginBottom: spacing[2],
   },
@@ -89,12 +89,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing[1],
   },
   listNumber: {
-    ...textStyles.bodyStrong,
+    ...textStyles.bodyProse,
+    fontWeight: 600,
     color: colors.accent.gold,
     width: spacing[5],
   },
   listText: {
-    ...textStyles.body,
+    ...textStyles.bodyProse,
     color: semantic.bodyText,
     flex: 1,
   },
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing[1],
   },
   closing: {
-    ...textStyles.body,
+    ...textStyles.bodyProse,
     color: semantic.bodyText,
     marginTop: spacing[4],
     marginBottom: spacing[1],

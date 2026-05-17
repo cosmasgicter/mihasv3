@@ -179,26 +179,26 @@ export function normalizeNotificationsResponse(response: unknown): StudentNotifi
 
 const NOTIFICATION_TEMPLATES = {
   submitted: {
-    title: '✅ Application Submitted Successfully',
+    title: 'Application Submitted Successfully',
     content: (applicationNumber: string, program: string) =>
       `Your application #${applicationNumber} for ${program} has been submitted and is under review.`,
     type: 'success' as const,
   },
   approved: {
-    title: '🎉 Application Approved!',
+    title: 'Application Approved',
     content: (applicationNumber: string, program: string) =>
       `Congratulations! Your application #${applicationNumber} for ${program} has been approved.`,
     type: 'success' as const,
   },
   rejected: {
-    title: '❌ Application Status Update',
+    title: 'Application Status Update',
     content: (applicationNumber: string, program: string) =>
       `Your application #${applicationNumber} for ${program} has been reviewed. Please check your email for feedback.`,
     type: 'error' as const,
   },
   pending_documents: {
-    title: '📄 Documents Required',
-    content: (applicationNumber: string, program: string) =>
+    title: 'Documents Required',
+    content: (applicationNumber: string, _program: string) =>
       `Your application #${applicationNumber} requires additional documents.`,
     type: 'warning' as const,
   },
@@ -318,7 +318,7 @@ export const notificationService = {
     if (!userId || !userName) return false;
     return notificationService.sendNotification({
       userId,
-      title: '🎓 Welcome to MIHAS-KATC!',
+      title: 'Welcome to MIHAS-KATC',
       content: `Welcome ${userName}! Your account has been created successfully.`,
       type: 'success',
     });

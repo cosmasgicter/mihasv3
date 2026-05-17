@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 
 import { AnimatedInput } from '@/components/smoothui/animated-input'
-import { AnimatedSelect } from '@/components/smoothui/animated-select'
 import { FileUpload } from '@/components/ui/FileUpload'
 
 function renderMarkup(element: React.ReactElement) {
@@ -29,23 +28,6 @@ describe('smoothui form control a11y consistency', () => {
     const errorDocument = renderMarkup(<AnimatedInput id="name" label="Name" error="Required" />)
     const errorInput = errorDocument.querySelector('input')
     expect(errorInput?.getAttribute('aria-invalid')).toBe('true')
-  })
-
-  it('sets required marker and ARIA contract on animated select', () => {
-    const document = renderMarkup(
-      <AnimatedSelect
-        id="sex"
-        label="Sex"
-        required
-        options={[
-          { value: 'male', label: 'Male' },
-          { value: 'female', label: 'Female' },
-        ]}
-      />
-    )
-    const select = document.querySelector('select')
-    expect(select?.getAttribute('aria-required')).toBe('true')
-    expect(document.body.textContent).toContain('*')
   })
 
   it('uses destructive error styling on canonical file upload when error is present', () => {

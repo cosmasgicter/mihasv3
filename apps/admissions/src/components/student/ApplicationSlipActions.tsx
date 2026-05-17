@@ -161,8 +161,8 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
           disabled={isDownloading}
           variant="secondary"
           className={compact
-            ? 'min-h-[44px] w-full justify-center gap-2 rounded-lg border border-border bg-card text-foreground hover:bg-muted hover:border-border'
-            : 'min-h-[44px] w-full justify-center gap-2 rounded-lg border border-border bg-card text-foreground hover:bg-muted hover:border-border sm:w-auto'
+            ? 'min-h-touch w-full justify-center gap-2 rounded-lg border border-border bg-card text-foreground hover:bg-muted hover:border-border'
+            : 'min-h-touch w-full justify-center gap-2 rounded-lg border border-border bg-card text-foreground hover:bg-muted hover:border-border sm:w-auto'
           }
           loading={isDownloading}
         >
@@ -175,8 +175,8 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
             onClick={handleEmailOpen}
             variant="primary"
             className={compact
-              ? 'min-h-[44px] w-full justify-center gap-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90'
-              : 'min-h-[44px] w-full justify-center gap-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto'
+              ? 'min-h-touch w-full justify-center gap-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90'
+              : 'min-h-touch w-full justify-center gap-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto'
             }
           >
             <Mail className="h-4 w-4" />
@@ -203,7 +203,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
               onClick={handleEmailSend}
               disabled={isEmailing || !emailAddress.trim()}
               variant="primary"
-              className="min-h-[44px] rounded-lg bg-primary px-5 text-primary-foreground hover:bg-primary/90"
+              className="min-h-touch rounded-lg bg-primary px-5 text-primary-foreground hover:bg-primary/90"
               loading={isEmailing}
             >
               {!isEmailing && <Mail className="h-4 w-4" />}

@@ -491,7 +491,7 @@ export default function StudentSettings() {
             description="Portal inbox notifications stay available in-app, while SMS delivery uses the phone number stored on this profile."
             icon={<Bell className="h-5 w-5" />}
             actions={
-              <Button type="button" variant="outline" size="sm" onClick={() => handleNavigate('/student/notifications')}>
+              <Button type="button" variant="outline" size="sm" className="min-h-touch" onClick={() => handleNavigate('/student/notifications')}>
                 Open notification preferences
               </Button>
             }

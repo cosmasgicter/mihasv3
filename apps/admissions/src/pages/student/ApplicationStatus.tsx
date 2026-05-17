@@ -530,7 +530,7 @@ export default function ApplicationStatus() {
         <div className="space-y-6 sm:space-y-8">
           <Link
             to="/student/dashboard"
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+            className="inline-flex min-h-touch items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to dashboard
@@ -723,7 +723,7 @@ export default function ApplicationStatus() {
                       {String(application.result_slip_url).includes('supabase') ? (
                         <span className="text-xs text-muted-foreground">File migrated — re-upload if needed</span>
                       ) : (
-                      <Button asChild variant="outline" size="sm">
+                      <Button asChild variant="outline" size="sm" className="min-h-touch">
                         <a
                           href={application.result_slip_url as string}
                           target="_blank"
@@ -755,7 +755,7 @@ export default function ApplicationStatus() {
                       {String(application.extra_kyc_url).includes('supabase') ? (
                         <span className="text-xs text-muted-foreground">File migrated — re-upload if needed</span>
                       ) : (
-                      <Button asChild variant="outline" size="sm">
+                      <Button asChild variant="outline" size="sm" className="min-h-touch">
                         <a
                           href={application.extra_kyc_url as string}
                           target="_blank"

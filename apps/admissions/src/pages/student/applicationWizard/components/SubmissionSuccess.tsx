@@ -1,4 +1,4 @@
-import { CheckCircle, Download, Mail, Send, X } from 'lucide-react'
+import { CheckCircle, Download, Mail, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
@@ -110,88 +110,112 @@ const SubmissionSuccess = ({
         </div>
       )}
       <div
-        className={`bg-card rounded-lg shadow-sm ring-1 ring-border/50 p-5 sm:p-8 text-center ${animateClasses.scaleIn}`}
+        className={`bg-card rounded-lg shadow-sm ring-1 ring-border/50 p-5 sm:p-8 ${animateClasses.scaleIn}`}
       >
         {/* Institution logo */}
         <img
           src="/images/logos/mihas-logo.webp"
-          alt="MIHAS logo"
-          className="mx-auto mb-4 h-14 w-auto object-contain"
+          alt="MIHAS — Mukuba Institute of Health and Applied Sciences"
+          className="mx-auto mb-6 h-16 w-auto object-contain"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
         />
-        <div className="relative inline-flex items-center justify-center">
-          {/* Calm success ring */}
-          <div className="absolute inset-0 w-20 h-20 rounded-full bg-success/10" />
-          <div className="relative w-20 h-20 rounded-full bg-success flex items-center justify-center">
-            <CheckCircle className="h-10 w-10 text-white" />
-          </div>
-        </div>
-        <h2 className="text-2xl font-bold text-foreground mt-6 mb-2">Application Submitted</h2>
-        <p className="text-sm text-muted-foreground mb-6">Your application is now with the admissions team.</p>        <div
-          className={`bg-accent/10 border border-accent/30 rounded-lg p-4 mb-6 ${animateClasses.slideUp}`}
-        >
-          {/* Tracking number — prominent */}
-          <div className="mb-4 rounded-md bg-primary/5 border border-primary/20 px-4 py-3">
-            <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Tracking Code</span>
-            <span className="block font-mono text-lg font-bold text-foreground tracking-wide">{submittedApplication.trackingCode}</span>
-          </div>
-          <h3 className="font-semibold text-accent-foreground mb-3">Application Details</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Application Number:</span>
-              <span className="font-mono font-bold text-accent-foreground">{submittedApplication.applicationNumber}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Program:</span>
-              <span className="font-semibold text-accent-foreground">{submittedApplication.program}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Institution:</span>
-              <span className="font-semibold text-accent-foreground">{getInstitutionName(submittedApplication.institution ?? undefined)}</span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-muted-foreground flex items-center justify-between sm:justify-start">
-                <Send className="h-4 w-4 mr-2" />
-                Payment Status:
-              </span>
-              <span
-                className={`inline-flex items-center px-2 py-1 mt-2 sm:mt-0 rounded-full border text-xs font-semibold ${getPaymentStatusStyles(submittedApplication.paymentStatus)}`}
-              >
-                {formatPaymentStatusLabel(submittedApplication.paymentStatus)}
-              </span>
-            </div>
-            <p className="text-left text-xs text-muted-foreground">{getPaymentStatusDescription(submittedApplication.paymentStatus)}</p>
+
+        {/* Success icon */}
+        <div className="flex justify-center">
+          <div className="relative w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
+            <CheckCircle className="h-8 w-8 text-success" />
           </div>
         </div>
 
-        <p className="text-foreground mb-6">
-          {submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred'
-            ? 'Your application has been submitted. Complete payment from your dashboard when you are ready.'
-            : 'Your application is now under review. You will receive notifications about status updates.'}
-        </p>
+        <h2 className="text-2xl font-bold text-foreground mt-5 mb-1 text-center">Application Submitted</h2>
+        <p className="text-sm text-muted-foreground mb-6 text-center">Your application is now with the admissions team.</p>
 
-        <div className="space-y-3 mb-6">
-          <Button onClick={onDownload} loading={slipLoading} className="w-full min-h-[48px] touch-manipulation bg-success hover:bg-success/90">
-            <Download className="h-5 w-5 mr-2" />
-            Download Application Slip
+        {/* Tracking block — prominent */}
+        <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-4 mb-6">
+          <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Tracking Code</span>
+          <span className="block font-mono text-xl font-bold text-foreground tracking-wide">{submittedApplication.trackingCode}</span>
+          <span className="block text-xs text-muted-foreground mt-1">Save this code to check your application status anytime.</span>
+        </div>
+
+        {/* Application details */}
+        <div className={`rounded-lg border border-border/70 bg-muted/30 p-4 mb-6 ${animateClasses.slideUp}`}>
+          <h3 className="text-sm font-semibold text-foreground mb-3">Application Details</h3>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Application Number</dt>
+              <dd className="font-mono font-semibold text-foreground">{submittedApplication.applicationNumber}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Program</dt>
+              <dd className="font-semibold text-foreground">{submittedApplication.program}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Institution</dt>
+              <dd className="font-semibold text-foreground">{getInstitutionName(submittedApplication.institution ?? undefined)}</dd>
+            </div>
+            <div className="flex items-center justify-between">
+              <dt className="text-muted-foreground">Payment</dt>
+              <dd>
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full border text-xs font-semibold ${getPaymentStatusStyles(submittedApplication.paymentStatus)}`}
+                >
+                  {formatPaymentStatusLabel(submittedApplication.paymentStatus)}
+                </span>
+              </dd>
+            </div>
+          </dl>
+          <p className="text-xs text-muted-foreground mt-3">{getPaymentStatusDescription(submittedApplication.paymentStatus)}</p>
+        </div>
+
+        {/* Slip actions */}
+        <div className="flex flex-col gap-2 mb-6 sm:flex-row">
+          <Button onClick={onDownload} loading={slipLoading} className="flex-1 min-h-[48px] touch-manipulation bg-success hover:bg-success/90">
+            <Download className="h-4 w-4 mr-2" />
+            Download Slip
           </Button>
-          <Button variant="outline" onClick={onEmail} loading={emailLoading} className="w-full min-h-[48px] touch-manipulation">
-            <Mail className="h-5 w-5 mr-2" />
-            Email Me the Slip
+          <Button variant="outline" onClick={onEmail} loading={emailLoading} className="flex-1 min-h-[48px] touch-manipulation">
+            <Mail className="h-4 w-4 mr-2" />
+            Email Slip
           </Button>
         </div>
 
-        <div className="space-y-3">
+        {/* Next steps list */}
+        <div className="rounded-lg border border-border/70 bg-muted/30 p-4">
+          <h3 className="text-sm font-semibold text-foreground mb-3">What happens next</h3>
+          <ol className="space-y-3 text-sm">
+            <li className="flex items-start gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">1</span>
+              <span className="text-foreground">A confirmation email will be sent to your registered address.</span>
+            </li>
+            {(submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred') && (
+              <li className="flex items-start gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-warning/10 text-xs font-semibold text-warning">2</span>
+                <span className="text-foreground">Complete your payment from the dashboard when ready.</span>
+              </li>
+            )}
+            <li className="flex items-start gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred' ? '3' : '2'}</span>
+              <span className="text-foreground">Track your application status using the tracking code above.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred' ? '4' : '3'}</span>
+              <span className="text-foreground">The admissions team will review and notify you of the outcome.</span>
+            </li>
+          </ol>
+        </div>
+
+        {/* Navigation links */}
+        <div className="mt-6 space-y-2">
+          <Link to="/track-application">
+            <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Track Application Status</Button>
+          </Link>
           {(submittedApplication.paymentStatus == null || submittedApplication.paymentStatus === 'deferred') && (
             <Link to="/student/payment">
-              <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Complete Payment Later</Button>
+              <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Complete Payment</Button>
             </Link>
           )}
           <Link to="/student/dashboard">
-            <Button className="w-full min-h-[48px] touch-manipulation bg-primary hover:bg-primary">Go to Dashboard</Button>
-          </Link>
-          <Link to="/track-application">
-            <Button variant="outline" className="w-full min-h-[48px] touch-manipulation">Track Application Status</Button>
+            <Button variant="primary" className="w-full min-h-[48px] touch-manipulation">Go to Dashboard</Button>
           </Link>
         </div>
       </div>

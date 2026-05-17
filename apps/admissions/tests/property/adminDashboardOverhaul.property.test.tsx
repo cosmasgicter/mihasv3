@@ -3,23 +3,11 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { DashboardActivityFeed } from '@/components/admin/dashboard/DashboardActivityFeed'
-import { apiClient } from '@/services/client'
+import { attemptRefresh } from '@/services/authInterceptor'
 import { getUtilizationColor, intakeSchema } from '@/pages/admin/Intakes'
 import { formatFeeAmount, validateFeeAmount } from '@/pages/admin/ProgramFees'
 import { validateSetting } from '@/pages/admin/Settings'
 import { sanitizeForDisplay } from '@/lib/sanitize'
-
-type RefreshTestClient = typeof apiClient & {
-  attemptRefresh: () => Promise<boolean>
-  performRefresh: () => Promise<boolean>
-  refreshPromise: Promise<boolean> | null
-  lastRefreshSuccessTime: number
-  lastRefreshFailureTime: number
-  lastRefreshResult: boolean
-}
-
-const refreshClient = apiClient as RefreshTestClient
-const originalPerformRefresh = refreshClient.performRefresh
 
 const nonBlankText = fc
   .string({ minLength: 1, maxLength: 40 })
@@ -33,18 +21,10 @@ const escapeHtml = (value: string) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;')
 
-const resetRefreshState = () => {
-  refreshClient.refreshPromise = null
-  refreshClient.lastRefreshSuccessTime = 0
-  refreshClient.lastRefreshFailureTime = 0
-  refreshClient.lastRefreshResult = false
-  refreshClient.performRefresh = originalPerformRefresh
-}
-
 afterEach(() => {
   vi.useRealTimers()
+  vi.unstubAllGlobals()
   vi.restoreAllMocks()
-  resetRefreshState()
 })
 
 describe('admin dashboard overhaul property coverage', () => {
@@ -55,15 +35,14 @@ describe('admin dashboard overhaul property coverage', () => {
         fc.boolean(),
         async (callCount, refreshResult) => {
           // Feature: admin-dashboard-overhaul, Property 1: Concurrent refresh serialization
-          resetRefreshState()
-          const performRefresh = vi.fn(async () => refreshResult)
-          refreshClient.performRefresh = performRefresh
+          const fetchMock = vi.fn(async () => new Response(null, { status: refreshResult ? 200 : 401 }))
+          vi.stubGlobal('fetch', fetchMock)
 
           const results = await Promise.all(
-            Array.from({ length: callCount }, () => refreshClient.attemptRefresh())
+            Array.from({ length: callCount }, () => attemptRefresh())
           )
 
-          expect(performRefresh).toHaveBeenCalledTimes(1)
+          expect(fetchMock).toHaveBeenCalledTimes(1)
           expect(results).toEqual(Array(callCount).fill(refreshResult))
         }
       ),
@@ -79,19 +58,18 @@ describe('admin dashboard overhaul property coverage', () => {
 
     await fc.assert(
       fc.asyncProperty(fc.integer({ min: 0, max: 1999 }), async elapsedMs => {
-        resetRefreshState()
         vi.setSystemTime(new Date('2026-04-18T10:00:00.000Z'))
-        const performRefresh = vi.fn(async () => false)
-        refreshClient.performRefresh = performRefresh
+        const fetchMock = vi.fn(async () => new Response(null, { status: 401 }))
+        vi.stubGlobal('fetch', fetchMock)
 
-        await expect(refreshClient.attemptRefresh()).resolves.toBe(false)
-        expect(performRefresh).toHaveBeenCalledTimes(1)
-        performRefresh.mockClear()
+        await expect(attemptRefresh()).resolves.toBe(false)
+        expect(fetchMock).toHaveBeenCalledTimes(1)
+        fetchMock.mockClear()
 
         vi.setSystemTime(new Date(Date.now() + elapsedMs))
         // Without cooldown, a second call will invoke performRefresh again
-        await expect(refreshClient.attemptRefresh()).resolves.toBe(false)
-        expect(performRefresh).toHaveBeenCalledTimes(1)
+        await expect(attemptRefresh()).resolves.toBe(false)
+        expect(fetchMock).toHaveBeenCalledTimes(1)
       }),
       { numRuns: 100 }
     )

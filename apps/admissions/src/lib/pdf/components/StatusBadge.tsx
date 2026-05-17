@@ -18,15 +18,15 @@ export type StatusVariant = 'verified' | 'approved' | 'conditional' | 'pending'
 
 const variantStyles = {
   verified: {
-    bg: '#E5F0E8',
+    bg: colors.badge.greenBg,
     fg: colors.accent.green,
   },
   approved: {
-    bg: '#E5F0E8',
+    bg: colors.badge.greenBg,
     fg: colors.accent.green,
   },
   conditional: {
-    bg: '#F7E4EA',
+    bg: colors.badge.redBg,
     fg: colors.accent.red,
   },
   pending: {

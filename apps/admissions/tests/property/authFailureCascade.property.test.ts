@@ -5,7 +5,7 @@
  * (1) set the ['auth', 'session'] query data to null,
  * (2) call queryClient.clear(),
  * (3) call clearCsrfToken(),
- * (4) call secureStorage.clearSession(),
+ * (4) call clearSession(),
  * (5) dispatch a mihas:auth-expired CustomEvent with from and signInPath in the detail,
  * (6) store the current URL in sessionStorage under mihas:post-auth-redirect.
  * No window.location assignment SHALL occur.
@@ -262,8 +262,8 @@ describe('Property 8: Auth failure cascade clears all state', () => {
       expect(source).toContain('clearCsrfToken()');
     });
 
-    it('onAuthFailure calls secureStorage.clearSession()', () => {
-      expect(source).toContain('secureStorage.clearSession()');
+    it('onAuthFailure calls clearSession()', () => {
+      expect(source).toContain('clearSession()');
     });
 
     it('onAuthFailure dispatches mihas:auth-expired CustomEvent with from and signInPath', () => {
@@ -292,8 +292,8 @@ describe('Property 8: Auth failure cascade clears all state', () => {
       expect(source).toMatch(/import\s*\{[^}]*clearCsrfToken[^}]*\}\s*from\s*['"]@\/lib\/csrfToken['"]/);
     });
 
-    it('secureStorage is imported from lib/secureStorage', () => {
-      expect(source).toMatch(/import\s*\{[^}]*secureStorage[^}]*\}\s*from\s*['"]@\/lib\/secureStorage['"]/);
+    it('clearSession is imported from lib/secureStorage', () => {
+      expect(source).toMatch(/import\s*\{[^}]*clearSession[^}]*\}\s*from\s*['"]@\/lib\/secureStorage['"]/);
     });
   });
 });

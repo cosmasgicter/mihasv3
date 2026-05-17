@@ -74,26 +74,33 @@ def cta_button(label: str, href: str) -> str:
     safe_label = escape(label)
     safe_href = escape(href, quote=True)
     return f"""
-<!--[if mso]>
-<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml"
-             xmlns:w="urn:schemas-microsoft-com:office:word"
-             href="{safe_href}" style="height:48px;v-text-anchor:middle;
-             width:300px;" arcsize="12%" stroke="f" fillcolor="{t.INK_900}">
-  <w:anchorlock/>
-  <center style="color:{t.PAPER};font-family:{t.FONT_BODY};font-size:15px;
-                 font-weight:700;">{safe_label}</center>
-</v:roundrect>
-<![endif]-->
-<!--[if !mso]><!-- -->
-<a href="{safe_href}"
-   style="display:inline-block;background:{t.INK_900};color:{t.PAPER};
-          font-family:{t.FONT_BODY};font-size:{t.TYPE_BODY_SIZE};
-          font-weight:{t.WEIGHT_BOLD};line-height:1;text-decoration:none;
-          padding:14px 28px;border-radius:{t.RADIUS_SM};
-          mso-padding-alt:0;text-align:center;">
-  {safe_label}
-</a>
-<!--<![endif]-->
+<table role="presentation" cellpadding="0" cellspacing="0"
+       style="margin:{t.SPACE_LG} 0;">
+  <tr>
+    <td align="center" style="border-radius:{t.RADIUS_SM};background:{t.INK_900};">
+      <!--[if mso]>
+      <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml"
+                   xmlns:w="urn:schemas-microsoft-com:office:word"
+                   href="{safe_href}" style="height:48px;v-text-anchor:middle;
+                   width:280px;" arcsize="12%" stroke="f" fillcolor="{t.INK_900}">
+        <w:anchorlock/>
+        <center style="color:{t.PAPER};font-family:{t.FONT_BODY};font-size:15px;
+                       font-weight:700;">{safe_label}</center>
+      </v:roundrect>
+      <![endif]-->
+      <!--[if !mso]><!-- -->
+      <a href="{safe_href}"
+         style="display:inline-block;background:{t.INK_900};color:{t.PAPER};
+                font-family:{t.FONT_BODY};font-size:{t.TYPE_BODY_SIZE};
+                font-weight:{t.WEIGHT_BOLD};line-height:1;text-decoration:none;
+                padding:14px 32px;border-radius:{t.RADIUS_SM};
+                mso-padding-alt:0;text-align:center;">
+        {safe_label}
+      </a>
+      <!--<![endif]-->
+    </td>
+  </tr>
+</table>
 """.strip()
 
 
@@ -292,13 +299,16 @@ def to_plain_text(html: str) -> str:
     components produce predictable markup.
     """
     import re
+    from html import unescape
 
     # Drop <style> and <script> blocks entirely.
     html = re.sub(r"<(style|script)[^>]*>.*?</\1>", "", html, flags=re.S | re.I)
     # Newline-equivalent tags.
-    html = re.sub(r"<(br|tr|/p|/div|/table)[^>]*>", "\n", html, flags=re.I)
+    html = re.sub(r"<(br|tr|/p|/div|/table|/h[1-6])[^>]*>", "\n", html, flags=re.I)
     # Strip remaining tags.
     html = re.sub(r"<[^>]+>", "", html)
+    # Decode HTML entities (e.g. &mdash; → —, &amp; → &)
+    html = unescape(html)
     # Normalize whitespace.
     html = re.sub(r"[ \t]+", " ", html)
     html = re.sub(r" *\n *", "\n", html)

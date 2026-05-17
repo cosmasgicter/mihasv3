@@ -754,7 +754,7 @@ export default function AuditTrailPage() {
                         key={pageNumber}
                         type="button"
                         onClick={() => setPage(pageNumber)}
-                        className={`h-11 min-w-[44px] rounded-lg px-3 text-sm font-semibold transition-colors ${
+                        className={`h-11 min-w-touch rounded-lg px-3 text-sm font-semibold transition-colors ${
                           pageNumber === response.page
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-muted text-foreground hover:bg-muted/80'

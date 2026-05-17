@@ -301,7 +301,7 @@ function SidebarNavItem({
       to={item.to}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'group relative flex min-h-[44px] items-center rounded-lg',
+        'group relative flex min-h-touch items-center rounded-lg',
         'transition-colors duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-foreground',
         collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',

@@ -57,11 +57,11 @@ interface StatusPillProps {
 export function StatusPill({ status, size = 'sm', className = '' }: StatusPillProps) {
   const config = STATUS_MAP[status as ApplicationStatus] ?? { tone: 'neutral' as StatusTone, icon: <FileEdit className="h-3 w-3" /> }
   const toneClass = TONE_CLASSES[config.tone]
-  const sizeClass = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm'
+  const sizeClass = size === 'sm' ? 'rounded-full px-2.5 py-0.5 text-xs' : 'rounded-full px-3 py-1 text-sm'
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border font-medium whitespace-nowrap ${toneClass} ${sizeClass} ${className}`}
+      className={`inline-flex items-center gap-1 border font-medium whitespace-nowrap ${toneClass} ${sizeClass} ${className}`}
     >
       {config.icon}
       {formatApplicationStatus(status)}

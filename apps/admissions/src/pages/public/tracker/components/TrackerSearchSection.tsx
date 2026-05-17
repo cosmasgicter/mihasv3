@@ -69,7 +69,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               loading={loading}
               size="lg"
               disabled={loading || searchTerm.trim().length === 0}
-              className="h-14 min-h-[44px] w-full rounded-lg bg-primary px-8 font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 sm:w-auto"
+              className="h-14 min-h-touch w-full rounded-lg bg-primary px-8 font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 sm:w-auto"
             >
               <Search className="h-5 w-5 mr-2" aria-hidden="true" />
               {loading ? 'Searching...' : 'Search'}

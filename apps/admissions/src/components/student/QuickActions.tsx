@@ -67,7 +67,7 @@ function ActionCard({
   const content = (
     <div
       className={cn(
-        'interactive-surface motion-card flex min-h-[44px] items-center gap-3 rounded-lg border p-3',
+        'interactive-surface motion-card flex min-h-touch items-center gap-3 rounded-lg border p-3',
         variantStyles[variant],
         disabled && 'opacity-50 cursor-not-allowed',
         !disabled && 'cursor-pointer'

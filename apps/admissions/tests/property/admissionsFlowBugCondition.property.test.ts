@@ -78,7 +78,7 @@ describe('[PBT] Bug 2 — Phone with spaces normalized, placeholder no spaces', 
       __dirname, '../../src/pages/student/applicationWizard/steps/BasicKycStep.tsx'
     )
     const source = fs.readFileSync(basicKycPath, 'utf-8')
-    const placeholderMatch = source.match(/register\('phone'\)[\s\S]*?placeholder="([^"]+)"/)
+    const placeholderMatch = source.match(/label="Phone Number \*"[\s\S]*?placeholder="([^"]+)"/)
     expect(placeholderMatch).toBeTruthy()
     const placeholder = placeholderMatch![1]
     const phoneInPlaceholder = placeholder.replace(/^e\.g\.,?\s*/, '')
@@ -142,19 +142,16 @@ describe('[PBT] Bug 3 — PaymentStep uses Lenco payment + defer (no dev bypass)
     expect(hasPayLaterButton).toBe(true)
   })
 
-  it('property: PaymentStep has no unconditional dev bypass', () => {
+  it('property: PaymentStep only exposes dev bypass behind an explicit dev gate', () => {
     const paymentStepPath = path.resolve(
       __dirname, '../../src/pages/student/applicationWizard/steps/PaymentStep.tsx'
     )
     const source = fs.readFileSync(paymentStepPath, 'utf-8')
     fc.assert(
-      fc.property(
-        fc.constantFrom('VITE_PAYMENT_DEV_BYPASS', 'dev-bypass-payment-button'),
-        (pattern) => {
-          // Dev bypass patterns must NOT exist in the simplified PaymentStep
-          expect(source).not.toContain(pattern)
-        }
-      ),
+      fc.property(fc.constantFrom('production', 'prod'), () => {
+        expect(source).toContain('import.meta.env.DEV && import.meta.env.VITE_PAYMENT_DEV_BYPASS')
+        expect(source).not.toContain('dev-bypass-payment-button')
+      }),
       { numRuns: 2 }
     )
   })

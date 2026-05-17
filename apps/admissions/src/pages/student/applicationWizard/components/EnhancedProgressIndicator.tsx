@@ -71,7 +71,7 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       <div
         className={cn(
           'relative rounded-full flex items-center justify-center',
-          'text-sm font-semibold border-2 transition-all duration-500 ease-out z-10',
+          'text-sm font-semibold border-2 transition-[color,background-color,border-color,box-shadow] duration-300 ease-out z-10',
           isCompleted
             ? 'bg-success/90 border-success/70 text-white shadow-sm'
             : isCurrent
@@ -103,7 +103,7 @@ const StepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       <div
         className={cn(
           'mt-3 text-xs font-medium text-center leading-tight max-w-[100px]',
-          'transition-all duration-300',
+          'transition-[color] duration-150',
           isCurrent ? 'text-primary font-semibold' : isActive ? 'text-foreground' : 'text-muted-foreground'
         )}
       >
@@ -156,7 +156,7 @@ const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       className={cn(
         'flex items-center gap-3 w-full p-2 rounded-lg transition-colors',
         'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-        'min-h-[44px]',
+        'min-h-touch',
         isClickable ? 'cursor-pointer hover:bg-accent/50' : 'cursor-default',
         isCurrent && 'bg-primary/5'
       )}
@@ -167,7 +167,7 @@ const MobileStepItem = React.forwardRef<HTMLButtonElement, StepItemProps>(({
       <div
         className={cn(
           'w-11 h-11 rounded-full flex items-center justify-center',
-          'text-sm font-semibold border-2 flex-shrink-0 transition-all duration-300',
+          'text-sm font-semibold border-2 flex-shrink-0 transition-[color,background-color,border-color] duration-200',
           isCompleted
             ? 'bg-success border-success text-white'
             : isCurrent
@@ -265,7 +265,7 @@ export const EnhancedProgressIndicator = ({
         
         {/* Animated progress line */}
         <div
-          className="absolute top-[22px] left-0 h-0.5 bg-primary rounded-full transition-all duration-700 ease-out "
+          className="absolute top-[22px] left-0 h-0.5 bg-primary rounded-full transition-[width] duration-300 ease-out"
           style={{ width: `${displayProgressPercentage}%` }}
         />
 
@@ -320,7 +320,7 @@ export const EnhancedProgressIndicator = ({
               <React.Fragment key={step.id}>
                 {index > 0 && (
                   <div className={cn(
-                    'h-0.5 w-6 rounded-full transition-all duration-500',
+                    'h-0.5 w-6 rounded-full transition-[background-color] duration-200',
                     index <= currentStepIndex ? 'bg-primary' : 'bg-border/40'
                   )} />
                 )}
@@ -331,7 +331,7 @@ export const EnhancedProgressIndicator = ({
                   onKeyDown={(e: React.KeyboardEvent) => handleArrowKeyNavigation(e, index, mobileStepRefs)}
                   disabled={!isClickable}
                   className={cn(
-                    'relative flex items-center justify-center rounded-full transition-all duration-300',
+                    'relative flex items-center justify-center rounded-full transition-[color,background-color,border-color,box-shadow,transform] duration-200',
                     'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                     isClickable ? 'cursor-pointer' : 'cursor-default',
                     isCurrent
@@ -370,7 +370,7 @@ export const EnhancedProgressIndicator = ({
         </div>
         <div className="h-2 bg-border rounded-full overflow-hidden">
           <div
-            className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
+            className="h-full bg-primary rounded-full transition-[width] duration-300 ease-out"
             style={{ width: `${displayProgressPercentage}%` }}
           />
         </div>

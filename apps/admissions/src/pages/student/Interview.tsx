@@ -288,7 +288,7 @@ export default function InterviewPage() {
         <div className="mb-6">
           <Link 
             to="/student/dashboard" 
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+            className="inline-flex min-h-touch items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Dashboard
@@ -485,7 +485,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
             <Button
               asChild
               variant="primary"
-              className="min-h-[44px]"
+              className="min-h-touch"
             >
               <a
                 href={meetingLink}

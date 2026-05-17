@@ -8,7 +8,6 @@ import { logApiError } from '@/lib/apiErrorLogger'
 import { Skeleton } from '@/components/ui'
 import { calculateBestFivePoints, sanitizeGradeValue } from '@/lib/grades'
 import { SendNotificationModal } from './SendNotificationModal'
-import AdminCommunicationsPanel from '@/components/admin/AdminCommunicationsPanel'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
@@ -19,6 +18,7 @@ import { ApplicationDetailTimeline } from './ApplicationDetailTimeline'
 import { ApplicationDetailDocuments } from './ApplicationDetailDocuments'
 import { ApplicationDetailPayment, FeeWaiverDialog } from './ApplicationDetailPayment'
 import { ApplicationDetailInterview } from './ApplicationDetailInterview'
+import { AISummaryPanel } from './AISummaryPanel'
 import { formatApplicationStatus } from '@/types/applicationStatus'
 import type {
   ApplicationWithDetails,
@@ -145,7 +145,7 @@ export function ApplicationDetailModal({
  const [isClient, setIsClient] = useState(false)
  const [isGeneratingAcceptance, setIsGeneratingAcceptance] = useState(false)
  const [isGeneratingFinanceReceipt, setIsGeneratingFinanceReceipt] = useState(false)
- const [activeTab, setActiveTab] = useState<'overview' | 'interview' | 'grades' | 'documents' | 'communications' | 'history'>('overview')
+ const [activeTab, setActiveTab] = useState<'overview' | 'interview' | 'grades' | 'documents' | 'payment' | 'history' | 'ai'>('overview')
  const [applicationData, setApplicationData] = useState<ApplicationDetailResponse | null>(null)
  const [loading, setLoading] = useState(false)
  const [adminFeedback, setAdminFeedback] = useState('')
@@ -345,12 +345,13 @@ export function ApplicationDetailModal({
  }
 
  const tabs = [
- { id: 'overview', label: 'Overview', icon: User },
- { id: 'interview', label: 'Interview', icon: Calendar },
- { id: 'grades', label: 'Grades', icon: GraduationCap },
+ { id: 'overview', label: 'Personal', icon: User },
+ { id: 'grades', label: 'Academic', icon: GraduationCap },
  { id: 'documents', label: 'Documents', icon: FileText },
- { id: 'communications', label: 'Communications', icon: MessageSquare },
- { id: 'history', label: 'History', icon: History }
+ { id: 'payment', label: 'Payment', icon: CreditCard },
+ { id: 'interview', label: 'Interview', icon: Calendar },
+ { id: 'history', label: 'History', icon: History },
+ { id: 'ai', label: 'AI', icon: ClipboardList },
  ] as const
 
  const handleGenerateAcceptance = async () => {
@@ -387,21 +388,9 @@ export function ApplicationDetailModal({
  {/* Header */}
  <ApplicationDetailHeader application={application} onClose={onClose} />
 
- {/* Approval Actions — above the fold */}
- <div className="flex-shrink-0 border-b border-border bg-muted px-4 py-3 sm:px-6">
- <ApplicationApprovalActions
- applicationId={application.id}
- currentStatus={application.status}
- currentPaymentStatus={application.payment_status || 'not_paid'}
- onStatusUpdate={handleStatusWithWarning}
- onPaymentStatusUpdate={onPaymentStatusUpdate}
- disabled={updating === application.id}
- />
- </div>
-
  {/* Tabs */}
  <div className="flex-shrink-0 overflow-x-auto border-b border-border bg-card">
- <div className="flex min-w-max gap-1 px-2 py-2 sm:px-6" role="tablist" aria-label="Application details">
+ <div className="flex min-w-max px-2 sm:px-6" role="tablist" aria-label="Application details">
  {tabs.map((tab, index) => {
  const Icon = tab.icon
  return (
@@ -427,14 +416,14 @@ export function ApplicationDetailModal({
  document.getElementById(`tab-${ids[next]}`)?.focus()
  }
  }}
- className={`flex min-h-[40px] min-w-0 items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium leading-tight transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
+ className={`flex min-h-touch min-w-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-xs font-medium leading-tight transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
  activeTab === tab.id
- ? 'bg-foreground text-white'
- : 'text-foreground hover:bg-muted hover:text-foreground'
+ ? 'border-primary text-primary'
+ : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'
  }`}
  >
  <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
- <span className="hidden min-w-0 break-words sm:inline">{tab.label}</span>
+ <span className="hidden min-w-0 sm:inline">{tab.label}</span>
  </button>
  )
  })}
@@ -654,15 +643,6 @@ export function ApplicationDetailModal({
  </div>
  </div>
 
- {/* Payment Information */}
- <ApplicationDetailPayment
-   application={application}
-   applicationData={applicationData}
-   paymentRecords={paymentRecords}
-   loadingPayments={loadingPayments}
-   onShowNotificationModal={() => setShowNotificationModal(true)}
- />
-
  {/* Admin Feedback */}
  <div className="bg-card border border-primary/20 rounded-lg p-6">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -726,6 +706,16 @@ export function ApplicationDetailModal({
  </div>
  )}
 
+ {activeTab === 'payment' && (
+ <ApplicationDetailPayment
+   application={application}
+   applicationData={applicationData}
+   paymentRecords={paymentRecords}
+   loadingPayments={loadingPayments}
+   onShowNotificationModal={() => setShowNotificationModal(true)}
+ />
+ )}
+
  {activeTab === 'interview' && (
  <ApplicationDetailInterview
    application={application}
@@ -749,69 +739,69 @@ export function ApplicationDetailModal({
  />
  )}
 
- {activeTab === 'communications' && (
- (applicationData?.application?.user_id || application.user_id) ? (
- <AdminCommunicationsPanel
- userId={(applicationData?.application?.user_id || application.user_id)!}
- studentName={application.full_name}
- />
- ) : (
- <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm text-foreground">
- This application does not include a linked student user id, so communication history cannot be loaded.
- </div>
- )
- )}
-
  {activeTab === 'history' && (
  <ApplicationDetailTimeline 
  history={applicationData?.statusHistory || []} 
  loading={loading}
  />
  )}
+
+ {activeTab === 'ai' && (
+ <AISummaryPanel applicationId={application.id} />
+ )}
  </div>
  )}
  </div>
  </div>
- {/* Footer Actions */}
- <div className="flex-shrink-0 border-t border-border bg-card p-4 sm:p-5">
- <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
- <div className="flex flex-wrap gap-2">
+ {/* Action Bar — sticky bottom */}
+ <div className="flex-shrink-0 border-t border-border bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:p-5 sm:pb-5">
+ <ApplicationApprovalActions
+ applicationId={application.id}
+ currentStatus={application.status}
+ currentPaymentStatus={application.payment_status || 'not_paid'}
+ onStatusUpdate={handleStatusWithWarning}
+ onPaymentStatusUpdate={onPaymentStatusUpdate}
+ disabled={updating === application.id}
+ />
+ <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
  <Button
  variant="outline"
+ size="sm"
  onClick={() => setShowNotificationModal(true)}
- className="flex items-center gap-2"
+ className="flex items-center gap-1.5"
  >
- <Send className="h-4 w-4" />
- Send Notification
+ <Send className="h-3.5 w-3.5" />
+ Notify
  </Button>
- 
  {application.status === 'approved' && (
  <>
  <Button
  variant="outline"
+ size="sm"
  loading={isGeneratingAcceptance}
  onClick={() => { void handleGenerateAcceptance() }}
- className="flex items-center gap-2"
+ className="flex items-center gap-1.5"
  >
- <Download className="h-4 w-4" />
+ <Download className="h-3.5 w-3.5" />
  Acceptance Letter
  </Button>
  <Button
  variant="outline"
+ size="sm"
  loading={isGeneratingFinanceReceipt}
  onClick={() => { void handleGenerateFinanceReceipt() }}
- className="flex items-center gap-2"
+ className="flex items-center gap-1.5"
  >
- <CreditCard className="h-4 w-4" />
- Finance Receipt
+ <CreditCard className="h-3.5 w-3.5" />
+ Receipt
  </Button>
  </>
  )}
- </div>
- 
- <Button variant="outline" onClick={onClose}>
+ <div className="ml-auto">
+ <Button variant="outline" size="sm" onClick={onClose}>
  Close
  </Button>
+ </div>
  </div>
  </div>
  </div>
