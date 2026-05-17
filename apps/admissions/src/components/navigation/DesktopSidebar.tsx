@@ -238,7 +238,7 @@ function SidebarSection({
           className={cn(
             'flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em]',
             'text-muted-foreground transition-colors hover:text-white',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-foreground',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-foreground',
             hasActiveItem && 'text-sky-200'
           )}
         >
@@ -301,32 +301,20 @@ function SidebarNavItem({
       to={item.to}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'group relative flex min-h-[44px] items-center overflow-hidden rounded-lg',
+        'group relative flex min-h-[44px] items-center rounded-lg',
         'transition-colors duration-150',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-foreground',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-foreground',
         collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
         isActive
-          ? 'bg-card text-foreground font-semibold shadow-sm'
-          : 'text-muted-foreground hover:bg-card/8 hover:text-white'
+          ? 'border-l-2 border-primary bg-primary/10 text-primary font-semibold'
+          : 'text-muted-foreground hover:bg-muted hover:text-white'
       )}
     >
-      {/* Active indicator — only show when expanded */}
-      {isActive && !collapsed && (
-        <div
-          className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-sky-400 transition-opacity duration-200 motion-reduce:transition-none"
-          aria-hidden="true"
-        />
-      )}
-
-      {isActive && collapsed && (
-        <div className="absolute inset-y-2 left-1 w-1 rounded-full bg-sky-400" aria-hidden="true" />
-      )}
-
       {/* Icon */}
       <Icon
         className={cn(
           'h-5 w-5 shrink-0 transition-colors duration-150',
-          isActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-white'
+          isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-white'
         )}
       />
 
@@ -335,17 +323,12 @@ function SidebarNavItem({
         <span
           className={cn(
             'font-medium truncate transition-opacity duration-150 motion-reduce:transition-none',
-            isActive ? 'text-foreground' : 'text-muted-foreground'
+            isActive ? 'text-primary' : 'text-muted-foreground'
           )}
           style={{ fontSize: 'var(--type-sm)' }}
         >
           {item.label}
         </span>
-      )}
-
-      {/* Hover effect */}
-      {!isActive && (
-        <div className="pointer-events-none absolute inset-0 rounded-lg bg-card/5 opacity-0 transition-opacity duration-150 group-hover:opacity-100" aria-hidden="true" />
       )}
     </Link>
   )

@@ -15,7 +15,7 @@ import json
 import uuid
 
 import pytest
-from django.test import override_settings
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
 
@@ -47,7 +47,7 @@ def _post_webhook(
 
 @pytest.mark.django_db
 @override_settings(LENCO_WEBHOOK_ALLOWED_IPS=[])
-class TestWebhookReturns200:
+class TestWebhookReturns200(TestCase):
     """Every webhook delivery attempt returns HTTP 200.
 
     The view contract to Lenco is: "never return non-200 to a webhook

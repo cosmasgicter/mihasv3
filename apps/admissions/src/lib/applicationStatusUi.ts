@@ -40,7 +40,7 @@ export const ADMIN_APPLICATION_STATUS_BADGES: Record<ApplicationStatus, { cardCl
   },
   waitlisted: {
     cardClassName: 'bg-amber-100/80 text-amber-700',
-    tableClassName: 'bg-purple-100 text-purple-800 border-purple-300',
+    tableClassName: 'bg-amber-100 text-amber-800 border-amber-300',
   },
   withdrawn: {
     cardClassName: 'bg-muted/80 text-muted-foreground',

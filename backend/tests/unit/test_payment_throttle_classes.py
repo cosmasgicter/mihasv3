@@ -31,6 +31,7 @@ from apps.documents.views import (
     PaymentInitiateView,
     PaymentVerifyView,
 )
+from apps.common.throttling import PaymentUserScopedRateThrottle
 
 factory = APIRequestFactory()
 
@@ -98,13 +99,13 @@ class TestViewThrottleAssignment(SimpleTestCase):
     """Verify each payment view has the correct throttle class assigned."""
 
     def test_initiate_view_has_throttle(self):
-        self.assertIn(PaymentInitiateThrottle, PaymentInitiateView.throttle_classes)
+        self.assertIn(PaymentUserScopedRateThrottle, PaymentInitiateView.throttle_classes)
 
-    def test_verify_view_has_throttle(self):
-        self.assertIn(PaymentVerifyThrottle, PaymentVerifyView.throttle_classes)
+    def test_verify_view_has_hardened_scoped_throttle(self):
+        self.assertIn(PaymentUserScopedRateThrottle, PaymentVerifyView.throttle_classes)
 
     def test_mobile_money_view_has_throttle(self):
-        self.assertIn(MobileMoneyThrottle, MobileMoneyInitiateView.throttle_classes)
+        self.assertIn(PaymentUserScopedRateThrottle, MobileMoneyInitiateView.throttle_classes)
 
 
 # ---------------------------------------------------------------------------

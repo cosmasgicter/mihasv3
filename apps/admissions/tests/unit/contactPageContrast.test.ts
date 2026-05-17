@@ -36,6 +36,8 @@ vi.mock('@/components/icons', () => ({
   ArrowLeft: () => null, Mail: () => null, Phone: () => null,
   MapPin: () => null, Users: () => null, Award: () => null,
   BookOpen: () => null, Facebook: () => null, Twitter: () => null, Linkedin: () => null,
+  Home: () => null, Globe: () => null, FileCheck: () => null,
+  GraduationCap: () => null, MessageCircle: () => null, Clock: () => null,
 }))
 vi.mock('@/components/seo/Seo', () => ({ Seo: () => null }))
 
@@ -49,14 +51,14 @@ describe('Contact page — H1 contrast', () => {
     expect(h1!.className).toContain('text-foreground')
   })
 
-  it('H1 still has text-3xl font-bold sm:text-4xl sizing classes', async () => {
+  it('H1 still has text-3xl font-semibold sm:text-4xl sizing classes', async () => {
     const { default: ContactPage } = await import('@/pages/ContactPage')
     const markup = renderToStaticMarkup(React.createElement(ContactPage))
     const doc = new DOMParser().parseFromString(markup, 'text/html')
     const h1 = doc.querySelector('h1')
     expect(h1).not.toBeNull()
     expect(h1!.className).toContain('text-3xl')
-    expect(h1!.className).toContain('font-bold')
+    expect(h1!.className).toContain('font-semibold')
     expect(h1!.className).toContain('sm:text-4xl')
   })
 })

@@ -200,7 +200,7 @@ export default function NotificationSettings() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">{details.title}</h2>
-              <p className="text-sm text-foreground">{details.description}</p>
+              <p className="text-sm text-muted-foreground">{details.description}</p>
             </div>
           </div>
           <span
@@ -212,8 +212,8 @@ export default function NotificationSettings() {
           </span>
         </div>
 
-        <div className="space-y-2 text-sm text-foreground">
-          <p className="text-foreground">SMS uses the phone number on your profile.</p>
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>SMS uses the phone number on your profile.</p>
 
           {disableGrant && (
             <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-xs text-yellow-800">
@@ -226,8 +226,8 @@ export default function NotificationSettings() {
             </div>
           )}
 
-          <div className="flex flex-col gap-2 text-xs text-foreground">
-            <span className="uppercase tracking-wide text-foreground font-semibold">
+          <div className="flex flex-col gap-2 text-xs">
+            <span className="uppercase tracking-wide text-muted-foreground font-semibold">
               Current contact
             </span>
             <span className="text-sm text-foreground">{contactDetail}</span>
@@ -279,7 +279,7 @@ export default function NotificationSettings() {
         <div className="mb-6 sm:mb-8">
           <Link
             to="/student/settings"
-            className="mb-4 inline-flex min-h-[40px] items-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted"
+            className="mb-4 inline-flex min-h-[44px] items-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:bg-muted"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to profile settings
@@ -373,23 +373,23 @@ export default function NotificationSettings() {
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <p className="text-sm text-foreground">
-                      The inbox refreshes when the page is active and whenever you return to this tab, so recent updates should appear here without a full page reload.
+                    <p className="text-sm text-muted-foreground">
+                      The inbox refreshes when the page is active and whenever you return to this tab.
                     </p>
                   </div>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Unread</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Unread</p>
                     <p className="mt-1 text-2xl font-bold text-foreground">{unreadCount}</p>
                   </div>
                   <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Total recent</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total recent</p>
                     <p className="mt-1 text-2xl font-bold text-foreground">{notifications.length}</p>
                   </div>
                   <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Phone source</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Phone source</p>
                     <p className="mt-1 text-sm font-semibold text-foreground break-words">{contactSourceLabel}</p>
                   </div>
                 </div>
@@ -407,7 +407,7 @@ export default function NotificationSettings() {
                 ) : notifications.length === 0 ? (
                     <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center">
                       <p className="font-medium text-foreground">No in-app notifications yet</p>
-                    <p className="mt-1 text-sm text-foreground">Important updates will appear here as soon as they are sent. If you have just changed application state elsewhere, use refresh to pull the newest inbox items immediately.</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Important updates will appear here as soon as they are sent. Use refresh to pull the newest inbox items.</p>
                   </div>
                 ) : (
                   <div className="space-y-1">
@@ -423,13 +423,13 @@ export default function NotificationSettings() {
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="font-semibold text-foreground">{notification.title}</p>
-                            <p className="mt-1 text-sm text-foreground">{notification.content}</p>
+                            <p className="mt-1 text-sm text-muted-foreground">{notification.content}</p>
                           </div>
                           {!notification.read && (
                             <span className="mt-1 inline-flex h-2.5 w-2.5 rounded-full bg-primary" aria-label="Unread notification" />
                           )}
                         </div>
-                        <p className="mt-2 text-xs text-foreground">{formatTimestamp(notification.created_at) || 'Recently'}</p>
+                        <p className="mt-2 text-xs text-muted-foreground">{formatTimestamp(notification.created_at) || 'Recently'}</p>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {!notification.read && (
                             <Button

@@ -20,7 +20,7 @@ import uuid
 from unittest.mock import patch
 
 import pytest
-from django.test import override_settings
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
 
@@ -138,7 +138,7 @@ def _send_with_sentinel(
 
 @pytest.mark.django_db
 @override_settings(DEBUG=True, DJANGO_ENV="development")
-class TestPaymentViewsEmitDevBypassAuditInNonProduction:
+class TestPaymentViewsEmitDevBypassAuditInNonProduction(TestCase):
     """One test per view × one representative vector per view.
 
     We patch ``PaymentAuditService.record_payment_event`` so we assert on

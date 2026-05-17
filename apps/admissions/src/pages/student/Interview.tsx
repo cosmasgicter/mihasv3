@@ -428,61 +428,64 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
 
   return (
     <div 
-      className={`p-4 rounded-lg border transition-colors ${
+      className={`rounded-lg border p-4 transition-colors ${
         isUpcoming 
-          ? 'border-primary/30 bg-primary/5 hover:bg-primary/10' 
-          : 'border-border bg-card hover:bg-muted/50'
+          ? 'border-primary/30 bg-primary/5' 
+          : 'border-border bg-card'
       }`}
     >
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div className="flex-1 min-w-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex-1 min-w-0 space-y-3">
           {/* Program Name */}
-          <p className="font-medium text-foreground truncate mb-2">
+          <p className="font-semibold text-foreground truncate">
             {interview.program_name || 'Application Interview'}
           </p>
           
-          {/* Date and Time */}
-          {/* @requirements 4.1 - Display scheduled_at date and time */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <Calendar className="h-4 w-4 flex-shrink-0" />
-            <span>{date}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-            <Clock className="h-4 w-4 flex-shrink-0" />
-            <span>{time}</span>
+          {/* Date, Time, Mode — compact row */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <Calendar className="h-4 w-4 flex-shrink-0" />
+              {date}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Clock className="h-4 w-4 flex-shrink-0" />
+              {time}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
+              {getModeIcon(interview.mode)}
+              {getModeLabel(interview.mode)}
+            </span>
           </div>
 
-          {/* Mode and Location */}
-          {/* @requirements 4.2 - Show interview mode */}
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <div className="inline-flex items-center gap-1.5 text-sm bg-secondary/50 px-2 py-1 rounded">
-              {getModeIcon(interview.mode)}
-              <span>{getModeLabel(interview.mode)}</span>
-            </div>
-            
-            {modeDetail && (
-              <div className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                {modeDetail.icon}
-                <span>{modeDetail.text}</span>
-              </div>
-            )}
-          </div>
+          {/* Location / link detail */}
+          {modeDetail && (
+            <p className="text-sm text-muted-foreground inline-flex items-center gap-1.5">
+              {modeDetail.icon}
+              {modeDetail.text}
+            </p>
+          )}
 
           {/* Status Badge */}
-          {/* @requirements 4.5 - Show interview status */}
           <Badge variant={statusDisplay.variant} className="flex items-center gap-1 w-fit">
             {statusDisplay.icon}
             {statusDisplay.label}
           </Badge>
+
+          {/* Reminder copy for upcoming */}
+          {isUpcoming && (
+            <p className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+              Please arrive 10 minutes early. Bring your NRC or passport for identification.
+            </p>
+          )}
         </div>
 
         {/* Join Meeting Button */}
-        {/* @requirements 4.3 - Show Join Meeting button for virtual interviews */}
         {isUpcoming && interview.mode === 'virtual' && meetingLink && (
           <div className="flex-shrink-0">
             <Button
               asChild
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              variant="primary"
+              className="min-h-[44px]"
             >
               <a
                 href={meetingLink}

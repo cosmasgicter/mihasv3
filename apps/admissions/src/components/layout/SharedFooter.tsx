@@ -65,24 +65,24 @@ export function SharedFooter({ className }: SharedFooterProps) {
               </p>
               <a
                 href={`tel:${contactInfo.katcPhone.replace(/\s/g, '')}`}
-                className="flex items-center gap-2 text-white transition-colors hover:text-white"
+                className="flex min-h-[44px] items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
               >
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <span className="text-white"><strong>KATC:</strong> {contactInfo.katcPhone}</span>
+                <span><strong>KATC:</strong> {contactInfo.katcPhone}</span>
               </a>
               <a
                 href={`tel:${contactInfo.mihasPhone.replace(/\s/g, '')}`}
-                className="flex items-center gap-2 text-white transition-colors hover:text-white"
+                className="flex min-h-[44px] items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
               >
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <span className="text-white"><strong>MIHAS:</strong> {contactInfo.mihasPhone}</span>
+                <span><strong>MIHAS:</strong> {contactInfo.mihasPhone}</span>
               </a>
               <a
                 href={`mailto:${contactInfo.email}`}
-                className="flex items-center gap-2 text-white transition-colors hover:text-white"
+                className="flex min-h-[44px] items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
               >
                 <Mail className="h-4 w-4 flex-shrink-0" />
-                <span className="text-white">{contactInfo.katcEmail} | {contactInfo.email}</span>
+                <span>{contactInfo.katcEmail} | {contactInfo.email}</span>
               </a>
             </div>
           </div>
@@ -97,27 +97,27 @@ export function SharedFooter({ className }: SharedFooterProps) {
                     isLandingPage ? (
                       <a
                         href={link.href}
-                        className="flex items-center gap-2 text-sm text-white transition-colors hover:text-white sm:text-base"
+                        className="group flex min-h-[44px] items-center gap-2 text-sm text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4 sm:text-base"
                         onClick={(event) => handleInPageAnchor(event, link.href.replace('#', ''))}
                       >
-                        <ArrowRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                        <ArrowRight className="h-4 w-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
                         {link.name}
                       </a>
                     ) : (
                       <Link
                         to={`/${link.href}`}
-                        className="flex items-center gap-2 text-sm text-white transition-colors hover:text-white sm:text-base"
+                        className="group flex min-h-[44px] items-center gap-2 text-sm text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4 sm:text-base"
                       >
-                        <ArrowRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                        <ArrowRight className="h-4 w-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
                         {link.name}
                       </Link>
                     )
                   ) : (
                     <Link
                       to={link.href}
-                      className="flex items-center gap-2 text-sm text-white transition-colors hover:text-white sm:text-base"
+                      className="group flex min-h-[44px] items-center gap-2 text-sm text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4 sm:text-base"
                     >
-                      <ArrowRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                      <ArrowRight className="h-4 w-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
                       {link.name}
                     </Link>
                   )}
@@ -158,7 +158,7 @@ export function SharedFooter({ className }: SharedFooterProps) {
               href="https://beanola.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-white hover:underline"
+              className="font-semibold text-white underline-offset-4 hover:underline"
             >
               Beanola Technologies
             </a>

@@ -180,7 +180,7 @@ function inferValueType(value: string): SettingValueType {
 }
 
 function getValueTypeClass(type: SettingValueType) {
-  if (type === 'boolean') return 'bg-purple-100 text-purple-800'
+  if (type === 'boolean') return 'bg-info/10 text-info'
   if (type === 'integer') return 'bg-primary/10 text-primary-foreground'
   if (type === 'decimal') return 'bg-accent/10 text-accent-foreground'
   return 'bg-accent text-foreground'

@@ -44,9 +44,9 @@ export function PageShell({
   const accentClass = {
     default: 'border-primary/25',
     admin: 'border-primary/25',
-    student: 'border-cyan-600/25',
+    student: 'border-info/25',
     application: 'border-primary/25',
-    public: 'border-teal-600/25',
+    public: 'border-accent/25',
   }[tone]
 
   React.useEffect(() => {

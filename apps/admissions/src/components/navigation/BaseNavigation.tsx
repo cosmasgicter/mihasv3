@@ -68,7 +68,7 @@ export function BaseNavigation({
   }
 
   return (
-    <nav className={cn("bg-card/95  shadow-sm border-b border-border/50 sticky top-0 z-50", className)}>
+    <nav className={cn("bg-card shadow-sm border-b border-border sticky top-0 z-50", className)}>
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-3 sm:py-4 max-w-7xl mx-auto">
           {/* Brand */}
@@ -102,7 +102,7 @@ export function BaseNavigation({
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-scrim/70  lg:hidden transition-opacity duration-250 motion-reduce:transition-none"
+            className="fixed inset-0 bg-scrim/70 lg:hidden transition-opacity duration-200 motion-reduce:transition-none"
             style={{ zIndex: 9998 }}
             onClick={closeMenu}
           />
@@ -110,9 +110,9 @@ export function BaseNavigation({
           {/* Mobile Menu */}
           <div
             className={cn(
-              "fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-card shadow-sm lg:hidden border-l border-border overflow-y-auto",
-              "transition-transform duration-250 ease-standard motion-reduce:transition-none",
-              isOpen ? "translate-x-0" : "translate-x-full"
+              "fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-card shadow-sm lg:hidden border-r border-border overflow-y-auto",
+              "transition-transform duration-200 ease-out motion-reduce:transition-none",
+              isOpen ? "translate-x-0" : "-translate-x-full"
             )}
             style={{ zIndex: 9999 }}
           >
@@ -148,10 +148,11 @@ export function BaseNavigation({
                         <button
                           onClick={() => handleItemClick(item.href)}
                           className={cn(
-                            "w-full flex items-center justify-between px-4 py-4 rounded-lg transition-all duration-200 min-h-[48px] touch-target",
+                            "w-full flex items-center justify-between px-4 py-4 rounded-lg transition-colors duration-200 min-h-[48px] touch-target",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                             isActive
-                              ? "bg-primary text-primary-foreground shadow-sm"
-                              : "bg-card text-foreground hover:bg-accent border-2 border-border hover:border-primary"
+                              ? "border-l-2 border-primary bg-primary/10 text-primary font-semibold"
+                              : "bg-card text-foreground hover:bg-muted border border-border"
                           )}
                         >
                           <div className="flex items-center space-x-3">

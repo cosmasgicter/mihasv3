@@ -1,8 +1,16 @@
-/* Smooth Animations - Performance Optimized */
+/* Smooth Animations - Performance Optimized
+ * Timing convention:
+ *   100ms — instant feedback (button press, toggle)
+ *   150ms — state changes (hover, focus, active)
+ *   200ms — route transitions, content reveals
+ *   300ms — modal/drawer open/close
+ * Easing:
+ *   ease-out (0, 0, 0.2, 1) — entrances
+ *   ease-in (0.4, 0, 1, 1) — exits
+ *   ease (0.4, 0, 0.2, 1) — hover / symmetric
+ */
 
-/* Hardware acceleration for animated elements only - not global.
- * (Removed bouncy keyframes per 2026-05-17 design audit; use pulse / ping
- * for attention triggers and let exponential easing handle motion.) */
+/* Hardware acceleration for animated elements only */
 .animate-pulse,
 .animate-ping,
 [class*="animate-"],
@@ -11,7 +19,6 @@
   backface-visibility: hidden;
 }
 
-/* Base animation optimizations */
 .animate-pulse,
 .animate-ping,
 [class*="animate-"] {
@@ -20,295 +27,148 @@
   -webkit-transform: translateZ(0);
 }
 
-/* Smooth keyframe animations */
+/* ─── Keyframes ─────────────────────────────────────────────────────── */
+
 @keyframes smoothSpin {
-  from {
-    transform: rotate(0deg) translateZ(0);
-  }
-  to {
-    transform: rotate(360deg) translateZ(0);
-  }
-}
-
-@keyframes smoothPulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1) translateZ(0);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1.05) translateZ(0);
-  }
-}
-
-@keyframes smoothBounce {
-  0%, 20%, 53%, 80%, 100% {
-    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-    transform: translate3d(0, 0, 0);
-  }
-  40%, 43% {
-    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    transform: translate3d(0, -30px, 0);
-  }
-  70% {
-    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    transform: translate3d(0, -15px, 0);
-  }
-  90% {
-    transform: translate3d(0, -4px, 0);
-  }
+  from { transform: rotate(0deg) translateZ(0); }
+  to { transform: rotate(360deg) translateZ(0); }
 }
 
 @keyframes smoothFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px) translateZ(0);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) translateZ(0);
-  }
+  from { opacity: 0; transform: translateY(8px) translateZ(0); }
+  to { opacity: 1; transform: translateY(0) translateZ(0); }
 }
 
 @keyframes smoothSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px) translateZ(0);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) translateZ(0);
-  }
+  from { opacity: 0; transform: translateY(16px) translateZ(0); }
+  to { opacity: 1; transform: translateY(0) translateZ(0); }
 }
 
 @keyframes smoothSlideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px) translateZ(0);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) translateZ(0);
-  }
+  from { opacity: 0; transform: translateY(-16px) translateZ(0); }
+  to { opacity: 1; transform: translateY(0) translateZ(0); }
 }
 
 @keyframes smoothSlideLeft {
-  from {
-    opacity: 0;
-    transform: translateX(20px) translateZ(0);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) translateZ(0);
-  }
+  from { opacity: 0; transform: translateX(16px) translateZ(0); }
+  to { opacity: 1; transform: translateX(0) translateZ(0); }
 }
 
 @keyframes smoothSlideRight {
-  from {
-    opacity: 0;
-    transform: translateX(-20px) translateZ(0);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) translateZ(0);
-  }
+  from { opacity: 0; transform: translateX(-16px) translateZ(0); }
+  to { opacity: 1; transform: translateX(0) translateZ(0); }
 }
 
 @keyframes smoothScale {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateZ(0);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateZ(0);
-  }
+  from { opacity: 0; transform: scale(0.96) translateZ(0); }
+  to { opacity: 1; transform: scale(1) translateZ(0); }
 }
 
-/* Floating orb animations */
-@keyframes smoothFloat1 {
-  0%, 100% {
-    transform: translateY(0px) translateX(0px) translateZ(0);
-  }
-  33% {
-    transform: translateY(-20px) translateX(10px) translateZ(0);
-  }
-  66% {
-    transform: translateY(10px) translateX(-10px) translateZ(0);
-  }
-}
+/* ─── Utility classes ───────────────────────────────────────────────── */
 
-@keyframes smoothFloat2 {
-  0%, 100% {
-    transform: translateY(0px) translateX(0px) translateZ(0);
-  }
-  33% {
-    transform: translateY(15px) translateX(-15px) translateZ(0);
-  }
-  66% {
-    transform: translateY(-10px) translateX(15px) translateZ(0);
-  }
-}
-
-@keyframes smoothFloat3 {
-  0%, 100% {
-    transform: translateY(0px) translateX(0px) translateZ(0);
-  }
-  50% {
-    transform: translateY(-15px) translateX(0px) translateZ(0);
-  }
-}
-
-/* Loading skeleton shimmer */
-@keyframes smoothShimmer {
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
-}
-
-/* Smooth utility classes */
 .smooth-spin {
   animation: smoothSpin 1s linear infinite;
 }
 
-.smooth-pulse {
-  animation: smoothPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.smooth-bounce {
-  animation: smoothBounce 1s infinite;
-}
-
 .smooth-fade-in {
-  animation: smoothFadeIn 0.3s ease-out;
+  animation: smoothFadeIn 200ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
 .smooth-slide-up {
-  animation: smoothSlideUp 0.3s ease-out;
+  animation: smoothSlideUp 200ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
 .smooth-slide-down {
-  animation: smoothSlideDown 0.3s ease-out;
+  animation: smoothSlideDown 200ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
 .smooth-slide-left {
-  animation: smoothSlideLeft 0.3s ease-out;
+  animation: smoothSlideLeft 200ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
 .smooth-slide-right {
-  animation: smoothSlideRight 0.3s ease-out;
+  animation: smoothSlideRight 200ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
 .smooth-scale {
-  animation: smoothScale 0.3s ease-out;
+  animation: smoothScale 200ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
-/* Smooth transitions */
+/* ─── Transitions ───────────────────────────────────────────────────── */
+
 .smooth-transition {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, opacity;
-  transform: translateZ(0);
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .smooth-transition-fast {
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, opacity;
-  transform: translateZ(0);
+  transition: all 100ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .smooth-transition-slow {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, opacity;
-  transform: translateZ(0);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Hover effects */
+/* ─── Hover effects ─────────────────────────────────────────────────── */
+
 .smooth-hover:hover {
-  transform: translateY(-2px) translateZ(0);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px) translateZ(0);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
 }
 
 .smooth-hover-scale:hover {
-  transform: scale(1.05) translateZ(0);
+  transform: scale(1.02) translateZ(0);
 }
 
-.smooth-hover-rotate:hover {
-  transform: rotate(5deg) translateZ(0);
-}
+/* ─── Button ────────────────────────────────────────────────────────── */
 
-/* Button animations */
 .smooth-button {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, box-shadow;
-  transform: translateZ(0);
+  transition: all 100ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .smooth-button:hover {
   transform: translateY(-1px) translateZ(0);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
 }
 
 .smooth-button:active {
-  transform: translateY(0) translateZ(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: scale(0.98) translateZ(0);
+  box-shadow: none;
 }
 
-/* Navigation animations */
+/* ─── Navigation ────────────────────────────────────────────────────── */
+
 .smooth-nav-item {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, background-color;
-  transform: translateZ(0);
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.smooth-nav-item:hover {
-  transform: translateX(4px) translateZ(0);
-}
+/* ─── Modal ─────────────────────────────────────────────────────────── */
 
-/* Modal animations */
 .smooth-modal-backdrop {
-  animation: smoothFadeIn 0.2s ease-out;
+  animation: smoothFadeIn 300ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
 .smooth-modal-content {
-  animation: smoothScale 0.2s ease-out;
+  animation: smoothScale 300ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
-/* Loading states */
+/* ─── Skeleton loading ──────────────────────────────────────────────── */
+
 .smooth-skeleton {
   background: hsl(var(--muted));
   border-radius: 0.375rem;
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-/* Floating elements */
-.floating-orb {
-  will-change: transform;
-  transform: translateZ(0);
-}
+/* ─── Performance ───────────────────────────────────────────────────── */
 
-.floating-orb-1 {
-  animation: smoothFloat1 6s ease-in-out infinite;
-}
-
-.floating-orb-2 {
-  animation: smoothFloat2 8s ease-in-out infinite;
-}
-
-.floating-orb-3 {
-  animation: smoothFloat3 7s ease-in-out infinite;
-}
-
-/* Performance optimizations */
 .gpu-layer {
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
-  will-change: transform;
 }
 
-/* Reduce motion for accessibility */
+/* ─── Reduced motion ────────────────────────────────────────────────── */
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -317,20 +177,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-  
-  .floating-orb {
-    animation: none;
-  }
-}
-
-/* High refresh rate optimizations */
-@media (min-resolution: 120dpi) {
-  .smooth-transition {
-    transition-duration: 0.16s;
-  }
-  
-  .smooth-transition-fast {
-    transition-duration: 0.12s;
   }
 }

@@ -10,6 +10,7 @@ import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStat
 import { formatDate } from '@/lib/dateFormat'
 import { ADMIN_APPLICATION_STATUS_BADGES } from '@/lib/applicationStatusUi'
 import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'
+import { StatusPill } from '@/components/ui/StatusPill'
 import type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
 
 export type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
@@ -78,30 +79,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
   // Internalized getStatusBadge function with useCallback
   const getStatusBadge = useCallback((status: string) => {
-    const statusIcons: Record<ApplicationStatus, typeof Clock> = {
-      draft: Clock,
-      submitted: AlertTriangle,
-      under_review: Eye,
-      approved: CheckCircle,
-      conditionally_approved: CheckCircle,
-      rejected: XCircle,
-      waitlisted: Clock,
-      withdrawn: XCircle,
-      expired: AlertTriangle,
-      enrolled: CheckCircle,
-      enrollment_expired: AlertTriangle,
-    }
-
-    const normalizedStatus = status as ApplicationStatus
-    const config = ADMIN_APPLICATION_STATUS_BADGES[normalizedStatus] ?? ADMIN_APPLICATION_STATUS_BADGES.draft
-    const Icon = statusIcons[normalizedStatus] ?? statusIcons.draft
-
-    return (
-      <span className={`inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium leading-tight ${config.cardClassName}`}>
-        <Icon className="h-3 w-3 shrink-0" />
-        {formatApplicationStatus(status).toUpperCase()}
-      </span>
-    )
+    return <StatusPill status={status} size="sm" />
   }, [])
 
   // Internalized getPaymentBadge function with useCallback

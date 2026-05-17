@@ -29,7 +29,9 @@ from apps.documents.payment_query_views import (  # noqa: F401
     PaymentReceiptView,
     PaymentVerifyView,
     ProgramFeeViewSet,
+    _ip_allowed,
 )
+from apps.documents.throttles import PaymentVerifyThrottle  # noqa: F401
 from apps.documents.lenco_webhook_views import LencoWebhookView  # noqa: F401
 from apps.documents.document_storage_views import (  # noqa: F401
     DocumentDeleteView,
@@ -65,7 +67,9 @@ __all__ = [
     "PaymentListView",
     "PaymentReceiptView",
     "PaymentVerifyView",
+    "PaymentVerifyThrottle",
     "ProgramFeeViewSet",
     "SuperAdminPaymentCorrectionRequestSerializer",
     "SuperAdminPaymentCorrectionView",
+    "_ip_allowed",
 ]

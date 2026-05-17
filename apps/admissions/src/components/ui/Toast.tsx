@@ -43,9 +43,16 @@ function nextId(): string {
   return `toast-${Date.now()}-${++toastCounter}`;
 }
 
+const MIN_DURATION = 3000;
+const MAX_DURATION = 7000;
 const DEFAULT_DURATION = 5000;
-const ERROR_DURATION = 8000;
+const ERROR_DURATION = 7000;
 const DEDUP_WINDOW_MS = 3000;
+
+/** Clamp duration to [3s, 7s] range */
+function clampDuration(ms: number): number {
+  return Math.max(MIN_DURATION, Math.min(MAX_DURATION, ms));
+}
 
 /**
  * Simple hash for deduplication — combines type + title + message.
@@ -104,7 +111,7 @@ export const useToastStore = create<ToastStore>((set) => ({
     // Object signature: addToast({ type, title, message?, action?, duration? })
     const opts = optionsOrType;
     if (isDuplicate(toastHash(opts.type, opts.title, opts.message))) return;
-    const duration = opts.duration ?? (opts.type === 'error' ? ERROR_DURATION : DEFAULT_DURATION);
+    const duration = clampDuration(opts.duration ?? (opts.type === 'error' ? ERROR_DURATION : DEFAULT_DURATION));
     set((state) => ({
       toasts: [
         ...state.toasts,

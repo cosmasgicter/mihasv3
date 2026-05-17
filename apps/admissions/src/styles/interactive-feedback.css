@@ -259,35 +259,35 @@ button,
 
 /* ===== WIZARD STEP TRANSITIONS ===== */
 
-/* Crossfade + subtle slide for wizard step changes (≤300ms, CSS-only) */
+/* Crossfade + subtle horizontal slide for wizard step changes (200ms, ease-out) */
 @keyframes wizard-step-enter-right {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateX(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
 
 @keyframes wizard-step-enter-left {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateX(-8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
 
 .wizard-step-forward {
-  animation: wizard-step-enter-right 300ms ease-out;
+  animation: wizard-step-enter-right 200ms ease-out;
 }
 
 .wizard-step-backward {
-  animation: wizard-step-enter-left 300ms ease-out;
+  animation: wizard-step-enter-left 200ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {

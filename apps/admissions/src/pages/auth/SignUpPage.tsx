@@ -135,8 +135,8 @@ export default function SignUpPage() {
     return (
       <>
         <Seo
-          title="Create Account | MIHAS Admissions"
-          description="Create your MIHAS admissions account."
+          title="Create Account | MIHAS-KATC Admissions"
+          description="Create your MIHAS-KATC admissions account."
           path="/auth/signup"
         />
         <AuthShell title="Account created" description="Opening your dashboard…">
@@ -158,20 +158,20 @@ export default function SignUpPage() {
   return (
     <>
       <Seo
-        title="Create Account | MIHAS Admissions"
-        description="Create your MIHAS admissions account to start your application."
+        title="Create Account | MIHAS-KATC Admissions"
+        description="Create your MIHAS-KATC admissions account to start your application."
         path="/auth/signup"
       />
       <AuthShell
-        title="Create account"
+        title="Create your application account"
         description={
           <>
-            Already have an account?{' '}
+            Start your journey with MIHAS-KATC.{' '}
             <Link
               to="/auth/signin"
               className="font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
             >
-              Sign in
+              Already have an account? Sign in
             </Link>
           </>
         }
@@ -202,7 +202,7 @@ export default function SignUpPage() {
             }}
           />
           {signUpMutation.error ? (
-            <Banner variant="error" dismissible onDismiss={() => signUpMutation.reset()}>
+            <Banner variant="danger" dismissible onDismiss={() => signUpMutation.reset()}>
               {getErrorMessage(signUpMutation.error as Error)}
             </Banner>
           ) : null}

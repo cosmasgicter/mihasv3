@@ -8,5 +8,10 @@
     "rule": "overused-font",
     "file": "apps/jobs-ops/src/index.css",
     "reason": "Space Grotesk is the jobs-ops display font. Replacing requires a separate brand decision; tracked as P1 #13 in AUDIT-REPORT-2026-05-17.md. Baselined to allow incremental progress without blocking CI."
+  },
+  {
+    "rule": "side-tab",
+    "file": "apps/admissions/src/pages/student/ApplicationStatus.tsx",
+    "reason": "This is a vertical timeline step indicator (border-l-2 border-l-primary for active step, border-l-success/40 for completed, border-l-border for future). It is NOT a side-tab card — it is a progress timeline pattern. Baselined 2026-05-17 vibrant polish pass."
   }
 ]

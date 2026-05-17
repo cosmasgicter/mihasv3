@@ -61,6 +61,12 @@ vi.mock('@/components/icons', () => ({
   Facebook: () => null,
   Twitter: () => null,
   Linkedin: () => null,
+  Home: () => null,
+  Globe: () => null,
+  FileCheck: () => null,
+  GraduationCap: () => null,
+  MessageCircle: () => null,
+  Clock: () => null,
 }))
 vi.mock('@/components/seo/Seo', () => ({
   Seo: () => null,

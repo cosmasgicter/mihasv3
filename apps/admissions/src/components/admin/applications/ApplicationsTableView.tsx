@@ -14,6 +14,7 @@ import { formatDate } from '@/lib/dateFormat';
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus';
 import { ADMIN_APPLICATION_STATUS_BADGES } from '@/lib/applicationStatusUi';
 import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus';
+import { StatusPill } from '@/components/ui/StatusPill';
 import type { ApplicationSummary } from '@/hooks/admin/useApplicationsData';
 
 interface ApplicationsTableViewProps {

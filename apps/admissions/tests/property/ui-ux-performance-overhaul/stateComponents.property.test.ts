@@ -150,7 +150,7 @@ describe('Property 15: EmptyState Rendering Completeness', () => {
     // Description should use muted-foreground
     expect(emptyStateSource).toContain('text-muted-foreground')
     // Icon area should use muted-foreground
-    const iconSection = emptyStateSource.match(/icon\s*&&[\s\S]*?text-muted-foreground/)
+    const iconSection = emptyStateSource.match(/displayIcon[\s\S]*?text-muted-foreground/)
     expect(iconSection, 'EmptyState icon area should use text-muted-foreground').toBeTruthy()
   })
 })

@@ -54,7 +54,7 @@ export function ShapeLandingHero({
             {visiblePrograms.length > 0 && (
               <div className="mt-5 flex flex-wrap gap-2" aria-label="Available program areas">
                 {visiblePrograms.map((phrase) => (
-                  <span key={phrase} className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-muted-foreground">
+                  <span key={phrase} className="rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary">
                     {phrase}
                   </span>
                 ))}
@@ -70,7 +70,7 @@ export function ShapeLandingHero({
               className={cn(
                 'inline-flex min-h-[48px] items-center justify-center gap-2 rounded-lg font-semibold',
                 'bg-primary px-6 text-primary-foreground shadow-sm',
-                'hover:bg-primary/90 active:bg-primary/85',
+                'hover:bg-primary/90 active:bg-primary/85 active:scale-[0.98]',
                 'transition-colors duration-150 touch-manipulation',
                 'text-base',
               )}
@@ -115,7 +115,7 @@ export function ShapeLandingHero({
             <div className="mt-8 grid grid-cols-3 gap-3 border-t border-border pt-6">
               {proofPanel.highlights.map((stat) => (
                 <div key={stat.label}>
-                  <p className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{stat.value}</p>
+                  <p className="text-2xl font-semibold tracking-tight text-primary sm:text-3xl">{stat.value}</p>
                   <p className="mt-1 text-xs font-medium uppercase text-muted-foreground">{stat.label}</p>
                 </div>
               ))}
@@ -123,9 +123,9 @@ export function ShapeLandingHero({
           </div>
 
           <aside className="rounded-lg border border-border bg-card p-3 shadow-md">
-            <div className="relative overflow-hidden rounded-lg bg-muted">
+            <div className="relative overflow-hidden rounded-lg bg-primary/5">
               <div className="aspect-[4/3] grid grid-cols-2 gap-3 p-4 sm:p-6">
-                <figure className="flex flex-col items-center justify-center gap-3 rounded-md bg-card p-3 shadow-sm">
+                <figure className="flex flex-col items-center justify-center gap-3 rounded-md border border-border bg-card p-3 shadow-sm">
                   <img
                     src="/images/logos/mihas-logo.webp"
                     alt="Mukuba Institute of Health and Applied Sciences"
@@ -133,14 +133,14 @@ export function ShapeLandingHero({
                     height={96}
                     loading="eager"
                     decoding="async"
-                    className="h-14 w-14 sm:h-20 sm:w-20 object-contain"
+                    className="h-16 w-16 sm:h-20 sm:w-20 object-contain"
                   />
                   <figcaption className="text-center">
                     <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">MIHAS</p>
                     <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">Mukuba Institute · Kitwe</p>
                   </figcaption>
                 </figure>
-                <figure className="flex flex-col items-center justify-center gap-3 rounded-md bg-card p-3 shadow-sm">
+                <figure className="flex flex-col items-center justify-center gap-3 rounded-md border border-border bg-card p-3 shadow-sm">
                   <img
                     src="/images/logos/katc-logo.webp"
                     alt="Kalulushi Training Centre"
@@ -148,7 +148,7 @@ export function ShapeLandingHero({
                     height={96}
                     loading="eager"
                     decoding="async"
-                    className="h-14 w-14 sm:h-20 sm:w-20 object-contain"
+                    className="h-16 w-16 sm:h-20 sm:w-20 object-contain"
                   />
                   <figcaption className="text-center">
                     <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">KATC</p>
@@ -181,10 +181,10 @@ export function ShapeLandingHero({
                   <p className="mt-1 text-xs text-muted-foreground">Status updates from phone or desktop</p>
                 </div>
                 <div className="rounded-lg bg-muted p-3">
-                  <p className="text-xs font-semibold uppercase text-muted-foreground">Recognized by</p>
+                  <p className="text-xs font-semibold uppercase text-primary">Recognized by</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {proofPanel.badges.map((badge) => (
-                      <span key={badge} className="rounded-md border border-foreground/10 bg-foreground/75 px-2 py-1 text-[0.7rem] font-semibold text-white">
+                      <span key={badge} className="rounded-md border border-primary/20 bg-primary/10 px-2 py-1 text-[0.7rem] font-semibold text-primary">
                         {badge}
                       </span>
                     ))}

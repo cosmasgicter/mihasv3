@@ -129,7 +129,6 @@ function finaliseHtmlPlugin(): Plugin {
       if (landingEntry) {
         const hint = `<link rel="modulepreload" crossorigin href="/${landingEntry.file}" />`
         html = html.replace(/<\/head>/, `${hint}</head>`)
-        // eslint-disable-next-line no-console
         console.log(
           `\u001b[32m✓\u001b[0m finalise-html: preload hint for LandingPage (${landingEntry.file})`,
         )
@@ -180,7 +179,6 @@ function finaliseHtmlPlugin(): Plugin {
           (_match, pre, href, post) =>
             `<link rel="stylesheet"${pre}href="${href}"${post} crossorigin>`,
         )
-        // eslint-disable-next-line no-console
         console.log(
           `\u001b[32m✓\u001b[0m finalise-html: critters inlined critical CSS (HTML ${before} → ${html.length} bytes)`,
         )
@@ -189,7 +187,6 @@ function finaliseHtmlPlugin(): Plugin {
         // HTML. The page is still styled by the regular `<link>` in <head>;
         // we just lose the FCP optimization. This is the safe failure mode
         // — never ship an unstyled page.
-        // eslint-disable-next-line no-console
         console.warn(
           `\u001b[33m⚠\u001b[0m finalise-html: critters failed, leaving stylesheet untouched:`,
           err instanceof Error ? err.message : err,

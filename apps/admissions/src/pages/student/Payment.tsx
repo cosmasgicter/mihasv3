@@ -246,6 +246,7 @@ function ApplicationPaymentCard({ app, records, isSelected, onPaymentRefresh }: 
                 <div className="flex items-center gap-2">
                   <Badge variant={badge.variant} className="flex items-center gap-1">{badge.icon}{badge.label}</Badge>
                   <span className="text-foreground font-medium">{formatCurrency(rec.amount, rec.currency)}</span>
+                  <span className="text-xs text-muted-foreground">Lenco</span>
                 </div>
                 <span className="text-xs text-muted-foreground">{formatTimestamp(rec.created_at)}</span>
               </div>
@@ -440,9 +441,9 @@ export default function PaymentPage() {
 
           {paymentApplications.length === 0 && !appsError && (
             <EmptyState
-              icon={<FileText className="h-12 w-12" />}
-              heading="No Submitted Fees Yet"
-              description="Submitted applications with payment records or outstanding fees will appear here."
+              icon={<CreditCard className="h-12 w-12" />}
+              heading="No payments yet"
+              description="K150 / USD 20 collected during application. Payment records will appear here once you submit."
               action={{ label: 'Back to dashboard', onClick: () => navigate('/student/dashboard') }}
             />
           )}

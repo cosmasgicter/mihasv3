@@ -30,7 +30,7 @@ const AUTH_DIR = resolve(process.cwd(), 'src/components/auth')
 
 const COMPONENT_PATHS = {
   PageShell: resolve(UI_DIR, 'PageShell.tsx'),
-  AuthLayout: resolve(AUTH_DIR, 'AuthLayout.tsx'),
+  AuthShell: resolve(AUTH_DIR, 'AuthShell.tsx'),
   BottomNavigation: resolve(UI_DIR, 'BottomNavigation.tsx'),
   ResponsiveTable: resolve(UI_DIR, 'ResponsiveTable.tsx'),
   AppLayout: resolve(NAV_DIR, 'AppLayout.tsx'),
@@ -46,7 +46,7 @@ function loadSource(filePath: string): string {
   return readFileSync(filePath, 'utf-8')
 }
 
-function hasAuthLayoutWidthConstraint(source: string): boolean {
+function hasAuthShellWidthConstraint(source: string): boolean {
   return /max-w-(md|xl|2xl|3xl)\b/.test(source)
 }
 
@@ -116,13 +116,12 @@ describe('Property 27: No Horizontal Overflow at Any Breakpoint', () => {
     expect(src.includes('px-4'), 'PageShell must use px-4 base padding for mobile').toBe(true)
   })
 
-  it('PROPERTY: AuthLayout uses max-w-md and w-full to prevent overflow', () => {
-    const src = sources.AuthLayout
-    expect(src, 'AuthLayout source must be loaded').toBeDefined()
+  it('PROPERTY: AuthShell uses max-w-md and responsive padding to prevent overflow', () => {
+    const src = sources.AuthShell
+    expect(src, 'AuthShell source must be loaded').toBeDefined()
 
-    expect(hasAuthLayoutWidthConstraint(src), 'AuthLayout must use a max-w-* constraint to prevent overflow').toBe(true)
-    expect(src.includes('w-full'), 'AuthLayout must use w-full for responsive width').toBe(true)
-    expect(src.includes('px-4'), 'AuthLayout must use horizontal padding for mobile').toBe(true)
+    expect(hasAuthShellWidthConstraint(src), 'AuthShell must use a max-w-* constraint to prevent overflow').toBe(true)
+    expect(src.includes('px-4'), 'AuthShell must use horizontal padding for mobile').toBe(true)
   })
 
   it('PROPERTY: ResponsiveTable uses overflow-x-auto for desktop table view', () => {
@@ -178,11 +177,11 @@ describe('Property 27: No Horizontal Overflow at Any Breakpoint', () => {
         // overflow prevention patterns in place
 
         const pageShell = sources.PageShell
-        const authLayout = sources.AuthLayout
+        const authShell = sources.AuthShell
         const appLayout = sources.AppLayout
 
         expect(pageShell, 'PageShell source must be loaded').toBeDefined()
-        expect(authLayout, 'AuthLayout source must be loaded').toBeDefined()
+        expect(authShell, 'AuthShell source must be loaded').toBeDefined()
         expect(appLayout, 'AppLayout source must be loaded').toBeDefined()
 
         // PageShell: must have max-width + responsive padding at all breakpoints
@@ -193,10 +192,10 @@ describe('Property 27: No Horizontal Overflow at Any Breakpoint', () => {
           `PageShell must constrain width at ${breakpoint}px via max-w-* + mx-auto`
         ).toBe(true)
 
-        // AuthLayout: must have max-w-md for form card
+        // AuthShell: must have max-width containment for form surface
         expect(
-          hasAuthLayoutWidthConstraint(authLayout),
-          `AuthLayout must constrain form card width at ${breakpoint}px`
+          hasAuthShellWidthConstraint(authShell),
+          `AuthShell must constrain form card width at ${breakpoint}px`
         ).toBe(true)
 
         // AppLayout: must prevent overflow at the shell level

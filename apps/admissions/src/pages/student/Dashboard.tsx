@@ -19,7 +19,7 @@ import { DashboardStatusOverview } from '@/components/student/DashboardStatusOve
 import { ApplicationTimeline } from '@/components/student/ApplicationTimeline'
 import { QuickActions } from '@/components/student/QuickActions'
 import { ApplicationListItem } from '@/components/student/ApplicationListItem'
-import { User, FileText, Clock, RefreshCw, Calendar } from 'lucide-react'
+import { User, FileText, Clock, RefreshCw, Calendar, AlertCircle, CheckCircle } from 'lucide-react'
 
 import { SectionCard } from '@/components/ui/SectionCard'
 import { useToastStore } from '@/hooks/useToast'
@@ -348,9 +348,10 @@ export default function StudentDashboard() {
       } else {
         setIsRefreshing(true)
       }
-      setApplicationsError('')
-      setIntakesError('')
-      setInterviewsError('')
+      // Keep section-level failures visible until that specific section
+      // succeeds again. Clearing them optimistically at the start of every
+      // refresh makes intermittent failures disappear before the user can
+      // understand what went wrong.
 
       // Keep first paint focused on the primary dashboard data.
       const [localDraftResult, applicationsResult, interviewsResult] = await Promise.allSettled([
@@ -656,8 +657,31 @@ export default function StudentDashboard() {
             )}
 
             <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.NextActionCards', ...errorInfo })}>
-            <div className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-6">
-              <p className="text-xs font-semibold uppercase text-primary">Next action</p>
+            <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Next action</p>
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                  totalDraftCount > 0
+                    ? 'bg-muted text-muted-foreground'
+                    : hasPendingPayment
+                      ? 'bg-warning/10 text-warning'
+                      : hasScheduledInterview
+                        ? 'bg-primary/10 text-primary'
+                        : submittedApplications.length > 0
+                          ? 'bg-success/10 text-success'
+                          : 'bg-muted text-muted-foreground'
+                }`}>
+                  {totalDraftCount > 0
+                    ? <><Clock className="h-3 w-3" /> Draft</>
+                    : hasPendingPayment
+                      ? <><AlertCircle className="h-3 w-3" /> Payment</>
+                      : hasScheduledInterview
+                        ? <><Calendar className="h-3 w-3" /> Interview</>
+                        : submittedApplications.length > 0
+                          ? <><CheckCircle className="h-3 w-3" /> Submitted</>
+                          : <><FileText className="h-3 w-3" /> New</>}
+                </span>
+              </div>
               <h2 className="mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
                 {totalDraftCount > 0
                   ? 'Finish your saved application draft'
@@ -680,8 +704,8 @@ export default function StudentDashboard() {
                         ? 'Keep an eye on status updates, document requests, and admissions decisions.'
                         : 'Create your first application and save progress as you go.'}
               </p>
-              <div className="mt-4">
-                <Button variant="primary" size="lg" asChild>
+              <div className="mt-5">
+                <Button variant="primary" size="lg" className="min-h-[48px] px-6 text-base font-semibold shadow-sm" asChild>
                   <Link to={
                     totalDraftCount > 0
                       ? '/student/applications'
@@ -705,9 +729,6 @@ export default function StudentDashboard() {
                   </Link>
                 </Button>
               </div>
-              <p className="mt-4 border-t border-border/60 pt-3 text-xs text-muted-foreground">
-                Today's focus: {hasPendingPayment ? 'Payment follow-up' : hasScheduledInterview ? 'Interview preparation' : totalDraftCount > 0 ? `${totalDraftCount} draft${totalDraftCount > 1 ? 's' : ''} awaiting completion` : 'Application progress'}
-              </p>
             </div>
             </ErrorBoundary>
 

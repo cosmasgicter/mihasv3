@@ -3,13 +3,10 @@ import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from '@/lib/zod'
-/** Simple wrapper — ScrollReveal was removed, children render directly */
-const ScrollReveal = ({ children, className }: { children: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
 import { PublicLayout } from '@/components/layout/PublicLayout'
-import { Card, CardContent, CardTitle } from '@/components/ui'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/Button'
-import { ArrowLeft, Mail, Phone, MapPin, MessageCircle } from '@/components/icons'
+import { ArrowLeft, Mail, Phone, MapPin, MessageCircle, Clock } from '@/components/icons'
 import { Seo } from '@/components/seo/Seo'
 import { contactInfo } from '@/lib/constants/landing'
 
@@ -28,29 +25,6 @@ export function buildContactMailtoUrl(data: ContactFormData): string {
     [`Name: ${data.name}`, `Email: ${data.email}`, '', data.message].join('\n')
   )
   return `mailto:${contactInfo.email}?subject=${subject}&body=${body}`
-}
-
-interface ContactItemProps {
-  href?: string
-  icon: React.ReactNode
-  label?: string
-  children: React.ReactNode
-}
-
-function ContactItem({ href, icon, label, children }: ContactItemProps) {
-  const content = (
-    <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-muted">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-primary/15 bg-primary/10">
-        {icon}
-      </div>
-      <div className="min-w-0">
-        {label && <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>}
-        <p className="font-medium text-foreground truncate">{children}</p>
-      </div>
-    </div>
-  )
-  if (href) return <a href={href} className="block">{content}</a>
-  return content
 }
 
 export default function ContactPage() {
@@ -79,163 +53,199 @@ export default function ContactPage() {
         path="/contact"
       />
       <div className="bg-muted">
-      <div className="container-responsive px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
-        <ScrollReveal className="mx-auto max-w-5xl space-y-8">
-          <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-7 lg:p-8">
-            <Link
-              to="/"
-              className="mb-6 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
-            >
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              Back to Home
-            </Link>
-            <div className="flex flex-wrap gap-2" aria-label="Contact support topics">
-              {['Application help', 'Program guidance', 'Payment issues', 'International students'].map((topic) => (
-                <span key={topic} className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">
-                  {topic}
-                </span>
-              ))}
-            </div>
-            <h1 className="mt-5 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Talk to admissions
-            </h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-              Stuck on the application, not sure which program to pick, or waiting on a payment? Reach out through whichever channel you prefer. WhatsApp is fastest.
-            </p>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
-            <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
-              <h2 className="text-xl font-semibold tracking-tight text-foreground">How to reach us, fast</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                WhatsApp for quick questions — we usually reply within an hour during working days. Call if your payment did not go through. Email if it is long or you need to attach documents. If you are near Kalulushi, you can also walk into the KATC campus and someone will help you at reception.
+        <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+          {/* Hero */}
+          <div className="space-y-8">
+            <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-7 lg:p-8">
+              <Link
+                to="/"
+                className="mb-6 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                Back to Home
+              </Link>
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                Reach the admissions team
+              </h1>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+                Stuck on the application, not sure which program to pick, or waiting on a payment? Reach out through whichever channel you prefer. WhatsApp is fastest.
               </p>
             </div>
-            <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
-              <p className="text-xs font-semibold uppercase text-primary">Fastest route</p>
-              <div className="mt-4 grid gap-3">
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase text-emerald-700">WhatsApp</p>
-                  <a href={`https://wa.me/${contactInfo.katcPhone.replace(/[\s+]/g, '')}`} className="mt-1 text-lg font-semibold text-foreground hover:underline block">{contactInfo.katcPhone}</a>
+
+            {/* WhatsApp primary CTA */}
+            <div className="rounded-lg border border-success/30 bg-success/5 p-5 shadow-sm sm:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-success/10">
+                    <MessageCircle className="h-5 w-5 text-success" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-wider text-success">Fastest response</p>
+                    <p className="text-base text-foreground">WhatsApp — usually within an hour on working days</p>
+                  </div>
                 </div>
-                <div className="rounded-lg border border-border bg-muted px-4 py-3">
-                  <p className="text-xs font-semibold uppercase text-muted-foreground">Phone support</p>
-                  <p className="mt-1 text-lg font-semibold text-foreground">{contactInfo.katcPhone}</p>
+                <Button asChild size="lg" className="min-h-[44px] bg-success text-white hover:bg-success/90 sm:w-auto">
+                  <a href={`https://wa.me/${contactInfo.katcPhone.replace(/[\s+]/g, '')}`}>
+                    <MessageCircle className="mr-2 h-5 w-5" aria-hidden="true" />
+                    Chat on WhatsApp
+                  </a>
+                </Button>
+              </div>
+            </div>
+
+            {/* Contact grid */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <a
+                href={`tel:${contactInfo.katcPhone.replace(/\s/g, '')}`}
+                className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-muted"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Phone className="h-5 w-5 text-primary" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Call KATC</p>
+                  <p className="font-medium text-foreground">{contactInfo.katcPhone}</p>
+                </div>
+              </a>
+
+              <a
+                href={`tel:${contactInfo.mihasPhone.replace(/\s/g, '')}`}
+                className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-muted"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Phone className="h-5 w-5 text-primary" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Call MIHAS</p>
+                  <p className="font-medium text-foreground">{contactInfo.mihasPhone}</p>
+                </div>
+              </a>
+
+              <a
+                href={`mailto:${contactInfo.email}`}
+                className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-muted"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Mail className="h-5 w-5 text-primary" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Email</p>
+                  <p className="font-medium text-foreground truncate">{contactInfo.email}</p>
+                </div>
+              </a>
+
+              <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">MIHAS campus</p>
+                  <p className="text-sm text-foreground leading-5">{contactInfo.mihasAddress}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">KATC campus</p>
+                  <p className="text-sm text-foreground leading-5">{contactInfo.katcAddress}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Clock className="h-5 w-5 text-primary" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Hours of operation</p>
+                  <p className="text-sm font-medium text-foreground">Mon–Fri: 08:00–17:00</p>
+                  <p className="text-sm text-muted-foreground">Sat: 08:00–12:00</p>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Two-column layout */}
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            {/* Contact info */}
-            <Card className="rounded-lg border border-border bg-card shadow-sm">
-              <CardContent className="space-y-5 p-6 sm:p-8">
-                <CardTitle className="text-xl font-semibold">Talk to our team</CardTitle>
-                <div className="space-y-3">
-                  {/* WhatsApp — primary contact for Zambian students */}
-                  <ContactItem href={`https://wa.me/${contactInfo.katcPhone.replace(/[\s+]/g, '')}`} icon={<MessageCircle className="h-4 w-4 text-green-600" aria-hidden="true" />} label="WhatsApp (fastest)">
-                    {contactInfo.katcPhone}
-                  </ContactItem>
-                  <ContactItem href={`tel:${contactInfo.katcPhone.replace(/\s/g, '')}`} icon={<Phone className="h-4 w-4 text-primary" aria-hidden="true" />} label="Call KATC">
-                    {contactInfo.katcPhone}
-                  </ContactItem>
-                  <ContactItem href={`tel:${contactInfo.mihasPhone.replace(/\s/g, '')}`} icon={<Phone className="h-4 w-4 text-primary" aria-hidden="true" />} label="Call MIHAS">
-                    {contactInfo.mihasPhone}
-                  </ContactItem>
-                  <ContactItem href={`mailto:${contactInfo.email}`} icon={<Mail className="h-4 w-4 text-primary" aria-hidden="true" />} label="Email">
-                    {contactInfo.email}
-                  </ContactItem>
-                  <ContactItem icon={<MapPin className="h-4 w-4 text-primary" aria-hidden="true" />} label="MIHAS campus">
-                    {contactInfo.mihasAddress}
-                  </ContactItem>
-                  <ContactItem icon={<MapPin className="h-4 w-4 text-primary" aria-hidden="true" />} label="KATC campus">
-                    {contactInfo.katcAddress}
-                  </ContactItem>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Contact form */}
-            <Card className="rounded-lg border border-border bg-card shadow-sm">
-              <CardContent className="p-6 sm:p-8">
-                <CardTitle className="mb-6 text-xl font-semibold">Send a Message</CardTitle>
+            <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-7 lg:p-8">
+              <h2 className="text-xl font-semibold text-foreground">Send a message</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Prefer email? Fill in the form and we will prepare a draft in your email app.
+              </p>
 
-                {submitState === 'draft_ready' && draftUrl && (
-                  <div className="mb-6 space-y-3 rounded-lg border border-green-200 bg-green-50 p-5 text-sm text-green-800" role="status">
-                    <p>
-                      Your message draft is ready. Open it in your email app using the button below.
-                      If no email app is available, use the contact details shown on this page.
+              {submitState === 'draft_ready' && draftUrl && (
+                <div className="mt-6 space-y-3 rounded-lg border border-success/30 bg-success/5 p-5 text-sm text-foreground" role="status">
+                  <p>
+                    Your message draft is ready. Open it in your email app using the button below.
+                    If no email app is available, use the contact details shown on this page.
+                  </p>
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <Button asChild size="lg" className="min-h-[44px] w-full sm:w-auto">
+                      <a href={draftUrl}>Open Email App</a>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="lg"
+                      className="min-h-[44px] w-full sm:w-auto"
+                      onClick={() => { setSubmitState('idle'); setDraftUrl('') }}
+                    >
+                      Edit Message
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <form className="mt-6 space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+                <Input
+                  {...register('name')}
+                  type="text"
+                  inputMode="text"
+                  label="Name"
+                  autoComplete="name"
+                  placeholder="Your name"
+                  error={errors.name?.message}
+                  className="h-12 rounded-lg"
+                  required
+                />
+                <Input
+                  {...register('email')}
+                  type="email"
+                  inputMode="email"
+                  label="Email"
+                  autoComplete="email"
+                  placeholder="Email"
+                  error={errors.email?.message}
+                  className="h-12 rounded-lg"
+                  required
+                />
+                <div className="w-full">
+                  <label htmlFor="contact-message" className="block text-sm font-medium text-foreground mb-2">
+                    Message <span className="text-destructive ml-1">*</span>
+                  </label>
+                  <textarea
+                    id="contact-message"
+                    autoComplete="off"
+                    placeholder="How can we help?"
+                    rows={5}
+                    className="w-full min-h-[120px] rounded-lg border border-input bg-background px-4 py-3 text-[15px] text-foreground placeholder:text-muted-foreground hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors duration-150"
+                    aria-invalid={!!errors.message}
+                    aria-describedby={errors.message ? 'contact-message-error' : undefined}
+                    {...register('message')}
+                  />
+                  {errors.message && (
+                    <p id="contact-message-error" className="mt-1 text-sm text-destructive" role="alert">
+                      {errors.message.message}
                     </p>
-                    <div className="flex flex-col gap-3 sm:flex-row">
-                      <Button asChild size="lg" className="h-12 w-full sm:w-auto">
-                        <a href={draftUrl}>Open Email App</a>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="lg"
-                        className="h-12 w-full sm:w-auto"
-                        onClick={() => { setSubmitState('idle'); setDraftUrl('') }}
-                      >
-                        Edit Message
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
-                  <Input
-                    {...register('name')}
-                    type="text"
-                    inputMode="text"
-                    label="Name"
-                    autoComplete="name"
-                    placeholder="Your name"
-                    error={errors.name?.message}
-                    className="h-12 rounded-lg"
-                    required
-                  />
-                  <Input
-                    {...register('email')}
-                    type="email"
-                    inputMode="email"
-                    label="Email"
-                    autoComplete="email"
-                    placeholder="Email"
-                    error={errors.email?.message}
-                    className="h-12 rounded-lg"
-                    required
-                  />
-                  <div className="w-full">
-                    <label htmlFor="contact-message" className="block text-sm font-medium text-foreground mb-2">
-                      Message <span className="text-destructive ml-1">*</span>
-                    </label>
-                    <textarea
-                      id="contact-message"
-                      autoComplete="off"
-                      placeholder="How can we help?"
-                      rows={5}
-                      className="w-full min-h-[120px] rounded-lg border border-input bg-background px-4 py-3 text-[15px] text-foreground placeholder:text-muted-foreground hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors duration-150"
-                      aria-invalid={!!errors.message}
-                      aria-describedby={errors.message ? 'contact-message-error' : undefined}
-                      {...register('message')}
-                    />
-                    {errors.message && (
-                      <p id="contact-message-error" className="mt-1 text-sm text-destructive" role="alert">
-                        {errors.message.message}
-                      </p>
-                    )}
-                  </div>
-                  <Button type="submit" size="lg" className="h-12 w-full">
-                    {submitState === 'draft_ready' ? 'Update Email Draft' : 'Prepare Email Draft'}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+                  )}
+                </div>
+                <Button type="submit" size="lg" className="min-h-[44px] w-full">
+                  {submitState === 'draft_ready' ? 'Update Email Draft' : 'Prepare Email Draft'}
+                </Button>
+              </form>
+            </div>
           </div>
-        </ScrollReveal>
-      </div>
+        </div>
       </div>
     </PublicLayout>
   )

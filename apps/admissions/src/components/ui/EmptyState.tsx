@@ -1,6 +1,7 @@
 import React from 'react'
+import { Inbox } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/Button'
+import { Button, type ButtonProps } from '@/components/ui/Button'
 
 export interface EmptyStateProps {
   icon?: React.ReactNode
@@ -9,11 +10,7 @@ export interface EmptyStateProps {
   action?: {
     label: string
     onClick: () => void
-    variant?: 'primary' | 'outline'
-  }
-  secondaryAction?: {
-    label: string
-    onClick: () => void
+    variant?: ButtonProps['variant']
   }
   headingLevel?: 'h2' | 'h3'
   className?: string
@@ -25,48 +22,31 @@ export function EmptyState({
   heading,
   description,
   action,
-  secondaryAction,
   headingLevel = 'h3',
 }: EmptyStateProps) {
   const Heading = headingLevel
+  const displayIcon = icon ?? <Inbox />
 
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-4 py-16 text-center',
+        'flex flex-col items-center justify-center gap-5 px-6 py-20 text-center',
         className
       )}
     >
-      {icon && (
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-muted-foreground [&>svg]:h-8 [&>svg]:w-8">
-          {icon}
-        </div>
-      )}
+      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-muted-foreground [&>svg]:h-6 [&>svg]:w-6">
+        {displayIcon}
+      </div>
       <div className="space-y-1.5">
-        <Heading className="text-lg font-semibold text-foreground">{heading}</Heading>
+        <Heading className="text-base font-semibold text-foreground">{heading}</Heading>
         {description && (
-          <p className="mx-auto max-w-sm text-sm text-muted-foreground">{description}</p>
+          <p className="mx-auto max-w-xs text-sm text-muted-foreground">{description}</p>
         )}
       </div>
-      {(action || secondaryAction) && (
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-          {action && (
-            <Button
-              variant={action.variant === 'outline' ? 'outline' : 'primary'}
-              onClick={action.onClick}
-            >
-              {action.label}
-            </Button>
-          )}
-          {secondaryAction && (
-            <Button
-              variant="outline"
-              onClick={secondaryAction.onClick}
-            >
-              {secondaryAction.label}
-            </Button>
-          )}
-        </div>
+      {action && (
+        <Button variant={action.variant ?? 'primary'} onClick={action.onClick} className="mt-1">
+          {action.label}
+        </Button>
       )}
     </div>
   )

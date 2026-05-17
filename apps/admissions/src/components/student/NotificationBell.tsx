@@ -4,6 +4,7 @@ import { Bell, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useNotificationPolling } from '@/hooks/useNotificationPolling'
 import { isSafeNavigationUrl } from '@/lib/urlSafety'
+import { cn } from '@/lib/utils'
 import type { StudentNotification } from '@/types/notifications'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -101,13 +102,13 @@ export function NotificationBell() {
         aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
         data-testid="notification-bell"
       >
-        <Bell className={`h-5 w-5 text-muted-foreground${unreadCount > 0 ? ' motion-safe:animate-pulse' : ''}`} aria-hidden="true" style={unreadCount > 0 ? { animationIterationCount: 1 } : undefined} />
+        <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5" data-testid="unread-count">
-            {isPulsing && (
-              <span className="absolute inset-0 rounded-full bg-destructive motion-safe:animate-ping opacity-75" />
-            )}
-            <span className="relative min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white shadow-sm shadow-destructive/50">
+          <span className="absolute -top-0.5 -right-0.5 transition-transform duration-200" data-testid="unread-count">
+            <span className={cn(
+              "relative min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground shadow-sm",
+              isPulsing && "scale-110"
+            )} style={{ transition: 'transform 200ms ease-out' }}>
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           </span>
