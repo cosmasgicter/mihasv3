@@ -251,12 +251,17 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.3);
   transform: translate(-50%, -50%);
-  transition: width 0.3s, height 0.3s;
+  /* NOTE: 2026-05-17 — animating width/height causes layout thrash
+   * (anti-pattern: layout-transition). Use scale transform instead so the
+   * ripple animates on the GPU compositor rather than the layout thread. */
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
 }
 
 .nav-touch-feedback:active::after {
   width: 200px;
   height: 200px;
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 0;
 }
 
 /* Mobile menu text sizing */
@@ -570,19 +575,11 @@ nav button[class*="text-red-"],
   animation: shake 0.5s ease-in-out;
 }
 
-/* Success state animations */
-@keyframes success-bounce {
-  0%, 20%, 60%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-10px);
-  }
-  80% {
-    transform: translateY(-5px);
-  }
-}
-
+/* Success state animations
+ * NOTE: 2026-05-17 — bounce keyframes removed per design audit. The
+ * `success-bounce` class is preserved as a no-op so existing consumers
+ * don't fail; if you want emphasis on success, use `animate-pulse` once
+ * or a brief `transform: scale(1.05)` ease-out instead. */
 .success-bounce {
-  animation: success-bounce 0.6s ease;
+  /* intentionally empty — see note above */
 }

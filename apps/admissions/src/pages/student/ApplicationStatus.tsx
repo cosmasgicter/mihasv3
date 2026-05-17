@@ -49,6 +49,8 @@ import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { PageShell } from '@/components/ui/PageShell'
 import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
 import { useToastStore } from '@/hooks/useToast'
+import { isValidEmail, isValidPhoneNumber } from '@/lib/utils'
+import { canWithdraw } from '@/lib/withdrawalEligibility'
 
 interface ApplicationTimeline {
   status: string
@@ -76,7 +78,8 @@ const AMENDABLE_FIELDS = [
   { key: 'next_of_kin_phone', label: 'Next of Kin Phone' },
 ] as const
 
-const WITHDRAWAL_STATUSES = new Set(['submitted', 'under_review', 'waitlisted'])
+const AMENDABLE_STATUSES = new Set(['submitted', 'under_review', 'waitlisted'])
+const PHONE_AMENDMENT_FIELDS = new Set(['phone', 'next_of_kin_phone'])
 
 function formatStatusLabel(status: string) {
   return status.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase())
@@ -221,11 +224,25 @@ export default function ApplicationStatus() {
     e.preventDefault()
     setAmendError('')
     setAmendSuccess('')
-    if (!amendField || !amendValue.trim() || !amendReason.trim()) {
+    const normalizedValue = amendValue.trim()
+    const normalizedReason = amendReason.trim()
+
+    if (!amendField || !normalizedValue || !normalizedReason) {
       setAmendError('All fields are required.')
       return
     }
-    amendMutation.mutate({ field_name: amendField, new_value: amendValue.trim(), reason: amendReason.trim() })
+
+    if (amendField === 'email' && !isValidEmail(normalizedValue)) {
+      setAmendError('Enter a valid email address.')
+      return
+    }
+
+    if (PHONE_AMENDMENT_FIELDS.has(amendField) && !isValidPhoneNumber(normalizedValue)) {
+      setAmendError('Enter a valid phone number with digits only, optionally prefixed with +.')
+      return
+    }
+
+    amendMutation.mutate({ field_name: amendField, new_value: normalizedValue, reason: normalizedReason })
   }
 
   const getStatusIcon = (status: string) => {
@@ -292,7 +309,15 @@ export default function ApplicationStatus() {
       })
     }
 
-    if (application.status === 'under_review' || application.status === 'approved' || application.status === 'rejected' || application.status === 'waitlisted') {
+    if (
+      application.status === 'under_review' ||
+      application.status === 'approved' ||
+      application.status === 'rejected' ||
+      application.status === 'waitlisted' ||
+      application.status === 'conditionally_approved' ||
+      application.status === 'enrolled' ||
+      application.status === 'enrollment_expired'
+    ) {
       timeline.push({
         status: 'under_review',
         date: application.review_started_at || application.updated_at,
@@ -310,11 +335,55 @@ export default function ApplicationStatus() {
       })
     }
 
-    if (application.status === 'approved' || application.status === 'rejected') {
+    if (
+      application.status === 'approved' ||
+      application.status === 'rejected' ||
+      application.status === 'conditionally_approved'
+    ) {
       timeline.push({
         status: application.status,
         date: application.decision_date || application.updated_at,
-        description: application.status === 'approved' ? 'Application approved' : 'Application not successful',
+        description:
+          application.status === 'approved'
+            ? 'Application approved'
+            : application.status === 'conditionally_approved'
+              ? 'Application conditionally approved'
+              : 'Application not successful',
+        completed: true
+      })
+    }
+
+    if (application.status === 'enrolled') {
+      timeline.push({
+        status: 'approved',
+        date: application.decision_date || application.updated_at,
+        description: 'Application approved',
+        completed: true
+      })
+      timeline.push({
+        status: 'enrolled',
+        date: application.updated_at,
+        description: 'Enrollment confirmed',
+        completed: true
+      })
+    }
+
+    if (application.status === 'withdrawn') {
+      timeline.push({
+        status: 'withdrawn',
+        date: application.updated_at,
+        description: 'Application withdrawn',
+        completed: true
+      })
+    }
+
+    if (application.status === 'expired' || application.status === 'enrollment_expired') {
+      timeline.push({
+        status: application.status,
+        date: application.updated_at,
+        description: application.status === 'expired'
+          ? 'Application expired'
+          : 'Enrollment confirmation window expired',
         completed: true
       })
     }
@@ -461,38 +530,38 @@ export default function ApplicationStatus() {
         <div className="space-y-6 sm:space-y-8">
           <Link
             to="/student/dashboard"
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to dashboard
           </Link>
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.8fr)]">
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
               <div className="flex flex-wrap items-center gap-2">
                 {['Status clarity', 'Document access', 'Payment guidance'].map((item) => (
-                  <span key={item} className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700">
+                  <span key={item} className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">
                     {item}
                   </span>
                 ))}
               </div>
-              <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+              <h2 className="mt-4 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
                 A single view of where your application stands and what happens next
               </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
                 This page is structured to reduce uncertainty. The latest admissions state, payment position, interview details, and supporting documents are all surfaced here in the order students usually need them.
               </p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
               <p className="text-xs font-semibold uppercase text-primary">Decision snapshot</p>
               <div className="mt-4 grid gap-3">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase text-slate-500">Status</p>
-                  <p className="mt-1 text-lg font-semibold text-slate-950">{formatStatusLabel(application.status)}</p>
+                <div className="rounded-lg border border-border bg-muted px-4 py-3">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Status</p>
+                  <p className="mt-1 text-lg font-semibold text-foreground">{formatStatusLabel(application.status)}</p>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase text-slate-500">Priority</p>
-                  <p className="mt-1 text-lg font-semibold text-slate-950">
+                <div className="rounded-lg border border-border bg-muted px-4 py-3">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Priority</p>
+                  <p className="mt-1 text-lg font-semibold text-foreground">
                     {needsPaymentAttention ? 'Resolve payment' : hasActiveInterview ? 'Prepare for interview' : application.status === 'approved' ? 'Confirm enrollment' : 'Watch review progress'}
                   </p>
                 </div>
@@ -583,7 +652,7 @@ export default function ApplicationStatus() {
                 icon={<FileText className="h-5 w-5" />}
               >
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-5 py-4">
+                  <div className="rounded-lg border border-border bg-muted px-5 py-4">
                     <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><User className="w-5 h-5" aria-hidden="true" /> Personal information</h3>
                     <dl className="space-y-2 text-sm">
                       <DetailRow label="Full name" value={application.full_name || 'Not provided'} />
@@ -593,7 +662,7 @@ export default function ApplicationStatus() {
                       <DetailRow label="Email" value={application.email || 'Not provided'} />
                     </dl>
                   </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-5 py-4">
+                  <div className="rounded-lg border border-border bg-muted px-5 py-4">
                     <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><Phone className="w-5 h-5" aria-hidden="true" /> Contact information</h3>
                     <dl className="space-y-2 text-sm">
                       <DetailRow label="Residence town" value={application.residence_town || 'Not provided'} />
@@ -602,7 +671,7 @@ export default function ApplicationStatus() {
                       <DetailRow label="Next of kin phone" value={application.next_of_kin_phone || 'Not provided'} />
                     </dl>
                   </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-5 py-4 lg:col-span-2">
+                  <div className="rounded-lg border border-border bg-muted px-5 py-4 lg:col-span-2">
                     <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2"><CreditCard className="w-5 h-5" aria-hidden="true" /> Payment information</h3>
                     <dl className="grid gap-2 text-sm sm:grid-cols-2">
                       <DetailRow label="Payment status" value={paymentStatusLabel} />
@@ -628,7 +697,7 @@ export default function ApplicationStatus() {
                 <div className="space-y-4">
                   {application.result_slip_url && (
                     <div
-                      className={`flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 ${animateClasses.fadeIn}`}
+                      className={`flex items-center justify-between rounded-lg border border-border bg-muted px-4 py-3 ${animateClasses.fadeIn}`}
                     >
                       <div className="flex items-center gap-3">
                         <div className="rounded-lg bg-primary/10 p-2">
@@ -659,7 +728,7 @@ export default function ApplicationStatus() {
 
                   {application.extra_kyc_url && (
                     <div
-                      className={`flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 ${animateClasses.fadeIn}`}
+                      className={`flex items-center justify-between rounded-lg border border-border bg-muted px-4 py-3 ${animateClasses.fadeIn}`}
                       style={staggerChild(1, 100)}
                     >
                       <div className="flex items-center gap-3">
@@ -751,7 +820,7 @@ export default function ApplicationStatus() {
               )}
 
               {/* Amendment request form (Req 14.10) */}
-              {application.status !== 'draft' && application.status !== 'rejected' && application.status !== 'withdrawn' && application.status !== 'expired' && (
+              {AMENDABLE_STATUSES.has(application.status) && (
                 <SectionCard
                   title="Request an amendment"
                   description="Request a change to your personal details. Amendments require admin approval."
@@ -776,9 +845,13 @@ export default function ApplicationStatus() {
                       <label htmlFor="amend-value" className="block text-sm font-medium text-foreground mb-1">New value</label>
                       <input
                         id="amend-value"
-                        type="text"
+                        type={amendField === 'email' ? 'email' : 'text'}
+                        inputMode={PHONE_AMENDMENT_FIELDS.has(amendField) ? 'tel' : amendField === 'email' ? 'email' : 'text'}
                         value={amendValue}
-                        onChange={(e) => setAmendValue(e.target.value)}
+                        onChange={(e) => {
+                          setAmendValue(e.target.value)
+                          if (amendError) setAmendError('')
+                        }}
                         className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         placeholder="Enter the corrected value"
                       />
@@ -873,7 +946,7 @@ export default function ApplicationStatus() {
                     </Link>
                   </Button>
                   {/* Withdrawal button for eligible statuses */}
-                  {WITHDRAWAL_STATUSES.has(application.status) && (
+                  {canWithdraw(application.status) && (
                     <Button
                       variant="ghost"
                       className="w-full text-destructive hover:bg-destructive/5"

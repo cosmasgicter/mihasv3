@@ -110,7 +110,7 @@ export function FormFeedback({
               onDismiss()
             }}
             className={cn(
-              'flex-shrink-0 p-1 rounded hover:bg-black/5 transition-colors duration-100',
+              'flex-shrink-0 p-1 rounded hover:bg-foreground/5 transition-colors duration-100',
               config.textClass
             )}
             aria-label="Dismiss"

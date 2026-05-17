@@ -42,21 +42,26 @@
   @apply text-blue-700 dark:text-blue-400 font-semibold;
 }
 
-/* Background + Text Combinations */
+/* Background + Text Combinations
+ * NOTE: 2026-05-17 — `dark:text-gray-200` removed (gray-on-color anti-pattern).
+ * Dark mode is disabled at the HTML level (see `index.css`). When dark mode
+ * is reintroduced, pair each subtle background with its semantic status
+ * foreground (`text-success-foreground`, `text-warning-foreground`, etc.)
+ * not generic gray. */
 .bg-success-subtle {
-  @apply bg-green-50 dark:bg-green-900/20 text-foreground dark:text-gray-200;
+  @apply bg-green-50 text-foreground;
 }
 
 .bg-warning-subtle {
-  @apply bg-yellow-50 dark:bg-yellow-900/20 text-foreground dark:text-gray-200;
+  @apply bg-yellow-50 text-foreground;
 }
 
 .bg-error-subtle {
-  @apply bg-red-50 dark:bg-red-900/20 text-foreground dark:text-gray-200;
+  @apply bg-red-50 text-foreground;
 }
 
 .bg-info-subtle {
-  @apply bg-blue-50 dark:bg-blue-900/20 text-foreground dark:text-gray-200;
+  @apply bg-blue-50 text-foreground;
 }
 
 /* Badge/Pill Styles */

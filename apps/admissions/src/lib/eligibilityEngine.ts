@@ -15,26 +15,6 @@ export type CurriculumType = 'ecz' | 'cambridge_igcse' | 'cambridge_alevel'
 
 // ─── Grade Constants ───────────────────────────────────────────────────────────
 
-export const ZAMBIAN_GRADE_SCALE = {
-  DISTINCTION: 1,
-  MERIT: 2,
-  CREDIT: 6,
-  PASS: 7,
-  FAIL: 9,
-} as const
-
-export const GRADE_DESCRIPTIONS: Record<number, string> = {
-  1: 'Distinction (1)',
-  2: 'Merit (2)',
-  3: 'Very Good (3)',
-  4: 'Good (4)',
-  5: 'Satisfactory (5)',
-  6: 'Credit (6)',
-  7: 'Pass (7)',
-  8: 'Weak Pass (8)',
-  9: 'Fail (9)',
-}
-
 export const CAMBRIDGE_IGCSE_GRADES: Record<string, { numeric: number; description: string }> = {
   'A*': { numeric: 1, description: 'A* – Distinction' },
   'A':  { numeric: 2, description: 'A – Merit' },
@@ -136,16 +116,6 @@ export interface EnhancedEligibilityResult {
   regulatoryBody?: string
 }
 
-export interface EligibilityRule {
-  id: string
-  program_id: string
-  rule_name: string
-  rule_type: 'subject_count' | 'grade_average' | 'specific_subject' | 'composite'
-  condition_json: any
-  weight: number
-  is_active: boolean
-}
-
 export interface EligibilityAssessment {
   id?: string
   application_id: string
@@ -172,15 +142,6 @@ export interface MissingRequirement {
   description: string
   severity: 'critical' | 'major' | 'minor'
   suggestion: string
-}
-
-export interface RegulatoryGuideline {
-  id: string
-  regulatory_body: string
-  guideline_type: string
-  requirement_text: string
-  compliance_level: 'mandatory' | 'recommended' | 'optional'
-  verification_required: boolean
 }
 
 // ─── Grade Parsing ─────────────────────────────────────────────────────────────
@@ -534,8 +495,6 @@ export async function checkEnhancedEligibility(
     ] : undefined
   }
 }
-
-export const eligibilityCalculator = { calculate: checkEligibility }
 
 // ─── Eligibility Engine Class ──────────────────────────────────────────────────
 

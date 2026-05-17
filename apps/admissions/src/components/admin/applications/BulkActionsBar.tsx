@@ -97,7 +97,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
     </div>
 
     {confirmReject && (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60  p-4" onKeyDown={(e) => { if (e.key === 'Escape') setConfirmReject(false) }}>
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-scrim/60  p-4" onKeyDown={(e) => { if (e.key === 'Escape') setConfirmReject(false) }}>
         <div ref={rejectDialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="bulk-reject-dialog-title" className="w-full max-w-sm rounded-lg bg-card p-6 shadow-md animate-in fade-in zoom-in-95 duration-200">
           <h3 id="bulk-reject-dialog-title" className="text-lg font-semibold text-foreground mb-2">Confirm bulk reject</h3>
           <p className="text-sm text-muted-foreground mb-4">

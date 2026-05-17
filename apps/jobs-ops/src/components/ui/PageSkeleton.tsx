@@ -34,7 +34,7 @@ export function PageSkeleton({ variant = 'cards' }: PageSkeletonProps) {
       <div
         aria-busy="true"
         aria-label="Loading table"
-        className="animate-pulse rounded-[28px] border border-line/70 bg-white/85 p-5 shadow-sm"
+        className="animate-pulse rounded-[28px] border border-line/70 bg-panel/85 p-5 shadow-sm"
       >
         {/* Table header row */}
         <div className="flex gap-4 border-b border-line/40 pb-3">
@@ -70,7 +70,7 @@ export function PageSkeleton({ variant = 'cards' }: PageSkeletonProps) {
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="rounded-[28px] border border-line/70 bg-white/85 p-5 shadow-sm"
+            className="rounded-[28px] border border-line/70 bg-panel/85 p-5 shadow-sm"
           >
             <div className="h-3 w-24 rounded-full bg-canvas" />
             <div className="mt-4 h-8 w-16 rounded-full bg-canvas" />
@@ -79,7 +79,7 @@ export function PageSkeleton({ variant = 'cards' }: PageSkeletonProps) {
         ))}
       </div>
       {/* Content section skeleton */}
-      <div className="rounded-[28px] border border-line/70 bg-white/85 p-5 shadow-sm">
+      <div className="rounded-[28px] border border-line/70 bg-panel/85 p-5 shadow-sm">
         <div className="h-5 w-40 rounded-full bg-canvas" />
         <div className="mt-2 h-4 w-64 rounded-full bg-canvas" />
         <div className="mt-5 grid gap-3">

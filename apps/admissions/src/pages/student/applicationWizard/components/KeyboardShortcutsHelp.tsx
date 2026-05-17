@@ -34,7 +34,7 @@ export const KeyboardShortcutsHelp = () => {
       {isOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/50 z-50 transition-opacity duration-300"
+            className="fixed inset-0 bg-scrim/50 z-50 transition-opacity duration-300"
             onClick={() => setIsOpen(false)}
           />
           <div

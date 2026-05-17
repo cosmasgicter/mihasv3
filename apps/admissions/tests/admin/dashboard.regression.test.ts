@@ -22,7 +22,7 @@ describe('admin dashboard canonical route wiring', () => {
 })
 
 describe('admin dashboard data mapping', () => {
-  it('keeps status breakdown keys consistent (approved/pending/rejected)', async () => {
+  it('keeps status breakdown keys consistent across the modern lifecycle', async () => {
     vi.mocked(apiClient.request).mockResolvedValueOnce({
       stats: {
         approvedApplications: 4,
@@ -31,6 +31,8 @@ describe('admin dashboard data mapping', () => {
       },
       statusBreakdown: {
         approved: '4',
+        conditionally_approved: '2',
+        enrolled: '1',
         pending: '3',
         rejected: '1',
         submitted: '2',
@@ -42,6 +44,8 @@ describe('admin dashboard data mapping', () => {
 
     expect(ADMIN_DASHBOARD_STATUS_KEYS).toEqual([
       'approved',
+      'conditionally_approved',
+      'enrolled',
       'pending',
       'rejected',
       'submitted',

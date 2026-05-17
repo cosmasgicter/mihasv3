@@ -20,44 +20,6 @@ interface WizardFormData {
   intake: string
 }
 
-interface NotificationData {
-  applicationId: string
-  userId: string
-  email: string
-  fullName: string
-  applicationNumber: string
-  program: string
-}
-
-/**
- * Submission notifications are still being migrated to Django.
- * This remains a non-blocking no-op so submission itself can complete cleanly.
- */
-export async function triggerSubmissionNotifications(data: NotificationData): Promise<{
-  success: boolean
-  emailQueueSuccess: boolean
-  inAppSuccess: boolean
-  emailNotificationSuccess: boolean
-  errors: string[]
-}> {
-  void data
-  const errors: string[] = []
-  const emailQueueSuccess = false
-  const inAppSuccess = false
-  const emailNotificationSuccess = false
-
-  // The Django backend only exposes admin-only notification/email send routes.
-  // Student self-service submission cannot call those endpoints directly yet.
-
-  return {
-    success: emailQueueSuccess || inAppSuccess || emailNotificationSuccess,
-    emailQueueSuccess,
-    inAppSuccess,
-    emailNotificationSuccess,
-    errors
-  }
-}
-
 /**
  * Generate a unique idempotency key for submission deduplication.
  * Uses crypto.randomUUID() when available, falls back to a timestamp-based key.
@@ -118,8 +80,6 @@ export function useApplicationSubmit() {
         throw new Error('Authentication session expired. Please sign in again.')
       }
 
-      const user = authUser
-
       // Submit through the dedicated backend endpoint so payment/document checks
       // and double-submit protection are enforced server-side.
       const cleanId = applicationId.replace(/^applications-/, '')
@@ -146,24 +106,6 @@ export function useApplicationSubmit() {
         queryClient.invalidateQueries({ queryKey: ['student-dashboard-polling'] }),
         queryClient.refetchQueries({ queryKey: ['applications'] })
       ])
-
-      // Trigger submission notifications (non-blocking)
-      try {
-        const notificationResult = await triggerSubmissionNotifications({
-          applicationId,
-          userId: user.id,
-          email: data.email,
-          fullName: data.full_name,
-          applicationNumber: updatedApp.application_number || applicationId.slice(0, 8).toUpperCase(),
-          program: data.program
-        })
-
-        if (notificationResult.errors.length > 0) {
-          console.warn('Some notifications failed to send:', notificationResult.errors)
-        }
-      } catch (notificationError) {
-        console.error('Failed to trigger submission notifications:', notificationError)
-      }
 
       // Dispatch the submission event expected by the dashboard/UI.
       window.dispatchEvent(new CustomEvent('applicationSubmitted', {

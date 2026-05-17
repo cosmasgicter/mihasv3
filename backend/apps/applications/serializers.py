@@ -18,7 +18,7 @@ from apps.applications.models import (
     ApplicationStatusHistory,
 )
 from apps.applications.identifier_resolver import IdentifierResolver
-from apps.common.validators import validate_nrc, validate_zambian_phone
+from apps.common.validators import validate_nrc, validate_phone_e164, validate_zambian_phone
 from apps.documents.models import ApplicationGrade, Payment
 
 logger = logging.getLogger(__name__)
@@ -632,16 +632,45 @@ class ApplicationBulkStatusSerializer(serializers.Serializer):
 class ApplicationAmendmentRequestSerializer(serializers.Serializer):
     """POST /api/v1/applications/{id}/amendments/ request body."""
 
-    field_name = serializers.CharField(
-        max_length=100,
-        help_text="Name of the application field being amended (e.g. phone, email, address)",
+    AMENDABLE_FIELD_CHOICES = (
+        ("phone", "Phone"),
+        ("email", "Email"),
+        ("address_line_1", "Address line 1"),
+        ("address_line_2", "Address line 2"),
+        ("residence_town", "Residence town"),
+        ("next_of_kin_name", "Next of kin name"),
+        ("next_of_kin_phone", "Next of kin phone"),
+    )
+
+    field_name = serializers.ChoiceField(
+        choices=AMENDABLE_FIELD_CHOICES,
+        help_text="Name of the application field being amended",
     )
     new_value = serializers.CharField(
+        max_length=255,
+        trim_whitespace=True,
         help_text="Proposed new value for the field",
     )
     reason = serializers.CharField(
+        max_length=1000,
+        trim_whitespace=True,
         help_text="Student-provided explanation for the amendment",
     )
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        field_name = attrs["field_name"]
+        new_value = attrs["new_value"]
+
+        if field_name == "email":
+            serializers.EmailField().run_validation(new_value)
+        elif field_name in {"phone", "next_of_kin_phone"}:
+            try:
+                attrs["new_value"] = validate_phone_e164(new_value)
+            except Exception as exc:
+                raise serializers.ValidationError({"new_value": str(exc)}) from exc
+
+        return attrs
 
 
 class ApplicationAmendmentReviewRequestSerializer(serializers.Serializer):

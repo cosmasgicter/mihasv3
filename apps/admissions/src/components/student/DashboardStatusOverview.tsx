@@ -104,7 +104,6 @@ function MetricCard({
   const content = (
     <div className={cn(
       'rounded-lg border border-border/50 p-4 transition-all duration-200',
-      'border-l-4',
       accentStyles[accent],
       href && 'hover:shadow-md hover:border-primary/20 cursor-pointer min-h-[44px]',
       className
@@ -250,7 +249,7 @@ export function DashboardStatusOverview({
       {/* Requirement 19.4: Zero applications prompt */}
       {stats.total === 0 && (
         <div
-          className={`${animateClasses.slideUp} opacity-0 rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm`}
+          className={`${animateClasses.slideUp} opacity-0 rounded-lg border border-border bg-card p-6 text-center shadow-sm`}
           style={staggerChild(4)}
         >
           <p className="text-sm font-semibold text-foreground mb-1">

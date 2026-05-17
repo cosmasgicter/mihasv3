@@ -247,7 +247,7 @@ export default function NotificationSettings() {
             className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-muted`}
           >
             <span
-              className="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ease-in-out translate-x-0"
+              className="pointer-events-none inline-block h-5 w-5 rounded-full bg-card shadow-lg ring-0 transition-transform duration-200 ease-in-out translate-x-0"
             />
           </button>
         </div>
@@ -279,7 +279,7 @@ export default function NotificationSettings() {
         <div className="mb-6 sm:mb-8">
           <Link
             to="/student/settings"
-            className="mb-4 inline-flex min-h-[40px] items-center rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted"
+            className="mb-4 inline-flex min-h-[40px] items-center rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to profile settings

@@ -95,7 +95,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
   return (
     <aside
       aria-label="Main navigation"
-      className="fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-slate-800 bg-slate-950 text-white shadow-md transition-all duration-200 ease-in-out md:flex"
+      className="fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-foreground/20 bg-foreground text-white shadow-md transition-all duration-200 ease-in-out md:flex"
       style={{ width: collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-expanded)' }}
     >
       {/* Header / Logo area */}
@@ -104,10 +104,10 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         collapsed ? 'px-2' : 'px-4'
       )}>
         <div className={cn(
-          'relative flex items-center rounded-lg border border-white/10 bg-white/5 shadow-sm transition-all duration-200',
+          'relative flex items-center rounded-lg border border-white/10 bg-card/5 shadow-sm transition-all duration-200',
           collapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-3'
         )} role="img" aria-label="Mukuba Institute of Health and Applied Sciences logo">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-cyan-300 text-slate-950 shadow-sm" aria-hidden="true">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm" aria-hidden="true">
             <span className="text-sm font-black tracking-tight">MI</span>
           </div>
 
@@ -130,8 +130,8 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
             onClick={() => setCollapsed(!collapsed)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             className={cn(
-              'flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white shadow-sm',
-              'transition-colors hover:bg-white/20',
+              'flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-card/10 text-white shadow-sm',
+              'transition-colors hover:bg-card/20',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
             )}
           >
@@ -163,7 +163,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         ) : (
           <div className="space-y-1">
             {!collapsed && (
-              <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+              <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                 Student Workspace
               </div>
             )}
@@ -185,19 +185,19 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         collapsed ? 'p-2' : 'p-4'
       )}>
         {!collapsed ? (
-          <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/10 px-3 py-3 text-xs text-slate-300 shadow-sm transition-opacity duration-200 motion-reduce:transition-none">
+          <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-card/10 px-3 py-3 text-xs text-muted-foreground shadow-sm transition-opacity duration-200 motion-reduce:transition-none">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-400/15 text-emerald-200">
               <Sparkles className="h-4 w-4" />
             </div>
             <div>
               <p className="font-semibold text-white">Workspace ready</p>
-              <p className="text-[11px] text-slate-400">Navigation synced</p>
+              <p className="text-[11px] text-muted-foreground">Navigation synced</p>
             </div>
           </div>
         ) : (
           <Tooltip content="Workspace ready" side="right">
             <div className="flex justify-center transition-opacity duration-200 motion-reduce:transition-none" role="status">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-emerald-200 shadow-sm">
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-card/10 text-emerald-200 shadow-sm">
                 <Sparkles className="h-4 w-4" aria-hidden="true" />
               </div>
               <span className="sr-only">Workspace ready</span>
@@ -237,8 +237,8 @@ function SidebarSection({
           aria-expanded={expanded}
           className={cn(
             'flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em]',
-            'text-slate-400 transition-colors hover:text-white',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950',
+            'text-muted-foreground transition-colors hover:text-white',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-foreground',
             hasActiveItem && 'text-sky-200'
           )}
         >
@@ -303,11 +303,11 @@ function SidebarNavItem({
       className={cn(
         'group relative flex min-h-[44px] items-center overflow-hidden rounded-lg',
         'transition-colors duration-150',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-foreground',
         collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
         isActive
-          ? 'bg-white text-slate-950 font-semibold shadow-sm'
-          : 'text-slate-300 hover:bg-white/8 hover:text-white'
+          ? 'bg-card text-foreground font-semibold shadow-sm'
+          : 'text-muted-foreground hover:bg-card/8 hover:text-white'
       )}
     >
       {/* Active indicator — only show when expanded */}
@@ -326,7 +326,7 @@ function SidebarNavItem({
       <Icon
         className={cn(
           'h-5 w-5 shrink-0 transition-colors duration-150',
-          isActive ? 'text-slate-950' : 'text-slate-400 group-hover:text-white'
+          isActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-white'
         )}
       />
 
@@ -335,7 +335,7 @@ function SidebarNavItem({
         <span
           className={cn(
             'font-medium truncate transition-opacity duration-150 motion-reduce:transition-none',
-            isActive ? 'text-slate-950' : 'text-slate-100'
+            isActive ? 'text-foreground' : 'text-muted-foreground'
           )}
           style={{ fontSize: 'var(--type-sm)' }}
         >
@@ -345,7 +345,7 @@ function SidebarNavItem({
 
       {/* Hover effect */}
       {!isActive && (
-        <div className="pointer-events-none absolute inset-0 rounded-lg bg-white/5 opacity-0 transition-opacity duration-150 group-hover:opacity-100" aria-hidden="true" />
+        <div className="pointer-events-none absolute inset-0 rounded-lg bg-card/5 opacity-0 transition-opacity duration-150 group-hover:opacity-100" aria-hidden="true" />
       )}
     </Link>
   )

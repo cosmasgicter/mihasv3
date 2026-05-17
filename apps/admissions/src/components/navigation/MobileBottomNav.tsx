@@ -127,7 +127,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
             role="button"
             tabIndex={0}
             aria-label="Close more menu"
-            className="md:hidden fixed inset-0 bg-black/50 z-40 animate-fade-in"
+            className="md:hidden fixed inset-0 bg-scrim/50 z-40 animate-fade-in"
           />
           <div 
             className="md:hidden fixed bottom-20 right-4 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-lg shadow-md border border-border z-50 overflow-hidden animate-fade-in"
@@ -167,7 +167,7 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
             role="button"
             tabIndex={0}
             aria-label="Close more menu"
-            className="md:hidden fixed inset-0 bg-black/50 z-40 animate-fade-in"
+            className="md:hidden fixed inset-0 bg-scrim/50 z-40 animate-fade-in"
           />
           <div 
             className="md:hidden fixed bottom-20 right-4 w-56 max-w-[calc(100vw-2rem)] bg-card rounded-lg shadow-md border border-border z-50 overflow-hidden animate-fade-in"

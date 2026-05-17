@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form';
 import { z } from '@/lib/zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { AuthLayout } from '@/components/auth/AuthLayout';
+import { AuthShell, AuthShellFooter, AuthShellLink } from '@/components/auth/AuthShell';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
 import { AuthSkeleton } from '@/components/ui';
@@ -126,39 +126,31 @@ export default function ResetPasswordPage() {
           description="Your MIHAS-KATC account password was updated successfully. Sign in again to continue your application journey."
           path="/auth/reset-password"
         />
-      <AuthLayout
-        title="Password updated!"
-        description="Your password has been successfully reset"
-        backLinkHref="/auth/signin"
-        backLinkLabel="Back to sign in"
-      >
-        <div className={`space-y-6 ${animateClasses.slideUp}`}>
-          {/* Success icon */}
-          <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 ${animateClasses.scaleIn}`}>
-            <CheckCircle className="h-8 w-8 text-green-600" aria-hidden="true" />
+        <AuthShell
+          title="Password updated"
+          description="Sign in with your new password to continue."
+          footer={
+            <AuthShellFooter>
+              <AuthShellLink to="/auth/signin">Sign in</AuthShellLink>
+            </AuthShellFooter>
+          }
+        >
+          <div className="space-y-6">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-success">
+              <CheckCircle className="h-8 w-8" aria-hidden="true" />
+            </div>
+            <Button
+              type="button"
+              variant="primary"
+              size="lg"
+              className="w-full min-h-[48px]"
+              onClick={() => navigate('/auth/signin')}
+            >
+              Sign in with new password
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+            </Button>
           </div>
-
-          {/* Success message */}
-          <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-center">
-            <h3 className="text-base font-semibold text-green-700">Password updated successfully</h3>
-            <p className="mt-1 text-sm text-green-600">
-              Your password has been reset. You can now sign in with your new password.
-            </p>
-          </div>
-
-          {/* Action */}
-          <Button
-            type="button"
-            variant="gradient"
-            size="lg"
-            className="w-full min-h-[48px]"
-            onClick={() => navigate('/auth/signin')}
-          >
-            Sign in with new password
-            <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-          </Button>
-        </div>
-      </AuthLayout>
+        </AuthShell>
       </>
     );
   }
@@ -172,47 +164,41 @@ export default function ResetPasswordPage() {
           description="The MIHAS-KATC password reset link is invalid or expired. Request a new link to continue."
           path="/auth/reset-password"
         />
-      <AuthLayout
-        title="Unable to reset password"
-        description="There was a problem with your reset link"
-        backLinkHref="/auth/signin"
-        backLinkLabel="Back to sign in"
-      >
-        <div className={`space-y-6 ${animateClasses.slideUp}`}>
-          {/* Error icon */}
-          <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 ${animateClasses.scaleIn}`}>
-            <AlertCircle className="h-8 w-8 text-red-600" aria-hidden="true" />
+        <AuthShell
+          title="Reset link invalid"
+          description={verifyError}
+          footer={
+            <AuthShellFooter>
+              <AuthShellLink to="/auth/signin">Back to sign in</AuthShellLink>
+            </AuthShellFooter>
+          }
+        >
+          <div className="space-y-6">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+              <AlertCircle className="h-8 w-8" aria-hidden="true" />
+            </div>
+            <div className="space-y-3">
+              <Button
+                type="button"
+                variant="primary"
+                size="lg"
+                className="w-full min-h-[48px]"
+                onClick={() => navigate('/auth/forgot-password')}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
+                Request a new reset link
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full min-h-[48px]"
+                onClick={() => navigate('/auth/signin')}
+              >
+                Return to sign in
+              </Button>
+            </div>
           </div>
-
-          {/* Error message */}
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center">
-            <h3 className="text-base font-semibold text-red-700">Reset link invalid</h3>
-            <p className="mt-1 text-sm text-red-600">{verifyError}</p>
-          </div>
-
-          {/* Actions */}
-          <div className="space-y-3">
-            <Button
-              type="button"
-              variant="gradient"
-              size="lg"
-              className="w-full min-h-[48px]"
-              onClick={() => navigate('/auth/forgot-password')}
-            >
-              <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
-              Request a new reset link
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full min-h-[48px]"
-              onClick={() => navigate('/auth/signin')}
-            >
-              Return to sign in
-            </Button>
-          </div>
-        </div>
-      </AuthLayout>
+        </AuthShell>
       </>
     );
   }
@@ -225,28 +211,21 @@ export default function ResetPasswordPage() {
         description="Create a new secure password for your MIHAS-KATC admissions account."
         path="/auth/reset-password"
       />
-    <AuthLayout
-      title="Choose a new password"
-      description="Enter a new password for your account. Make sure it's strong and unique to keep your account secure."
-      backLinkHref="/auth/signin"
-      backLinkLabel="Back to sign in"
-    >
-      <form
-        className={`space-y-6 ${animateClasses.slideUp}`}
-        onSubmit={handleSubmit((values) => resetPasswordMutation.mutate(values))}
-        method="post"
-        noValidate
+      <AuthShell
+        title="Choose a new password"
+        description="At least 8 characters, with a number and a letter."
+        footer={
+          <AuthShellFooter>
+            <AuthShellLink to="/auth/signin">Back to sign in</AuthShellLink>
+          </AuthShellFooter>
+        }
       >
-        {/* Password icon */}
-        <div className="flex justify-center mb-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <KeyRound className="h-6 w-6 text-primary" aria-hidden="true" />
-          </div>
-        </div>
-
-        <fieldset className="space-y-5 rounded-lg border border-border/30 bg-muted/30 p-5 sm:p-6">
-          <legend className="sr-only">New password</legend>
-
+        <form
+          className="space-y-5"
+          onSubmit={handleSubmit((values) => resetPasswordMutation.mutate(values))}
+          method="post"
+          noValidate
+        >
           <PasswordInput
             {...register('password')}
             label="New password"
@@ -255,6 +234,7 @@ export default function ResetPasswordPage() {
             error={errors.password?.message}
             helperText="At least 8 characters with a number and letter"
             disabled={resetPasswordMutation.isPending}
+            autoFocus
             className="min-h-[48px]"
           />
 
@@ -267,51 +247,29 @@ export default function ResetPasswordPage() {
             disabled={resetPasswordMutation.isPending}
             className="min-h-[48px]"
           />
-        </fieldset>
 
-        {/* Error message */}
-        {resetPasswordMutation.error ? (
-          <div className={`overflow-hidden ${animateClasses.fadeIn}`}
-               role="alert" aria-live="assertive" aria-atomic="true">
-            <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-              <div className="text-sm font-medium text-destructive">
-                {(resetPasswordMutation.error as Error).message || 'Failed to update password. Please try again.'}
+          {resetPasswordMutation.error ? (
+            <div role="alert" aria-live="assertive" aria-atomic="true">
+              <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="text-sm font-medium text-destructive">
+                  {(resetPasswordMutation.error as Error).message || 'Failed to update password. Please try again.'}
+                </div>
               </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
 
-        <Button
-          type="submit"
-          className="w-full min-h-[48px]"
-          variant="gradient"
-          size="lg"
-          loading={resetPasswordMutation.isPending}
-        >
-          {resetPasswordMutation.isPending ? 'Updating password...' : 'Update password'}
-        </Button>
-
-        {/* Password requirements */}
-        <div className="rounded-lg bg-muted/50 p-3">
-          <p className="text-xs font-medium text-muted-foreground mb-2">Password requirements:</p>
-          <ul className="text-xs text-foreground/75 space-y-1">
-            <li className="flex items-center gap-2">
-              <span className="h-1 w-1 rounded-full bg-muted-foreground" />
-              At least 8 characters long
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="h-1 w-1 rounded-full bg-muted-foreground" />
-              Contains at least one number
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="h-1 w-1 rounded-full bg-muted-foreground" />
-              Contains at least one letter
-            </li>
-          </ul>
-        </div>
-      </form>
-    </AuthLayout>
+          <Button
+            type="submit"
+            className="w-full min-h-[48px]"
+            variant="primary"
+            size="lg"
+            loading={resetPasswordMutation.isPending}
+          >
+            {resetPasswordMutation.isPending ? 'Updating password...' : 'Update password'}
+          </Button>
+        </form>
+      </AuthShell>
     </>
   );
 }

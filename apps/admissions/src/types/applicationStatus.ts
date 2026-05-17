@@ -2,17 +2,31 @@ export const APPLICATION_STATUSES = [
   'draft',
   'submitted',
   'under_review',
-  'approved',
-  'conditionally_approved',
-  'rejected',
   'waitlisted',
+  'conditionally_approved',
+  'approved',
+  'enrolled',
+  'rejected',
   'withdrawn',
   'expired',
-  'enrolled',
   'enrollment_expired'
 ] as const
 
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
+
+export const TERMINAL_STATUSES = ['rejected', 'withdrawn', 'expired', 'enrolled', 'enrollment_expired'] as const
+export type TerminalStatus = (typeof TERMINAL_STATUSES)[number]
+
+export const ACCEPTED_APPLICATION_STATUSES = [
+  'conditionally_approved',
+  'approved',
+  'enrolled',
+] as const satisfies readonly ApplicationStatus[]
+
+export const DECISIONED_APPLICATION_STATUSES = [
+  ...ACCEPTED_APPLICATION_STATUSES,
+  'rejected',
+] as const satisfies readonly ApplicationStatus[]
 
 export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
   draft: 'Draft',

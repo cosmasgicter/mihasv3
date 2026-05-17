@@ -32,6 +32,12 @@ type SendNotificationApiResponse = {
   id?: string
 }
 
+type SendEmailPayload = {
+  recipientEmail: string
+  subject: string
+  body: string
+}
+
 const VALID_NOTIFICATION_TYPES = new Set(['info', 'success', 'warning', 'error'])
 
 type RawNotification = Record<string, unknown>
@@ -220,6 +226,20 @@ export const notificationService = {
     if (response.duplicate) return true
 
     return Boolean(response.notification || response.id)
+  },
+
+  /** Queue a direct email (admin only). Maps to POST /email/send/ */
+  sendEmail: async (payload: SendEmailPayload): Promise<boolean> => {
+    const response = await apiClient.request<{ id?: string }>('/email/send/', {
+      method: 'POST',
+      body: JSON.stringify({
+        recipient_email: payload.recipientEmail,
+        subject: payload.subject,
+        body: payload.body,
+      }),
+    })
+
+    return Boolean(response?.id)
   },
 
   /** Get notification preferences. Maps to GET /notifications/preferences/ */

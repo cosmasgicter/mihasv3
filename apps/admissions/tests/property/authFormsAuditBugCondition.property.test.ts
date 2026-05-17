@@ -88,80 +88,58 @@ vi.mock('@/lib/animation-config', () => ({
 // Imports — after mocks so modules pick up the mocked dependencies
 // ---------------------------------------------------------------------------
 
-import { AuthLayout } from '@/components/auth/AuthLayout'
+import { AuthShell } from '@/components/auth/AuthShell'
 import SignInPage from '@/pages/auth/SignInPage'
 import SignUpPage from '@/pages/auth/SignUpPage'
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage'
 import ResetPasswordPage from '@/pages/auth/ResetPasswordPage'
 
 // ---------------------------------------------------------------------------
-// Bug 1 — AuthLayout mobile overflow: min-w-0 and overflow-hidden
+// Bug 1 — AuthShell layout: single-column structure with overflow safety
 // ---------------------------------------------------------------------------
 
-describe('[PBT] Bug 1 — AuthLayout mobile overflow classes', () => {
-  const arbVariant = fc.constantFrom('default' as const, 'signin' as const, 'signup' as const)
+describe('[PBT] Bug 1 — AuthShell layout structure', () => {
+  const arbTitle = fc.constantFrom('Sign in', 'Create account', 'Reset password')
 
-  it('form panel flex column has min-w-0 class', () => {
+  it('outer container has min-h-dvh and bg-muted', () => {
     fc.assert(
-      fc.property(arbVariant, (variant) => {
+      fc.property(arbTitle, (title) => {
         const markup = renderToStaticMarkup(
           React.createElement(
-            AuthLayout,
-            { title: 'Test', variant, showBranding: false },
-            React.createElement('div', null, 'content'),
+            AuthShell,
+            { title, children: React.createElement('div', null, 'content') },
           ),
         )
 
         const parser = new DOMParser()
         const doc = parser.parseFromString(markup, 'text/html')
 
-        // Find the flex column that wraps the form panel
-        // It has classes: flex flex-1 flex-col overflow-y-auto
-        const flexColumns = doc.querySelectorAll('[class*="flex-1"][class*="flex-col"]')
-        expect(flexColumns.length).toBeGreaterThan(0)
-
-        const flexCol = flexColumns[0]!
-        const classes = flexCol.className.split(/\s+/)
-
-        // EXPECTED (fixed): min-w-0 prevents flex child from overflowing
-        // On UNFIXED code this class is missing → FAILS
-        expect(classes).toContain('min-w-0')
+        const outer = doc.querySelector('[class*="min-h-dvh"][class*="bg-muted"]')
+        expect(outer).not.toBeNull()
       }),
       { numRuns: 10 },
     )
   })
 
-  it('form card container has overflow-hidden class', () => {
+  it('form card (main) has rounded-xl and border classes', () => {
     fc.assert(
-      fc.property(arbVariant, (variant) => {
+      fc.property(arbTitle, (title) => {
         const markup = renderToStaticMarkup(
           React.createElement(
-            AuthLayout,
-            { title: 'Test', variant, showBranding: false },
-            React.createElement('div', null, 'content'),
+            AuthShell,
+            { title, children: React.createElement('div', null, 'content') },
           ),
         )
 
         const parser = new DOMParser()
         const doc = parser.parseFromString(markup, 'text/html')
 
-        // Find the form card by its unique shadow-2xl class
-        const allElements = doc.querySelectorAll('*')
-        let card: Element | null = null
-        for (const el of allElements) {
-          const cls = typeof el.className === 'string' ? el.className : ''
-          if (cls.includes('shadow-2xl') && cls.includes('backdrop-blur')) {
-            card = el
-            break
-          }
-        }
-        expect(card).not.toBeNull()
+        const main = doc.querySelector('main')
+        expect(main).not.toBeNull()
 
-        const classes = card!.className.split(/\s+/)
-
-        // EXPECTED (fixed): overflow-hidden clips content beyond card boundary
-        // On UNFIXED code this class is missing → FAILS
-        expect(classes).toContain('overflow-hidden')
+        const classes = main!.className.split(/\s+/)
+        expect(classes).toContain('rounded-xl')
+        expect(classes).toContain('bg-card')
       }),
       { numRuns: 10 },
     )

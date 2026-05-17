@@ -53,9 +53,10 @@ export const useStorageList = (bucket: string, path?: string) => {
   return useQuery({
     queryKey: ['storage', bucket, 'list', path],
     queryFn: async () => {
-      // Document listing by bucket/path is not yet available in the Django backend.
-      // Returns empty array until the backend endpoint is implemented (task 9.1).
-      return [] as unknown[]
+      // `bucket` is the application ID in the Django-backed document flow.
+      // Prefer the canonical application document endpoint so callers see
+      // the same source of truth as the rest of the admissions UI.
+      return documentService.listByApplication(bucket)
     },
     ...CACHE_CONFIG.static
   })
@@ -65,10 +66,8 @@ export const useStorageDelete = (bucket: string) => {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async (_paths: string[]) => {
-      // Document deletion is not yet available in the Django backend.
-      // This will be wired up when the backend endpoint is implemented (task 9.1).
-      throw new Error('Document deletion is not implemented in the Django backend yet')
+    mutationFn: async (paths: string[]) => {
+      await Promise.all(paths.map((documentId) => documentService.delete(documentId)))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['storage', bucket] })

@@ -14,6 +14,8 @@ class ReviewPriority:
 class ReviewQueueScorer:
     """Computes deterministic priority scores for review queue ordering."""
 
+    PAYMENT_READY_STATUSES = {"verified", "paid", "force_approved", "deferred"}
+
     def score(self, application, completeness_score: int, has_doc_warnings: bool) -> ReviewPriority:
         # Completeness (30%)
         c_score = min(completeness_score, 100) * 0.3
@@ -22,7 +24,7 @@ class ReviewQueueScorer:
         d_score = self._deadline_urgency(application) * 0.25
 
         # Payment readiness (20%)
-        p_score = (100 if application.payment_status in ("verified", "paid", "force_approved") else 0) * 0.2
+        p_score = (100 if application.payment_status in self.PAYMENT_READY_STATUSES else 0) * 0.2
 
         # Document confidence (15%)
         doc_score = (50 if has_doc_warnings else 100) * 0.15
@@ -37,7 +39,7 @@ class ReviewQueueScorer:
             total = total * 1.05
 
         # Classification
-        if completeness_score >= 90 and application.payment_status in ("verified", "paid", "force_approved"):
+        if completeness_score >= 90 and application.payment_status in self.PAYMENT_READY_STATUSES:
             classification = "ready_for_decision"
         elif has_doc_warnings:
             classification = "high_risk_review"

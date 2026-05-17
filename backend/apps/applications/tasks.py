@@ -168,7 +168,10 @@ def draft_expiry_reminder_task(self):
         return
     try:
         from apps.applications.models import Application
-        from apps.applications.services import transition_application_status
+        from apps.applications.services import (
+            SYSTEM_ACTOR_ID,
+            transition_application_status,
+        )
         from apps.common.models import Notification
         from apps.common.outbox import create_notification, queue_email
 
@@ -194,7 +197,7 @@ def draft_expiry_reminder_task(self):
                     transition_application_status(
                         application=app,
                         new_status="expired",
-                        changed_by="system",
+                        changed_by=SYSTEM_ACTOR_ID,
                         notes="Draft expired after 30 days of inactivity.",
                         ip_address="",
                         user_agent="celery/draft_expiry_reminder_task",
@@ -523,7 +526,10 @@ def enrollment_confirmation_expiry_task(self):
         from apps.applications.enrollment_service import EnrollmentService
         from apps.applications.intake_enforcer import IntakeEnforcer
         from apps.applications.models import Application
-        from apps.applications.services import transition_application_status
+        from apps.applications.services import (
+            SYSTEM_ACTOR_ID,
+            transition_application_status,
+        )
         from apps.applications.waitlist_manager import WaitlistManager
 
         now = timezone.now()
@@ -542,7 +548,7 @@ def enrollment_confirmation_expiry_task(self):
                 transition_application_status(
                     application=app,
                     new_status="enrollment_expired",
-                    changed_by="system",
+                    changed_by=SYSTEM_ACTOR_ID,
                     notes="Enrollment confirmation deadline passed.",
                 )
                 IntakeEnforcer.decrement_enrollment(app.intake, app.program)

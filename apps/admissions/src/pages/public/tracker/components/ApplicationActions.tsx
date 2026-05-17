@@ -22,7 +22,7 @@ export const ApplicationActions: React.FC = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="h-12 w-full rounded-lg border border-border transition-colors hover:bg-slate-100 sm:w-auto"
+              className="h-12 w-full rounded-lg border border-border transition-colors hover:bg-muted sm:w-auto"
             >
               <Rocket className="h-5 w-5 mr-2" />
               Create Account

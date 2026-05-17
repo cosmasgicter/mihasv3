@@ -74,25 +74,6 @@ export function normalizeDateInputValue(value: unknown): string {
   return parsed.toISOString().slice(0, 10)
 }
 
-export function normalizeDateTimeLocalValue(value: unknown): string {
-  if (!hasText(value)) {
-    return ''
-  }
-
-  const trimmed = value.trim()
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(trimmed)) {
-    return trimmed
-  }
-
-  const parsed = new Date(trimmed)
-  if (Number.isNaN(parsed.getTime())) {
-    return ''
-  }
-
-  const iso = parsed.toISOString()
-  return iso.slice(0, 16)
-}
-
 export function getCanonicalResidenceTown(
   profile?: CanonicalProfileFields | null,
   metadata?: CanonicalProfileFields | null,

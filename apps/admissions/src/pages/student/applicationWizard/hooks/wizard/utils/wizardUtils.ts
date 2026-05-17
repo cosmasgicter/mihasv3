@@ -1,11 +1,6 @@
 import type { WizardProgram } from '../../../types'
 
-export function sanitizeInput(value: any): any {
-  if (typeof value === 'string') {
-    return value.trim().replace(/<script[^>]*>.*?<\/script>/gi, '').replace(/<[^>]+>/g, '')
-  }
-  return value
-}
+export { sanitizeInput } from '@/lib/security'
 
 export function findProgramId(
   value?: string | null,

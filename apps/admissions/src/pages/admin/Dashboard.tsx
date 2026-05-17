@@ -8,7 +8,7 @@ import { DashboardSkeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useAdminDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useToastStore } from '@/hooks/useToast'
-import { AlertTriangle, BarChart3, Activity, RefreshCw, ClipboardList, FileCheck, CreditCard, Video, ArrowRight } from 'lucide-react'
+import { AlertTriangle, BarChart3, Activity, RefreshCw, ClipboardList, FileCheck, CreditCard, Video, ArrowRight, TimerReset, CircleAlert } from 'lucide-react'
 import { animateClasses } from '@/lib/animations'
 import { Seo } from '@/components/seo/Seo'
 import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
@@ -53,6 +53,9 @@ export default function AdminDashboard() {
     totalApplications: 0,
     pendingApplications: 0,
     approvedApplications: 0,
+    conditionallyApprovedApplications: 0,
+    enrolledApplications: 0,
+    acceptedApplications: 0,
     rejectedApplications: 0,
     totalPrograms: 0,
     activeIntakes: 0,
@@ -70,7 +73,10 @@ export default function AdminDashboard() {
     systemHealth: 'good',
     pendingPayments: 0,
     pendingDocuments: 0,
-    upcomingInterviews: 0
+    upcomingInterviews: 0,
+    overdueReviews: 0,
+    conditionsExpiringSoon: 0,
+    enrollmentsExpiringSoon: 0
   })
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [error, setError] = useState('')
@@ -118,6 +124,9 @@ export default function AdminDashboard() {
         totalApplications: newStats.totalApplications,
         pendingApplications: newStats.pendingApplications,
         approvedApplications: newStats.approvedApplications,
+        conditionallyApprovedApplications: newStats.conditionallyApprovedApplications,
+        enrolledApplications: newStats.enrolledApplications,
+        acceptedApplications: newStats.acceptedApplications,
         rejectedApplications: newStats.rejectedApplications,
         todayApplications: newStats.todayApplications,
         weekApplications: newStats.weekApplications,
@@ -236,9 +245,9 @@ export default function AdminDashboard() {
   }, [loadDashboardStats, user])
 
   const approvalRate = useMemo(() => {
-    const total = stats.approvedApplications + stats.rejectedApplications
-    return total > 0 ? Math.round((stats.approvedApplications / total) * 100) : 0
-  }, [stats.approvedApplications, stats.rejectedApplications])
+    const total = stats.acceptedApplications + stats.rejectedApplications
+    return total > 0 ? Math.round((stats.acceptedApplications / total) * 100) : 0
+  }, [stats.acceptedApplications, stats.rejectedApplications])
 
   const { adminFirstName } = useMemo(() => {
     const name = sanitizeForDisplay(getAdminDisplayName(profile, user))
@@ -330,7 +339,11 @@ export default function AdminDashboard() {
       metrics={[
         { label: 'Applications', value: stats.totalApplications, helper: `${stats.todayApplications} active today` },
         { label: 'Decision queue', value: stats.pendingApplications, helper: 'Applications currently awaiting admin action' },
-        { label: 'Approved', value: stats.approvedApplications, helper: `${stats.rejectedApplications} rejected so far` },
+        {
+          label: 'Accepted path',
+          value: stats.acceptedApplications,
+          helper: `${stats.conditionallyApprovedApplications} conditional + ${stats.approvedApplications} approved + ${stats.enrolledApplications} enrolled`,
+        },
         { label: 'System health', value: stats.systemHealth, helper: `${stats.activeUsers} active users online` },
       ]}
       actions={
@@ -382,8 +395,18 @@ export default function AdminDashboard() {
         <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.NeedsAttention', ...errorInfo })}>
         <div className={`mb-6 sm:mb-8 ${animateClasses.slideUp}`}>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Needs attention</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link to="/admin/applications?status=under_review" className="group rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 transition-colors hover:bg-amber-500/10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <Link to="/admin/applications?overdueReviewFilter=true" className="group rounded-lg border border-red-500/30 bg-red-500/5 p-4 transition-colors hover:bg-red-500/10">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="shrink-0 rounded-lg bg-red-500/10 p-2"><TimerReset className="h-5 w-5 text-red-600" /></div>
+                <div className="min-w-0">
+                  <p className="break-words text-2xl font-bold text-foreground">{stats.overdueReviews}</p>
+                  <p className="break-words text-xs text-muted-foreground">Reviews past SLA</p>
+                </div>
+              </div>
+              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-red-600">Clear overdue work <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
+            </Link>
+            <Link to="/admin/applications?reviewQueueFilter=true" className="group rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 transition-colors hover:bg-amber-500/10">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="shrink-0 rounded-lg bg-amber-500/10 p-2"><ClipboardList className="h-5 w-5 text-amber-600" /></div>
                 <div className="min-w-0">
@@ -393,7 +416,7 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-600">Review now <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
-            <Link to="/admin/applications?tab=documents" className="group rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 transition-colors hover:bg-blue-500/10">
+            <Link to="/admin/applications?pendingDocumentsFilter=true" className="group rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 transition-colors hover:bg-blue-500/10">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="shrink-0 rounded-lg bg-blue-500/10 p-2"><FileCheck className="h-5 w-5 text-blue-600" /></div>
                 <div className="min-w-0">
@@ -403,7 +426,7 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600">Verify documents <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
-            <Link to="/admin/applications?tab=payments" className="group rounded-lg border border-rose-500/30 bg-rose-500/5 p-4 transition-colors hover:bg-rose-500/10">
+            <Link to="/admin/applications?paymentFilter=pending_review" className="group rounded-lg border border-rose-500/30 bg-rose-500/5 p-4 transition-colors hover:bg-rose-500/10">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="shrink-0 rounded-lg bg-rose-500/10 p-2"><CreditCard className="h-5 w-5 text-rose-600" /></div>
                 <div className="min-w-0">
@@ -413,7 +436,7 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-rose-600">Review payments <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
-            <Link to="/admin/applications?tab=interviews" className="group rounded-lg border border-violet-500/30 bg-violet-500/5 p-4 transition-colors hover:bg-violet-500/10">
+            <Link to="/admin/applications?upcomingInterviewsFilter=true" className="group rounded-lg border border-violet-500/30 bg-violet-500/5 p-4 transition-colors hover:bg-violet-500/10">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="shrink-0 rounded-lg bg-violet-500/10 p-2"><Video className="h-5 w-5 text-violet-600" /></div>
                 <div className="min-w-0">
@@ -422,6 +445,26 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-violet-600">View schedule <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
+            </Link>
+            <Link to="/admin/applications?statusFilter=conditionally_approved" className="group rounded-lg border border-orange-500/30 bg-orange-500/5 p-4 transition-colors hover:bg-orange-500/10">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="shrink-0 rounded-lg bg-orange-500/10 p-2"><CircleAlert className="h-5 w-5 text-orange-600" /></div>
+                <div className="min-w-0">
+                  <p className="break-words text-2xl font-bold text-foreground">{stats.conditionsExpiringSoon}</p>
+                  <p className="break-words text-xs text-muted-foreground">Conditions due in 48h</p>
+                </div>
+              </div>
+              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-orange-600">Review conditions <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
+            </Link>
+            <Link to="/admin/applications?statusFilter=approved" className="group rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 transition-colors hover:bg-emerald-500/10">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="shrink-0 rounded-lg bg-emerald-500/10 p-2"><CircleAlert className="h-5 w-5 text-emerald-600" /></div>
+                <div className="min-w-0">
+                  <p className="break-words text-2xl font-bold text-foreground">{stats.enrollmentsExpiringSoon}</p>
+                  <p className="break-words text-xs text-muted-foreground">Enrollments due in 48h</p>
+                </div>
+              </div>
+              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-emerald-600">Follow up now <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
           </div>
         </div>
@@ -488,6 +531,7 @@ export default function AdminDashboard() {
             todayApplications={stats.todayApplications}
             pendingApplications={stats.pendingApplications}
             approvedApplications={stats.approvedApplications}
+            acceptedApplications={stats.acceptedApplications}
             rejectedApplications={stats.rejectedApplications}
             totalApplications={stats.totalApplications}
             avgProcessingTime={stats.avgProcessingTime}

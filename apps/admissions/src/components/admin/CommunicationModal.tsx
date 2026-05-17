@@ -174,7 +174,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
       case 'email':
         return !!applicant.email
       case 'sms':
-        return !!applicant.phone
+        return false
       case 'in-app':
         return true // Always available
       default:
@@ -264,7 +264,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
                     </span>
                     {!isAvailable && (
                       <Badge variant="secondary" className="mt-1 text-xs">
-                        N/A
+                        {channelType === 'sms' ? 'Coming soon' : 'N/A'}
                       </Badge>
                     )}
                   </button>

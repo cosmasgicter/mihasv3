@@ -61,7 +61,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
                 aria-describedby={error ? 'tracker-search-error' : undefined}
                 aria-invalid={Boolean(error)}
                 disabled={loading}
-                className="h-14 w-full rounded-lg border border-slate-300 bg-white pl-12 pr-4 text-base shadow-sm focus:border-primary"
+                className="h-14 w-full rounded-lg border border-border bg-card pl-12 pr-4 text-base shadow-sm focus:border-primary"
               />
             </div>
             <Button
@@ -93,8 +93,8 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
         </div>
         
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <div className="flex-shrink-0 rounded-lg bg-white p-2.5 text-primary">
+          <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
+            <div className="flex-shrink-0 rounded-lg bg-card p-2.5 text-primary">
               <Mail className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -102,8 +102,8 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <p className="mt-0.5 text-sm text-muted-foreground">Application number sent after submission</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <div className="flex-shrink-0 rounded-lg bg-white p-2.5 text-primary">
+          <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
+            <div className="flex-shrink-0 rounded-lg bg-card p-2.5 text-primary">
               <Hash className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -111,8 +111,8 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
               <p className="mt-0.5 text-sm font-mono text-muted-foreground">MIHAS123456</p>
             </div>
           </div>
-          <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <div className="flex-shrink-0 rounded-lg bg-white p-2.5 text-primary">
+          <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">
+            <div className="flex-shrink-0 rounded-lg bg-card p-2.5 text-primary">
               <Zap className="h-5 w-5 text-primary" />
             </div>
             <div>

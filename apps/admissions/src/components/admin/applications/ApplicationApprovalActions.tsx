@@ -3,6 +3,7 @@ import { CheckCircle, XCircle, Clock, RotateCcw } from 'lucide-react'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { logApiError } from '@/lib/apiErrorLogger'
+import { formatApplicationStatus } from '@/types/applicationStatus'
 import {
   Dialog,
   DialogContent,
@@ -220,13 +221,13 @@ export function ApplicationApprovalActions({
   return (
     <div className="space-y-3">
       <div className="grid gap-2 sm:grid-cols-2">
-        <div className="rounded-lg border border-slate-200/80 bg-slate-50/90 px-3 py-3">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-slate-500">Application</p>
-          <p className="mt-1 text-sm font-semibold text-slate-950">{currentStatus.replace(/_/g, ' ')}</p>
+        <div className="rounded-lg border border-border/80 bg-muted/90 px-3 py-3">
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Application</p>
+          <p className="mt-1 text-sm font-semibold text-foreground">{formatApplicationStatus(currentStatus)}</p>
         </div>
-        <div className="rounded-lg border border-slate-200/80 bg-slate-50/90 px-3 py-3">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-slate-500">Payment</p>
-          <p className="mt-1 text-sm font-semibold text-slate-950">{normalizedPaymentStatus.replace(/_/g, ' ')}</p>
+        <div className="rounded-lg border border-border/80 bg-muted/90 px-3 py-3">
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Payment</p>
+          <p className="mt-1 text-sm font-semibold text-foreground">{normalizedPaymentStatus.replace(/_/g, ' ')}</p>
         </div>
       </div>
 
@@ -238,7 +239,7 @@ export function ApplicationApprovalActions({
         <div className="grid gap-2 sm:grid-cols-2">
           {currentStatus === 'draft' && (
             <>
-              <div className="flex-1 rounded-lg border border-slate-200 bg-slate-50 py-3 text-center">
+              <div className="flex-1 rounded-lg border border-border bg-muted py-3 text-center">
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
                   Draft — not yet submitted
                 </span>

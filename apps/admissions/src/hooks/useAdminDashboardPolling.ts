@@ -26,6 +26,9 @@ export interface AdminDashboardStats {
   totalApplications: number
   pendingApplications: number
   approvedApplications: number
+  conditionallyApprovedApplications: number
+  enrolledApplications: number
+  acceptedApplications: number
   rejectedApplications: number
   todayApplications: number
   weekApplications: number
@@ -67,7 +70,7 @@ export function estimateMaxDashboardRequestsOverWindow(windowMs: number, polling
  * If the fingerprint is identical between polls, onDataChange is not fired.
  */
 function statsFingerprint(stats: AdminDashboardStats): string {
-  return `${stats.totalApplications}:${stats.pendingApplications}:${stats.approvedApplications}:${stats.rejectedApplications}:${stats.todayApplications}:${stats.weekApplications}`
+  return `${stats.totalApplications}:${stats.pendingApplications}:${stats.approvedApplications}:${stats.conditionallyApprovedApplications}:${stats.enrolledApplications}:${stats.acceptedApplications}:${stats.rejectedApplications}:${stats.todayApplications}:${stats.weekApplications}`
 }
 
 async function fetchDashboardStats(): Promise<AdminDashboardStats> {
@@ -78,6 +81,9 @@ async function fetchDashboardStats(): Promise<AdminDashboardStats> {
     totalApplications: stats.totalApplications ?? 0,
     pendingApplications: stats.pendingApplications ?? 0,
     approvedApplications: stats.approvedApplications ?? 0,
+    conditionallyApprovedApplications: stats.conditionallyApprovedApplications ?? 0,
+    enrolledApplications: stats.enrolledApplications ?? 0,
+    acceptedApplications: stats.acceptedApplications ?? 0,
     rejectedApplications: stats.rejectedApplications ?? 0,
     todayApplications: stats.todayApplications ?? 0,
     weekApplications: stats.weekApplications ?? 0,

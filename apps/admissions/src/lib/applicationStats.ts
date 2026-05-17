@@ -4,9 +4,9 @@
  * Pure functions for computing dashboard statistics from an application list.
  * All stats are derived from the data — no hardcoded or placeholder values.
  *
- * Status categories per spec (Requirement 19):
- *   In-progress = status IN ('draft', 'submitted')
- *   Completed   = status IN ('approved', 'rejected', 'waitlisted')
+ * Status categories per current admissions lifecycle:
+ *   In-progress = statuses that still require institution/student action
+ *   Completed   = terminal outcome statuses
  *
  * @requirements 19.1, 19.2, 19.3, 19.4, 19.5
  */
@@ -16,9 +16,9 @@ export interface ApplicationStatsInput {
 }
 
 export interface ApplicationStats {
-  /** Count of applications with status 'draft' or 'submitted' */
+  /** Count of applications that still need action */
   inProgress: number;
-  /** Count of applications with status 'approved', 'rejected', or 'waitlisted' */
+  /** Count of applications in terminal outcome states */
   completed: number;
   /** Total number of applications */
   total: number;
@@ -30,12 +30,12 @@ const COMPLETED_STATUSES = new Set(['approved', 'enrolled', 'rejected', 'withdra
 /**
  * Compute application statistics from a list of applications.
  *
- * - In-progress = draft | submitted
- * - Completed   = approved | rejected | waitlisted
+ * - In-progress = draft | submitted | under_review | conditionally_approved | waitlisted
+ * - Completed   = approved | enrolled | rejected | withdrawn | expired | enrollment_expired
  * - Total       = all applications regardless of status
  *
- * The sum of inProgress + completed may be less than total when applications
- * have other statuses (e.g. 'under_review').
+ * The sum of inProgress + completed should equal total for the current canonical
+ * lifecycle vocabulary. Unknown future statuses intentionally remain uncategorized.
  */
 export function computeApplicationStats(
   applications: ApplicationStatsInput[],

@@ -30,6 +30,32 @@ def test_amendment_request_rejects_missing_fields():
     assert set(s.errors.keys()) == {"field_name", "new_value", "reason"}
 
 
+def test_amendment_request_rejects_non_amendable_field():
+    from apps.applications.serializers import ApplicationAmendmentRequestSerializer
+
+    s = ApplicationAmendmentRequestSerializer(
+        data={"field_name": "program", "new_value": "Nursing", "reason": "changed my mind"}
+    )
+    assert not s.is_valid()
+    assert "field_name" in s.errors
+
+
+def test_amendment_request_validates_email_and_phone_values():
+    from apps.applications.serializers import ApplicationAmendmentRequestSerializer
+
+    invalid_email = ApplicationAmendmentRequestSerializer(
+        data={"field_name": "email", "new_value": "not-an-email", "reason": "typo"}
+    )
+    invalid_phone = ApplicationAmendmentRequestSerializer(
+        data={"field_name": "phone", "new_value": "123", "reason": "new number"}
+    )
+
+    assert not invalid_email.is_valid()
+    assert "new_value" in invalid_email.errors
+    assert not invalid_phone.is_valid()
+    assert "new_value" in invalid_phone.errors
+
+
 # ---- Amendment review ----
 
 def test_amendment_review_rejects_invalid_status():

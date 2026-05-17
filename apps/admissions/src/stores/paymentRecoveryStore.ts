@@ -107,6 +107,12 @@ export function createPaymentRecoveryStore(name = 'mihas-payment-recovery') {
       {
         name,
         version: 1,
+        migrate: (persisted: unknown, version: number) => {
+          // No prior versions yet — return persisted as-is. The presence of this
+          // callback ensures Zustand's migration path is exercised, so a future
+          // version bump only needs to add cases here.
+          return persisted as { entries: Record<string, PaymentRecoveryEntry> };
+        },
         storage: createJSONStorage(() => localStorage),
         onRehydrateStorage: () => (state) => {
           // Drop expired entries on every rehydration so stale data from

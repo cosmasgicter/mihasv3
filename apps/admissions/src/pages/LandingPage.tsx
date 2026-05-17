@@ -14,6 +14,7 @@ import {
 } from '@/components/icons';
 import { Seo } from '@/components/seo/Seo';
 import { prefersReducedMotion } from '@/lib/animation-config';
+import { PROOF_HIGHLIGHTS } from '@/lib/institutionFacts';
 import { useDeferredHydration } from '@/hooks/useDeferredHydration';
 import { onLandingMount } from '@/lib/speculativePrefetch';
 import { scheduleLikelyAuthRoutePreload } from '@/lib/routePreload';
@@ -197,11 +198,7 @@ export default function LandingPage() {
           title: 'Start tonight. Finish when your documents are ready.',
           description: 'K150 for Zambians, USD 20 for international students. Pay by Airtel, MTN, or card. Save your progress and come back. No office visits until your interview.',
           badges: ['NMCZ', 'HPCZ', 'ECZ', 'UNZA'],
-          highlights: [
-            { value: '2', label: 'campuses' },
-            { value: '3', label: 'diploma tracks' },
-            { value: 'On-site', label: 'accommodation' },
-          ],
+          highlights: [...PROOF_HIGHLIGHTS],
           checklist: [
             'Mukuba Institute (Nursing) in Kitwe and Kalulushi Training Centre (Clinical Medicine, Environmental Health).',
             'One application form for all three programs — pick the one that fits you best.',

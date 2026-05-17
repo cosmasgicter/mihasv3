@@ -16,7 +16,7 @@ export const HelpSection: React.FC = () => {
           {/* Help Cards Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Where to Find Application Number */}
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+            <div className="rounded-lg border border-border bg-muted p-5">
               <div className="flex items-start gap-3 mb-4">
                 <div className="p-2 rounded-lg bg-primary/10">
                   <FileSearch className="h-5 w-5 text-primary" />
@@ -42,7 +42,7 @@ export const HelpSection: React.FC = () => {
             </div>
             
             {/* Status Meanings */}
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+            <div className="rounded-lg border border-border bg-muted p-5">
               <div className="flex items-start gap-3 mb-4">
                 <div className="p-2 rounded-lg bg-warning/10">
                   <Target className="h-5 w-5 text-warning" />
@@ -73,7 +73,7 @@ export const HelpSection: React.FC = () => {
           </div>
           
           {/* Contact Information */}
-          <div className="rounded-lg border border-slate-200 bg-white p-5">
+          <div className="rounded-lg border border-border bg-card p-5">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Phone className="h-5 w-5 text-secondary" />
               <Mail className="h-5 w-5 text-primary" />

@@ -66,12 +66,12 @@ export function PageShell({
   return (
     <div
       ref={shellRef}
-      className={cn('bottom-nav-content-padding relative min-h-screen overflow-x-hidden scroll-smooth bg-slate-50 md:pb-0', className)}
+      className={cn('bottom-nav-content-padding relative min-h-screen overflow-x-hidden scroll-smooth bg-muted md:pb-0', className)}
     >
       <div className={cn('mx-auto px-4 sm:px-6 lg:px-8', containerClass)}>
         <header className="py-3 sm:py-6">
-          <div className={cn('overflow-hidden rounded-lg border bg-white shadow-sm', accentClass)}>
-            <div className="border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
+          <div className={cn('overflow-hidden rounded-lg border bg-card shadow-sm', accentClass)}>
+            <div className="border-b border-border px-4 py-4 sm:px-6 sm:py-5">
               <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0 max-w-3xl">
                   {eyebrow && (
@@ -79,11 +79,11 @@ export function PageShell({
                       {eyebrow}
                     </p>
                   )}
-                  <h1 className="break-words text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+                  <h1 className="break-words text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                     {title}
                   </h1>
                   {subtitle && (
-                    <p className="mt-2 max-w-2xl break-words text-sm leading-6 text-slate-600">
+                    <p className="mt-2 max-w-2xl break-words text-sm leading-6 text-muted-foreground">
                       {subtitle}
                     </p>
                   )}
@@ -96,20 +96,20 @@ export function PageShell({
               </div>
             </div>
             {metrics && metrics.length > 0 && (
-              <div className="grid gap-px bg-slate-200 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-px bg-muted sm:grid-cols-2 lg:grid-cols-4">
                 {metrics.map((metric) => (
                   <div
                     key={metric.label}
-                    className="bg-slate-50 px-4 py-3 sm:px-5"
+                    className="bg-muted px-4 py-3 sm:px-5"
                   >
-                    <p className="break-words text-xs font-medium uppercase text-slate-500">
+                    <p className="break-words text-xs font-medium uppercase text-muted-foreground">
                       {metric.label}
                     </p>
-                    <div className="mt-1 min-w-0 break-words text-lg font-semibold text-slate-950">
+                    <div className="mt-1 min-w-0 break-words text-lg font-semibold text-foreground">
                       {metric.value}
                     </div>
                     {metric.helper && (
-                      <p className="mt-1 break-words text-xs leading-5 text-slate-500">{metric.helper}</p>
+                      <p className="mt-1 break-words text-xs leading-5 text-muted-foreground">{metric.helper}</p>
                     )}
                   </div>
                 ))}

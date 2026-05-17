@@ -44,7 +44,7 @@ export function ErrorDisplay({
               <button
                 type="button"
                 onClick={onRetry}
-                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="inline-flex min-h-touch items-center gap-1 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 <RefreshCw className="h-3 w-3" aria-hidden="true" />
                 Retry
@@ -54,7 +54,7 @@ export function ErrorDisplay({
               <button
                 type="button"
                 onClick={onGoBack}
-                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="inline-flex min-h-touch items-center gap-1 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 <ArrowLeft className="h-3 w-3" aria-hidden="true" />
                 Go Back
@@ -96,7 +96,7 @@ export function ErrorDisplay({
             <button
               type="button"
               onClick={onRetry}
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="inline-flex min-h-touch-lg items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
               Try Again
@@ -105,7 +105,7 @@ export function ErrorDisplay({
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="inline-flex min-h-touch-lg items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
               Reload Page
@@ -115,7 +115,7 @@ export function ErrorDisplay({
             <button
               type="button"
               onClick={onGoBack}
-              className="inline-flex items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="inline-flex min-h-touch-lg items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Go Back
@@ -137,7 +137,7 @@ export function ErrorDisplay({
     <div
       role="alert"
       aria-live="assertive"
-      className="flex flex-col items-center gap-4 rounded-[28px] border border-line/70 bg-white/85 p-8 text-center shadow-sm"
+      className="flex flex-col items-center gap-4 rounded-[28px] border border-line/70 bg-panel/85 p-8 text-center shadow-sm"
     >
       <div className="rounded-full bg-danger/10 p-3">
         <XCircle className="h-6 w-6 text-danger" aria-hidden="true" />
@@ -155,7 +155,7 @@ export function ErrorDisplay({
           <button
             type="button"
             onClick={onRetry}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="inline-flex min-h-touch items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
             Try Again
@@ -164,7 +164,7 @@ export function ErrorDisplay({
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="inline-flex min-h-touch items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
             Reload Page
@@ -174,7 +174,7 @@ export function ErrorDisplay({
           <button
             type="button"
             onClick={onGoBack}
-            className="inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="inline-flex min-h-touch items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             Go Back
@@ -183,7 +183,7 @@ export function ErrorDisplay({
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="inline-flex min-h-touch items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             Go Back

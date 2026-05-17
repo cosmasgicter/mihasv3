@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
-import { AuthLayout } from '@/components/auth/AuthLayout';
+import { AuthShell, AuthShellFooter, AuthShellLink } from '@/components/auth/AuthShell';
 import { Banner } from '@/components/ui/Banner';
 import { FormErrorAnnouncer } from '@/components/ui/FormErrorAnnouncer';
 import { Seo } from '@/components/seo/Seo';
@@ -139,19 +139,18 @@ export default function SignUpPage() {
           description="Create your MIHAS admissions account."
           path="/auth/signup"
         />
-        <AuthLayout variant="signup" title="Account created!">
+        <AuthShell title="Account created" description="Opening your dashboard…">
           <div className="space-y-6 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
-              <CheckCircle className="h-8 w-8" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-success">
+              <CheckCircle className="h-8 w-8" aria-hidden="true" />
             </div>
-            <p className="text-sm text-foreground/80">Opening your dashboard...</p>
             <Link to="/student/dashboard" className="block">
-              <Button className="w-full min-h-[48px]" variant="gradient" size="lg">
+              <Button className="w-full min-h-[48px]" variant="primary" size="lg">
                 Open dashboard
               </Button>
             </Link>
           </div>
-        </AuthLayout>
+        </AuthShell>
       </>
     );
   }
@@ -163,23 +162,30 @@ export default function SignUpPage() {
         description="Create your MIHAS admissions account to start your application."
         path="/auth/signup"
       />
-      <AuthLayout
-        variant="signup"
+      <AuthShell
         title="Create account"
         description={
           <>
             Already have an account?{' '}
             <Link
               to="/auth/signin"
-              className="font-semibold text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
+              className="font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
             >
               Sign in
             </Link>
           </>
         }
+        footer={
+          <AuthShellFooter>
+            <AuthShellLink to="/auth/signin">Sign in instead</AuthShellLink>
+            <AuthShellLink to="/auth/forgot-password" emphasis="muted">
+              Forgot password?
+            </AuthShellLink>
+          </AuthShellFooter>
+        }
       >
         <form
-          className={cn('space-y-6', signUpMutation.isError && 'motion-safe:animate-shake')}
+          className={cn('space-y-5', signUpMutation.isError && 'motion-safe:animate-shake')}
           onSubmit={handleSubmit((data) => signUpMutation.mutate(data))}
           method="post"
           noValidate
@@ -187,8 +193,8 @@ export default function SignUpPage() {
           <FormErrorAnnouncer
             errors={errors}
             fieldLabels={{
-              email: 'Account email',
-              password: 'Create password',
+              email: 'Email',
+              password: 'Password',
               confirmPassword: 'Confirm password',
               first_name: 'First name',
               last_name: 'Last name',
@@ -201,135 +207,138 @@ export default function SignUpPage() {
             </Banner>
           ) : null}
 
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm leading-6 text-slate-600">
-              Create your secure portal account first. Program choice, uploads, and payment happen in the application flow after sign in.
-            </p>
-          </div>
-          <fieldset className="space-y-4 rounded-lg border border-border/35 bg-white p-4 sm:p-5">
-            <legend className="px-2 text-base font-semibold text-foreground">Portal access</legend>
-
+          {/* Profile basics — first, because we ask for them most often */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input
-              {...register('email')}
-              type="email"
-              inputMode="email"
-              label="Account email"
-              aria-label="Account email"
-              error={errors.email?.message || serverFieldErrors.email}
-              helperText="We verify this email when you submit the form. If you already have an account, use sign in instead."
-              autoComplete="email"
+              {...register('first_name')}
+              type="text"
+              inputMode="text"
+              label="First name"
+              aria-label="First name"
+              error={errors.first_name?.message || serverFieldErrors.first_name}
+              autoComplete="given-name"
               disabled={signUpMutation.isPending}
               required
-              className={cn('min-h-[48px]')}
+              autoFocus
+              className="min-h-[48px]"
             />
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <PasswordInput
-                {...register('password')}
-                label="Create password"
-                aria-label="Create password"
-                error={errors.password?.message || serverFieldErrors.password}
-                autoComplete="new-password"
-                disabled={signUpMutation.isPending}
-                required
-                className="min-h-[48px]"
-              />
-              <PasswordInput
-                {...register('confirmPassword')}
-                label="Confirm password"
-                aria-label="Confirm password"
-                error={errors.confirmPassword?.message}
-                autoComplete="new-password"
-                disabled={signUpMutation.isPending}
-                required
-                className="min-h-[48px]"
-              />
-            </div>
-            {passwordValue.length > 0 && (() => {
-              const checks = [
-                passwordValue.length >= 8,
-                /[A-Z]/.test(passwordValue),
-                /[0-9]/.test(passwordValue),
-                /[^A-Za-z0-9]/.test(passwordValue),
-              ]
-              const strength = checks.filter(Boolean).length
-              const label = ['Weak', 'Fair', 'Good', 'Strong'][strength - 1] || 'Weak'
-              const color = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'][strength - 1] || 'bg-red-500'
-              return (
-                <div className="space-y-1.5" aria-live="polite">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4].map((level) => (
-                      <div key={level} className={cn('h-1.5 flex-1 rounded-full transition-colors', level <= strength ? color : 'bg-muted')} />
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground">Password strength: <span className="font-medium">{label}</span></p>
-                </div>
-              )
-            })()}
-          </fieldset>
-
-          <fieldset className="space-y-4 rounded-lg border border-border/35 bg-white p-4 sm:p-5">
-            <legend className="px-2 text-base font-semibold text-foreground">Profile basics</legend>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input
-                {...register('first_name')}
-                type="text"
-                inputMode="text"
-                label="First name"
-                aria-label="First name"
-                error={errors.first_name?.message || serverFieldErrors.first_name}
-                autoComplete="given-name"
-                disabled={signUpMutation.isPending}
-                required
-                className="min-h-[48px]"
-              />
-              <Input
-                {...register('last_name')}
-                type="text"
-                inputMode="text"
-                label="Last name"
-                aria-label="Last name"
-                error={errors.last_name?.message || serverFieldErrors.last_name}
-                autoComplete="family-name"
-                disabled={signUpMutation.isPending}
-                required
-                className="min-h-[48px]"
-              />
-            </div>
-
             <Input
-              {...register('phone')}
-              type="tel"
-              inputMode="tel"
-              label="Phone number"
-              aria-label="Phone number"
-              error={errors.phone?.message || serverFieldErrors.phone}
-              autoComplete="tel"
+              {...register('last_name')}
+              type="text"
+              inputMode="text"
+              label="Last name"
+              aria-label="Last name"
+              error={errors.last_name?.message || serverFieldErrors.last_name}
+              autoComplete="family-name"
               disabled={signUpMutation.isPending}
               required
               className="min-h-[48px]"
             />
-          </fieldset>
+          </div>
+
+          <Input
+            {...register('email')}
+            type="email"
+            inputMode="email"
+            label="Email"
+            aria-label="Email"
+            error={errors.email?.message || serverFieldErrors.email}
+            helperText="We'll verify this address. If you already have an account, sign in instead."
+            autoComplete="email"
+            disabled={signUpMutation.isPending}
+            required
+            className="min-h-[48px]"
+          />
+
+          <Input
+            {...register('phone')}
+            type="tel"
+            inputMode="tel"
+            label="Phone number"
+            aria-label="Phone number"
+            error={errors.phone?.message || serverFieldErrors.phone}
+            autoComplete="tel"
+            disabled={signUpMutation.isPending}
+            required
+            className="min-h-[48px]"
+          />
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <PasswordInput
+              {...register('password')}
+              label="Password"
+              aria-label="Password"
+              error={errors.password?.message || serverFieldErrors.password}
+              autoComplete="new-password"
+              disabled={signUpMutation.isPending}
+              required
+              className="min-h-[48px]"
+            />
+            <PasswordInput
+              {...register('confirmPassword')}
+              label="Confirm password"
+              aria-label="Confirm password"
+              error={errors.confirmPassword?.message}
+              autoComplete="new-password"
+              disabled={signUpMutation.isPending}
+              required
+              className="min-h-[48px]"
+            />
+          </div>
+
+          {passwordValue.length > 0 && (() => {
+            const checks = [
+              passwordValue.length >= 8,
+              /[A-Z]/.test(passwordValue),
+              /[0-9]/.test(passwordValue),
+              /[^A-Za-z0-9]/.test(passwordValue),
+            ]
+            const strength = checks.filter(Boolean).length
+            const label = ['Weak', 'Fair', 'Good', 'Strong'][strength - 1] || 'Weak'
+            // Use semantic status tokens, not raw colors
+            const color =
+              strength >= 4 ? 'bg-success'
+              : strength === 3 ? 'bg-warning'
+              : strength === 2 ? 'bg-warning/60'
+              : 'bg-destructive'
+            return (
+              <div className="space-y-1.5" aria-live="polite">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4].map((level) => (
+                    <div
+                      key={level}
+                      className={cn(
+                        'h-1.5 flex-1 rounded-full transition-colors',
+                        level <= strength ? color : 'bg-muted',
+                      )}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Password strength: <span className="font-medium text-foreground">{label}</span>
+                </p>
+              </div>
+            )
+          })()}
 
           <Button
             type="submit"
             className="w-full min-h-[48px]"
             loading={signUpMutation.isPending}
-            variant="gradient"
+            variant="primary"
             size="lg"
           >
             {signUpMutation.isPending ? 'Creating account...' : 'Create account'}
           </Button>
 
-          <p className="text-center text-xs text-foreground/75">
+          <p className="text-center text-xs text-muted-foreground">
             By creating an account, you agree to our{' '}
             <Link to="/terms" className="text-primary hover:underline">Terms</Link>{' '}
             and{' '}
             <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
           </p>
         </form>
-      </AuthLayout>
+      </AuthShell>
     </>
   );
 }

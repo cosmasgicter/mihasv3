@@ -11,7 +11,7 @@ interface Grade {
 export function GradesTab({ grades, loading }: { grades: Grade[], loading: boolean }) {
   if (loading) return (
     <div className="space-y-3 py-4" role="status" aria-label="Loading grades">
-      <div className="flex justify-between p-4 bg-slate-50 rounded-lg">
+      <div className="flex justify-between p-4 bg-muted rounded-lg">
         <Skeleton className="h-5 w-24" />
         <Skeleton className="h-6 w-12" />
       </div>
@@ -34,7 +34,7 @@ export function GradesTab({ grades, loading }: { grades: Grade[], loading: boole
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between p-4 bg-slate-50 rounded-lg">
+      <div className="flex justify-between p-4 bg-muted rounded-lg">
         <div><p className="text-sm font-medium">{grades.length} Subjects</p></div>
         <div><p className="text-lg font-bold">{points}</p><p className="text-xs">Points</p></div>
       </div>

@@ -1,6 +1,14 @@
 // Security utilities for sanitization and validation
 
 /**
+ * Canonical input sanitizer — trims whitespace, returns empty string for
+ * null/undefined. This is the single source of truth; do not duplicate.
+ */
+export function sanitizeInput(value: string | undefined | null): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+/**
  * Sanitizes input for logging to prevent log injection attacks
  */
 export function sanitizeForLog(input: any): string {

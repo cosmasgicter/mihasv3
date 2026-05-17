@@ -45,10 +45,4 @@ export function extractAuthUser(result: unknown): User | null {
   return normalizeAuthUser(result as Partial<User> & { first_name?: string; last_name?: string })
 }
 
-export function isAdminUser(user: User | null): boolean {
-  if (!user) {
-    return false
-  }
 
-  return isAdminRole(user.role)
-}

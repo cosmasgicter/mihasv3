@@ -6,7 +6,7 @@ import { ApplicationFilters, DEFAULT_APPLICATION_FILTERS } from './useApplicatio
 import { calculatePointsFromSummary } from '@/lib/grades'
 import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
 
-interface ApplicationSummary {
+export interface ApplicationSummary {
   id: string
   user_id: string
   application_number: string
@@ -198,6 +198,27 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       }
       if (activeFilters.institutionFilter) {
         params.institution = activeFilters.institutionFilter
+      }
+      if (activeFilters.assignedReviewerFilter) {
+        params.reviewer_assignment = activeFilters.assignedReviewerFilter
+      }
+      if (activeFilters.lateSubmissionFilter) {
+        params.is_late_submission = activeFilters.lateSubmissionFilter
+      }
+      if (activeFilters.pendingAmendmentsFilter) {
+        params.has_pending_amendments = activeFilters.pendingAmendmentsFilter
+      }
+      if (activeFilters.reviewQueueFilter) {
+        params.review_queue = activeFilters.reviewQueueFilter
+      }
+      if (activeFilters.overdueReviewFilter) {
+        params.overdue_review = activeFilters.overdueReviewFilter
+      }
+      if (activeFilters.pendingDocumentsFilter) {
+        params.has_pending_documents = activeFilters.pendingDocumentsFilter
+      }
+      if (activeFilters.upcomingInterviewsFilter) {
+        params.has_upcoming_interviews = activeFilters.upcomingInterviewsFilter
       }
       if (activeFilters.draftFilter === 'drafts') {
         params.status = 'draft'

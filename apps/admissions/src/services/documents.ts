@@ -52,4 +52,31 @@ export const documentService = {
       throw err
     }
   },
+
+  /** List documents belonging to a specific application. */
+  listByApplication: async (applicationId: string) => {
+    const endpoint = `/applications/${encodeURIComponent(applicationId)}/documents/`
+    try {
+      const result = await apiClient.request<unknown[]>(endpoint, {
+        method: 'GET'
+      })
+      return result ?? []
+    } catch (err) {
+      logApiError('documents', endpoint, err)
+      throw err
+    }
+  },
+
+  /** Soft-delete a document via the canonical Django endpoint. */
+  delete: async (documentId: string) => {
+    const endpoint = `/documents/${encodeURIComponent(documentId)}/delete/`
+    try {
+      return await apiClient.request(endpoint, {
+        method: 'DELETE'
+      })
+    } catch (err) {
+      logApiError('documents', endpoint, err)
+      throw err
+    }
+  },
 }

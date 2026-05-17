@@ -47,4 +47,19 @@ describe('buildApplicationsOverview', () => {
 
     expect(overview.todaySubmissions).toBe(2)
   })
+
+  it('separates strict approval from the wider accepted path', () => {
+    const overview = buildApplicationsOverview([
+      { status: 'conditionally_approved', payment_status: 'verified' },
+      { status: 'approved', payment_status: 'verified' },
+      { status: 'enrolled', payment_status: 'verified' },
+      { status: 'rejected', payment_status: 'verified' },
+    ])
+
+    expect(overview.conditionallyApproved).toBe(1)
+    expect(overview.approved).toBe(1)
+    expect(overview.enrolled).toBe(1)
+    expect(overview.accepted).toBe(3)
+    expect(overview.rejected).toBe(1)
+  })
 })

@@ -130,6 +130,7 @@ const BasicKycStep = ({
           <div style={shouldAnimate ? staggerChild(3) : undefined}>
             <AnimatedInput
               type="date"
+              autoComplete="bday"
               {...register('date_of_birth')}
               label="Date of Birth *"
               max={new Date().toISOString().split('T')[0]}
@@ -202,6 +203,7 @@ const BasicKycStep = ({
           <div style={shouldAnimate ? staggerChild(10) : undefined}>
             <AnimatedInput
               {...register('next_of_kin_name')}
+              autoComplete="off"
               label="Next of Kin Name (Optional)"
               error={errors.next_of_kin_name?.message}
             />
@@ -210,6 +212,9 @@ const BasicKycStep = ({
           <div style={shouldAnimate ? staggerChild(11) : undefined}>
             <AnimatedInput
               {...register('next_of_kin_phone')}
+              type="tel"
+              inputMode="tel"
+              autoComplete="off"
               label="Next of Kin Phone (Optional)"
               error={errors.next_of_kin_phone?.message}
             />

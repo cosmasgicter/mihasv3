@@ -20,6 +20,7 @@
     "test:admissions": "cd apps/admissions && bun run test",
     "lint:admissions": "cd apps/admissions && bun run lint",
     "lint:jobs-ops": "cd apps/jobs-ops && bun run lint",
+    "lint:design": "bun scripts/design-audit-gate.ts",
     "type-check:jobs-ops": "cd apps/jobs-ops && bun run type-check"
   }
 }

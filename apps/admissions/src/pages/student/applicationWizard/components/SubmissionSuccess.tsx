@@ -89,12 +89,12 @@ const SubmissionSuccess = ({
     <div className="max-w-lg w-full">
       {/* Dismissible slip generation overlay */}
       {(persistingSlip || slipLoading) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 " role="dialog" aria-modal="true" onKeyDown={(e) => { if (e.key === 'Escape') onDismissSlipProgress?.() }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/40 " role="dialog" aria-modal="true" onKeyDown={(e) => { if (e.key === 'Escape') onDismissSlipProgress?.() }}>
           <div className="relative bg-card rounded-lg shadow-md p-6 max-w-sm w-full mx-4 text-center">
             <button
               type="button"
               onClick={onDismissSlipProgress}
-              className="absolute top-3 right-3 p-1 rounded-sm hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="absolute top-3 right-3 p-1 rounded-sm hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Close slip progress"
             >
               <X className="h-4 w-4 text-foreground" />

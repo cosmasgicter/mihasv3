@@ -5,8 +5,14 @@ import { DraftBadge } from './DraftBadge'
 import { useToastStore } from '@/hooks/useToast'
 import { CommunicationModal, type CommunicationData } from '@/components/admin/CommunicationModal'
 import { applicationService } from '@/services/applications'
+import { notificationService } from '@/services/notifications'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 import { formatDate } from '@/lib/dateFormat'
+import { ADMIN_APPLICATION_STATUS_BADGES } from '@/lib/applicationStatusUi'
+import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'
+import type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
+
+export type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
 
 // Institution code to name mapping
 export const INSTITUTION_NAMES: Record<string, string> = {
@@ -20,46 +26,6 @@ export const getInstitutionName = (code?: string): string => {
   if (!code) return 'Not specified'
   return INSTITUTION_NAMES[code] || code
 }
-
-export interface ApplicationSummary {
-  id: string
-  user_id?: string
-  application_number: string
-  full_name: string
-  email: string
-  phone: string
-  program: string
-  intake: string
-  institution: string
-  status: string
-  payment_status: string
-  payment_verified_at: string | null
-  payment_verified_by: string | null
-  payment_verified_by_name: string | null
-  payment_verified_by_email: string | null
-  last_payment_audit_id: string | null
-  last_payment_audit_at: string | null
-  last_payment_audit_by_name: string | null
-  last_payment_audit_by_email: string | null
-  last_payment_audit_notes: string | null
-  last_payment_reference: string | null
-  application_fee: number
-  paid_amount: number
-  submitted_at: string
-  updated_at?: string
-  created_at: string
-  result_slip_url: string
-  extra_kyc_url: string
-  grades_summary: string
-  total_subjects: number
-  points: number
-  days_since_submission: number
-  // Draft-specific fields
-  isDraft: boolean
-  completionPercentage: number
-  lastUpdated: string
-}
-
 
 export interface ApplicationCardProps {
   application: ApplicationSummary
@@ -112,27 +78,28 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
   // Internalized getStatusBadge function with useCallback
   const getStatusBadge = useCallback((status: string) => {
-    const statusConfig = {
-      draft: { color: 'bg-gray-100/80 text-gray-700', icon: Clock },
-      submitted: { color: 'bg-blue-100/80 text-blue-700', icon: AlertTriangle },
-      under_review: { color: 'bg-amber-100/80 text-amber-700', icon: Eye },
-      approved: { color: 'bg-emerald-100/80 text-emerald-700', icon: CheckCircle },
-      conditionally_approved: { color: 'bg-emerald-100/80 text-emerald-700', icon: CheckCircle },
-      rejected: { color: 'bg-red-100/80 text-red-700', icon: XCircle },
-      waitlisted: { color: 'bg-amber-100/80 text-amber-700', icon: Clock },
-      withdrawn: { color: 'bg-slate-100/80 text-slate-700', icon: XCircle },
-      expired: { color: 'bg-orange-100/80 text-orange-700', icon: AlertTriangle },
-      enrolled: { color: 'bg-emerald-100/80 text-emerald-700', icon: CheckCircle },
-      enrollment_expired: { color: 'bg-orange-100/80 text-orange-700', icon: AlertTriangle },
+    const statusIcons: Record<ApplicationStatus, typeof Clock> = {
+      draft: Clock,
+      submitted: AlertTriangle,
+      under_review: Eye,
+      approved: CheckCircle,
+      conditionally_approved: CheckCircle,
+      rejected: XCircle,
+      waitlisted: Clock,
+      withdrawn: XCircle,
+      expired: AlertTriangle,
+      enrolled: CheckCircle,
+      enrollment_expired: AlertTriangle,
     }
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft
-    const Icon = config.icon
+    const normalizedStatus = status as ApplicationStatus
+    const config = ADMIN_APPLICATION_STATUS_BADGES[normalizedStatus] ?? ADMIN_APPLICATION_STATUS_BADGES.draft
+    const Icon = statusIcons[normalizedStatus] ?? statusIcons.draft
 
     return (
-      <span className={`inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium leading-tight ${config.color}`}>
+      <span className={`inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium leading-tight ${config.cardClassName}`}>
         <Icon className="h-3 w-3 shrink-0" />
-        {status.replace('_', ' ').toUpperCase()}
+        {formatApplicationStatus(status).toUpperCase()}
       </span>
     )
   }, [])
@@ -141,7 +108,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
   const getPaymentBadge = useCallback((paymentStatus: string) => {
     const normalizedStatus = normalizePaymentStatus(paymentStatus)
     const paymentConfig = {
-      not_paid: { color: 'bg-slate-100/80 text-slate-600', icon: Clock },
+      not_paid: { color: 'bg-muted/80 text-muted-foreground', icon: Clock },
       pending_review: { color: 'bg-amber-100/80 text-amber-700', icon: Clock },
       verified: { color: 'bg-emerald-100/80 text-emerald-700', icon: CheckCircle },
       rejected: { color: 'bg-red-100/80 text-red-700', icon: XCircle },
@@ -162,17 +129,29 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
   const handleSendMessage = async (data: CommunicationData) => {
     try {
       const title = data.subject?.trim() || (
-        data.channel === 'sms'
-          ? 'SMS update from MIHAS Admissions'
-          : data.channel === 'in-app'
+        data.channel === 'in-app'
             ? 'Portal update from MIHAS Admissions'
             : 'Message from MIHAS Admissions'
       )
 
-      await applicationService.sendNotification(app.id, {
-        title,
-        message: data.message,
-      })
+      if (data.channel === 'email') {
+        const sent = await notificationService.sendEmail({
+          recipientEmail: app.email,
+          subject: title,
+          body: data.message,
+        })
+
+        if (!sent) {
+          throw new Error('Email delivery request was rejected by the backend')
+        }
+      } else if (data.channel === 'in-app') {
+        await applicationService.sendNotification(app.id, {
+          title,
+          message: data.message,
+        })
+      } else {
+        throw new Error('SMS delivery is not available yet')
+      }
 
       showSuccess('Message Sent', 'Your message has been sent successfully')
     } catch {

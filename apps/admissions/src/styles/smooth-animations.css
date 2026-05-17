@@ -1,8 +1,10 @@
 /* Smooth Animations - Performance Optimized */
 
-/* Hardware acceleration for animated elements only - not global */
+/* Hardware acceleration for animated elements only - not global.
+ * (Removed bouncy keyframes per 2026-05-17 design audit; use pulse / ping
+ * for attention triggers and let exponential easing handle motion.) */
 .animate-pulse,
-.animate-bounce,
+.animate-ping,
 [class*="animate-"],
 [class*="smooth-"] {
   -webkit-backface-visibility: hidden;
@@ -11,7 +13,7 @@
 
 /* Base animation optimizations */
 .animate-pulse,
-.animate-bounce,
+.animate-ping,
 [class*="animate-"] {
   will-change: transform, opacity;
   transform: translateZ(0);

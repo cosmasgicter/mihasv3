@@ -9,7 +9,6 @@ import {
   ApplicationDetailModal
 } from '@/components/admin/applications'
 import { BulkActionsBar } from '@/components/admin/applications/BulkActionsBar'
-import { AdminMetrics } from '@/components/admin/applications/AdminMetrics'
 import { APPLICATION_FILTER_KEYS, useApplicationsData, useApplicationFilters } from '@/hooks/admin'
 import { Button } from '@/components/ui/Button'
 import { useToastStore } from '@/hooks/useToast'
@@ -36,16 +35,12 @@ import { buildApplicationsOverview } from '@/pages/admin/lib/applicationsOvervie
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
 import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'
 import { BULK_ACTION_STATUS_MAP, type BulkApplicationAction } from '@/lib/applicationStatusUi'
-import { 
+import {
   FileDown, 
   FileSpreadsheet, 
   FileText, 
   Filter, 
   RefreshCw, 
-  Clock, 
-  XCircle,
-  AlertCircle,
-  CreditCard,
   Download,
   LayoutGrid,
   Table,
@@ -616,9 +611,9 @@ export default function Applications() {
           helper: `${stats.paymentNotPaid + stats.paymentRejected} still need follow-up`,
         },
         {
-          label: 'Approved',
-          value: stats.approved,
-          helper: `${stats.rejected} rejected decisions recorded`,
+          label: 'Accepted path',
+          value: stats.accepted,
+          helper: `${stats.conditionallyApproved} conditional + ${stats.approved} approved + ${stats.enrolled} enrolled`,
         },
       ]}
       actions={
@@ -696,94 +691,42 @@ export default function Applications() {
         </div>
       }
     >
-      {/* Enhanced Admin Metrics */}
+      {/* Review posture and operator tools */}
       <div className="px-4 py-4 sm:px-6">
         <div className="mb-6 grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.8fr)]">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <div className="flex flex-wrap items-center gap-2">
               {['High-confidence approvals', 'Payment-first decisioning', 'Queue visibility'].map((item) => (
-                <span key={item} className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700">
+                <span key={item} className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">
                   {item}
                 </span>
               ))}
             </div>
-            <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+            <h2 className="mt-4 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
               Built for fast triage without sacrificing judgment
             </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
               The review flow now emphasizes what admissions officers need first: today’s intake pressure, payment proof requiring attention, and the exact queue that still needs a decision.
             </p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
             <p className="text-xs font-semibold uppercase text-primary">Review posture</p>
             <div className="mt-4 grid gap-3">
-              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase text-slate-500">Today</p>
-                <p className="mt-1 text-lg font-semibold text-slate-950">{stats.todaySubmissions} new submissions landed</p>
+              <div className="rounded-lg border border-border bg-muted px-4 py-3">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">Today</p>
+                <p className="mt-1 text-lg font-semibold text-foreground">{stats.todaySubmissions} new submissions landed</p>
               </div>
-              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase text-slate-500">Most urgent</p>
-                <p className="mt-1 text-lg font-semibold text-slate-950">
+              <div className="rounded-lg border border-border bg-muted px-4 py-3">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">Most urgent</p>
+                <p className="mt-1 text-lg font-semibold text-foreground">
                   {stats.paymentPending > 0 ? 'Payment proof review is active' : stats.decisionQueue > 0 ? 'Decision queue needs attention' : 'Queue is under control'}
                 </p>
               </div>
             </div>
           </div>
         </div>
-        <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'Applications.AdminMetrics', ...errorInfo })}>
-        <AdminMetrics applications={applications} />
-        </ErrorBoundary>
-        
-        {/* Quick Stats Cards - Mobile First */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Clock className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Today</p>
-                <p className="text-2xl font-bold text-foreground">{stats.todaySubmissions}</p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-accent/10 rounded-lg">
-                <AlertCircle className="h-4 w-4 text-accent" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Decision Queue</p>
-                <p className="text-2xl font-bold text-foreground">{stats.decisionQueue}</p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <CreditCard className="h-4 w-4 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Proof Review</p>
-                <p className="text-2xl font-bold text-foreground">{stats.paymentPending}</p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-destructive/10 rounded-lg">
-                <XCircle className="h-4 w-4 text-destructive" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Payment Follow-up</p>
-                <p className="text-2xl font-bold text-foreground">{stats.paymentNotPaid + stats.paymentRejected}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Mobile Export Actions */}
-        <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-6 rounded-lg border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-foreground">Export Data</h3>
             <Download className="h-4 w-4 text-muted-foreground" />
@@ -827,7 +770,7 @@ export default function Applications() {
 
         {/* Mobile Filters Panel */}
         {showFilters && (
-          <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:hidden">
+          <div className="mb-6 rounded-lg border border-border bg-card p-4 shadow-sm sm:hidden">
             <FiltersPanel
               searchTerm={filters.searchTerm}
               statusFilter={filters.statusFilter}
@@ -838,6 +781,10 @@ export default function Applications() {
               assignedReviewerFilter={filters.assignedReviewerFilter}
               lateSubmissionFilter={filters.lateSubmissionFilter}
               pendingAmendmentsFilter={filters.pendingAmendmentsFilter}
+              reviewQueueFilter={filters.reviewQueueFilter}
+              overdueReviewFilter={filters.overdueReviewFilter}
+              pendingDocumentsFilter={filters.pendingDocumentsFilter}
+              upcomingInterviewsFilter={filters.upcomingInterviewsFilter}
               programOptions={programOptions}
               institutionOptions={institutionOptions}
               onFilterChange={updateFilter}
@@ -846,7 +793,7 @@ export default function Applications() {
         )}
 
         {/* Desktop Filters */}
-        <div className="mb-6 hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:block">
+        <div className="mb-6 hidden rounded-lg border border-border bg-card p-4 shadow-sm sm:block">
           <FiltersPanel
             searchTerm={filters.searchTerm}
             statusFilter={filters.statusFilter}
@@ -857,6 +804,10 @@ export default function Applications() {
             assignedReviewerFilter={filters.assignedReviewerFilter}
             lateSubmissionFilter={filters.lateSubmissionFilter}
             pendingAmendmentsFilter={filters.pendingAmendmentsFilter}
+            reviewQueueFilter={filters.reviewQueueFilter}
+            overdueReviewFilter={filters.overdueReviewFilter}
+            pendingDocumentsFilter={filters.pendingDocumentsFilter}
+            upcomingInterviewsFilter={filters.upcomingInterviewsFilter}
             programOptions={programOptions}
             institutionOptions={institutionOptions}
             onFilterChange={updateFilter}
@@ -885,8 +836,8 @@ export default function Applications() {
           <ApplicationsSkeleton />
         ) : !isInitialLoading && applications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="grid h-16 w-16 place-items-center rounded-lg border border-slate-200 bg-slate-50 mb-4">
-              <FileText className="h-7 w-7 text-slate-500" />
+            <div className="grid h-16 w-16 place-items-center rounded-lg border border-border bg-muted mb-4">
+              <FileText className="h-7 w-7 text-muted-foreground" />
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-1">No applications found</h3>
             <p className="text-sm text-muted-foreground max-w-md">No applications match your current filters. Try adjusting your search criteria or clearing filters.</p>

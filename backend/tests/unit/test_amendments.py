@@ -250,6 +250,33 @@ class TestAmendmentEndpointOwnerOnly:
         assert resp.status_code == 403
         assert resp.data["code"] == "INSUFFICIENT_PERMISSIONS"
 
+    def test_owner_create_returns_201(self):
+        owner_id = uuid.uuid4()
+        a = _app(owner_id)
+        owner = _user(owner_id)
+        amendment = MagicMock()
+        amendment.id = uuid.uuid4()
+        amendment.field_name = "phone"
+        amendment.new_value = "+260971234567"
+        amendment.status = "pending"
+
+        with (
+            patch(_AO) as mq,
+            patch("apps.applications.amendment_service.AmendmentService.request_amendment") as service,
+        ):
+            mq.select_related.return_value.get.return_value = a
+            service.return_value = amendment
+            req = self.f.post(
+                f"/api/v1/applications/{a.id}/amendments/",
+                {"field_name": "phone", "new_value": "+260971234567", "reason": "Changed phone"},
+                format="json",
+            )
+            force_authenticate(req, user=owner)
+            resp = self.v(req, application_id=a.id)
+
+        assert resp.status_code == 201
+        assert resp.data["success"] is True
+
 
 class TestAmendmentReviewEndpoint:
     """7. Amendment review endpoint (Req 14.7)."""

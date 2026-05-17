@@ -477,3 +477,38 @@ def cleanup_idempotency_keys_task():
     deleted, _ = IdempotencyKey.objects.filter(created_at__lt=cutoff).delete()
     if deleted:
         logger.info("Cleaned up %d expired idempotency keys", deleted)
+
+
+# ---------------------------------------------------------------------------
+# Audit log async write task
+# ---------------------------------------------------------------------------
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=10, soft_time_limit=30, time_limit=45)
+def write_audit_log_task(self, payload: dict):
+    """Persist a standard-retention audit log row asynchronously.
+
+    Dispatched by ``AuditMiddleware`` for non-security paths so audit DB
+    writes don't add latency to the request path. Security-retention writes
+    bypass this task and write synchronously.
+
+    Retries up to 3 times with a 10s delay on transient DB failures so a
+    Postgres blip doesn't lose audit records. After max retries the failure
+    is logged and dropped — audit reliability is best-effort, never blocking.
+    """
+    from apps.common.models import AuditLog
+
+    try:
+        AuditLog.objects.create(**payload)
+    except Exception as exc:
+        # Retry on transient errors. After max retries, log and drop.
+        try:
+            raise self.retry(exc=exc)
+        except self.MaxRetriesExceededError:
+            logger.error(
+                "write_audit_log_task: max retries exceeded, dropping audit row "
+                "(actor=%s action=%s entity_type=%s)",
+                payload.get("actor_id"),
+                payload.get("action"),
+                payload.get("entity_type"),
+            )

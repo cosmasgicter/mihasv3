@@ -2246,7 +2246,7 @@ class TestCompletenessScoreFormula(SimpleTestCase):
 
 completeness_scores = st.integers(min_value=0, max_value=100)
 payment_statuses = st.sampled_from([
-    "verified", "paid", "force_approved", "pending", "not_paid", "failed",
+    "verified", "paid", "force_approved", "deferred", "pending", "not_paid", "failed",
 ])
 doc_warning_flags = st.booleans()
 deadline_urgency_values = st.sampled_from([50.0, 80.0, 100.0])
@@ -2310,7 +2310,7 @@ class TestReviewQueuePriorityScoreAndClassification(SimpleTestCase):
         # Compute expected score
         c_score = min(completeness, 100) * 0.3
         d_score = deadline_urgency * 0.25
-        p_score = (100 if payment_status in ("verified", "paid", "force_approved") else 0) * 0.2
+        p_score = (100 if payment_status in ("verified", "paid", "force_approved", "deferred") else 0) * 0.2
         doc_score = (50 if has_doc_warnings else 100) * 0.15
         t_score = time_score * 0.1
         expected_total = round(c_score + d_score + p_score + doc_score + t_score, 1)
@@ -2330,7 +2330,7 @@ class TestReviewQueuePriorityScoreAndClassification(SimpleTestCase):
         deadline_urgency, time_score,
     ):
         """Classification is ready_for_decision when completeness >= 90 and
-        payment is verified/paid/force_approved."""
+        payment is verified/paid/force_approved/deferred."""
         from apps.applications.review_queue import ReviewQueueScorer
 
         app = _make_review_application(payment_status=payment_status)
@@ -2340,7 +2340,7 @@ class TestReviewQueuePriorityScoreAndClassification(SimpleTestCase):
              patch.object(scorer, "_time_score", return_value=time_score):
             result = scorer.score(app, completeness, has_doc_warnings)
 
-        is_payment_verified = payment_status in ("verified", "paid", "force_approved")
+        is_payment_verified = payment_status in ("verified", "paid", "force_approved", "deferred")
 
         if completeness >= 90 and is_payment_verified:
             self.assertEqual(result.classification, "ready_for_decision")
@@ -2428,7 +2428,9 @@ class TestReviewQueueSortOrder(SimpleTestCase):
 # ---------------------------------------------------------------------------
 
 analytics_statuses = st.sampled_from([
-    "draft", "submitted", "under_review", "approved", "rejected", "waitlisted",
+    "draft", "submitted", "under_review", "conditionally_approved",
+    "approved", "rejected", "waitlisted", "enrolled", "withdrawn",
+    "expired", "enrollment_expired",
 ])
 
 
@@ -2438,9 +2440,14 @@ def _make_status_counts(draw):
         "drafts": draw(st.integers(min_value=0, max_value=50)),
         "submitted": draw(st.integers(min_value=0, max_value=50)),
         "under_review": draw(st.integers(min_value=0, max_value=50)),
+        "conditionally_approved": draw(st.integers(min_value=0, max_value=50)),
         "approved": draw(st.integers(min_value=0, max_value=50)),
         "rejected": draw(st.integers(min_value=0, max_value=50)),
         "waitlisted": draw(st.integers(min_value=0, max_value=50)),
+        "enrolled": draw(st.integers(min_value=0, max_value=50)),
+        "withdrawn": draw(st.integers(min_value=0, max_value=50)),
+        "expired": draw(st.integers(min_value=0, max_value=50)),
+        "enrollment_expired": draw(st.integers(min_value=0, max_value=50)),
     }
 
 
@@ -2472,15 +2479,22 @@ class TestAnalyticsFunnelCountsMatchData(SimpleTestCase):
         total = sum(counts.values())
         submitted_plus = (
             counts["submitted"] + counts["under_review"]
-            + counts["approved"] + counts["rejected"]
-            + counts["waitlisted"]
+            + counts["conditionally_approved"] + counts["approved"]
+            + counts["rejected"] + counts["waitlisted"]
+            + counts["enrolled"] + counts["withdrawn"]
+            + counts["enrollment_expired"]
+        )
+        accepted_plus = (
+            counts["conditionally_approved"]
+            + counts["approved"]
+            + counts["enrolled"]
         )
 
         expected_draft_to_submission_rate = (
             round(submitted_plus / total * 100, 1) if total else 0
         )
         expected_submission_to_approval_rate = (
-            round(counts["approved"] / submitted_plus * 100, 1) if submitted_plus else 0
+            round(accepted_plus / submitted_plus * 100, 1) if submitted_plus else 0
         )
 
         mock_qs = MagicMock()
@@ -2499,9 +2513,14 @@ class TestAnalyticsFunnelCountsMatchData(SimpleTestCase):
         self.assertEqual(result["drafts"], counts["drafts"])
         self.assertEqual(result["submitted"], counts["submitted"])
         self.assertEqual(result["under_review"], counts["under_review"])
+        self.assertEqual(result["conditionally_approved"], counts["conditionally_approved"])
         self.assertEqual(result["approved"], counts["approved"])
         self.assertEqual(result["rejected"], counts["rejected"])
         self.assertEqual(result["waitlisted"], counts["waitlisted"])
+        self.assertEqual(result["enrolled"], counts["enrolled"])
+        self.assertEqual(result["withdrawn"], counts["withdrawn"])
+        self.assertEqual(result["expired"], counts["expired"])
+        self.assertEqual(result["enrollment_expired"], counts["enrollment_expired"])
 
         # Verify total
         self.assertEqual(result["total"], total)
@@ -2528,9 +2547,14 @@ class TestAnalyticsFunnelCountsMatchData(SimpleTestCase):
             "drafts": 0,
             "submitted": 0,
             "under_review": 0,
+            "conditionally_approved": 0,
             "approved": 0,
             "rejected": 0,
             "waitlisted": 0,
+            "enrolled": 0,
+            "withdrawn": 0,
+            "expired": 0,
+            "enrollment_expired": 0,
         }
 
         mock_qs = MagicMock()

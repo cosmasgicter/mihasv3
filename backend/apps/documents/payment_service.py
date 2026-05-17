@@ -1,5 +1,14 @@
 """Payment lifecycle service for Lenco integration.
 
+Stream 9 Phase 2 of the canonical-truth program: extracted constants,
+result dataclasses, and module-level helpers into separate modules
+(``payment_constants.py``, ``payment_types.py``, ``payment_helpers.py``).
+The ``PaymentService`` class itself is intentionally NOT split — the
+forward-only state machine, integrity gates, and Lenco interactions are
+deeply interdependent and decomposing them is its own dedicated spec.
+This module remains the public import path; every previously-defined
+symbol is re-exported below.
+
 Central service for creating payment records, verifying payment status with
 the Lenco API, and processing webhook events.  All payment-status mutations
 flow through this module so that forward-only transition rules and amount-
@@ -29,24 +38,58 @@ from django.utils import timezone
 from apps.documents.fee_resolver import FeeResolver
 from apps.documents.models import Payment
 
+# Stream 9 Phase 2 — extracted modules. Re-exported below for back-compat.
+from apps.documents.payment_constants import (  # noqa: F401
+    ALLOWED_TRANSITIONS,
+    CanonicalStatus,
+    EXPIRED_EXCLUSION_DAYS,
+    MAX_PAYMENT_ATTEMPTS,
+    PAYMENT_TO_APP_MAP,
+    PROVIDER_STATUS_ACCEPTED,
+    PROVIDER_STATUS_NOT_STARTED,
+    PROVIDER_STATUS_REJECTED,
+    PROVIDER_STATUS_SENT,
+    PROVIDER_STATUS_UNKNOWN,
+    ProviderInitiationStatus,
+    TransitionSource,
+    _ALLOWED_TRANSITIONS,
+    _LENCO_STATUS_MAP,
+    _LENCO_TIMEOUT,
+    _SECURITY_RETENTION_ACTION_PREFIXES,
+)
+from apps.documents.payment_types import (  # noqa: F401
+    PaymentInitiationResult,
+    PaymentSnapshot,
+    PaymentVerificationResult,
+    TransitionResult,
+)
+from apps.documents.payment_helpers import (  # noqa: F401
+    _AIRTEL_PREFIXES,
+    _MTN_PREFIXES,
+    _generate_receipt_number,
+    _generate_reference,
+    _normalize_phone_e164,
+    _operator_for_msisdn,
+    _parse_amount,
+)
+
 logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
 # Feature flag default — flipped by Task 15.1 (payment-hardening)
 # ---------------------------------------------------------------------------
-#
-# The ``PAYMENT_HARDENING_FORWARD_ONLY`` setting gates the stricter
-# ``_transition()`` enforcement introduced by the payment-hardening spec.
-# Task 15.1 declares it in ``backend/config/settings/base.py``; until then we
-# rely on ``getattr(settings, ..., False)`` so the legacy code paths remain
-# the default behaviour.
 def _forward_only_enabled() -> bool:
     """Return True when the forward-only transition matrix should be enforced."""
     return bool(getattr(settings, "PAYMENT_HARDENING_FORWARD_ONLY", False))
 
+
 # ---------------------------------------------------------------------------
-# Canonical type aliases (payment-hardening Task 11.1)
+# Canonical type aliases / dataclasses / constants are imported above from
+# the dedicated modules. The legacy in-file definitions that follow are
+# preserved verbatim so the diff against the previous file is minimal and
+# the PaymentService class has identical resolution. They shadow the
+# imports but are equivalent.
 # ---------------------------------------------------------------------------
 
 CanonicalStatus = Literal[

@@ -343,7 +343,7 @@ export default function PaymentPage() {
         <Seo title="Payment | MIHAS-KATC Admissions" description="View your application payment history." path="/student/payment" noindex />
         <PageShell title="Application Payment" subtitle="Loading payment information...">
           <div className="space-y-6" role="status" aria-label="Loading payment information">
-            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Skeleton className="h-10 w-10 rounded-lg" />
@@ -353,7 +353,7 @@ export default function PaymentPage() {
                 <Skeleton className="h-11 w-full rounded-lg" />
               </div>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
               <div className="space-y-4">
                 <div className="space-y-2"><Skeleton className="h-5 w-40" /><Skeleton className="h-4 w-56" /></div>
                 <SkeletonTable rows={4} columns={4} />
@@ -382,7 +382,7 @@ export default function PaymentPage() {
         ]}
       >
         <div className="mb-6">
-          <Link to="/student/dashboard" className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100">
+          <Link to="/student/dashboard" className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">
             <ArrowLeft className="h-4 w-4 mr-1" />Back to Dashboard
           </Link>
         </div>
@@ -393,7 +393,7 @@ export default function PaymentPage() {
 
         <div className="grid gap-6">
           {/* Info card */}
-          <Card className="border-slate-200 bg-white shadow-sm">
+          <Card className="border-border bg-card shadow-sm">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/10"><CreditCard className="h-6 w-6 text-primary" /></div>
@@ -404,7 +404,7 @@ export default function PaymentPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-lg border border-border bg-muted p-4">
                 <p className="text-sm font-medium text-foreground">Pay outstanding fees directly from this page</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   No need to go back to the application wizard. Select "Pay Now" on any unpaid application below.

@@ -1,12 +1,8 @@
 import { normalizePaymentStatus } from '@/lib/paymentStatus'
+import type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
+import { ACCEPTED_APPLICATION_STATUSES } from '@/types/applicationStatus'
 
-interface ApplicationSummary {
-  status: string
-  payment_status: string
-  submitted_at?: string | null
-  updated_at?: string | null
-  created_at?: string | null
-}
+const ACCEPTED_STATUS_SET = new Set<string>(ACCEPTED_APPLICATION_STATUSES)
 
 export interface ApplicationsOverview {
   total: number
@@ -16,6 +12,9 @@ export interface ApplicationsOverview {
   underReview: number
   decisionQueue: number
   approved: number
+  conditionallyApproved: number
+  enrolled: number
+  accepted: number
   rejected: number
   paymentNotPaid: number
   paymentPending: number
@@ -31,6 +30,9 @@ export function buildApplicationsOverview(
   const loadedCount = applications.length
   const pendingReview = applications.filter(app => app.status === 'submitted').length
   const underReview = applications.filter(app => app.status === 'under_review').length
+  const approved = applications.filter(app => app.status === 'approved').length
+  const conditionallyApproved = applications.filter(app => app.status === 'conditionally_approved').length
+  const enrolled = applications.filter(app => app.status === 'enrolled').length
 
   const paymentNotPaid = applications.filter(
     app => normalizePaymentStatus(app.payment_status) === 'not_paid'
@@ -54,7 +56,10 @@ export function buildApplicationsOverview(
     pendingReview,
     underReview,
     decisionQueue: pendingReview + underReview,
-    approved: applications.filter(app => app.status === 'approved').length,
+    approved,
+    conditionallyApproved,
+    enrolled,
+    accepted: applications.filter(app => ACCEPTED_STATUS_SET.has(app.status)).length,
     rejected: applications.filter(app => app.status === 'rejected').length,
     paymentNotPaid,
     paymentPending,

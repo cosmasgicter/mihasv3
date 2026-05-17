@@ -18,6 +18,10 @@ docs/                  Project documentation, runbooks, and reports
 .agents/               Agent skills (accessibility, performance, security, etc.)
 ```
 
+## Canonical Truth Map
+
+Every domain concept in the admissions system (application statuses, payment states, role hierarchies, error codes, submission gates) has exactly one source of truth with drift-guard tests that fail CI if any consumer diverges. The master index lives at [`docs/canonical-truth-map.md`](docs/canonical-truth-map.md). Any new domain concept must register in the map before merging.
+
 ## Technology Stack
 
 ### Admissions Frontend (`apps/admissions/`)

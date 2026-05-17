@@ -380,6 +380,20 @@ describe('Sign-in page verification', () => {
         .toBe('/student/payment')
     })
 
+    it('allows student redirect to communications and history pages', () => {
+      expect(getRoleSafeRedirectPath({ requestedRedirect: '/student/communications', role: 'student' }))
+        .toBe('/student/communications')
+      expect(getRoleSafeRedirectPath({ requestedRedirect: '/student/history', role: 'student' }))
+        .toBe('/student/history')
+    })
+
+    it('allows student redirect through valid short-route aliases', () => {
+      expect(getRoleSafeRedirectPath({ requestedRedirect: '/apply', role: 'student' }))
+        .toBe('/apply')
+      expect(getRoleSafeRedirectPath({ requestedRedirect: '/application/abc-123', role: 'student' }))
+        .toBe('/application/abc-123')
+    })
+
     it('blocks student from admin paths', () => {
       expect(getRoleSafeRedirectPath({ requestedRedirect: '/admin/dashboard', role: 'student' }))
         .toBe('/student/dashboard')

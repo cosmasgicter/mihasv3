@@ -50,7 +50,7 @@ function StepIndicator({ currentStatus }: { currentStatus: string }) {
           <React.Fragment key={step}>
             <div
               className={`h-1.5 flex-1 rounded-full transition-colors ${
-                isRejected ? 'bg-rose-400/40' : isActive ? 'bg-white' : 'bg-white/20'
+                isRejected ? 'bg-rose-400/40' : isActive ? 'bg-card' : 'bg-card/20'
               }`}
             />
           </React.Fragment>
@@ -71,7 +71,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
   onEmailSlip
 }) => {
   return (
-    <div className="border-b border-slate-200 bg-slate-950 p-5 sm:p-6">
+    <div className="border-b border-border bg-foreground p-5 sm:p-6">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
         {/* Left — Application Info */}
         <div className="flex-1 space-y-4">
@@ -103,7 +103,7 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
         {/* Right — Status & Actions */}
         <div className={`flex flex-col items-center lg:items-end gap-4 ${animateClasses.fadeIn}`} style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
           {/* Status Badge */}
-          <div className={`inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-5 py-2.5 ${getStatusColor(application.status)}`}>
+          <div className={`inline-flex items-center gap-2 rounded-lg border border-white/20 bg-card/10 px-5 py-2.5 ${getStatusColor(application.status)}`}>
             {getStatusIcon(application.status)}
             <span className="text-sm font-bold uppercase tracking-wide text-white">
               {application.status.replace('_', ' ')}
@@ -117,22 +117,22 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
           
           {/* Action Buttons */}
           <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-center lg:justify-end">
-            <Button variant="outline" size="sm" onClick={onShare} className="rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/20">
+            <Button variant="outline" size="sm" onClick={onShare} className="rounded-lg bg-card/10 border-white/20 text-white hover:bg-card/20">
               <Share2 className="h-4 w-4 mr-1.5" />
               Share
             </Button>
-            <Button variant="outline" size="sm" onClick={onCopy} className="rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/20">
+            <Button variant="outline" size="sm" onClick={onCopy} className="rounded-lg bg-card/10 border-white/20 text-white hover:bg-card/20">
               <Copy className="h-4 w-4 mr-1.5" />
               {copied ? 'Copied!' : 'Copy #'}
             </Button>
           </div>
           
           <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-center lg:justify-end">
-            <Button variant="outline" size="sm" onClick={onDownloadSlip} loading={slipLoading} className="rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/20">
+            <Button variant="outline" size="sm" onClick={onDownloadSlip} loading={slipLoading} className="rounded-lg bg-card/10 border-white/20 text-white hover:bg-card/20">
               <Download className="h-4 w-4 mr-1.5" />
               Download Slip
             </Button>
-            <Button variant="outline" size="sm" onClick={onEmailSlip} loading={emailLoading} className="rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/20">
+            <Button variant="outline" size="sm" onClick={onEmailSlip} loading={emailLoading} className="rounded-lg bg-card/10 border-white/20 text-white hover:bg-card/20">
               <Mail className="h-4 w-4 mr-1.5" />
               Email Slip
             </Button>

@@ -68,7 +68,7 @@ export const ApplicationStatusDetails: React.FC<ApplicationStatusDetailsProps> =
           </h3>
           
           <div className="rounded-lg border border-success/30 bg-success/5 p-5 sm:p-6">
-            <div className="mb-4 rounded-lg border border-success/20 bg-white p-4">
+            <div className="mb-4 rounded-lg border border-success/20 bg-card p-4">
               <p className="text-foreground text-base leading-relaxed">
                 {application.admin_feedback}
               </p>

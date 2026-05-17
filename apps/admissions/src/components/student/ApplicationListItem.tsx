@@ -93,7 +93,7 @@ export const ApplicationListItem = React.memo<ApplicationListItemProps>(function
 
   return (
     <div
-      className={`mx-3 my-3 rounded-lg border border-slate-200/80 bg-white px-4 py-4 shadow-sm transition-all duration-200 hover:border-primary/25 sm:mx-4 sm:px-6 sm:py-5 ${animateClasses.slideUp}`}
+      className={`mx-3 my-3 rounded-lg border border-border/80 bg-card px-4 py-4 shadow-sm transition-all duration-200 hover:border-primary/25 sm:mx-4 sm:px-6 sm:py-5 ${animateClasses.slideUp}`}
       style={staggerChild(index, 50)}
     >
       <div className="space-y-3">

@@ -47,6 +47,7 @@ interface RealtimeMetricsDisplayProps {
   todayApplications: number;
   pendingApplications: number;
   approvedApplications: number;
+  acceptedApplications: number;
   rejectedApplications: number;
   totalApplications: number;
   avgProcessingTime: number;
@@ -269,6 +270,7 @@ export function RealtimeMetricsDisplay({
   todayApplications,
   pendingApplications,
   approvedApplications,
+  acceptedApplications,
   rejectedApplications,
   totalApplications,
   avgProcessingTime,
@@ -292,6 +294,7 @@ export function RealtimeMetricsDisplay({
       todayApplications,
       pendingApplications,
       approvedApplications,
+      acceptedApplications,
       rejectedApplications,
       totalApplications,
       avgProcessingTime,
@@ -327,12 +330,12 @@ export function RealtimeMetricsDisplay({
     
     previousValuesRef.current = currentValues;
     setPreviousValues(currentValues);
-  }, [todayApplications, pendingApplications, approvedApplications, rejectedApplications, totalApplications, avgProcessingTime, activeUsers]);
+  }, [todayApplications, pendingApplications, approvedApplications, acceptedApplications, rejectedApplications, totalApplications, avgProcessingTime, activeUsers]);
   
   // Calculate approval rate
-  const totalDecided = approvedApplications + rejectedApplications;
+  const totalDecided = acceptedApplications + rejectedApplications;
   const approvalRate = totalDecided > 0 
-    ? Math.round((approvedApplications / totalDecided) * 100) 
+    ? Math.round((acceptedApplications / totalDecided) * 100) 
     : 0;
   
   const metrics: MetricData[] = [
@@ -461,9 +464,9 @@ export function RealtimeMetricsDisplay({
           </div>
           <div>
             <div className="text-2xl font-bold text-success">
-              <AnimatedCounter value={approvedApplications} duration={1.5} />
+              <AnimatedCounter value={acceptedApplications} duration={1.5} />
             </div>
-            <div className="text-xs text-muted-foreground">Approved</div>
+            <div className="text-xs text-muted-foreground">Accepted Path</div>
           </div>
           <div>
             <div className="text-2xl font-bold text-destructive">

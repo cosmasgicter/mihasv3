@@ -60,7 +60,7 @@ export function PageHeader({
  const { label, value, icon: statIcon, accent = 'neutral' } = stat
 
  const baseClasses = isGradient
- ? 'bg-white/95 border-white/40 text-foreground '
+ ? 'bg-card/95 border-white/40 text-foreground '
  : statAccentStyles[accent]
 
  return (
@@ -109,7 +109,7 @@ export function PageHeader({
 								 <div
 									 className={cn(
 										 'flex items-center justify-center rounded-lg border shadow-inner',
-										 isGradient ? 'border-white/40 bg-white/95 text-foreground ' : 'border-primary/10 bg-primary/5 text-primary'
+										 isGradient ? 'border-white/40 bg-card/95 text-foreground ' : 'border-primary/10 bg-primary/5 text-primary'
 									 )}
 									 style={{ width: '3.5rem', height: '3.5rem', fontSize: 'var(--type-2xl)' }}
 								 >

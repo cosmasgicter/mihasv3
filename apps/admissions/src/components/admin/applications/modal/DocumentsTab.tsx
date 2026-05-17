@@ -38,7 +38,7 @@ function ViewButton({ doc }: { doc: DocumentItem }) {
   }
 
   return (
-    <button type="button" onClick={handleClick} disabled={loading} className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 hover:text-blue-900 disabled:opacity-50">
+    <button type="button" onClick={handleClick} disabled={loading} className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 hover:text-blue-900 disabled:opacity-50">
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
       View
     </button>
@@ -84,13 +84,13 @@ export function DocumentsTab({ documents, loading, application }: { documents: D
   return (
     <div className="space-y-3">
       {all.map(d => (
-        <div key={d.id} className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div key={d.id} className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-start gap-3">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${d.verification_status === 'verified' ? 'bg-green-100' : 'bg-yellow-100'}`}>
               <FileText className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <p className="break-words text-sm font-semibold text-slate-950">{d.document_name}</p>
+              <p className="break-words text-sm font-semibold text-foreground">{d.document_name}</p>
               <span className={`mt-2 inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-semibold ${getStatusBadge(d.verification_status)}`}>
                 {d.verification_status === 'verified' ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                 {(d.verification_status || 'pending').replace(/_/g, ' ').toUpperCase()}

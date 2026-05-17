@@ -7,12 +7,16 @@
  * Requirements: 16.1, 16.2, 16.3
  */
 
-/** Map of API error codes to user-friendly messages */
+/** Map of API error codes to user-friendly messages.
+ *
+ * Mirrors the canonical backend catalog at
+ * `backend/apps/common/error_codes.py::ERROR_CODES`.
+ * Drift is detected by `tests/unit/errorCodesDriftGuard.test.ts`.
+ */
 export const ERROR_CODE_MESSAGES: Record<string, string> = {
+  // Legacy codes (kept for backward compat)
   CSRF_VALIDATION_FAILED: 'Your session has expired. Please try again.',
   RATE_LIMIT_EXCEEDED: 'Too many requests. Please wait a moment.',
-  INSUFFICIENT_PERMISSIONS: "You don't have permission for this action.",
-  AUTHENTICATION_REQUIRED: 'Please sign in to continue.',
   INVALID_CREDENTIALS: 'Invalid email or password.',
   ACCOUNT_LOCKED: 'Account temporarily locked. Try again in 30 minutes.',
   VERSION_CONFLICT: 'Your changes conflict with a newer version.',
@@ -21,8 +25,128 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   FILE_CONTENT_MISMATCH: 'File content does not match the declared type.',
   SECURITY_VIOLATION: 'Request blocked for security reasons. Please try again.',
   INVALID_INPUT: 'Invalid input. Please check your data and try again.',
+  PROGRAM_CAPACITY_REACHED: 'This program for the selected intake is full. Please choose another intake or program.',
   RESOURCE_NOT_FOUND: 'The requested resource was not found.',
   SERVER_ERROR: 'Something went wrong. Please try again.',
+
+  // --- Canonical codes (from backend/apps/common/error_codes.py) ---
+
+  // Payment
+  NOT_OWNER: 'You do not have permission to perform this action.',
+  APPLICATION_NOT_FOUND: 'Application not found.',
+  APPLICATION_NOT_PAYABLE: 'This application cannot be paid for yet.',
+  ALREADY_PAID: 'Payment for this application is already complete.',
+  MAX_PAYMENT_ATTEMPTS_EXCEEDED: 'Maximum payment attempts exceeded. Please contact support.',
+  PAYMENT_PENDING: 'Your payment is still being processed.',
+  PAYMENT_CONFIRMED: 'Payment confirmed.',
+  AMOUNT_MISMATCH: 'Payment amount does not match the expected fee.',
+  CURRENCY_MISMATCH: 'Payment currency does not match the expected currency.',
+  MISSING_PROVIDER_REFERENCE: 'Payment provider reference is missing.',
+  PROVIDER_UNAVAILABLE: 'Payment service is temporarily unavailable. Please try again.',
+  PAYMENT_UNAVAILABLE: 'Payment processing is not available right now.',
+  FEE_UNAVAILABLE: 'Fee is not available for this program.',
+  PAYMENT_SENSITIVE_FIELDS_LOCKED: 'These fields cannot be changed while payment activity exists.',
+  DRAFT_DELETE_BLOCKED_BY_PAYMENT: 'Draft cannot be deleted while a payment record exists.',
+  CANNOT_REVERSE_SUCCESSFUL_PAYMENT: 'A successful payment cannot be reversed.',
+  OVERRIDE_REASON_REQUIRED: 'A reason of at least 10 characters is required.',
+  RECEIPT_NOT_ELIGIBLE: 'Receipt is not available for this payment.',
+
+  // Common
+  NOT_FOUND: 'The requested resource was not found.',
+  RATE_LIMITED: 'Too many requests. Please wait and try again.',
+
+  // Auth
+  INSUFFICIENT_PERMISSIONS: "You don't have permission for this action.",
+  AUTHENTICATION_REQUIRED: 'Please sign in to continue.',
+  CSRF_MISSING: 'Your session has expired. Please refresh the page.',
+  CSRF_INVALID: 'Your session has expired. Please refresh the page.',
+  NO_REFRESH_TOKEN: 'Your session has expired. Please sign in again.',
+  TOKEN_EXPIRED: 'Your session has expired. Please sign in again.',
+  INVALID_TOKEN: 'Your session is invalid. Please sign in again.',
+  AUTH_SERVICE_ERROR: 'Authentication service error. Please try again.',
+  PRIVILEGE_ESCALATION: 'Cannot assign a role higher than your own.',
+  INSUFFICIENT_PRIVILEGES: 'Insufficient privileges for this operation.',
+  SELF_DEACTIVATION_FORBIDDEN: 'You cannot deactivate your own account.',
+  DUPLICATE_EMAIL: 'An account with this email already exists.',
+
+  // Validation
+  VALIDATION_ERROR: 'Some of the details are not valid. Please review and try again.',
+  INVALID_FORMAT: 'Invalid format. Please check your input.',
+  INVALID_STATUS_TRANSITION: 'This status change is not allowed.',
+
+  // Application
+  DUPLICATE_APPLICATION: 'An application for this program already exists.',
+  DUPLICATE_SUBMITTED_APPLICATION: 'A submitted application for this program already exists.',
+  PAYMENT_REQUIRED: 'Payment is required before submission.',
+  IDENTITY_DOCUMENT_REQUIRED: 'NRC or Passport document is required.',
+  LATE_FEE_REQUIRED: 'Late application fee is required.',
+  LATE_FEE_CHECK_FAILED: 'Late fee check failed.',
+  ALREADY_SUBMITTED: 'This application has already been submitted.',
+  INTAKE_DEADLINE_PASSED: 'The intake deadline has passed.',
+  INTAKE_NOT_OPEN: 'This intake is not currently open.',
+  INTAKE_CAPACITY_REACHED: 'Intake capacity has been reached.',
+  APPLICATION_NOT_EDITABLE: 'Application cannot be edited in its current state.',
+  CONFIRM_SUBMISSION_REQUIRED: 'Please confirm your submission.',
+  DRAFT_HAS_PAYMENT_ACTIVITY: 'Draft has payment activity and cannot be modified.',
+  APPLICATION_DELETE_FAILED: 'Application could not be deleted.',
+  NOT_WAITLISTED: 'Application is not in waitlisted status.',
+  INVALID_STATUS_FOR_CONDITIONS: 'Conditions cannot be set for this application status.',
+  NO_CONDITIONS_PROVIDED: 'At least one condition must be provided.',
+  MISSING_DESCRIPTION: 'Description is required.',
+  MISSING_DEADLINE: 'Deadline is required.',
+  INVALID_CONDITION_TYPE: 'Invalid condition type.',
+  CONDITION_NOT_PENDING: 'Condition is not in pending status.',
+  INVALID_CONDITION_STATUS: 'Invalid condition status.',
+
+  // Auth (extended)
+  TOO_MANY_ATTEMPTS: 'Too many attempts. Please wait and try again.',
+  TOKEN_ALREADY_USED: 'This token has already been used.',
+
+  // Bulk operations
+  BATCH_SIZE_EXCEEDED: 'Batch size exceeds the maximum allowed.',
+  BATCH_TOO_LARGE: 'Batch is too large.',
+  BATCH_VALIDATION_FAILED: 'Batch validation failed.',
+  BULK_UPDATE_ERROR: 'Bulk update failed. Please try again.',
+  INVALID_CONFIRMATION_TOKEN: 'Invalid confirmation token.',
+
+  // Document & file uploads
+  INVALID_FILE: 'Invalid file format or content.',
+  NO_FILE: 'No file provided.',
+  STORAGE_ERROR: 'File storage operation failed. Please try again.',
+
+  // Catalog
+  INACTIVE_INTAKE: 'The selected intake is not active.',
+  INVALID_INSTITUTION: 'Invalid institution.',
+  INVALID_PROGRAM_INTAKE: 'The program is not available for this intake.',
+
+  // Interview
+  INTERVIEWER_CONFLICT: 'Interviewer schedule conflict.',
+  INVALID_MODE: 'Invalid interview mode.',
+  INVALID_STATUS: 'Invalid status.',
+
+  // Reviewer assignment
+  INVALID_REVIEWER_ROLE: 'User does not have a reviewer role.',
+  NO_REVIEWERS: 'No reviewers available for assignment.',
+  REVIEWER_NOT_FOUND: 'Reviewer not found.',
+
+  // Application review
+  INVALID_TRANSITION: 'Invalid status transition.',
+  PAYMENT_RECORD_REQUIRED: 'Payment record required to perform this action.',
+  PAYMENT_UNVERIFIED: 'Payment has not been verified.',
+
+  // Validation (extended)
+  DUPLICATE_KEY: 'This record already exists.',
+  DUPLICATE_SUBJECT: 'This subject is already in your application.',
+  MINIMUM_AGE_NOT_MET: 'Minimum age requirement not met.',
+  MINIMUM_SUBJECTS_REQUIRED: 'Please add the minimum number of required subjects.',
+
+  // Payment (extended)
+  PAYMENT_ERROR: 'Payment processing error. Please try again.',
+  VERIFICATION_ERROR: 'Payment verification failed. Please try again.',
+
+  // Common operational
+  DASHBOARD_ERROR: 'Dashboard data could not be loaded. Please try again.',
+  SERVICE_UNAVAILABLE: 'Service temporarily unavailable. Please try again later.',
 }
 
 /** Default message for network errors (no server response) */

@@ -325,7 +325,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
           onClick={handleClose}
           className={cn(
             'p-1 rounded-sm transition-colors flex-shrink-0',
-            'hover:bg-black/10',
+            'hover:bg-foreground/10',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
           )}
           aria-label="Dismiss notification"

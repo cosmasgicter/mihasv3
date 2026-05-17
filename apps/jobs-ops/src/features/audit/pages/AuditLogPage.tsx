@@ -120,7 +120,7 @@ export function AuditLogPage() {
         <SectionCard title="Audit timeline">
           <div className="grid gap-4">
             {events.map((event) => (
-              <div key={event.id} className="rounded-[28px] border border-line/70 bg-white/90 p-5 shadow-sm">
+              <div key={event.id} className="rounded-[28px] border border-line/70 bg-panel/90 p-5 shadow-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-display text-2xl font-semibold tracking-tight text-ink">{event.title}</p>

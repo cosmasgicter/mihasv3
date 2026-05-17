@@ -12,27 +12,9 @@ import { DraftBadge } from '@/components/admin/applications/DraftBadge';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/dateFormat';
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus';
-
-interface ApplicationSummary {
-  id: string;
-  application_number: string;
-  full_name: string;
-  email: string;
-  phone: string;
-  program: string;
-  intake: string;
-  institution: string;
-  status: string;
-  payment_status: string;
-  submitted_at: string;
-  created_at: string;
-  total_subjects: number;
-  points: number;
-  days_since_submission: number;
-  isDraft?: boolean;
-  completionPercentage?: number;
-  lastUpdated?: string;
-}
+import { ADMIN_APPLICATION_STATUS_BADGES } from '@/lib/applicationStatusUi';
+import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus';
+import type { ApplicationSummary } from '@/hooks/admin/useApplicationsData';
 
 interface ApplicationsTableViewProps {
   applications: ApplicationSummary[];
@@ -126,24 +108,10 @@ export function ApplicationsTableView({
             />
           );
         }
-        // For non-draft statuses, render the status badge manually
-        const statusConfig: Record<string, { color: string; label: string }> = {
-          draft: { color: 'bg-gray-100 text-gray-800 border-gray-300', label: 'DRAFT' },
-          submitted: { color: 'bg-blue-100 text-blue-800 border-blue-300', label: 'SUBMITTED' },
-          under_review: { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', label: 'UNDER REVIEW' },
-          waitlisted: { color: 'bg-purple-100 text-purple-800 border-purple-300', label: 'WAITLISTED' },
-          conditionally_approved: { color: 'bg-amber-100 text-amber-800 border-amber-300', label: 'CONDITIONAL' },
-          approved: { color: 'bg-green-100 text-green-800 border-green-300', label: 'APPROVED' },
-          enrolled: { color: 'bg-emerald-100 text-emerald-800 border-emerald-300', label: 'ENROLLED' },
-          rejected: { color: 'bg-red-100 text-red-800 border-red-300', label: 'REJECTED' },
-          withdrawn: { color: 'bg-slate-100 text-slate-800 border-slate-300', label: 'WITHDRAWN' },
-          expired: { color: 'bg-orange-100 text-orange-800 border-orange-300', label: 'EXPIRED' },
-          enrollment_expired: { color: 'bg-orange-100 text-orange-800 border-orange-300', label: 'ENROLLMENT EXPIRED' },
-        };
-        const config = statusConfig[strValue] || { color: 'bg-gray-100 text-foreground border-gray-300', label: strValue?.toUpperCase() || 'UNKNOWN' };
+        const config = ADMIN_APPLICATION_STATUS_BADGES[strValue as ApplicationStatus] ?? ADMIN_APPLICATION_STATUS_BADGES.draft;
         return (
-          <span className={`inline-flex max-w-full min-w-0 items-center rounded-md border px-2 py-0.5 text-center text-xs font-medium leading-tight ${config.color}`}>
-            {config.label}
+          <span className={`inline-flex max-w-full min-w-0 items-center rounded-md border px-2 py-0.5 text-center text-xs font-medium leading-tight ${config.tableClassName}`}>
+            {formatApplicationStatus(strValue).toUpperCase()}
           </span>
         );
       },
@@ -157,7 +125,7 @@ export function ApplicationsTableView({
       render: (value: unknown) => {
         const normalized = normalizePaymentStatus(String(value ?? ''));
         const badgeStyles: Record<string, string> = {
-          not_paid: 'bg-slate-100 text-slate-800 border-slate-300',
+          not_paid: 'bg-muted text-foreground border-border',
           pending_review: 'bg-orange-100 text-orange-800 border-orange-300',
           verified: 'bg-emerald-100 text-emerald-800 border-emerald-300',
           deferred: 'bg-sky-100 text-sky-800 border-sky-300',
@@ -231,7 +199,7 @@ export function ApplicationsTableView({
   }, [onViewDetails]);
 
   // Handle selection change
-  const handleSelectionChange = useCallback((ids: (string | number | boolean | undefined)[]) => {
+  const handleSelectionChange = useCallback((ids: (string | number | boolean | null | undefined)[]) => {
     onSelectionChange?.(ids.filter((id): id is string => typeof id === 'string'));
   }, [onSelectionChange]);
 
@@ -254,7 +222,7 @@ export function ApplicationsTableView({
       loading={loading}
       emptyMessage="No applications found"
       emptyIcon={<FileText className="h-12 w-12 text-muted-foreground/50" />}
-      className={cn('overflow-hidden rounded-lg border border-border bg-white shadow-sm', className)}
+      className={cn('overflow-hidden rounded-lg border border-border bg-card shadow-sm', className)}
       striped
     />
   );

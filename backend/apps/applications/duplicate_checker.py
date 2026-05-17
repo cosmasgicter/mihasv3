@@ -16,6 +16,18 @@ NON_TERMINAL_STATUSES = {"draft", "submitted", "under_review", "waitlisted", "co
 SUBMITTED_STATUSES = {"submitted", "under_review", "approved", "waitlisted", "conditionally_approved"}
 
 
+def _load_multi_intake_policy() -> str:
+    """Load the multi_intake_policy setting. Returns 'unrestricted' by default."""
+    try:
+        from apps.common.models import Setting
+        setting = Setting.objects.filter(key="multi_intake_policy").first()
+        if setting and setting.value:
+            return str(setting.value)
+    except Exception:
+        pass
+    return "unrestricted"
+
+
 @dataclass(frozen=True)
 class DuplicateCheckResult:
     has_duplicate: bool
@@ -65,14 +77,7 @@ class DuplicateChecker:
         passport_number: str | None = None,
     ) -> DuplicateCheckResult:
         # Check multi_intake_policy (Req 15.1, 15.2)
-        policy = "unrestricted"
-        try:
-            from apps.common.models import Setting
-            setting = Setting.objects.filter(key="multi_intake_policy").first()
-            if setting and setting.value:
-                policy = str(setting.value)
-        except Exception:
-            pass
+        policy = _load_multi_intake_policy()
 
         if policy == "single_active":
             candidates = Application.objects.filter(
@@ -101,10 +106,18 @@ class DuplicateChecker:
         except Application.DoesNotExist:
             return DuplicateCheckResult(False)
 
-        candidates = Application.objects.filter(
-            user_id=user_id, program=program, intake=intake,
-            status__in=SUBMITTED_STATUSES,
-        ).exclude(id=exclude_id)
+        policy = _load_multi_intake_policy()
+
+        if policy == "single_active":
+            candidates = Application.objects.filter(
+                user_id=user_id, program=program,
+                status__in=SUBMITTED_STATUSES,
+            ).exclude(id=exclude_id)
+        else:
+            candidates = Application.objects.filter(
+                user_id=user_id, program=program, intake=intake,
+                status__in=SUBMITTED_STATUSES,
+            ).exclude(id=exclude_id)
 
         for existing in candidates:
             if _identity_matches(existing, submitting.nrc_number, submitting.passport_number):

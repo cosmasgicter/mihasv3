@@ -4,9 +4,7 @@ import { FileText, CheckCircle } from 'lucide-react'
 import { useToastStore } from '@/hooks/useToast'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
-
-const formatStatusLabel = (value: string) =>
-  value.replace(/_/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase())
+import { formatApplicationStatus } from '@/types/applicationStatus'
 
 interface ApplicationsTableProps {
   applications: ApplicationSummary[]
@@ -60,7 +58,7 @@ export function ApplicationsTable({
     try {
       setUpdatingStatus(id)
       await onStatusUpdate(id, status)
-      showSuccess('Status Updated', `Application status changed to ${formatStatusLabel(status)}`)
+      showSuccess('Status Updated', `Application status changed to ${formatApplicationStatus(status)}`)
     } catch (error) {
       console.error('Failed to update status:', error)
       showError('Update Failed', error instanceof Error ? error.message : 'Failed to update application status')

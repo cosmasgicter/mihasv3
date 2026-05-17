@@ -161,8 +161,8 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
           disabled={isDownloading}
           variant="secondary"
           className={compact
-            ? 'min-h-[44px] w-full justify-center gap-2 rounded-lg border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400'
-            : 'min-h-[44px] w-full justify-center gap-2 rounded-lg border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:border-slate-400 sm:w-auto'
+            ? 'min-h-[44px] w-full justify-center gap-2 rounded-lg border border-border bg-card text-foreground hover:bg-muted hover:border-border'
+            : 'min-h-[44px] w-full justify-center gap-2 rounded-lg border border-border bg-card text-foreground hover:bg-muted hover:border-border sm:w-auto'
           }
           loading={isDownloading}
         >
@@ -195,7 +195,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
               onKeyDown={(e) => { if (e.key === 'Enter') handleEmailSend() }}
               placeholder="Enter email address"
               autoFocus
-              className="h-12 flex-1 rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+              className="h-12 flex-1 rounded-lg border border-border bg-card px-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
               disabled={isEmailing}
               aria-label="Email address for application slip"
             />
@@ -211,7 +211,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
             </Button>
             <button
               onClick={() => { setShowEmailInput(false); setEmailError(null); setSentTo(null) }}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-muted-foreground"
               aria-label="Cancel email"
               type="button"
             >

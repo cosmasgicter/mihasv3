@@ -81,7 +81,7 @@ vi.mock('@/lib/animation-config', () => ({
 // Imports — after mocks so modules pick up the mocked dependencies
 // ---------------------------------------------------------------------------
 
-import { AuthLayout } from '@/components/auth/AuthLayout'
+import { AuthShell } from '@/components/auth/AuthShell'
 import SignInPage from '@/pages/auth/SignInPage'
 import SignUpPage from '@/pages/auth/SignUpPage'
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage'
@@ -114,46 +114,28 @@ const forgotPasswordSchema = z.object({
 })
 
 // ---------------------------------------------------------------------------
-// Desktop layout preservation
+// AuthShell layout preservation
 // ---------------------------------------------------------------------------
 
-describe('[PBT] Preservation — Desktop layout classes', () => {
-  const arbVariant = fc.constantFrom('default' as const, 'signin' as const, 'signup' as const)
+describe('[PBT] Preservation — AuthShell layout classes', () => {
+  const arbTitle = fc.constantFrom('Sign in', 'Create account', 'Reset password')
 
   /**
    * **Validates: Requirements 3.1**
    */
-  it('BrandingPanel wrapper has hidden lg:flex lg:w-1/2 classes', () => {
+  it('outer wrapper has min-h-dvh bg-muted', () => {
     fc.assert(
-      fc.property(arbVariant, (variant) => {
+      fc.property(arbTitle, (title) => {
         const markup = renderToStaticMarkup(
           React.createElement(
-            AuthLayout,
-            { title: 'Test', variant, showBranding: true },
-            React.createElement('div', null, 'content'),
+            AuthShell,
+            { title, children: React.createElement('div', null, 'content') },
           ),
         )
         const doc = parseMarkup(markup)
 
-        // The BrandingPanel wrapper is the outer div with lg:w-1/2
-        const candidates = doc.querySelectorAll('[class*="lg:w-1/2"]')
-        expect(candidates.length).toBeGreaterThan(0)
-
-        // Find the wrapper that has `hidden` (not the form panel column)
-        let wrapper: Element | null = null
-        for (const el of candidates) {
-          const cls = classesOf(el)
-          if (cls.includes('hidden')) {
-            wrapper = el
-            break
-          }
-        }
-        expect(wrapper).not.toBeNull()
-
-        const cls = classesOf(wrapper!)
-        expect(cls).toContain('hidden')
-        expect(cls).toContain('lg:flex')
-        expect(cls).toContain('lg:w-1/2')
+        const outer = doc.querySelector('[class*="min-h-dvh"][class*="bg-muted"]')
+        expect(outer).not.toBeNull()
       }),
       { numRuns: 10 },
     )
@@ -162,33 +144,23 @@ describe('[PBT] Preservation — Desktop layout classes', () => {
   /**
    * **Validates: Requirements 3.1**
    */
-  it('FormPanel outer div has lg:px-12 xl:px-16 classes', () => {
+  it('inner column has max-w-md and centered padding', () => {
     fc.assert(
-      fc.property(arbVariant, (variant) => {
+      fc.property(arbTitle, (title) => {
         const markup = renderToStaticMarkup(
           React.createElement(
-            AuthLayout,
-            { title: 'Test', variant, showBranding: true },
-            React.createElement('div', null, 'content'),
+            AuthShell,
+            { title, children: React.createElement('div', null, 'content') },
           ),
         )
         const doc = parseMarkup(markup)
 
-        // FormPanel outer div has justify-center + px-4 + lg:px-12
-        const allEls = doc.querySelectorAll('[class*="lg:px-12"]')
-        let formPanel: Element | null = null
-        for (const el of allEls) {
-          const cls = typeof el.className === 'string' ? el.className : ''
-          if (cls.includes('justify-center') && cls.includes('px-4')) {
-            formPanel = el
-            break
-          }
-        }
-        expect(formPanel).not.toBeNull()
+        const inner = doc.querySelector('[class*="max-w-md"]')
+        expect(inner).not.toBeNull()
 
-        const cls = classesOf(formPanel!)
-        expect(cls).toContain('lg:px-12')
-        expect(cls).toContain('xl:px-16')
+        const cls = classesOf(inner!)
+        expect(cls).toContain('mx-auto')
+        expect(cls).toContain('px-4')
       }),
       { numRuns: 10 },
     )
@@ -197,33 +169,23 @@ describe('[PBT] Preservation — Desktop layout classes', () => {
   /**
    * **Validates: Requirements 3.1**
    */
-  it('form card has sm:p-8 lg:p-9 responsive padding', () => {
+  it('form card (main) has sm:p-8 responsive padding', () => {
     fc.assert(
-      fc.property(arbVariant, (variant) => {
+      fc.property(arbTitle, (title) => {
         const markup = renderToStaticMarkup(
           React.createElement(
-            AuthLayout,
-            { title: 'Test', variant, showBranding: true },
-            React.createElement('div', null, 'content'),
+            AuthShell,
+            { title, children: React.createElement('div', null, 'content') },
           ),
         )
         const doc = parseMarkup(markup)
 
-        // Form card is identified by shadow-2xl + backdrop-blur
-        const allEls = doc.querySelectorAll('*')
-        let card: Element | null = null
-        for (const el of allEls) {
-          const cls = typeof el.className === 'string' ? el.className : ''
-          if (cls.includes('shadow-2xl') && cls.includes('backdrop-blur')) {
-            card = el
-            break
-          }
-        }
-        expect(card).not.toBeNull()
+        const main = doc.querySelector('main')
+        expect(main).not.toBeNull()
 
-        const cls = classesOf(card!)
+        const cls = classesOf(main!)
+        expect(cls).toContain('p-6')
         expect(cls).toContain('sm:p-8')
-        expect(cls).toContain('lg:p-10')
       }),
       { numRuns: 10 },
     )

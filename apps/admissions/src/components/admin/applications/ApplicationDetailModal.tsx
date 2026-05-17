@@ -19,6 +19,7 @@ import { ApplicationDetailTimeline } from './ApplicationDetailTimeline'
 import { ApplicationDetailDocuments } from './ApplicationDetailDocuments'
 import { ApplicationDetailPayment, FeeWaiverDialog } from './ApplicationDetailPayment'
 import { ApplicationDetailInterview } from './ApplicationDetailInterview'
+import { formatApplicationStatus } from '@/types/applicationStatus'
 import type {
   ApplicationWithDetails,
   ApplicationDetailResponse,
@@ -46,7 +47,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  if (loading) {
  return (
  <div className="space-y-4" role="status" aria-label="Loading grades">
- <div className="flex justify-between rounded-lg border border-border bg-slate-50 p-4">
+ <div className="flex justify-between rounded-lg border border-border bg-muted p-4">
  <Skeleton className="h-5 w-24" />
  <Skeleton className="h-6 w-12" />
  </div>
@@ -85,7 +86,7 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  const bestFiveSubjectIds = new Set(bestFiveGrades.map(grade => grade.subject_id))
  const totalPoints = calculateBestFivePoints(normalizedGrades.map(grade => grade.normalized))
  const getGradeBadgeClass = (normalized: number | null) => {
- if (normalized === null) return 'border-slate-300 bg-slate-50 text-slate-800'
+ if (normalized === null) return 'border-border bg-muted text-foreground'
  if (normalized <= 3) return 'border-green-300 bg-green-50 text-green-800'
  if (normalized <= 6) return 'border-amber-300 bg-amber-50 text-amber-800'
  return 'border-red-300 bg-red-50 text-red-800'
@@ -93,14 +94,14 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
 
  return (
  <div className="space-y-4">
- <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+ <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4 shadow-sm">
  <div>
- <p className="text-base font-semibold text-slate-950">{grades.length} Subjects</p>
- <p className="text-xs font-medium text-slate-600">Grade 12 results</p>
+ <p className="text-base font-semibold text-foreground">{grades.length} Subjects</p>
+ <p className="text-xs font-medium text-muted-foreground">Grade 12 results</p>
  </div>
  <div className="text-right">
- <p className="text-xl font-bold text-slate-950">{totalPoints}</p>
- <p className="text-xs font-medium text-slate-600">Best 5 points</p>
+ <p className="text-xl font-bold text-foreground">{totalPoints}</p>
+ <p className="text-xs font-medium text-muted-foreground">Best 5 points</p>
  </div>
  </div>
 
@@ -110,11 +111,11 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  const isBestFive = normalized !== null && bestFiveSubjectIds.has(grade.subject_id)
  return (
  <div key={index} className={`flex justify-between items-center p-3 border rounded-lg ${
- isBestFive ? 'border-green-300 bg-green-50' : 'border-slate-200 bg-white'
+ isBestFive ? 'border-green-300 bg-green-50' : 'border-border bg-card'
  }`}>
  <div className="min-w-0 pr-3">
- <span className="break-words text-sm font-semibold text-slate-950">{grade.subject_name}</span>
- {isBestFive && <span className="ml-2 inline-flex rounded-md border border-green-300 bg-white px-2 py-0.5 text-xs font-semibold text-green-800">BEST 5</span>}
+ <span className="break-words text-sm font-semibold text-foreground">{grade.subject_name}</span>
+ {isBestFive && <span className="ml-2 inline-flex rounded-md border border-green-300 bg-card px-2 py-0.5 text-xs font-semibold text-green-800">BEST 5</span>}
  </div>
  <span className={`inline-flex min-w-11 items-center justify-center rounded-md border px-3 py-1 text-sm font-bold ${getGradeBadgeClass(normalized)}`}>
  {grade.grade}
@@ -306,10 +307,10 @@ export function ApplicationDetailModal({
  // Show skeleton during SSR/initial render to prevent hydration mismatch
  if (!isClient) {
  return (
- <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
- <div className="flex h-full max-w-full flex-col overflow-hidden bg-white sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg">
+ <div className="fixed inset-0 bg-scrim/60  flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
+ <div className="flex h-full max-w-full flex-col overflow-hidden bg-card sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg">
  {/* Header Skeleton */}
- <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-white">
+ <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-card">
  <div className="flex items-center justify-between gap-2">
  <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
  <Skeleton className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex-shrink-0" />
@@ -375,19 +376,19 @@ export function ApplicationDetailModal({
  }
 
  return (
- <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-slate-950/55 p-0 sm:p-4">
+ <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-foreground/55 p-0 sm:p-4">
  <div
  ref={focusTrapRef as React.RefObject<HTMLDivElement>}
  role="dialog"
  aria-modal="true"
  aria-label={`Application details for ${application.full_name}`}
- className="flex h-full max-w-full flex-col overflow-hidden bg-white shadow-lg animate-in fade-in zoom-in-95 duration-200 sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg"
+ className="flex h-full max-w-full flex-col overflow-hidden bg-card shadow-lg animate-in fade-in zoom-in-95 duration-200 sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg"
  >
  {/* Header */}
  <ApplicationDetailHeader application={application} onClose={onClose} />
 
  {/* Approval Actions — above the fold */}
- <div className="flex-shrink-0 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:px-6">
+ <div className="flex-shrink-0 border-b border-border bg-muted px-4 py-3 sm:px-6">
  <ApplicationApprovalActions
  applicationId={application.id}
  currentStatus={application.status}
@@ -399,7 +400,7 @@ export function ApplicationDetailModal({
  </div>
 
  {/* Tabs */}
- <div className="flex-shrink-0 overflow-x-auto border-b border-slate-200 bg-white">
+ <div className="flex-shrink-0 overflow-x-auto border-b border-border bg-card">
  <div className="flex min-w-max gap-1 px-2 py-2 sm:px-6" role="tablist" aria-label="Application details">
  {tabs.map((tab, index) => {
  const Icon = tab.icon
@@ -428,8 +429,8 @@ export function ApplicationDetailModal({
  }}
  className={`flex min-h-[40px] min-w-0 items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium leading-tight transition-colors sm:gap-2 sm:px-4 sm:text-sm ${
  activeTab === tab.id
- ? 'bg-slate-950 text-white'
- : 'text-foreground hover:bg-slate-50 hover:text-slate-950'
+ ? 'bg-foreground text-white'
+ : 'text-foreground hover:bg-muted hover:text-foreground'
  }`}
  >
  <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
@@ -440,7 +441,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  {/* Content */}
- <div className="flex-1 overflow-y-auto bg-slate-50/50">
+ <div className="flex-1 overflow-y-auto bg-muted/50">
  <div id={`panel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`} className="p-4 sm:p-6">
  {loading ? (
  <div className="flex items-center justify-center py-12" role="status" aria-label="Loading application details">
@@ -461,7 +462,7 @@ export function ApplicationDetailModal({
  />
  {/* Quick Stats */}
  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
- <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
+ <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
  <div className="flex items-center gap-3">
  {application.status === 'approved' ? <CheckCircle className="h-5 w-5 text-accent" /> :
   application.status === 'under_review' ? <Eye className="h-5 w-5 text-accent" /> :
@@ -469,14 +470,14 @@ export function ApplicationDetailModal({
   <Clock className="h-5 w-5 text-foreground" />}
  <div>
  <p className="text-sm font-medium text-foreground">Application Status</p>
- <p className="text-lg font-bold text-foreground capitalize">
- {application.status.replace('_', ' ')}
+ <p className="text-lg font-bold text-foreground">
+ {formatApplicationStatus(application.status)}
  </p>
  </div>
  </div>
  </div>
  
- <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
+ <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
  <div className="flex items-center gap-3">
  <CreditCard className="h-5 w-5 text-accent" />
  <div>
@@ -488,7 +489,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  
- <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
+ <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
  <div className="flex items-center gap-3">
  <Calendar className="h-5 w-5 text-secondary" />
  <div>
@@ -508,7 +509,7 @@ export function ApplicationDetailModal({
    const dt = interview.scheduled_at ? new Date(interview.scheduled_at).toLocaleString() : 'Not scheduled'
    const modeLabel = interview.mode === 'in_person' ? 'In person' : interview.mode === 'virtual' ? 'Virtual' : interview.mode === 'phone' ? 'Phone' : (interview.mode || 'Not specified')
    return (
-     <div className="bg-white border border-primary/20 rounded-lg p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+     <div className="bg-card border border-primary/20 rounded-lg p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
        <div className="flex items-center gap-3">
          <Calendar className="h-10 w-10 text-primary" />
          <div>
@@ -550,7 +551,7 @@ export function ApplicationDetailModal({
  {!(applicationData?.application?.fee_waiver || application.fee_waiver) && (
  <button
    onClick={() => setFeeWaiverOpen(true)}
-   className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-blue-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-blue-800 transition-colors hover:bg-blue-100"
+   className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-blue-200 bg-muted px-3 py-1.5 text-xs font-medium text-blue-800 transition-colors hover:bg-blue-100"
  >
    <Tag className="h-3.5 w-3.5" />
    Apply Fee Waiver
@@ -567,7 +568,7 @@ export function ApplicationDetailModal({
  />
 
  {/* Personal Information */}
- <div className="bg-white border border-border rounded-lg p-6">
+ <div className="bg-card border border-border rounded-lg p-6">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <User className="h-5 w-5 text-primary" />
  Personal Information
@@ -623,7 +624,7 @@ export function ApplicationDetailModal({
  </div>
 
  {/* Program Information */}
- <div className="bg-white border border-border rounded-lg p-6">
+ <div className="bg-card border border-border rounded-lg p-6">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <GraduationCap className="h-5 w-5 text-primary" />
  Program Information
@@ -663,7 +664,7 @@ export function ApplicationDetailModal({
  />
 
  {/* Admin Feedback */}
- <div className="bg-white border border-primary/20 rounded-lg p-6">
+ <div className="bg-card border border-primary/20 rounded-lg p-6">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <AlertCircle className="h-5 w-5" />
  Admin Feedback
@@ -700,7 +701,7 @@ export function ApplicationDetailModal({
 
  {/* Pending Amendment Requests */}
  {((applicationData?.application?.pending_amendments && applicationData.application.pending_amendments.length > 0) || (application.pending_amendments && application.pending_amendments.length > 0)) && (
- <div className="bg-white border border-amber-200 rounded-lg p-6">
+ <div className="bg-card border border-amber-200 rounded-lg p-6">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
  <ClipboardList className="h-5 w-5 text-amber-600" />
  Pending Amendment Requests
@@ -772,7 +773,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  {/* Footer Actions */}
- <div className="flex-shrink-0 border-t border-border bg-white p-4 sm:p-5">
+ <div className="flex-shrink-0 border-t border-border bg-card p-4 sm:p-5">
  <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
  <div className="flex flex-wrap gap-2">
  <Button
@@ -817,8 +818,8 @@ export function ApplicationDetailModal({
       
       {/* Payment Warning Dialog (Req 26.4) */}
       {paymentWarning && (
-        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-[70]">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-md animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-scrim/60  flex items-center justify-center p-4 z-[70]">
+          <div className="w-full max-w-md rounded-lg bg-card p-6 shadow-md animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-amber-100 rounded-lg">
                 <AlertCircle className="h-5 w-5 text-amber-600" />

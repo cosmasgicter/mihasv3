@@ -96,6 +96,10 @@
   --color-success-rgb: 4 120 87;
   --color-warning-rgb: 180 83 9;
   --color-info-rgb: 37 99 235;
+  /* Modal scrim — brand-tinted near-black, matches `oklch(12% 0.01 250)`.
+   * Use as `bg-scrim/50` (0.5 alpha) on dialog/dropdown overlays. Replaces
+   * the harsh pure-black scrim pattern flagged in the 2026-05-17 design audit. */
+  --color-scrim-rgb: 12 14 24;
 
   /* Gradient Colors — balanced saturation */
   --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
@@ -429,17 +433,9 @@
   background: var(--gradient-accent);
 }
 
-/* Legacy gradient-text class for backward compatibility */
-.gradient-text {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.gradient-text-primary {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+/* NOTE: Legacy `.gradient-text` and `.gradient-text-primary` classes were
+ * removed on 2026-05-17 per the design audit (PRODUCT.md anti-references:
+ * gradient text on headings/wordmarks). The single consumer was the
+ * SharedFooter wordmark, which now uses `text-white`. If you need to
+ * recreate this effect, do so deliberately in a brand-mode surface only,
+ * never on product UI. */
