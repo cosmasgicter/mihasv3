@@ -190,7 +190,7 @@ function ApplicationPaymentCard({ app, records, isSelected, onPaymentRefresh }: 
             <DownloadReceiptButton applicationId={app.id} paymentStatus={app.payment_status ?? ''} />
           )}
           {showPayForm && (
-            <Button type="button" size="sm" variant="outline" onClick={() => setExpanded(!expanded)} className="min-h-touch">
+            <Button type="button" size="sm" variant="outline" onClick={() => setExpanded(!expanded)} className="min-h-[44px] min-h-touch">
               {expanded ? <><ChevronUp className="h-3.5 w-3.5 mr-1" />Hide</>: <><ChevronDown className="h-3.5 w-3.5 mr-1" />Pay Now</>}
             </Button>
           )}

@@ -130,7 +130,7 @@ function RouteAwareApp() {
 
   // Dismiss preloader once the route shell renders
   useEffect(() => {
-    (window as any).__dismissPreloader?.()
+    window.__dismissPreloader?.()
   }, [])
 
   return (

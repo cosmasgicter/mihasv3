@@ -95,6 +95,10 @@ export interface DocumentItem {
   verified_at?: string
   verification_notes?: string
   system_generated: boolean
+  created_at?: string
+  uploaded_at?: string
+  ecz_exam_number?: string
+  ecz_exam_year?: string | number
 }
 
 export interface Grade {

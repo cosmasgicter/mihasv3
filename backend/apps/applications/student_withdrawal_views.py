@@ -307,6 +307,7 @@ class ApplicationConfirmEnrollmentView(APIView):
         tags=["applications"],
         summary="Confirm enrollment (owner-only)",
     )
+    @idempotent
     def post(self, request, application_id):
         from apps.applications.enrollment_service import EnrollmentError, EnrollmentService
 

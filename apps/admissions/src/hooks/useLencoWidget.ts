@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { logger } from '@/lib/logger'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -172,7 +173,7 @@ export function useLencoWidget() {
   const openWidget = useCallback(
     (config: LencoWidgetConfig) => {
       if (!window.LencoPay) {
-        console.error('[useLencoWidget] LencoPay not available')
+        logger.error('[useLencoWidget] LencoPay not available')
         setLoadError('Payment widget is not ready. Please try again.')
         config.onClose()
         return
@@ -222,7 +223,7 @@ export function useLencoWidget() {
           },
         })
       } catch (err) {
-        console.error('[useLencoWidget] Error opening widget:', err)
+        logger.error('[useLencoWidget] Error opening widget:', err)
         setLoadError(err instanceof Error ? err.message : 'Payment widget could not be opened.')
         setIsLoading(false)
         config.onClose()

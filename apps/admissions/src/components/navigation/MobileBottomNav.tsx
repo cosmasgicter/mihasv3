@@ -3,6 +3,7 @@ import { Home, FileText, Bell, LayoutDashboard, Users, MoreHorizontal, Graduatio
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
+import type { LucideIcon } from 'lucide-react'
 
 
 export const MobileBottomNav = React.memo(function MobileBottomNav() {
@@ -60,7 +61,9 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
     return location.pathname === path
   }
 
-  const renderLink = ({ to, icon: Icon, label }: any) => {
+  type NavLink = { to: string; icon: LucideIcon; label: string }
+
+  const renderLink = ({ to, icon: Icon, label }: NavLink) => {
     const isActive = isRouteActive(to)
     return (
       <Link

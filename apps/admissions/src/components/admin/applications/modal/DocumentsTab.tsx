@@ -15,6 +15,11 @@ interface DocumentItem {
   system_generated: boolean
 }
 
+interface ApplicationDocumentSources {
+  result_slip_url?: string | null
+  extra_kyc_url?: string | null
+}
+
 function ViewButton({ doc }: { doc: DocumentItem }) {
   const [loading, setLoading] = useState(false)
   const showError = useToastStore((state) => state.error)
@@ -28,7 +33,7 @@ function ViewButton({ doc }: { doc: DocumentItem }) {
     setLoading(true)
     try {
       const result = await documentService.getSignedUrl(doc.id)
-      const url = (result as any)?.url || doc.file_url
+      const url = result?.url || doc.file_url
       window.open(url, '_blank', 'noopener,noreferrer')
     } catch {
       showError('Document unavailable', 'The file link could not be prepared. Please refresh and try again.')
@@ -54,7 +59,15 @@ function getStatusBadge(status: string) {
   return 'border-amber-300 bg-amber-50 text-amber-800'
 }
 
-export function DocumentsTab({ documents, loading, application }: { documents: DocumentItem[], loading: boolean, application?: any }) {
+export function DocumentsTab({
+  documents,
+  loading,
+  application,
+}: {
+  documents: DocumentItem[]
+  loading: boolean
+  application?: ApplicationDocumentSources
+}) {
   if (loading) return (
     <div className="space-y-3 py-4" role="status" aria-label="Loading documents">
       {[...Array(3)].map((_, i) => (

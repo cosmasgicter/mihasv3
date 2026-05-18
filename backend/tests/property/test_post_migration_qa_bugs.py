@@ -324,20 +324,20 @@ class TestPaymentPageDiscovery:
         view = PaymentListView.as_view()
         user = _make_user()
 
-        with patch("apps.documents.views.Payment.objects") as mock_qs:
+        with patch("apps.documents.payment_query_views.Payment.objects") as mock_qs:
             mock_filter = MagicMock()
             mock_filter.filter.return_value = mock_filter
             mock_filter.order_by.return_value = mock_filter
             mock_qs.filter.return_value = mock_filter
 
             # Mock the paginator to return None (no pagination needed for empty set)
-            with patch("apps.documents.views.StandardPagination") as mock_pag_cls:
+            with patch("apps.documents.payment_query_views.StandardPagination") as mock_pag_cls:
                 mock_paginator = MagicMock()
                 mock_paginator.paginate_queryset.return_value = None
                 mock_pag_cls.return_value = mock_paginator
 
                 mock_serializer_data = []
-                with patch("apps.documents.views.PaymentSerializer") as mock_ser_cls:
+                with patch("apps.documents.payment_query_views.PaymentSerializer") as mock_ser_cls:
                     mock_ser = MagicMock()
                     mock_ser.data = mock_serializer_data
                     mock_ser_cls.return_value = mock_ser
@@ -364,21 +364,23 @@ class TestPaymentPageDiscovery:
         view = PaymentListView.as_view()
         user = _make_user(role=role)
 
-        with patch("apps.documents.views.Payment.objects") as mock_qs:
+        with patch("apps.documents.payment_query_views.Payment.objects") as mock_qs:
+            mock_base = MagicMock()
+            mock_qs.select_related.return_value = mock_base
             mock_all = MagicMock()
             mock_all.order_by.return_value = mock_all
-            mock_qs.all.return_value = mock_all
+            mock_base.all.return_value = mock_all
 
             mock_filter = MagicMock()
             mock_filter.order_by.return_value = mock_filter
-            mock_qs.filter.return_value = mock_filter
+            mock_base.filter.return_value = mock_filter
 
-            with patch("apps.documents.views.StandardPagination") as mock_pag_cls:
+            with patch("apps.documents.payment_query_views.StandardPagination") as mock_pag_cls:
                 mock_paginator = MagicMock()
                 mock_paginator.paginate_queryset.return_value = None
                 mock_pag_cls.return_value = mock_paginator
 
-                with patch("apps.documents.views.PaymentSerializer") as mock_ser_cls:
+                with patch("apps.documents.payment_query_views.PaymentSerializer") as mock_ser_cls:
                     mock_ser = MagicMock()
                     mock_ser.data = []
                     mock_ser_cls.return_value = mock_ser
@@ -387,8 +389,8 @@ class TestPaymentPageDiscovery:
                     response = view(request)
 
             if role in ("admin", "super_admin"):
-                mock_qs.all.assert_called_once()
+                mock_base.all.assert_called_once()
             else:
-                mock_qs.filter.assert_called_once_with(user_id=str(user.id))
+                mock_base.filter.assert_called_once_with(user_id=str(user.id))
 
         assert response.status_code == 200

@@ -34,7 +34,7 @@ import json
 import uuid
 
 import pytest
-from django.test import TestCase, override_settings
+from django.test import override_settings
 from rest_framework.test import APIClient
 
 
@@ -92,7 +92,7 @@ def _seed_profile():
     from django.utils import timezone
 
     now = timezone.now()
-    return Profile.objects.create(
+    profile = Profile.objects.create(
         id=uuid.uuid4(),
         email=f"devbypass-{uuid.uuid4().hex[:8]}@example.com",
         first_name="Bypass",
@@ -102,6 +102,14 @@ def _seed_profile():
         created_at=now,
         updated_at=now,
     )
+    from apps.accounts.authentication import JWTUser
+    return JWTUser({
+        "user_id": str(profile.id),
+        "email": profile.email,
+        "role": profile.role,
+        "first_name": profile.first_name,
+        "last_name": profile.last_name,
+    })
 
 
 def _send(
@@ -141,8 +149,7 @@ def _send(
 
 
 @pytest.mark.django_db
-@override_settings(DEBUG=False, DJANGO_ENV="production")
-class TestPaymentViewsReturn404OnDevBypassInProduction(TestCase):
+class TestPaymentViewsReturn404OnDevBypassInProduction:
     """5 views × 4 vectors = up to 20 parametrised cases.
 
     The body-field vector is skipped on GET endpoints (no body to populate).
@@ -160,6 +167,7 @@ class TestPaymentViewsReturn404OnDevBypassInProduction(TestCase):
         BYPASS_VECTORS,
         ids=[row[0] for row in BYPASS_VECTORS],
     )
+    @override_settings(DEBUG=False, DJANGO_ENV="production")
     def test_production_returns_404_for_dev_bypass_vector(
         self,
         view_id,

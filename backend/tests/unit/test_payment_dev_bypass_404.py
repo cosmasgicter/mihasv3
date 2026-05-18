@@ -40,7 +40,7 @@ import json
 import uuid
 
 import pytest
-from django.test import TestCase, override_settings
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -93,7 +93,7 @@ def _seed_profile():
     from django.utils import timezone
 
     now = timezone.now()
-    return Profile.objects.create(
+    profile = Profile.objects.create(
         id=uuid.uuid4(),
         email=f"devbypass-{uuid.uuid4().hex[:8]}@example.com",
         first_name="Bypass",
@@ -103,6 +103,14 @@ def _seed_profile():
         created_at=now,
         updated_at=now,
     )
+    from apps.accounts.authentication import JWTUser
+    return JWTUser({
+        "user_id": str(profile.id),
+        "email": profile.email,
+        "role": profile.role,
+        "first_name": profile.first_name,
+        "last_name": profile.last_name,
+    })
 
 
 def _apply_vector(request_kwargs: dict, vector_payload: dict):
@@ -167,13 +175,13 @@ def _send(
 
 
 @pytest.mark.django_db
-@override_settings(DEBUG=False, DJANGO_ENV="production", PAYMENT_DEV_BYPASS=False)
-class TestPaymentDevBypassViewRefusesInProduction(TestCase):
+class TestPaymentDevBypassViewRefusesInProduction:
     """``PaymentDevBypassView`` is the only view with lockout today.
 
     Validates: Requirements R16.1 (baseline)
     """
 
+    @override_settings(DEBUG=False, DJANGO_ENV="production", PAYMENT_DEV_BYPASS=False)
     def test_post_returns_404_in_production_without_flag(self):
         profile = _seed_profile()
         client = APIClient()
@@ -197,8 +205,7 @@ class TestPaymentDevBypassViewRefusesInProduction(TestCase):
 
 
 @pytest.mark.django_db
-@override_settings(DEBUG=False, DJANGO_ENV="production")
-class TestPaymentViewsRejectDevBypassInProduction(TestCase):
+class TestPaymentViewsRejectDevBypassInProduction:
     """Cross-view × cross-vector dev-bypass lockout matrix.
 
     Skipped until Task 43 applies ``@require_not_dev_bypass_in_production``
@@ -218,6 +225,7 @@ class TestPaymentViewsRejectDevBypassInProduction(TestCase):
         BYPASS_VECTORS,
         ids=[v[0] for v in BYPASS_VECTORS],
     )
+    @override_settings(DEBUG=False, DJANGO_ENV="production")
     def test_view_returns_404_on_dev_bypass_vector(
         self, view_name, method, path, accepts_body, vector_name, vector_payload,
     ):

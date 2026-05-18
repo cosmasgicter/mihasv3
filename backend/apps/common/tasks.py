@@ -239,6 +239,13 @@ def send_bulk_notifications_task(self, notification_ids):
 
     for index, notification in enumerate(notifications):
         try:
+            # Per-notification idempotency: claim via SETNX to prevent
+            # double-send if a hard crash occurs mid-iteration.
+            claim_key = f"notification:dispatched:{notification.id}"
+            if not cache.add(claim_key, "1", timeout=300):
+                logger.info("Notification %s already claimed, skipping", notification.id)
+                continue
+
             # Check user notification preferences.
             pref = UserNotificationPreference.objects.filter(
                 user_id=notification.user_id
@@ -267,6 +274,8 @@ def send_bulk_notifications_task(self, notification_ids):
             )
 
         except Exception as exc:
+            # Release claim so retry can pick it up
+            cache.delete(claim_key)
             logger.exception("Failed to process notification %s", notification.id)
             remaining_notification_ids = [
                 str(remaining.id) for remaining in notifications[index:]
@@ -360,7 +369,7 @@ def check_uptime_task(self):
 
     # Persist current status.
     try:
-        cache.set(UPTIME_REDIS_KEY, current_status, timeout=None)
+        cache.set(UPTIME_REDIS_KEY, current_status, timeout=86400)
     except Exception:
         logger.error("Failed to write uptime status to Redis")
 
@@ -468,7 +477,7 @@ def cleanup_audit_logs_task(self):
         raise self.retry(exc=exc)
 
 
-@shared_task(name="cleanup_idempotency_keys")
+@shared_task
 def cleanup_idempotency_keys_task():
     """Delete idempotency keys older than 24 hours."""
     from apps.common.models import IdempotencyKey

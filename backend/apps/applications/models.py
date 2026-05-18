@@ -26,7 +26,7 @@ class Application(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application_number = models.CharField(max_length=50, unique=True)
-    user = models.ForeignKey('accounts.Profile', on_delete=models.CASCADE)
+    user = models.ForeignKey('accounts.Profile', on_delete=models.CASCADE, db_index=True)
     full_name = models.CharField(max_length=255)
     nrc_number = models.CharField(max_length=20, null=True, blank=True)
     passport_number = models.CharField(max_length=50, null=True, blank=True)
@@ -42,7 +42,7 @@ class Application(models.Model):
     next_of_kin_name = models.CharField(max_length=255, null=True, blank=True)
     next_of_kin_phone = models.CharField(max_length=20, null=True, blank=True)
     program = models.CharField(max_length=255)
-    intake = models.CharField(max_length=100)
+    intake = models.CharField(max_length=100, db_index=True)
     institution = models.CharField(max_length=255)
     result_slip_url = models.CharField(max_length=500, null=True, blank=True)
     extra_kyc_url = models.CharField(max_length=500, null=True, blank=True)
@@ -57,7 +57,7 @@ class Application(models.Model):
         related_name='verified_applications',
         db_column='payment_verified_by',
     )
-    status = models.CharField(max_length=20, default='draft')
+    status = models.CharField(max_length=20, default='draft', db_index=True)
     eligibility_status = models.CharField(max_length=20, null=True, blank=True)
     eligibility_score = models.IntegerField(null=True, blank=True)
     eligibility_notes = models.TextField(null=True, blank=True)

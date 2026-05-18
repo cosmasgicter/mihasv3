@@ -2,7 +2,14 @@
 // LOWER TOTAL = BETTER PERFORMANCE
 // Best 5 = sum of 5 lowest grade numbers
 
-export function calculatePointsFromSummary(summary: any): number {
+export type GradeSummaryInput = string | GradeEntry[] | null | undefined
+
+export interface GradeEntry {
+  grade: number
+  [key: string]: unknown
+}
+
+export function calculatePointsFromSummary(summary: GradeSummaryInput): number {
   if (!summary) return 0;
   
   // If summary is a string, try to parse it
@@ -33,7 +40,7 @@ export function calculatePointsFromSummary(summary: any): number {
   return 0;
 }
 
-export function calculateBestFivePoints(grades: any[]): number {
+export function calculateBestFivePoints(grades: ReadonlyArray<GradeEntry | number>): number {
   if (!grades || grades.length === 0) return 0;
   
   // Extract grade values (1-9)
@@ -50,7 +57,7 @@ export function calculateBestFivePoints(grades: any[]): number {
   return bestFive.reduce((sum, grade) => sum + grade, 0);
 }
 
-export function sanitizeGradeValue(value: any): number {
+export function sanitizeGradeValue(value: unknown): number {
   if (typeof value === 'number' && value >= 1 && value <= 9) {
     return value;
   }

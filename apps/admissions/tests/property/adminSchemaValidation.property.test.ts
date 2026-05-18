@@ -12,7 +12,7 @@ const auditEntryArb = fc.record({
   action: fc.constantFrom('login', 'logout', 'create', 'update', 'delete', 'review'),
   entity_type: fc.constantFrom('user', 'application', 'document', 'payment'),
   entity_id: fc.uuid(),
-  created_at: fc.date().map(d => d.toISOString()),
+  created_at: fc.date().filter((date) => Number.isFinite(date.getTime())).map(d => d.toISOString()),
 })
 
 const appealArb = fc.record({
@@ -20,7 +20,7 @@ const appealArb = fc.record({
   application_id: fc.uuid(),
   status: fc.constantFrom('pending', 'approved', 'rejected', 'under_review'),
   appeal_type: fc.constantFrom('grade_review', 'eligibility_review', 'document_review'),
-  created_at: fc.date().map(d => d.toISOString()),
+  created_at: fc.date().filter((date) => Number.isFinite(date.getTime())).map(d => d.toISOString()),
 })
 
 describe('Property 6: Admin endpoint responses conform to their Zod schemas', () => {

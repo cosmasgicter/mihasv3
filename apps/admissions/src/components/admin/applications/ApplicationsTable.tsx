@@ -5,6 +5,7 @@ import { useToastStore } from '@/hooks/useToast'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
 import { formatApplicationStatus } from '@/types/applicationStatus'
+import { logger } from '@/lib/logger'
 
 interface ApplicationsTableProps {
   applications: ApplicationSummary[]
@@ -60,7 +61,7 @@ export function ApplicationsTable({
       await onStatusUpdate(id, status)
       showSuccess('Status Updated', `Application status changed to ${formatApplicationStatus(status)}`)
     } catch (error) {
-      console.error('Failed to update status:', error)
+      logger.error('Failed to update status:', error)
       showError('Update Failed', error instanceof Error ? error.message : 'Failed to update application status')
     } finally {
       setUpdatingStatus(null)
@@ -73,7 +74,7 @@ export function ApplicationsTable({
       await onPaymentStatusUpdate(id, status, verificationNotes)
       showSuccess('Payment Updated', `Payment status changed to ${getPaymentStatusLabel(status)}`)
     } catch (error) {
-      console.error('Failed to update payment status:', error)
+      logger.error('Failed to update payment status:', error)
       showError('Update Failed', error instanceof Error ? error.message : 'Failed to update payment status')
     } finally {
       setUpdatingPayment(null)

@@ -8,6 +8,7 @@ import { ApplicationFormData } from '@/forms/applicationSchema'
 import { removeDraftStorageEntries } from './draftStorageKeys'
 import { sanitizeForLog, safeJsonParse } from './sanitize'
 import { generateSecureToken } from './security'
+import { logger } from '@/lib/logger'
 
 export interface ApplicationDraft {
   id?: string
@@ -36,6 +37,18 @@ export interface DraftDeleteResult {
   deletedIds?: string[]
   blockedIds?: string[]
   failedIds?: string[]
+}
+
+type StoredDraftRecord = Record<string, unknown> & {
+  id?: string
+  applicationId?: string
+  application_id?: string
+  userId?: string
+  user_id?: string
+  savedAt?: string
+  last_saved_at?: string
+  currentStep?: number
+  expired?: boolean
 }
 
 // Constants for configuration
@@ -92,7 +105,7 @@ function clearStorageDraftApplicationId(storage: Storage, key: string, staleAppl
     return
   }
 
-  const draft = safeJsonParse<Record<string, any> | null>(raw, null)
+  const draft = safeJsonParse<StoredDraftRecord | null>(raw, null)
   if (!draft) {
     storage.removeItem(key)
     return
@@ -156,13 +169,13 @@ class ApplicationSessionManager {
     this.sessionId = generateSecureToken(16)
   }
 
-  private getStoredWizardDraft(): Record<string, any> | null {
+  private getStoredWizardDraft(): StoredDraftRecord | null {
     const savedDraft = localStorage.getItem('applicationWizardDraft')
     if (!savedDraft) {
       return null
     }
 
-    const draft = safeJsonParse<Record<string, any> | null>(savedDraft, null)
+    const draft = safeJsonParse<StoredDraftRecord | null>(savedDraft, null)
     if (!draft) {
       localStorage.removeItem('applicationWizardDraft')
       return null
@@ -171,7 +184,7 @@ class ApplicationSessionManager {
     return draft
   }
 
-  getStoredDraft(): Record<string, any> | null {
+  getStoredDraft(): StoredDraftRecord | null {
     return this.getStoredWizardDraft()
   }
 
@@ -188,7 +201,7 @@ class ApplicationSessionManager {
       return wizardDraftId
     }
 
-    const savedDraft = safeJsonParse<Record<string, any> | null>(
+    const savedDraft = safeJsonParse<StoredDraftRecord | null>(
       localStorage.getItem('applicationDraft') ?? '',
       null,
     )
@@ -228,7 +241,7 @@ class ApplicationSessionManager {
     )
   }
 
-  async getLocalWizardDraft(userId?: string): Promise<Record<string, any> | null> {
+  async getLocalWizardDraft(userId?: string): Promise<StoredDraftRecord | null> {
     const draft = this.getStoredWizardDraft()
     if (!draft) {
       return null
@@ -271,7 +284,7 @@ class ApplicationSessionManager {
     return draft
   }
 
-  private buildLocalDraftInfo(draft: Record<string, any>) {
+  private buildLocalDraftInfo(draft: StoredDraftRecord) {
     const steps = ['Basic KYC', 'Education', 'Payment', 'Submit']
     const step = Math.min(Math.max(Number(draft.currentStep) || 1, 1), steps.length)
     const savedTime = draft.savedAt ? new Date(draft.savedAt).getTime() : Date.now()
@@ -360,7 +373,7 @@ class ApplicationSessionManager {
             uploaded_files: uploadedFiles,
             selected_subjects: selectedSubjects,
             step_completed: currentStep
-          } as any)
+          })
         } catch (dbError) {
           if (isApplicationMissingError(dbError)) {
             clearStaleApplicationDraftReference(draftApplicationId)
@@ -376,7 +389,7 @@ class ApplicationSessionManager {
 
       return { success: true }
     } catch (error) {
-      console.error('Error saving draft:', sanitizeForLog(error))
+      logger.error('Error saving draft:', sanitizeForLog(error))
       return {
         success: false,
         error: error instanceof Error ? sanitizeForLog(error.message) : 'Failed to save draft'
@@ -389,7 +402,7 @@ class ApplicationSessionManager {
     try {
       const savedDraft = localStorage.getItem('applicationDraft')
       if (savedDraft) {
-        const draft = safeJsonParse<Record<string, any> | null>(savedDraft, null)
+        const draft = safeJsonParse<StoredDraftRecord | null>(savedDraft, null)
         if (!draft) return
         // Update last saved timestamp
         draft.last_saved_at = new Date().toISOString()
@@ -410,7 +423,7 @@ class ApplicationSessionManager {
         try {
           await applicationService.update(draftApplicationId, {
             updated_at: new Date().toISOString()
-          } as any)
+          })
         } catch (error) {
           if (isApplicationMissingError(error)) {
             clearStaleApplicationDraftReference(draftApplicationId)
@@ -423,7 +436,7 @@ class ApplicationSessionManager {
         }
       }
     } catch (error) {
-      console.error('Auto-save failed:', sanitizeForLog(error))
+      logger.error('Auto-save failed:', sanitizeForLog(error))
     }
   }
 
@@ -442,9 +455,9 @@ class ApplicationSessionManager {
           const data = apps[0]!
           return {
             id: data.id,
-            user_id: (data as any).user_id || userId,
+            user_id: (data.user_id as string) || userId,
             form_data: data as Partial<ApplicationFormData> || {},
-            current_step: (data as any).step_completed || 1,
+            current_step: (data.step_completed as number) || 1,
             uploaded_files: [],
             selected_subjects: [],
             version: 1,
@@ -460,7 +473,7 @@ class ApplicationSessionManager {
       const localDraft = await this.getLocalWizardDraft(userId)
       if (localDraft) {
         if (!localDraft.user_id || localDraft.user_id === userId) {
-          return localDraft as ApplicationDraft
+          return localDraft as unknown as ApplicationDraft
         }
 
         localStorage.removeItem('applicationWizardDraft')
@@ -468,7 +481,7 @@ class ApplicationSessionManager {
 
       return null
     } catch (error) {
-      console.error('Error loading draft:', sanitizeForLog(error))
+      logger.error('Error loading draft:', sanitizeForLog(error))
       return null
     }
   }
@@ -586,7 +599,7 @@ class ApplicationSessionManager {
 
       return { success: true, deletedIds, blockedIds, failedIds }
     } catch (error) {
-      console.error('Draft deletion failed:', sanitizeForLog(error))
+      logger.error('Draft deletion failed:', sanitizeForLog(error))
       return {
         success: false,
         error: error instanceof Error ? sanitizeForLog(error.message) : 'Failed to delete draft'
@@ -644,7 +657,7 @@ class ApplicationSessionManager {
         {}
       )
       const apps = result?.applications ?? []
-      return apps.length > 0 ? ((apps[0] as any).version || 0) + 1 : 1
+      return apps.length > 0 ? (((apps[0] as Record<string, unknown>).version as number) || 0) + 1 : 1
     } catch {
       return 1
     }
@@ -656,7 +669,7 @@ class ApplicationSessionManager {
     // Keep data but mark as expired
     const localDraft = localStorage.getItem('applicationDraft')
     if (localDraft) {
-      const draft = safeJsonParse<Record<string, any> | null>(localDraft, null)
+      const draft = safeJsonParse<StoredDraftRecord | null>(localDraft, null)
       if (draft) {
         draft.expired = true
         try {
@@ -729,7 +742,7 @@ class ApplicationSessionManager {
 
       return { exists: false }
     } catch (error) {
-      console.error('Error getting draft info:', sanitizeForLog(error))
+      logger.error('Error getting draft info:', sanitizeForLog(error))
       return { exists: false }
     }
   }

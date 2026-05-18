@@ -127,7 +127,7 @@ describe('useDocumentGeneration payload handling', () => {
     ).toThrow('No application data received');
 
     expect(errorSpy).toHaveBeenCalledWith(
-      '[useDocumentGeneration] Malformed payload: missing application object',
+      '[ERROR] [useDocumentGeneration] Malformed payload: missing application object',
       expect.objectContaining({
         endpoint: '/api/applications/abc/',
         responseShape: expect.objectContaining({
@@ -136,7 +136,8 @@ describe('useDocumentGeneration payload handling', () => {
           hasApplicationAtRoot: false,
           hasApplicationInData: false,
         }),
-      })
+      }),
+      undefined
     );
   });
 

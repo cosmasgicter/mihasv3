@@ -17,6 +17,7 @@ from drf_spectacular.utils import OpenApiResponse, OpenApiTypes, extend_schema, 
 from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from apps.accounts.authentication import OptionalJWTCookieAuthentication
@@ -472,6 +473,7 @@ class RefreshView(APIView):
 
     permission_classes = [AllowAny]
     authentication_classes = []  # Skip JWT auth — we use the refresh cookie
+    throttle_classes = [AnonRateThrottle]
     serializer_class = MessageSerializer
 
     def post(self, request):

@@ -6,6 +6,7 @@ import { formatTimestamp } from '@/lib/dateFormat'
 import { useMultiDraft } from '../hooks/useMultiDraft'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { logger } from '@/lib/logger'
 
 interface DraftManagerProps {
   userId: string | undefined
@@ -33,7 +34,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
         onCreateNew()
       }
     } catch (error) {
-      console.error('Failed to create draft:', error)
+      logger.error('Failed to create draft:', error)
     }
   }
 
@@ -45,7 +46,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
         setIsOpen(false)
       }
     } catch (error) {
-      console.error('Failed to load draft:', error)
+      logger.error('Failed to load draft:', error)
     }
   }
 
@@ -56,7 +57,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
       setEditingId(null)
       setEditName('')
     } catch (error) {
-      console.error('Failed to rename draft:', error)
+      logger.error('Failed to rename draft:', error)
     }
   }
 
@@ -189,7 +190,7 @@ export const DraftManager = ({ userId, currentDraftId, onLoadDraft, onCreateNew 
                               onClick={() => {
                                 if (window.confirm(`Delete draft "${draft.draft_name}"? This cannot be undone.`)) {
                                   deleteDraft(draft.id).catch(error => {
-                                    console.error('Failed to delete draft:', error)
+                                    logger.error('Failed to delete draft:', error)
                                   })
                                 }
                               }}

@@ -2,8 +2,8 @@
 
 # Feature: tech-debt-remediation, Property 3: No str(e) in API error responses
 
-Uses AST/source inspection to verify `documents/views.py` does not contain
-`str(e)` in any Response construction.
+Uses AST/source inspection to verify the active document/payment view modules
+do not contain `str(e)` in any Response construction.
 """
 
 import os
@@ -27,19 +27,19 @@ from hypothesis import strategies as st  # noqa: E402
 # Helpers
 # ---------------------------------------------------------------------------
 
-DOCUMENTS_VIEWS_PATH = (
-    Path(__file__).resolve().parents[2] / "apps" / "documents" / "views.py"
+DOCUMENTS_VIEW_PATHS = sorted(
+    (Path(__file__).resolve().parents[2] / "apps" / "documents").glob("*_views.py")
 )
 
 
 def _read_source() -> str:
-    """Read the raw source of documents/views.py."""
-    return DOCUMENTS_VIEWS_PATH.read_text(encoding="utf-8")
+    """Read the active split document/payment view modules as one source."""
+    return "\n".join(path.read_text(encoding="utf-8") for path in DOCUMENTS_VIEW_PATHS)
 
 
 def _parse_module() -> ast.Module:
-    """Parse documents/views.py into an AST module node."""
-    return ast.parse(_read_source(), filename=str(DOCUMENTS_VIEWS_PATH))
+    """Parse the active document/payment view modules into one AST module."""
+    return ast.parse(_read_source(), filename="documents view modules")
 
 
 def _collect_response_calls(tree: ast.Module) -> list[ast.Call]:
@@ -108,10 +108,10 @@ class TestNoStrEInDocumentsResponses(SimpleTestCase):
     """
 
     def test_documents_views_file_exists(self):
-        """documents/views.py must exist."""
+        """At least one active split document view module must exist."""
         self.assertTrue(
-            DOCUMENTS_VIEWS_PATH.exists(),
-            f"Expected documents/views.py at {DOCUMENTS_VIEWS_PATH}",
+            DOCUMENTS_VIEW_PATHS,
+            "Expected at least one active *_views.py module under apps/documents",
         )
 
     def test_no_str_e_in_any_response_call(self):
@@ -123,7 +123,7 @@ class TestNoStrEInDocumentsResponses(SimpleTestCase):
         self.assertGreater(
             len(response_calls),
             0,
-            "Expected at least one Response() call in documents/views.py",
+            "Expected at least one Response() call in document view modules",
         )
 
         offending_lines = [
@@ -136,7 +136,7 @@ class TestNoStrEInDocumentsResponses(SimpleTestCase):
             offending_lines,
             [],
             f"Found str(e) in Response() at line(s) {offending_lines} "
-            f"in documents/views.py",
+            f"in document view modules",
         )
 
     def test_no_str_e_in_except_handler_responses(self):

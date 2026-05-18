@@ -106,7 +106,7 @@ export const extractApplicationFromEnvelope = (
       : null;
 
   if (!application || typeof application !== 'object') {
-    console.error('[useDocumentGeneration] Malformed payload: missing application object', {
+    logger.error('[useDocumentGeneration] Malformed payload: missing application object', {
       endpoint,
       responseShape: summarizePayloadShape(envelope),
     });
@@ -114,7 +114,7 @@ export const extractApplicationFromEnvelope = (
   }
 
   if (!application.application_number || !application.public_tracking_code) {
-    console.error('[useDocumentGeneration] Malformed payload: missing required fields', {
+    logger.error('[useDocumentGeneration] Malformed payload: missing required fields', {
       endpoint,
       responseShape: summarizePayloadShape(envelope),
       missingRequiredFields: {
@@ -318,7 +318,7 @@ export function useDocumentGeneration() {
       return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to generate document';
-      console.error('[useDocumentGeneration] Error:', err);
+      logger.error('[useDocumentGeneration] Error:', err);
       setError(message);
       return false;
     } finally {

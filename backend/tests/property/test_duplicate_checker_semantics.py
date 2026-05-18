@@ -84,8 +84,8 @@ class TestDuplicateCheckerStatusSets(SimpleTestCase):
         self.assertEqual(NON_TERMINAL_STATUSES, expected)
 
     def test_submitted_statuses_contains_expected(self):
-        """SUBMITTED_STATUSES should contain submitted, under_review, approved, waitlisted."""
-        expected = {"submitted", "under_review", "approved", "waitlisted"}
+        """SUBMITTED_STATUSES should contain every post-submit active status."""
+        expected = {"submitted", "under_review", "approved", "waitlisted", "conditionally_approved"}
         self.assertEqual(SUBMITTED_STATUSES, expected)
 
     def test_draft_not_in_submitted_statuses(self):
@@ -142,9 +142,11 @@ class TestCheckAtCreateBlocking(SimpleTestCase):
         mock_existing = MagicMock()
         mock_existing.id = uuid.uuid4()
         mock_existing.status = existing_status
+        mock_existing.nrc_number = ""
+        mock_existing.passport_number = ""
 
         with patch("apps.applications.duplicate_checker.Application.objects") as mock_qs:
-            mock_qs.filter.return_value.first.return_value = mock_existing
+            mock_qs.filter.return_value = [mock_existing]
 
             result = DuplicateChecker.check_at_create(user_id, program, intake)
 
@@ -202,9 +204,15 @@ class TestCheckAtSubmitBlocking(SimpleTestCase):
         mock_existing = MagicMock()
         mock_existing.id = uuid.uuid4()
         mock_existing.status = existing_status
+        mock_existing.nrc_number = ""
+        mock_existing.passport_number = ""
+        mock_submitting = MagicMock()
+        mock_submitting.nrc_number = ""
+        mock_submitting.passport_number = ""
 
         with patch("apps.applications.duplicate_checker.Application.objects") as mock_qs:
-            mock_qs.filter.return_value.exclude.return_value.first.return_value = mock_existing
+            mock_qs.get.return_value = mock_submitting
+            mock_qs.filter.return_value.exclude.return_value = [mock_existing]
 
             result = DuplicateChecker.check_at_submit(
                 user_id, program, intake, exclude_id

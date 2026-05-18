@@ -3,6 +3,7 @@ import { BarChart3, Clock, TrendingUp, AlertCircle } from 'lucide-react'
 import { applicationService } from '@/services/applications'
 import { animateClasses } from '@/lib/animations'
 import { buildWizardProgressSummary } from '../lib/progressSummary'
+import { logger } from '@/lib/logger'
 
 interface AnalyticsStats {
   total_drafts: number
@@ -46,7 +47,7 @@ export const AnalyticsDashboard = ({
         total_drafts: applications.filter((application) => application.status === 'draft').length,
       })
     } catch (error) {
-      console.error('Failed to fetch analytics:', error)
+      logger.error('Failed to fetch analytics:', error)
     } finally {
       setLoading(false)
     }

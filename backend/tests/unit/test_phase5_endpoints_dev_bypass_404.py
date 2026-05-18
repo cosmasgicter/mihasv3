@@ -59,7 +59,7 @@ import json
 import uuid
 
 import pytest
-from django.test import TestCase, override_settings
+from django.test import override_settings
 from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -228,8 +228,7 @@ def _dispatch_risk_flags_list(
 
 
 @pytest.mark.django_db
-@override_settings(DEBUG=False, DJANGO_ENV="production")
-class TestPhase5EndpointsRejectQueryDevBypass(TestCase):
+class TestPhase5EndpointsRejectQueryDevBypass:
     """``?<param>=1`` on either Phase 5 endpoint → HTTP 404 empty body.
 
     Parametrises across the full ``DEV_BYPASS_PARAM_NAMES`` set so every
@@ -241,6 +240,7 @@ class TestPhase5EndpointsRejectQueryDevBypass(TestCase):
     @pytest.mark.parametrize(
         "vector", QUERY_VECTORS, ids=[f"query_{v}" for v in QUERY_VECTORS]
     )
+    @override_settings(DEBUG=False, DJANGO_ENV="production")
     def test_super_admin_correction_returns_404(self, super_admin_user, vector):
         response = _dispatch_super_admin_correction(
             jwt_user=super_admin_user,
@@ -251,6 +251,7 @@ class TestPhase5EndpointsRejectQueryDevBypass(TestCase):
     @pytest.mark.parametrize(
         "vector", QUERY_VECTORS, ids=[f"query_{v}" for v in QUERY_VECTORS]
     )
+    @override_settings(DEBUG=False, DJANGO_ENV="production")
     def test_risk_flags_list_returns_404(self, super_admin_user, vector):
         response = _dispatch_risk_flags_list(
             jwt_user=super_admin_user,
@@ -270,8 +271,7 @@ class TestPhase5EndpointsRejectQueryDevBypass(TestCase):
 
 
 @pytest.mark.django_db
-@override_settings(DEBUG=False, DJANGO_ENV="production")
-class TestPhase5EndpointsRejectHeaderDevBypass(TestCase):
+class TestPhase5EndpointsRejectHeaderDevBypass:
     """``X-Dev-Bypass[-Auth]: 1`` on either Phase 5 endpoint → 404.
 
     Validates: Requirements R16.1, R16.3
@@ -282,6 +282,7 @@ class TestPhase5EndpointsRejectHeaderDevBypass(TestCase):
         HEADER_VECTORS,
         ids=[f"header_{name}" for name, _ in HEADER_VECTORS],
     )
+    @override_settings(DEBUG=False, DJANGO_ENV="production")
     def test_super_admin_correction_returns_404(
         self, super_admin_user, header_name, meta_key
     ):
@@ -296,6 +297,7 @@ class TestPhase5EndpointsRejectHeaderDevBypass(TestCase):
         HEADER_VECTORS,
         ids=[f"header_{name}" for name, _ in HEADER_VECTORS],
     )
+    @override_settings(DEBUG=False, DJANGO_ENV="production")
     def test_risk_flags_list_returns_404(
         self, super_admin_user, header_name, meta_key
     ):

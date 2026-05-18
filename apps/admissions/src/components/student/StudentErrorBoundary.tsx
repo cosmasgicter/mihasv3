@@ -2,6 +2,7 @@ import React from 'react'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui'
+import { logger } from '@/lib/logger'
 
 interface StudentErrorBoundaryState {
   hasError: boolean
@@ -68,7 +69,7 @@ export class StudentErrorBoundary extends React.Component<
     }
 
     // Log error without PII (Requirements: 4.9, 10.6)
-    console.error('Student page error:', {
+    logger.error('Student page error:', {
       error: {
         name: error.name,
         message: error.message,

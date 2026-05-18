@@ -23,7 +23,8 @@ VERCEL_JSON = os.path.join(REPO_ROOT, "apps", "admissions", "vercel.json")
 # Expected script-src allowed sources (order-independent)
 EXPECTED_SCRIPT_SRC_SOURCES = {
     "'self'",
-    "'unsafe-inline'",
+    "'wasm-unsafe-eval'",
+    "blob:",
     "https://va.vercel-scripts.com",
     "https://pay.lenco.co",
     "https://pay.sandbox.lenco.co",
@@ -34,7 +35,7 @@ EXPECTED_NON_CSP_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Cache-Control": "no-cache, must-revalidate",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "X-Permitted-Cross-Domain-Policies": "none",
@@ -43,17 +44,20 @@ EXPECTED_NON_CSP_HEADERS = {
 # Expected CSP directives and their values (order-independent per directive)
 EXPECTED_CSP_DIRECTIVES = {
     "default-src": {"'self'"},
-    "script-src": {"'self'", "'unsafe-inline'", "https://va.vercel-scripts.com", "https://pay.lenco.co", "https://pay.sandbox.lenco.co"},
+    "script-src": {"'self'", "'wasm-unsafe-eval'", "blob:", "https://va.vercel-scripts.com", "https://pay.lenco.co", "https://pay.sandbox.lenco.co"},
     "style-src": {"'self'", "'unsafe-inline'"},
     "style-src-elem": {"'self'", "'unsafe-inline'"},
     "img-src": {"'self'", "data:", "blob:"},
     "font-src": {"'self'"},
-    "connect-src": {"'self'", "https://api.mihas.edu.zm", "https://pay.lenco.co", "https://pay.sandbox.lenco.co", "https://api.lenco.co", "https://api.sandbox.lenco.co", "https://app.glitchtip.com", "https://*.r2.cloudflarestorage.com"},
+    "connect-src": {"'self'", "data:", "https://api.mihas.edu.zm", "https://pay.lenco.co", "https://pay.sandbox.lenco.co", "https://api.lenco.co", "https://api.sandbox.lenco.co", "https://app.glitchtip.com", "https://*.r2.cloudflarestorage.com"},
+    "worker-src": {"'self'", "blob:"},
     "frame-src": {"'self'", "https://pay.lenco.co", "https://pay.sandbox.lenco.co"},
     "child-src": {"'self'", "blob:"},
     "frame-ancestors": {"'none'"},
     "base-uri": {"'self'"},
     "form-action": {"'self'"},
+    "upgrade-insecure-requests": set(),
+    "report-uri": {"https://app.glitchtip.com/api/22431/security/?glitchtip_key=8a2c416ba7464b6bb50a194b32b12832"},
 }
 
 

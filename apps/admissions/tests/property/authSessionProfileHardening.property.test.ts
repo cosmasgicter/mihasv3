@@ -101,7 +101,7 @@ describe('mergeProfileIntoSessionUser', () => {
           full_name: fc.string({ minLength: 1, maxLength: 40 }),
           first_name: fc.string({ minLength: 1, maxLength: 20 }),
           last_name: fc.string({ minLength: 1, maxLength: 20 }),
-          updated_at: fc.date().map((date) => date.toISOString()),
+          updated_at: fc.date().filter((date) => Number.isFinite(date.getTime())).map((date) => date.toISOString()),
         }),
         (userInput, profileInput) => {
           const { tokenMarker, ...userFields } = userInput

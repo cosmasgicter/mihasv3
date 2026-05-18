@@ -222,7 +222,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=10, minute=0),
     },
     "cleanup-idempotency-keys": {
-        "task": "apps.common.tasks.cleanup_idempotency_keys",
+        "task": "apps.common.tasks.cleanup_idempotency_keys_task",
         "schedule": crontab(hour=3, minute=0),
     },
     "process-pending-emails": {

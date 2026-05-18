@@ -4,6 +4,7 @@ import { applicationService } from '@/services/applications'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { ApplicationFilters, DEFAULT_APPLICATION_FILTERS } from './useApplicationFilters'
 import { calculatePointsFromSummary } from '@/lib/grades'
+import type { GradeSummaryInput } from '@/lib/grades'
 import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
 
 export interface ApplicationSummary {
@@ -61,8 +62,11 @@ const DEFAULT_PAGE_SIZE = 25
 
 type LoadMode = 'initial' | 'loadMore' | 'refresh'
 
+/** Raw application row from the API — all fields optional and loosely typed */
+type RawApplicationRow = Record<string, unknown> & { id: string; status?: string }
+
 // Calculate completion percentage for draft applications
-const calculateCompletionPercentage = (application: any): number => {
+const calculateCompletionPercentage = (application: RawApplicationRow): number => {
   if (application.status !== 'draft') return 100
   
   const requiredFields = [
@@ -79,47 +83,53 @@ const calculateCompletionPercentage = (application: any): number => {
   return Math.round((completedFields.length / requiredFields.length) * 100)
 }
 
-const mapApplicationRow = (row: any): ApplicationSummary => ({
-  id: row.id,
-  user_id: row.user_id ?? '',
-  application_number: row.application_number ?? '',
-  full_name: row.full_name ?? '',
-  email: row.email ?? '',
-  phone: row.phone ?? '',
-  program: row.program ?? '',
-  intake: row.intake ?? '',
-  institution: row.institution ?? '',
-  status: row.status ?? 'draft',
-  payment_status: row.payment_status ?? 'not_paid',
-  payment_verified_at: row.payment_verified_at ?? null,
-  payment_verified_by: row.payment_verified_by ?? null,
-  payment_verified_by_name: row.payment_verified_by_name ?? null,
-  payment_verified_by_email: row.payment_verified_by_email ?? null,
-  last_payment_audit_id: row.last_payment_audit_id ?? null,
-  last_payment_audit_at: row.last_payment_audit_at ?? null,
-  last_payment_audit_by_name: row.last_payment_audit_by_name ?? null,
-  last_payment_audit_by_email: row.last_payment_audit_by_email ?? null,
-  last_payment_audit_notes: row.last_payment_audit_notes ?? null,
-  last_payment_reference: row.last_payment_reference ?? null,
+const str = (v: unknown, fallback = ''): string =>
+  typeof v === 'string' ? v : fallback
+
+const strOrNull = (v: unknown): string | null =>
+  typeof v === 'string' ? v : null
+
+const mapApplicationRow = (row: RawApplicationRow): ApplicationSummary => ({
+  id: String(row.id),
+  user_id: str(row.user_id),
+  application_number: str(row.application_number),
+  full_name: str(row.full_name),
+  email: str(row.email),
+  phone: str(row.phone),
+  program: str(row.program),
+  intake: str(row.intake),
+  institution: str(row.institution),
+  status: str(row.status, 'draft'),
+  payment_status: str(row.payment_status, 'not_paid'),
+  payment_verified_at: strOrNull(row.payment_verified_at),
+  payment_verified_by: strOrNull(row.payment_verified_by),
+  payment_verified_by_name: strOrNull(row.payment_verified_by_name),
+  payment_verified_by_email: strOrNull(row.payment_verified_by_email),
+  last_payment_audit_id: strOrNull(row.last_payment_audit_id),
+  last_payment_audit_at: strOrNull(row.last_payment_audit_at),
+  last_payment_audit_by_name: strOrNull(row.last_payment_audit_by_name),
+  last_payment_audit_by_email: strOrNull(row.last_payment_audit_by_email),
+  last_payment_audit_notes: strOrNull(row.last_payment_audit_notes),
+  last_payment_reference: strOrNull(row.last_payment_reference),
   application_fee: Number(row.application_fee ?? 0),
   paid_amount: Number(row.paid_amount ?? 0),
-  submitted_at: row.submitted_at ?? row.created_at ?? '',
-  updated_at: row.updated_at ?? '',
-  created_at: row.created_at ?? row.submitted_at ?? '',
-  result_slip_url: row.result_slip_url ?? '',
-  extra_kyc_url: row.extra_kyc_url ?? '',
-  grades_summary: row.grades_summary ?? '',
+  submitted_at: str(row.submitted_at) || str(row.created_at),
+  updated_at: str(row.updated_at),
+  created_at: str(row.created_at) || str(row.submitted_at),
+  result_slip_url: str(row.result_slip_url),
+  extra_kyc_url: str(row.extra_kyc_url),
+  grades_summary: str(row.grades_summary),
   total_subjects: Number(row.total_subjects ?? 0),
-  points: Number(row.points ?? calculatePointsFromSummary(row.grades_summary)),
+  points: Number(row.points ?? calculatePointsFromSummary(row.grades_summary as GradeSummaryInput)),
   age: Number(row.age ?? 0),
   days_since_submission: Number(row.days_since_submission ?? 0),
-  admin_feedback: row.admin_feedback ?? '',
-  admin_feedback_date: row.admin_feedback_date ?? null,
-  admin_feedback_by: row.admin_feedback_by ?? null,
-  nationality: row.nationality ?? '',
+  admin_feedback: str(row.admin_feedback),
+  admin_feedback_date: strOrNull(row.admin_feedback_date),
+  admin_feedback_by: strOrNull(row.admin_feedback_by),
+  nationality: str(row.nationality),
   isDraft: row.status === 'draft',
   completionPercentage: calculateCompletionPercentage(row),
-  lastUpdated: row.updated_at ?? row.created_at ?? ''
+  lastUpdated: str(row.updated_at) || str(row.created_at)
 })
 
 export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLICATION_FILTERS) {
@@ -177,7 +187,7 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       }
 
       // Build query params for applicationService
-      const params: Record<string, any> = {
+      const params: Record<string, string | number | boolean> = {
         page: isRefresh ? 1 : safePage,
         pageSize: isRefresh ? (safePage * pageSize) : pageSize,
         sortBy: 'date',
@@ -244,9 +254,10 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
         setApplications(mapped)
         if (!isRefresh) setCurrentPage(safePage)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       logApiError('admin-applications', '/applications/', err)
-      setError(err.message || 'Failed to load applications.')
+      const message = err instanceof Error ? err.message : 'Failed to load applications.'
+      setError(message)
       if (mode === 'loadMore') {
         setCurrentPage(prev => Math.max(prev - 1, 1))
       }
@@ -295,10 +306,10 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       const result = await applicationService.updateStatus(applicationId, newStatus, options?.notes, options?.force)
       
       // Check for advisory payment warning (Req 26.4)
-      if (result && typeof result === 'object' && 'warning' in result && (result as any).warning === true) {
+      if (result && typeof result === 'object' && 'warning' in result && (result as { warning?: boolean }).warning === true) {
         // Revert optimistic update — this was just a warning, not a real update
         setApplications(previousApplications)
-        return result as any
+        return result
       }
 
       await invalidateAdminApplicationQueries(queryClient, { applicationId })
@@ -325,10 +336,10 @@ export function useApplicationsData(filters: ApplicationFilters = DEFAULT_APPLIC
       const result = await applicationService.updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes, force)
 
       // Check for advisory payment proof warning (same pattern as update_status)
-      if (result && typeof result === 'object' && 'warning' in result && (result as any).warning === true) {
+      if (result && typeof result === 'object' && 'warning' in result && (result as { warning?: boolean }).warning === true) {
         // Revert optimistic update — this was just a warning, not a real update
         setApplications(previousApplications)
-        return result as any
+        return result
       }
 
       await invalidateAdminApplicationQueries(queryClient, {

@@ -11,6 +11,7 @@ import { useToastStore } from '@/hooks/useToast'
 import { applicationService } from '@/services/applications'
 import type { Application } from '@/types/database'
 import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
+import { logger } from '@/lib/logger'
 
 export interface StatusUpdateParams {
   /** The application ID to update */
@@ -149,7 +150,7 @@ export function useApplicationStatusUpdate(options: UseApplicationStatusUpdateOp
       } else {
         // Handle other errors
         toast.error('Failed to update application status')
-        console.error('[useApplicationStatusUpdate] Error:', error)
+        logger.error('[useApplicationStatusUpdate] Error:', error)
       }
 
       // Call user error callback

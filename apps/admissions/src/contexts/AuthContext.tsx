@@ -35,7 +35,7 @@ interface AuthContextType {
   profileLoading: boolean
   isAdmin: boolean
   signIn: (email: string, password: string) => Promise<SignInResult>
-  signUp: (email: string, password: string, userData: any) => Promise<SignUpResult>
+  signUp: (email: string, password: string, userData: Record<string, string | undefined>) => Promise<SignUpResult>
   signOut: () => Promise<void>
   requestPasswordReset: (email: string) => Promise<PasswordResetResult>
   updatePassword: (password: string) => Promise<PasswordResetResult>

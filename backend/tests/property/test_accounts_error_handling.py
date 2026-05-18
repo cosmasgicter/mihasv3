@@ -2,8 +2,8 @@
 
 # Feature: tech-debt-remediation, Property 7: No bare except:pass in accounts views
 
-Uses AST inspection to verify every `except Exception` block in
-accounts/views.py contains a `logger` call, not bare `pass`.
+Uses AST inspection to verify every `except Exception` block in the active
+accounts view modules contains a `logger` call, not bare `pass`.
 """
 
 import os
@@ -26,19 +26,19 @@ from hypothesis import strategies as st  # noqa: E402
 # Helpers
 # ---------------------------------------------------------------------------
 
-ACCOUNTS_VIEWS_PATH = (
-    Path(__file__).resolve().parents[2] / "apps" / "accounts" / "views.py"
+ACCOUNTS_VIEW_PATHS = sorted(
+    (Path(__file__).resolve().parents[2] / "apps" / "accounts").glob("*_views.py")
 )
 
 
 def _read_source() -> str:
-    """Read the raw source of accounts/views.py."""
-    return ACCOUNTS_VIEWS_PATH.read_text(encoding="utf-8")
+    """Read the active split accounts view modules as one logical source."""
+    return "\n".join(path.read_text(encoding="utf-8") for path in ACCOUNTS_VIEW_PATHS)
 
 
 def _parse_module() -> ast.Module:
-    """Parse accounts/views.py into an AST module node."""
-    return ast.parse(_read_source(), filename=str(ACCOUNTS_VIEWS_PATH))
+    """Parse the active accounts view modules into one AST module node."""
+    return ast.parse(_read_source(), filename="accounts view modules")
 
 
 def _collect_except_handlers(tree: ast.Module) -> list[ast.ExceptHandler]:
@@ -91,10 +91,10 @@ class TestNoBarExceptPassInAccountsViews(SimpleTestCase):
     """
 
     def test_accounts_views_file_exists(self):
-        """accounts/views.py must exist."""
+        """At least one active split accounts view module must exist."""
         self.assertTrue(
-            ACCOUNTS_VIEWS_PATH.exists(),
-            f"Expected accounts/views.py at {ACCOUNTS_VIEWS_PATH}",
+            ACCOUNTS_VIEW_PATHS,
+            "Expected at least one active *_views.py module under apps/accounts",
         )
 
     def test_no_bare_except_pass_blocks(self):
@@ -111,7 +111,7 @@ class TestNoBarExceptPassInAccountsViews(SimpleTestCase):
         self.assertEqual(
             bare_pass_lines,
             [],
-            f"Found bare except:pass at line(s) {bare_pass_lines} in accounts/views.py",
+            f"Found bare except:pass at line(s) {bare_pass_lines} in accounts view modules",
         )
 
     def test_all_except_handlers_contain_logger_call(self):
@@ -123,7 +123,7 @@ class TestNoBarExceptPassInAccountsViews(SimpleTestCase):
         self.assertGreater(
             len(handlers),
             0,
-            "Expected at least one except handler in accounts/views.py",
+            "Expected at least one except handler in accounts view modules",
         )
 
         missing_logger_lines = [
@@ -136,7 +136,7 @@ class TestNoBarExceptPassInAccountsViews(SimpleTestCase):
             missing_logger_lines,
             [],
             f"except Exception handler(s) at line(s) {missing_logger_lines} "
-            f"in accounts/views.py do not contain a logger call",
+            f"in accounts view modules do not contain a logger call",
         )
 
     @given(handler_index=st.integers(min_value=0, max_value=100))

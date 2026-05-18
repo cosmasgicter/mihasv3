@@ -9,6 +9,7 @@ import {
   getCanonicalResidenceTown,
   normalizeDateInputValue,
 } from '@/lib/profileFieldMapping'
+import { logger } from '@/lib/logger'
 
 interface UserMetadata {
   full_name?: string
@@ -128,7 +129,7 @@ export const useProfileAutoPopulation = (setValue?: SetValueFn) => {
         if (nationality) setValue('nationality', nationality)
         if (address) setValue('address', address)
       } catch (error) {
-        console.error('Error in profile auto-population:', error)
+        logger.error('Error in profile auto-population:', error)
       }
     }
   }, [

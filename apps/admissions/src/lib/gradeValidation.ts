@@ -32,7 +32,7 @@ export interface GradeValidationResult {
 
 export interface SubjectGradeValidation {
   subject: string
-  originalInput: any
+  originalInput: unknown
   validation: GradeValidationResult
   normalizedGrade?: number
 }
@@ -42,7 +42,7 @@ export class ZambianGradeValidator {
   /**
    * Validates a single grade according to Zambian Grade 12 system
    */
-  static validateGrade(input: any): GradeValidationResult {
+  static validateGrade(input: unknown): GradeValidationResult {
     const result: GradeValidationResult = {
       isValid: false,
       errors: [],
@@ -139,7 +139,7 @@ export class ZambianGradeValidator {
   /**
    * Validates multiple subject grades
    */
-  static validateSubjectGrades(subjects: Array<{ subject: string; grade: any }>): SubjectGradeValidation[] {
+  static validateSubjectGrades(subjects: Array<{ subject: string; grade: unknown }>): SubjectGradeValidation[] {
     return subjects.map(({ subject, grade }) => ({
       subject,
       originalInput: grade,

@@ -11,6 +11,9 @@
 import React, { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from '@/lib/zod'
 import { apiClient } from '@/services/client'
 import { programService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
@@ -59,12 +62,17 @@ type ProgramFeeListResponse =
       data?: ProgramFee[] | { results?: ProgramFee[]; fees?: ProgramFee[] }
     }
 
-export interface FeeFormData {
-  fee_type: string
-  residency_category: string
-  amount: string
-  currency: string
-}
+export const feeFormSchema = z.object({
+  fee_type: z.enum(['application', 'tuition'], { error: 'Fee type is required' }),
+  residency_category: z.enum(['local', 'international'], { error: 'Residency category is required' }),
+  amount: z.string().min(1, 'Amount is required').refine(
+    (val) => { const n = Number(val); return !Number.isNaN(n) && n > 0 },
+    { message: 'Amount must be a valid positive number' }
+  ),
+  currency: z.enum(['ZMW', 'USD'], { error: 'Currency is required' }),
+})
+
+export type FeeFormData = z.infer<typeof feeFormSchema>
 
 const FEE_TYPE_OPTIONS = [
   { value: 'application', label: 'Application' },
@@ -178,7 +186,16 @@ export default function ProgramFees() {
   const [showDelete, setShowDelete] = useState(false)
   const [selectedProgramId, setSelectedProgramId] = useState('')
   const [currentFee, setCurrentFee] = useState<(ProgramFee & { programName: string }) | null>(null)
-  const [feeForm, setFeeForm] = useState<FeeFormData>(initialFeeForm)
+
+  const createFeeForm = useForm<FeeFormData>({
+    resolver: zodResolver(feeFormSchema),
+    defaultValues: initialFeeForm,
+  })
+
+  const editFeeForm = useForm<FeeFormData>({
+    resolver: zodResolver(feeFormSchema),
+    defaultValues: initialFeeForm,
+  })
 
   // Fetch programs
   const { data: programsData, isLoading: loadingPrograms } = useQuery({
@@ -237,22 +254,22 @@ export default function ProgramFees() {
     if (programs.length === 0) return
     setError('')
     setSelectedProgramId(programs[0]?.id ?? '')
-    setFeeForm(initialFeeForm)
+    createFeeForm.reset(initialFeeForm)
     setShowCreate(true)
-  }, [programs])
+  }, [programs, createFeeForm])
 
   const openEdit = useCallback((fee: ProgramFee & { programName: string }) => {
     setError('')
     setCurrentFee(fee)
     setSelectedProgramId(fee.program_id)
-    setFeeForm({
-      fee_type: fee.fee_type,
-      residency_category: fee.residency_category,
+    editFeeForm.reset({
+      fee_type: fee.fee_type as 'application' | 'tuition',
+      residency_category: fee.residency_category as 'local' | 'international',
       amount: String(fee.amount),
-      currency: fee.currency,
+      currency: fee.currency as 'ZMW' | 'USD',
     })
     setShowEdit(true)
-  }, [])
+  }, [editFeeForm])
 
   const openDelete = useCallback((fee: ProgramFee & { programName: string }) => {
     setError('')
@@ -260,37 +277,27 @@ export default function ProgramFees() {
     setShowDelete(true)
   }, [])
 
-  const handleCreate = () => {
+  const handleCreate = createFeeForm.handleSubmit((values) => {
     if (!selectedProgramId) {
       setError('Please select a program')
       return
     }
-    const amountError = validateFeeAmount(feeForm.amount)
-    if (amountError) {
-      setError(amountError)
-      return
-    }
 
     void handleOperation(
-      () => createFee(selectedProgramId, feeForm).then(() => undefined),
+      () => createFee(selectedProgramId, values).then(() => undefined),
       () => {
         setShowCreate(false)
-        setFeeForm(initialFeeForm)
+        createFeeForm.reset(initialFeeForm)
       }
     )
-  }
+  })
 
-  const handleUpdate = () => {
+  const handleUpdate = editFeeForm.handleSubmit((values) => {
     if (!currentFee) return
-    const amountError = validateFeeAmount(feeForm.amount)
-    if (amountError) {
-      setError(amountError)
-      return
-    }
 
     void handleOperation(
       () =>
-        updateFee(currentFee.program_id, currentFee.id, feeForm).then(
+        updateFee(currentFee.program_id, currentFee.id, values).then(
           () => undefined
         ),
       () => {
@@ -298,7 +305,7 @@ export default function ProgramFees() {
         setCurrentFee(null)
       }
     )
-  }
+  })
 
   const handleDelete = () => {
     if (!currentFee) return
@@ -527,6 +534,7 @@ export default function ProgramFees() {
               Configure a new fee for a program and residency category.
             </DialogDescription>
           </DialogHeader>
+          <form onSubmit={handleCreate}>
           <div className="space-y-4 py-4">
             <CanonicalSelect
               label="Program"
@@ -541,42 +549,36 @@ export default function ProgramFees() {
             />
             <CanonicalSelect
               label="Fee Type"
-              value={feeForm.fee_type}
-              onChange={(value) =>
-                setFeeForm((prev) => ({ ...prev, fee_type: value }))
-              }
+              value={createFeeForm.watch('fee_type')}
+              onChange={(value) => createFeeForm.setValue('fee_type', value as 'application' | 'tuition')}
               options={FEE_TYPE_OPTIONS}
               required
+              error={createFeeForm.formState.errors.fee_type?.message}
             />
             <CanonicalSelect
               label="Residency Category"
-              value={feeForm.residency_category}
-              onChange={(value) =>
-                setFeeForm((prev) => ({ ...prev, residency_category: value }))
-              }
+              value={createFeeForm.watch('residency_category')}
+              onChange={(value) => createFeeForm.setValue('residency_category', value as 'local' | 'international')}
               options={RESIDENCY_OPTIONS}
               required
+              error={createFeeForm.formState.errors.residency_category?.message}
             />
             <Input
               label="Amount"
               type="number"
               min={0}
               step="0.01"
-              name="amount"
-              value={feeForm.amount}
-              onChange={(e) =>
-                setFeeForm((prev) => ({ ...prev, amount: e.target.value }))
-              }
+              {...createFeeForm.register('amount')}
+              error={createFeeForm.formState.errors.amount?.message}
               required
             />
             <CanonicalSelect
               label="Currency"
-              value={feeForm.currency}
-              onChange={(value) =>
-                setFeeForm((prev) => ({ ...prev, currency: value }))
-              }
+              value={createFeeForm.watch('currency')}
+              onChange={(value) => createFeeForm.setValue('currency', value as 'ZMW' | 'USD')}
               options={CURRENCY_OPTIONS}
               required
+              error={createFeeForm.formState.errors.currency?.message}
             />
           </div>
           <DialogFooter>
@@ -584,13 +586,15 @@ export default function ProgramFees() {
               variant="outline"
               onClick={() => setShowCreate(false)}
               disabled={saving}
+              type="button"
             >
               Cancel
             </Button>
-            <Button onClick={handleCreate} loading={saving}>
+            <Button type="submit" loading={saving}>
               Create Fee
             </Button>
           </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -603,45 +607,40 @@ export default function ProgramFees() {
               Update the fee for {currentFee?.programName}.
             </DialogDescription>
           </DialogHeader>
+          <form onSubmit={handleUpdate}>
           <div className="space-y-4 py-4">
             <CanonicalSelect
               label="Fee Type"
-              value={feeForm.fee_type}
-              onChange={(value) =>
-                setFeeForm((prev) => ({ ...prev, fee_type: value }))
-              }
+              value={editFeeForm.watch('fee_type')}
+              onChange={(value) => editFeeForm.setValue('fee_type', value as 'application' | 'tuition')}
               options={FEE_TYPE_OPTIONS}
               required
+              error={editFeeForm.formState.errors.fee_type?.message}
             />
             <CanonicalSelect
               label="Residency Category"
-              value={feeForm.residency_category}
-              onChange={(value) =>
-                setFeeForm((prev) => ({ ...prev, residency_category: value }))
-              }
+              value={editFeeForm.watch('residency_category')}
+              onChange={(value) => editFeeForm.setValue('residency_category', value as 'local' | 'international')}
               options={RESIDENCY_OPTIONS}
               required
+              error={editFeeForm.formState.errors.residency_category?.message}
             />
             <Input
               label="Amount"
               type="number"
               min={0}
               step="0.01"
-              name="amount"
-              value={feeForm.amount}
-              onChange={(e) =>
-                setFeeForm((prev) => ({ ...prev, amount: e.target.value }))
-              }
+              {...editFeeForm.register('amount')}
+              error={editFeeForm.formState.errors.amount?.message}
               required
             />
             <CanonicalSelect
               label="Currency"
-              value={feeForm.currency}
-              onChange={(value) =>
-                setFeeForm((prev) => ({ ...prev, currency: value }))
-              }
+              value={editFeeForm.watch('currency')}
+              onChange={(value) => editFeeForm.setValue('currency', value as 'ZMW' | 'USD')}
               options={CURRENCY_OPTIONS}
               required
+              error={editFeeForm.formState.errors.currency?.message}
             />
           </div>
           <DialogFooter>
@@ -649,13 +648,15 @@ export default function ProgramFees() {
               variant="outline"
               onClick={() => setShowEdit(false)}
               disabled={saving}
+              type="button"
             >
               Cancel
             </Button>
-            <Button onClick={handleUpdate} loading={saving}>
+            <Button type="submit" loading={saving}>
               Save Changes
             </Button>
           </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 

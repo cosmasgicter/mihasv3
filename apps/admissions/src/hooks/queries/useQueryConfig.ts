@@ -41,15 +41,15 @@ export const CACHE_CONFIG = {
 /**
  * Helper to create optimistic mutations with type safety
  */
-export const useOptimisticMutation = <TData = any, TVariables = any>(
+export const useOptimisticMutation = <TData = unknown, TVariables = unknown>(
   queryKey: string[],
   mutationFn: (variables: TVariables) => Promise<TData>,
   optimisticUpdater: (oldData: TData | undefined, variables: TVariables) => TData,
-  options?: Partial<UseMutationOptions<TData, Error, TVariables>>
+  options?: Partial<UseMutationOptions<TData, Error, TVariables, { previousData?: TData }>>
 ) => {
   const queryClient = useQueryClient()
 
-  return useMutation<TData, Error, TVariables>({
+  return useMutation<TData, Error, TVariables, { previousData?: TData }>({
     mutationFn,
     onMutate: async (variables) => {
       await queryClient.cancelQueries({ queryKey })
@@ -59,15 +59,15 @@ export const useOptimisticMutation = <TData = any, TVariables = any>(
       )
       return { previousData }
     },
-    onError: (err, variables, context: any) => {
-      if (context?.previousData !== undefined) {
-        queryClient.setQueryData(queryKey, context.previousData)
+    onError: (err, variables, onMutateResult, context) => {
+      if (onMutateResult?.previousData !== undefined) {
+        queryClient.setQueryData(queryKey, onMutateResult.previousData)
       }
-      options?.onError?.(err, variables, context, {} as any)
+      options?.onError?.(err, variables, onMutateResult, context)
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey })
-      options?.onSuccess?.(data, variables, context, {} as any)
+      options?.onSuccess?.(data, variables, onMutateResult, context)
     },
     ...options
   })

@@ -183,6 +183,9 @@ _ALLOWED_CASES = [
     ("deferred", "failed", "verify"),
     ("deferred", "failed", "webhook"),
     ("deferred", "expired", "reconciliation"),
+    # Provider webhooks can arrive out of order; a later integrity-clean
+    # success is authoritative over an earlier provisional failure.
+    ("failed", "successful", "webhook"),
 ]
 
 
@@ -193,7 +196,6 @@ _BLOCKED_CASES = [
     ("successful", "expired", "reconciliation"),
     ("successful", "pending", "admin_override"),
     ("failed", "pending", "verify"),
-    ("failed", "successful", "webhook"),
     ("expired", "pending", "verify"),
     ("expired", "successful", "webhook"),
     ("force_approved", "pending", "verify"),

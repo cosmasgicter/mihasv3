@@ -43,6 +43,7 @@ import { DashboardSkeleton } from '@/components/ui'
 import { onDashboardMount } from '@/lib/speculativePrefetch'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { reportError } from '@/lib/errorReporter'
+import { logger } from '@/lib/logger'
 
 /** Check if a rejected promise reason is a 403 Forbidden error */
 function is403Error(error: unknown): boolean {
@@ -182,7 +183,7 @@ export default function StudentDashboard() {
       scheduleDashboardReload(0)
     },
     onError: (error) => {
-      console.error('Manual refresh failed:', sanitizeForLog(error))
+      logger.error('Manual refresh failed:', sanitizeForLog(error))
       useToastStore.getState().addToast('error', 'Failed to refresh data')
     }
   })

@@ -1,5 +1,14 @@
 /// <reference types="vite/client" />
 
+interface PreloaderWindow {
+  __dismissPreloader?: () => void
+  __preloaderTimeout?: ReturnType<typeof setTimeout>
+  __preloaderMaxTimeout?: ReturnType<typeof setTimeout>
+}
+
+// Augment the global Window interface
+interface Window extends PreloaderWindow {}
+
 interface ImportMetaEnv {
   /**
    * Payment-hardening Phase 4 UI gate. When `"true"`, `PaymentStep`

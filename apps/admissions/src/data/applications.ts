@@ -3,6 +3,17 @@ import { apiClient } from '@/services/client'
 import { applicationService } from '@/services/applications'
 import { adminDashboardService } from '@/services/admin/dashboard'
 import { sanitizeForLog, sanitizeFilePath } from '@/lib/security'
+import type { Application } from '@/types/database'
+import { logger } from '@/lib/logger'
+
+/** Strip null values from an object so it's compatible with Partial<Application> */
+function stripNulls<T extends object>(obj: T): Partial<Application> {
+  const result: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== null) result[key] = value
+  }
+  return result as Partial<Application>
+}
 
 // Types
 export interface ApplicationFilters {
@@ -91,11 +102,12 @@ export const applicationsData = {
             mine: filters.mine,
             includeStats: true
           })
-        } catch (error: any) {
+        } catch (error: unknown) {
           if (signal?.aborted) {
             return { applications: [], totalCount: 0, page: 1, pageSize: 15 }
           }
-          console.error('Applications fetch error:', sanitizeForLog(error?.message || error))
+          const message = error instanceof Error ? error.message : String(error)
+          logger.error('Applications fetch error:', sanitizeForLog(message))
           throw error
         }
       },
@@ -143,8 +155,9 @@ export const applicationsData = {
             systemHealth: stats?.systemHealth ?? 'good',
             activeUsers: stats?.activeUsers ?? 0
           }
-        } catch (error: any) {
-          console.error('Stats fetch error:', sanitizeForLog(error?.message || error))
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error)
+          logger.error('Stats fetch error:', sanitizeForLog(message))
           throw error
         }
       },
@@ -180,8 +193,9 @@ export const applicationsData = {
             timestamp: app.updated_at || app.created_at,
             user: app.full_name
           }))
-        } catch (error: any) {
-          console.error('Recent activity fetch error:', sanitizeForLog(error?.message || error))
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error)
+          logger.error('Recent activity fetch error:', sanitizeForLog(message))
           throw error
         }
       },
@@ -197,7 +211,7 @@ export const applicationsData = {
     const queryClient = useQueryClient()
     
     return useMutation({
-      mutationFn: (data: ApplicationCreateData) => applicationService.create(data as any),
+      mutationFn: (data: ApplicationCreateData) => applicationService.create(stripNulls(data)),
       onSuccess: async () => {
         // Force immediate invalidation and refetch of all related queries
         await queryClient.invalidateQueries({ 
@@ -227,7 +241,7 @@ export const applicationsData = {
     
     return useMutation({
       mutationFn: ({ id, data }: { id: string; data: ApplicationUpdateData }) => 
-        applicationService.update(id, data as any),
+        applicationService.update(id, stripNulls(data)),
       onSuccess: async (_, { id }) => {
         await queryClient.invalidateQueries({ 
           queryKey: QUERY_KEYS.applicationDetail(id),

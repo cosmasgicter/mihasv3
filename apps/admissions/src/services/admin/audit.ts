@@ -1,5 +1,6 @@
 import { apiClient, buildQueryString } from '@/services/client'
 import { logApiError } from '@/lib/apiErrorLogger'
+import { logger } from '@/lib/logger'
 
 export type AuditCategory =
   | 'Authentication'
@@ -311,7 +312,7 @@ class AdminAuditService {
       }
     } catch (error) {
       logApiError('admin-audit', endpoint, error)
-      console.error('Failed to fetch audit logs:', error)
+      logger.error('Failed to fetch audit logs:', error)
       throw error
     }
   }

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { CheckCircle, XCircle, Clock, Trash2, Download, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { logger } from '@/lib/logger'
 
 interface BulkActionsBarProps {
   selectedIds: string[]
@@ -25,7 +26,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
       await onBulkAction(action, selectedIds)
       onClearSelection()
     } catch (error) {
-      console.error('Bulk action failed:', error)
+      logger.error('Bulk action failed:', error)
     } finally {
       setLoading(null)
     }

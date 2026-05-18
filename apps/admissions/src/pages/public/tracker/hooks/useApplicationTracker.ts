@@ -37,6 +37,12 @@ interface TrackApplicationResponse extends TrackerApplicationPayload {
   application?: TrackerApplicationPayload
 }
 
+function getErrorStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object' || !('status' in error)) return undefined
+  const status = error.status
+  return typeof status === 'number' ? status : undefined
+}
+
 export const useApplicationTracker = () => {
   const [searchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState('')
@@ -87,9 +93,9 @@ export const useApplicationTracker = () => {
         admin_feedback_date: null
       })
       setSearched(true)
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error searching application:', error)
-      const status = error?.status
+      const status = getErrorStatus(error)
       if (status === 400) {
         setError('Invalid tracking code format. Try your application number (e.g. MIHAS202641411) or tracking code (e.g. TRK370990).')
       } else if (status === 404) {

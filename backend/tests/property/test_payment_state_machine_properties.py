@@ -401,7 +401,7 @@ _TERMINAL_INPUT_STRATEGY = st.fixed_dictionaries(
 def test_property_2_terminal_stability(
     seed_applicant, terminal, payload, channel
 ):
-    """P2: Non-super_admin inputs cannot mutate a terminal Payment.
+    """P2: Terminal rows are stable except provider-confirmed late success.
 
     Captures a snapshot of ``(status, metadata.snapshot, receipt_number,
     application.payment_status)`` before the input arrives, applies the
@@ -475,6 +475,22 @@ def test_property_2_terminal_stability(
             # successful → pending) with a ValueError; that's a valid
             # form of "terminal is stable" and does not mutate state.
             pass
+
+    # A valid provider success is authoritative over an earlier provisional
+    # failure webhook, so that one convergence path is intentionally allowed.
+    if (
+        terminal == "failed"
+        and channel == "webhook"
+        and payload["status"] in ("successful", "paid")
+        and payload.get("lencoReference")
+        and payload["amount"] == "153.00"
+        and payload["currency"].upper() == "ZMW"
+    ):
+        payment.refresh_from_db()
+        application.refresh_from_db()
+        assert payment.status == "successful"
+        assert application.payment_status == "verified"
+        return
 
     # --- Assert all four fields unchanged ---
     payment.refresh_from_db()
@@ -638,11 +654,11 @@ def test_property_14_forward_only_closure(
     allowed_sources = ALLOWED_TRANSITIONS.get((from_status, target_status), set())
     is_allowed = source in allowed_sources
 
-    # For same-status no-op entries in ALLOWED_TRANSITIONS there would be
-    # no state change anyway; the matrix does not list those, so treat
-    # from == target as "not in matrix" → blocked.
-    if from_status == target_status:
-        is_allowed = False
+    is_same_status_replay = from_status == target_status and source in {
+        "webhook",
+        "verify",
+        "reconciliation",
+    }
 
     baseline_blocked = len(_latest_transition_blocked_audits(payment.id))
 
@@ -666,7 +682,10 @@ def test_property_14_forward_only_closure(
     blocked_audits_after = _latest_transition_blocked_audits(payment.id)
     new_blocked_audits = len(blocked_audits_after) - baseline_blocked
 
-    if is_allowed:
+    if is_same_status_replay:
+        assert payment.status == from_status
+        assert new_blocked_audits == 0
+    elif is_allowed:
         assert payment.status == target_status, (
             f"Allowed tuple ({from_status}, {target_status}, {source}) "
             f"failed to persist; got {payment.status!r}."
@@ -797,7 +816,10 @@ def _operation_strategy() -> st.SearchStrategy[dict]:
             ),
             "value": st.one_of(
                 st.integers(-1000, 1000),
-                st.text(max_size=20),
+                st.text(
+                    alphabet=st.characters(blacklist_categories=("Cs",), blacklist_characters="\x00"),
+                    max_size=20,
+                ),
                 st.booleans(),
                 st.none(),
             ),

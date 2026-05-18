@@ -167,7 +167,8 @@ class LencoWebhookView(APIView):
     """POST /api/v1/payments/webhook/lenco/ — receive Lenco webhook events.
 
     Unauthenticated (AllowAny). Validates X-Lenco-Signature header via
-    WebhookProcessor. Returns 401 for invalid signature, 200 for valid events.
+    WebhookProcessor. Returns 200 for every syntactically valid delivery so
+    Lenco does not retry aggressively; invalid signatures are logged and ignored.
 
     Requirements: 4.1, 4.2, 4.7, 10.1
     """
@@ -210,15 +211,16 @@ class LencoWebhookView(APIView):
         sig_valid = processor.validate_signature(raw_body, signature)
 
         if not sig_valid:
-            # Log the event with invalid signature, then return 401.
+            # Log the event with invalid signature, then acknowledge delivery
+            # without processing it. Provider retry storms are worse than a
+            # truthful non-200 here; the invalid event is already recorded.
             processor.process(event_type, payload, signature_valid=False)
             return Response(
                 {"success": False, "error": "Invalid webhook signature"},
-                status=status.HTTP_401_UNAUTHORIZED,
+                status=status.HTTP_200_OK,
             )
 
         # Process the valid event.
         processor.process(event_type, payload, signature_valid=True)
 
         return Response({"received": True}, status=status.HTTP_200_OK)
-

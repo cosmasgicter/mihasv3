@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { validateHeadingHierarchy, extractHeadingLevels } from '@/lib/accessibility-utils'
+import { logger } from '@/lib/logger'
 
 interface PageShellProps {
   title: string
@@ -55,7 +56,7 @@ export function PageShell({
 
     const headings = extractHeadingLevels(shellRef.current)
     if (headings.length > 0 && !validateHeadingHierarchy(headings)) {
-      console.warn(
+      logger.warn(
         `[PageShell] Heading hierarchy violation detected on "${title}". ` +
         `Found levels: [${headings.join(', ')}]. ` +
         `Headings must start with h1, have exactly one h1, and not skip levels.`

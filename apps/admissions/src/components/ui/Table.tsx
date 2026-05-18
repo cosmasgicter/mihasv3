@@ -69,8 +69,8 @@ export function TableCell({ className, ...props }: React.TdHTMLAttributes<HTMLTa
 }
 
 interface MobileCardProps {
-  data: Record<string, any>
-  fields: Array<{ key: string; label: string; render?: (value: any) => React.ReactNode }>
+  data: Record<string, React.ReactNode>
+  fields: Array<{ key: string; label: string; render?: (value: React.ReactNode) => React.ReactNode }>
   actions?: React.ReactNode
 }
 

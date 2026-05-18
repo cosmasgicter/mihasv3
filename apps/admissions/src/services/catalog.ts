@@ -1,5 +1,6 @@
 import { apiClient, buildQueryString, type QueryParams } from './client'
 import { logApiError } from '@/lib/apiErrorLogger'
+import { logger } from '@/lib/logger'
 
 type RawInstitution = {
   id: string
@@ -137,7 +138,7 @@ function normalizeInstitution(record: RawInstitution | Institution | null | unde
   if (!record.id) missing.push('id')
   if (!record.name) missing.push('name')
   if (missing.length > 0) {
-    console.warn(
+    logger.warn(
       `[catalog] normalizeInstitution: missing required fields [${missing.join(', ')}]`,
       { keys: Object.keys(record) }
     )
@@ -173,7 +174,7 @@ function normalizeProgram(record: RawProgram | Program | null | undefined): Prog
   if (!record.id) missing.push('id')
   if (!record.name) missing.push('name')
   if (missing.length > 0) {
-    console.warn(
+    logger.warn(
       `[catalog] normalizeProgram: missing required fields [${missing.join(', ')}]`,
       { keys: Object.keys(record) }
     )
@@ -229,7 +230,7 @@ function normalizeIntake(record: RawIntake | Intake | null | undefined): Intake 
   if (!record.id) missing.push('id')
   if (!record.name) missing.push('name')
   if (missing.length > 0) {
-    console.warn(
+    logger.warn(
       `[catalog] normalizeIntake: missing required fields [${missing.join(', ')}]`,
       { keys: Object.keys(record) }
     )
@@ -267,7 +268,7 @@ function normalizeSubject(record: RawSubject | Subject | null | undefined): Subj
   if (!record.id) missing.push('id')
   if (!record.name) missing.push('name')
   if (missing.length > 0) {
-    console.warn(
+    logger.warn(
       `[catalog] normalizeSubject: missing required fields [${missing.join(', ')}]`,
       { keys: Object.keys(record) }
     )
@@ -310,7 +311,7 @@ function normalizeCollection<T>(
     // Defensive fallback: extract the first array-valued property from an unexpected shape
     const firstArrayProp = Object.values(response).find((v) => Array.isArray(v)) as T[] | undefined
     if (firstArrayProp) {
-      console.warn(
+      logger.warn(
         `[catalog] normalizeCollection: unexpected response shape for "${key}". ` +
         `Expected array, {results}, or {${key}} but got keys: [${Object.keys(response).join(', ')}]. ` +
         `Using fallback array property.`
@@ -318,7 +319,7 @@ function normalizeCollection<T>(
       rawItems = firstArrayProp
     } else {
       if (Object.keys(response).length > 0) {
-        console.warn(
+        logger.warn(
           `[catalog] normalizeCollection: non-null response for "${key}" yielded no items. ` +
           `Response keys: [${Object.keys(response).join(', ')}]`
         )

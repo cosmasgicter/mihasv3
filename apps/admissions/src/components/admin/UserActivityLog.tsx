@@ -17,6 +17,7 @@ import {
   Shield,
   User,
 } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 interface UserActivityLogProps {
   userId?: string
@@ -73,7 +74,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
       } catch (requestError: unknown) {
         const errorMessage =
           requestError instanceof Error ? requestError.message : 'Failed to load activity log'
-        console.error('Failed to load activity log:', sanitizeForLog(errorMessage))
+        logger.error('Failed to load activity log:', sanitizeForLog(errorMessage))
         setError(errorMessage)
         setActivities([])
       } finally {

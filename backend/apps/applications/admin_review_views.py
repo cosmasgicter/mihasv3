@@ -338,6 +338,7 @@ class ApplicationReviewView(APIView):
     def patch(self, request, application_id):
         return self.post(request, application_id)
 
+    @idempotent
     def post(self, request, application_id):
         try:
             app = Application.objects.get(id=application_id)

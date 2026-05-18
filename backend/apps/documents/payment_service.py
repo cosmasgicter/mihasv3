@@ -227,6 +227,11 @@ ALLOWED_TRANSITIONS: dict[tuple[str, str], set[str]] = {
     ("deferred", "failed"): {"verify", "webhook", "super_admin_correction"},
     ("deferred", "expired"): {"reconciliation", "super_admin_correction"},
 
+    # Provider truth can arrive out of order: a provisional failure webhook
+    # may be followed by a later integrity-clean success from the gateway.
+    # Let the authenticated success event converge the ledger to paid.
+    ("failed", "successful"): {"webhook", "super_admin_correction"},
+
     # Admin override onto a live row — supports ``force_approve`` when a
     # pending/deferred Payment already exists. The design's visual state
     # table focuses on non-admin paths; this row encodes the documented
@@ -452,6 +457,7 @@ class PaymentService:
         """
         from django.db import transaction
 
+        from apps.accounts.models import Profile
         from apps.applications.models import Application
 
         payment_status_map = {
@@ -470,6 +476,7 @@ class PaymentService:
                 .order_by('-created_at')
                 .first()
             )
+            synthetic_payment_created = False
 
             # If no payment record exists and admin is verifying, create a
             # synthetic admin-override record instead of rejecting.
@@ -477,6 +484,7 @@ class PaymentService:
                 if payment_status in ('verified', 'deferred'):
                     latest_payment = Payment.objects.create(
                         application_id=application_id,
+                        user_id=application.user_id,
                         status=target_payment_status,
                         amount=0,
                         currency='ZMW',
@@ -498,20 +506,45 @@ class PaymentService:
                         "Admin force-approved payment without record: app=%s admin=%s",
                         application_id, reviewed_by_id,
                     )
+                    synthetic_payment_created = True
                 else:
                     raise ValueError("PAYMENT_RECORD_REQUIRED")
 
             now = timezone.now()
 
             if latest_payment is not None and target_payment_status:
-                # Block all admin demotions from terminal paid states. A
-                # provider-confirmed payment must not be turned into failed,
-                # pending, or deferred through the review UI.
-                if latest_payment.status in ('successful', 'force_approved') and target_payment_status != latest_payment.status:
+                # Hardened mode treats every terminal ledger state as immutable
+                # through the ordinary admin-review path. Corrections must go
+                # through the explicit super-admin flow so the audit trail says
+                # what happened.
+                if (
+                    _forward_only_enabled()
+                    and latest_payment.status in ('successful', 'failed', 'expired', 'force_approved')
+                    and target_payment_status != latest_payment.status
+                ):
+                    raise ValueError("TERMINAL_PAYMENT_IMMUTABLE")
+                if (
+                    _forward_only_enabled()
+                    and latest_payment.status in ('successful', 'failed', 'expired', 'force_approved')
+                    and target_payment_status == latest_payment.status
+                    and not synthetic_payment_created
+                ):
+                    return application
+                # Legacy guard retained when hardened mode is disabled.
+                if (
+                    not _forward_only_enabled()
+                    and latest_payment.status in ('successful', 'force_approved')
+                    and target_payment_status != latest_payment.status
+                ):
                     raise ValueError("CANNOT_REVERSE_SUCCESSFUL_PAYMENT")
 
                 metadata = latest_payment.metadata or {}
                 metadata['admin_review'] = {
+                    **(
+                        metadata.get('admin_review', {})
+                        if isinstance(metadata.get('admin_review'), dict)
+                        else {}
+                    ),
                     'status': payment_status,
                     'reviewed_by': reviewed_by_id,
                     'reviewed_at': now.isoformat(),
@@ -521,7 +554,10 @@ class PaymentService:
                 latest_payment.metadata = metadata
                 latest_payment.notes = notes or latest_payment.notes
                 latest_payment.verified_by_id = (
-                    reviewed_by_id if payment_status == 'verified' else latest_payment.verified_by_id
+                    reviewed_by_id
+                    if payment_status == 'verified'
+                    and Profile.objects.filter(id=reviewed_by_id).exists()
+                    else latest_payment.verified_by_id
                 )
                 latest_payment.verified_at = now if payment_status == 'verified' else latest_payment.verified_at
                 latest_payment.updated_at = now
@@ -538,7 +574,11 @@ class PaymentService:
             if notes:
                 application.admin_feedback = notes
                 application.admin_feedback_date = now
-                application.admin_feedback_by_id = reviewed_by_id
+                application.admin_feedback_by_id = (
+                    reviewed_by_id
+                    if Profile.objects.filter(id=reviewed_by_id).exists()
+                    else application.admin_feedback_by_id
+                )
             application.updated_at = now
             application.save(update_fields=[
                 'payment_status',
@@ -1910,23 +1950,10 @@ class PaymentService:
                 },
             )
 
-            # R2.6: emit the explicit ``payment.force_approved`` audit
-            # (in addition to the generic ``payment.transitioned`` that
-            # ``_transition`` already wrote). The prefix
-            # ``payment.force_approved`` is in
-            # ``_SECURITY_RETENTION_ACTION_PREFIXES`` so retention is
-            # auto-promoted to 365 days.
-            payment.refresh_from_db()
-            self._emit_audit(
-                "payment.force_approved",
-                payment,
-                actor_id,
-                {
-                    "actor_role": actor_role,
-                    "reason": reason,
-                    "application_id": str(application_id),
-                },
-            )
+            # ``_transition`` emits the canonical ``payment.force_approved``
+            # audit for this target state. Do not emit a second row here:
+            # duplicate audit records make one business event look like two
+            # approvals during incident review.
 
             return result
 
@@ -2149,6 +2176,16 @@ class PaymentService:
             )
             from_status = locked.status or ""
 
+            # Replays of the same provider outcome are idempotent facts, not
+            # blocked transitions. Preserve the ledger exactly as-is and avoid
+            # manufacturing extra audit rows for duplicate webhooks.
+            if from_status == target_status and source in {"webhook", "verify", "reconciliation"}:
+                return TransitionResult(
+                    payment_id=locked.id,
+                    status=from_status,  # type: ignore[arg-type]
+                    risk_flag=None,
+                )
+
             # --- Step 2: transition validation ---
             allowed_sources = ALLOWED_TRANSITIONS.get(
                 (from_status, target_status), set()
@@ -2254,6 +2291,13 @@ class PaymentService:
                     "target_status": target_status,
                     "reason": reason,
                     "lenco_reference": locked.lenco_reference,
+                    **(
+                        {"actor_role": provider_data["actor_role"]}
+                        if target_status == "force_approved"
+                        and provider_data
+                        and provider_data.get("actor_role")
+                        else {}
+                    ),
                 },
             )
 

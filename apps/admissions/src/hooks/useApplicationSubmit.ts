@@ -2,6 +2,7 @@ import { useRef, useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import { applicationService } from '@/services/applications'
+import { logger } from '@/lib/logger'
 
 interface WizardFormData {
   full_name: string
@@ -123,7 +124,7 @@ export function useApplicationSubmit() {
       resetIdempotencyKey()
 
     } catch (error) {
-      console.error('Error submitting application:', error)
+      logger.error('Error submitting application:', error)
 
       let errorMessage = 'Failed to submit application'
 

@@ -10,6 +10,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { logger } from '@/lib/logger'
 
 export interface UseManualRefreshOptions {
   /** Query keys to refresh. If not provided, refreshes all application-related queries */
@@ -102,7 +103,7 @@ export function useManualRefresh(options: UseManualRefreshOptions = {}): UseManu
         // Call success callback if provided
         onSuccess?.()
       } catch (error) {
-        console.error('Manual refresh failed:', error)
+        logger.error('Manual refresh failed:', error)
         // Call error callback if provided
         onError?.(error instanceof Error ? error : new Error('Refresh failed'))
       } finally {

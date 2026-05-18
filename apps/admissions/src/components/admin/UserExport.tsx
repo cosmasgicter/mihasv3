@@ -6,6 +6,7 @@ import { downloadXlsx } from '@/lib/xlsxWriter'
 import { UserProfile } from '@/types/database'
 import { Download, FileText, FileSpreadsheet, Filter, Users, CheckSquare, Square } from 'lucide-react'
 import { toast } from '@/hooks/useToast'
+import { logger } from '@/lib/logger'
 
 interface UserExportProps {
   users: UserProfile[]
@@ -325,7 +326,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
         onClose()
       }
     } catch (error) {
-      console.error('Export failed:', error)
+      logger.error('Export failed:', error)
       toast.error('Export Failed', 'Please try again')
     } finally {
       setExporting(false)

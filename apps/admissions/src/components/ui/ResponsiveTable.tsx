@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import { Skeleton } from './skeleton'
 
 interface Column<T> {
+  id?: string
   key: keyof T
   header: string
   render?: (value: T[keyof T], row: T) => React.ReactNode
@@ -30,7 +31,7 @@ function TableSkeleton<T>({ columns }: { columns: Column<T>[] }) {
           <thead>
             <tr className="border-b border-border">
               {columns.map((col) => (
-                <th key={String(col.key)} scope="col" className="px-4 py-3 text-left">
+                <th key={col.id ?? String(col.key)} scope="col" className="px-4 py-3 text-left">
                   <Skeleton className="h-4 w-20" />
                 </th>
               ))}
@@ -40,7 +41,7 @@ function TableSkeleton<T>({ columns }: { columns: Column<T>[] }) {
             {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
               <tr key={i} className="border-b border-border">
                 {columns.map((col) => (
-                  <td key={String(col.key)} className="px-4 py-3">
+                  <td key={col.id ?? String(col.key)} className="px-4 py-3">
                     <Skeleton className="h-4 w-full" />
                   </td>
                 ))}
@@ -81,7 +82,7 @@ function TableView<T>({
         <tr className="border-b border-border/40 bg-muted/50 ">
           {columns.map((col) => (
             <th
-              key={String(col.key)}
+              key={col.id ?? String(col.key)}
               scope="col"
               className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
             >
@@ -116,7 +117,7 @@ function TableView<T>({
             {columns.map((col) => {
               const value = row[col.key]
               return (
-                <td key={String(col.key)} className="px-4 py-3 text-sm">
+                <td key={col.id ?? String(col.key)} className="px-4 py-3 text-sm">
                   {col.render ? col.render(value, row) : String(value ?? '')}
                 </td>
               )
@@ -183,7 +184,7 @@ function CardView<T>({
                     ? col.render(row[col.key], row)
                     : String(row[col.key] ?? '')
                   return (
-                    <div key={String(col.key)} className="flex justify-between text-sm">
+                    <div key={col.id ?? String(col.key)} className="flex justify-between text-sm">
                       <dt className="text-muted-foreground">{col.header}</dt>
                       <dd className="text-foreground font-medium">{value}</dd>
                     </div>

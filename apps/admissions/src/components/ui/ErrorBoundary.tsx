@@ -3,6 +3,7 @@ import { AlertTriangle, RefreshCw } from 'lucide-react'
 
 import { Button } from './Button'
 import { ErrorDisplay } from './ErrorDisplay'
+import { logger } from '@/lib/logger'
 
 // ---------------------------------------------------------------------------
 // Canonical ErrorBoundary — design-doc interface (Requirements 2.2, 8.5, 10.3)
@@ -32,7 +33,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught:', error, errorInfo)
+    logger.error('ErrorBoundary caught:', error, errorInfo)
     this.props.onError?.(error, errorInfo)
   }
 
@@ -75,7 +76,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               <Button
                 onClick={this.handleReload}
                 variant="destructive"
-                className="min-h-touch min-w-touch"
+                className="min-h-[44px] min-w-[44px] min-h-touch min-w-touch"
               >
                 <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
                 Reload Page
