@@ -20,7 +20,8 @@ import uuid
 from unittest.mock import patch
 
 import pytest
-from django.test import TestCase, override_settings
+from django.core.cache import cache
+from django.test import override_settings
 from rest_framework.test import APIClient
 
 
@@ -65,7 +66,7 @@ def _seed_profile():
     from django.utils import timezone
 
     now = timezone.now()
-    return Profile.objects.create(
+    profile = Profile.objects.create(
         id=uuid.uuid4(),
         email=f"devbypassaudit-{uuid.uuid4().hex[:8]}@example.com",
         first_name="Audit",
@@ -75,6 +76,14 @@ def _seed_profile():
         created_at=now,
         updated_at=now,
     )
+    from apps.accounts.authentication import JWTUser
+    return JWTUser({
+        "user_id": str(profile.id),
+        "email": profile.email,
+        "role": profile.role,
+        "first_name": profile.first_name,
+        "last_name": profile.last_name,
+    })
 
 
 def _raw_bypass_values() -> set[str]:
@@ -137,8 +146,7 @@ def _send_with_sentinel(
 
 
 @pytest.mark.django_db
-@override_settings(DEBUG=True, DJANGO_ENV="development")
-class TestPaymentViewsEmitDevBypassAuditInNonProduction(TestCase):
+class TestPaymentViewsEmitDevBypassAuditInNonProduction:
     """One test per view × one representative vector per view.
 
     We patch ``PaymentAuditService.record_payment_event`` so we assert on
@@ -157,6 +165,7 @@ class TestPaymentViewsEmitDevBypassAuditInNonProduction(TestCase):
         "vector_kind",
         ["query", "header", "body"],
     )
+    @override_settings(DEBUG=True, DJANGO_ENV="development")
     def test_non_production_emits_dev_bypass_audit_event(
         self,
         view_id,
@@ -170,6 +179,7 @@ class TestPaymentViewsEmitDevBypassAuditInNonProduction(TestCase):
             pytest.skip("body-vector only applies to POST views")
 
         client = APIClient()
+        cache.clear()
         if requires_auth:
             profile = _seed_profile()
             client.force_authenticate(user=profile)

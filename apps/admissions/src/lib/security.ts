@@ -11,7 +11,7 @@ export function sanitizeInput(value: string | undefined | null): string {
 /**
  * Sanitizes input for logging to prevent log injection attacks
  */
-export function sanitizeForLog(input: any): string {
+export function sanitizeForLog(input: unknown): string {
   if (input === null || input === undefined) {
     return 'null'
   }

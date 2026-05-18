@@ -10,7 +10,7 @@ import { useCallback, useEffect, useRef } from 'react'
  *
  * Requirements: 11.6
  */
-export function useDebouncedCallback<T extends (...args: any[]) => void>(
+export function useDebouncedCallback<T extends (...args: never[]) => void>(
   callback: T,
   delay: number = 300
 ): T {

@@ -60,9 +60,9 @@ class TestApplicationSubmitView:
         self.factory = APIRequestFactory()
         self.view = ApplicationSubmitView.as_view()
 
-    @patch("apps.applications.student_views.ApplicationSerializer")
-    @patch("apps.applications.student_views.submit_application")
-    @patch("apps.applications.student_views.Application.objects")
+    @patch("apps.applications.student_submission_views.ApplicationSerializer")
+    @patch("apps.applications.student_submission_views.submit_application")
+    @patch("apps.applications.student_submission_views.Application.objects")
     def test_student_owner_can_submit_application(
         self,
         mock_app_objects,
@@ -99,8 +99,8 @@ class TestApplicationSubmitView:
             changed_by=str(student.id),
         )
 
-    @patch("apps.applications.student_views.submit_application")
-    @patch("apps.applications.student_views.Application.objects")
+    @patch("apps.applications.student_submission_views.submit_application")
+    @patch("apps.applications.student_submission_views.Application.objects")
     def test_submit_validation_failure_returns_400(self, mock_app_objects, mock_submit_application):
         user_id = uuid.uuid4()
         app_id = uuid.uuid4()
@@ -127,8 +127,8 @@ class TestApplicationSubmitView:
         assert response.data["success"] is False
         assert response.data["code"] == "PAYMENT_REQUIRED"
 
-    @patch("apps.applications.student_views.submit_application")
-    @patch("apps.applications.student_views.Application.objects")
+    @patch("apps.applications.student_submission_views.submit_application")
+    @patch("apps.applications.student_submission_views.Application.objects")
     def test_submit_requires_final_confirmation(self, mock_app_objects, mock_submit_application):
         user_id = uuid.uuid4()
         app_id = uuid.uuid4()
@@ -151,9 +151,9 @@ class TestApplicationSubmitView:
         assert response.data["code"] == "CONFIRM_SUBMISSION_REQUIRED"
         mock_submit_application.assert_not_called()
 
-    @patch("apps.applications.student_views.ApplicationSerializer")
-    @patch("apps.applications.student_views.submit_application")
-    @patch("apps.applications.student_views.Application.objects")
+    @patch("apps.applications.student_submission_views.ApplicationSerializer")
+    @patch("apps.applications.student_submission_views.submit_application")
+    @patch("apps.applications.student_submission_views.Application.objects")
     def test_repeated_submit_returns_current_submitted_application(
         self,
         mock_app_objects,
@@ -250,7 +250,7 @@ class TestStudentPostSubmissionMutationGuards:
     def setup_method(self):
         self.factory = APIRequestFactory()
 
-    @patch("apps.applications.student_views._with_payment_summary")
+    @patch("apps.applications.student_draft_views._with_payment_summary")
     def test_delete_missing_application_is_idempotent(self, mock_with_payment_summary):
         app_id = uuid.uuid4()
         student = _student_user()
@@ -267,8 +267,8 @@ class TestStudentPostSubmissionMutationGuards:
 
         assert response.status_code == 204
 
-    @patch("apps.applications.student_views.IsOwnerOrAdmin")
-    @patch("apps.applications.student_views._with_payment_summary")
+    @patch("apps.applications.student_draft_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_draft_views._with_payment_summary")
     def test_student_cannot_delete_submitted_application(self, mock_with_payment_summary, mock_permission):
         user_id = uuid.uuid4()
         app_id = uuid.uuid4()
@@ -289,10 +289,10 @@ class TestStudentPostSubmissionMutationGuards:
         assert response.status_code == 403
         assert response.data["code"] == "APPLICATION_NOT_EDITABLE"
 
-    @patch("apps.applications.student_views.transaction.atomic")
-    @patch("apps.applications.student_views.Payment.objects")
-    @patch("apps.applications.student_views.IsOwnerOrAdmin")
-    @patch("apps.applications.student_views._with_payment_summary")
+    @patch("apps.applications.student_draft_views.transaction.atomic")
+    @patch("apps.applications.student_draft_views.Payment.objects")
+    @patch("apps.applications.student_draft_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_draft_views._with_payment_summary")
     def test_student_can_delete_draft_application_via_model_delete(
         self,
         mock_with_payment_summary,
@@ -323,10 +323,10 @@ class TestStudentPostSubmissionMutationGuards:
         assert response.status_code == 204
         application.delete.assert_called_once_with()
 
-    @patch("apps.applications.student_views.transaction.atomic")
-    @patch("apps.applications.student_views.Payment.objects")
-    @patch("apps.applications.student_views.IsOwnerOrAdmin")
-    @patch("apps.applications.student_views._with_payment_summary")
+    @patch("apps.applications.student_draft_views.transaction.atomic")
+    @patch("apps.applications.student_draft_views.Payment.objects")
+    @patch("apps.applications.student_draft_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_draft_views._with_payment_summary")
     def test_delete_draft_database_failure_returns_json_error(
         self,
         mock_with_payment_summary,
@@ -357,8 +357,8 @@ class TestStudentPostSubmissionMutationGuards:
         assert response.status_code == 500
         assert response.data["code"] == "APPLICATION_DELETE_FAILED"
 
-    @patch("apps.applications.student_views.IsOwnerOrAdmin")
-    @patch("apps.applications.student_views.Application.objects")
+    @patch("apps.applications.student_submission_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_submission_views.Application.objects")
     def test_student_cannot_update_grades_after_submission(self, mock_app_objects, mock_permission):
         user_id = uuid.uuid4()
         app_id = uuid.uuid4()
@@ -382,8 +382,8 @@ class TestStudentPostSubmissionMutationGuards:
         assert response.data["code"] == "APPLICATION_NOT_EDITABLE"
 
     @patch("apps.catalog.models.Subject.objects")
-    @patch("apps.applications.student_views.IsOwnerOrAdmin")
-    @patch("apps.applications.student_views.Application.objects")
+    @patch("apps.applications.student_submission_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_submission_views.Application.objects")
     def test_duplicate_grade_subjects_are_rejected(self, mock_app_objects, mock_permission, mock_subject_objects):
         user_id = uuid.uuid4()
         app_id = uuid.uuid4()
@@ -417,8 +417,8 @@ class TestStudentPostSubmissionMutationGuards:
         assert response.data["code"] == "DUPLICATE_SUBJECT"
 
     @patch("apps.catalog.models.Subject.objects")
-    @patch("apps.applications.student_views.IsOwnerOrAdmin")
-    @patch("apps.applications.student_views.Application.objects")
+    @patch("apps.applications.student_submission_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_submission_views.Application.objects")
     def test_batch_grade_sync_requires_five_unique_subjects(self, mock_app_objects, mock_permission, mock_subject_objects):
         user_id = uuid.uuid4()
         app_id = uuid.uuid4()
@@ -485,10 +485,10 @@ class TestDraftDeletionRegression:
 
     factory = APIRequestFactory()
 
-    @patch("apps.applications.student_views.transaction.atomic")
-    @patch("apps.applications.student_views.Payment.objects")
-    @patch("apps.applications.student_views.IsOwnerOrAdmin")
-    @patch("apps.applications.student_views._with_payment_summary")
+    @patch("apps.applications.student_draft_views.transaction.atomic")
+    @patch("apps.applications.student_draft_views.Payment.objects")
+    @patch("apps.applications.student_draft_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_draft_views._with_payment_summary")
     def test_delete_draft_with_all_dependents_returns_204(
         self,
         mock_with_payment_summary,
@@ -521,10 +521,10 @@ class TestSubmitAfterDeferRegression:
 
     factory = APIRequestFactory()
 
-    @patch("apps.applications.student_views.ApplicationSerializer")
-    @patch("apps.applications.student_views.submit_application")
-    @patch("apps.applications.student_views.IsOwnerOrAdmin")
-    @patch("apps.applications.student_views._with_payment_summary")
+    @patch("apps.applications.student_submission_views.ApplicationSerializer")
+    @patch("apps.applications.student_submission_views.submit_application")
+    @patch("apps.applications.student_submission_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_submission_views._with_payment_summary")
     def test_submit_after_defer_with_identity_doc_succeeds(
         self,
         mock_with_payment_summary,
@@ -550,9 +550,9 @@ class TestSubmitAfterDeferRegression:
         assert response.status_code == 200
         mock_submit.assert_called_once()
 
-    @patch("apps.applications.student_views.submit_application")
-    @patch("apps.applications.student_views.IsOwnerOrAdmin")
-    @patch("apps.applications.student_views._with_payment_summary")
+    @patch("apps.applications.student_submission_views.submit_application")
+    @patch("apps.applications.student_submission_views.IsOwnerOrAdmin")
+    @patch("apps.applications.student_submission_views._with_payment_summary")
     def test_submit_after_defer_without_identity_doc_fails(
         self,
         mock_with_payment_summary,

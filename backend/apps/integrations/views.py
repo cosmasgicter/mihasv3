@@ -24,12 +24,12 @@ class TelegramConnectView(APIView):
     @extend_schema(operation_id="integrations_telegram_connect", tags=["integrations"], responses={201: OpenApiResponse(response=TELEGRAM_RESPONSE)})
     def post(self, request):
         return Response(
-            {
+            {"success": True, "data": {
                 "id": uuid.uuid4(),
                 "chat_id": "scaffold-chat-id",
                 "status": "connected",
                 "scope": "operator",
-            },
+            }},
             status=status.HTTP_201_CREATED,
         )
 
@@ -41,11 +41,11 @@ class TelegramTestView(APIView):
     @extend_schema(operation_id="integrations_telegram_test", tags=["integrations"], responses={200: OpenApiResponse(response=ACTION_RESPONSE)})
     def post(self, request):
         return Response(
-            {
+            {"success": True, "data": {
                 "message": "Telegram test scaffold acknowledged.",
                 "status": "sent",
                 "reference_id": uuid.uuid4(),
-            }
+            }}
         )
 
 
@@ -64,11 +64,11 @@ class TelegramWebhookView(APIView):
                 return Response({"error": "Unauthorized"}, status=403)
 
         return Response(
-            {
+            {"success": True, "data": {
                 "message": "Telegram webhook scaffold received payload.",
                 "status": "accepted",
                 "reference_id": uuid.uuid4(),
-            }
+            }}
         )
 
 
@@ -79,9 +79,9 @@ class OpenAITestView(APIView):
     @extend_schema(operation_id="integrations_openai_test", tags=["integrations"], responses={200: OpenApiResponse(response=ACTION_RESPONSE)})
     def post(self, request):
         return Response(
-            {
+            {"success": True, "data": {
                 "message": "OpenAI integration scaffold reachable.",
                 "status": "ok",
                 "reference_id": uuid.uuid4(),
-            }
+            }}
         )

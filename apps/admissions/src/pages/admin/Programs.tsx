@@ -1,6 +1,9 @@
 import React, { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from '@/lib/zod'
 import { institutionService, programService } from '@/services/catalog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
@@ -38,6 +41,10 @@ interface Institution {
   code?: string
   description?: string
   is_active?: boolean
+  address?: string
+  phone?: string
+  email?: string
+  website?: string
 }
 
 interface Program {
@@ -48,13 +55,41 @@ interface Program {
   institution_id: string
   is_active?: boolean
   institutions?: Institution | null
+  tuition_fee?: string
+  regulatory_body?: string
+  accreditation_status?: string
 }
 
 type CatalogTab = 'programs' | 'institutions'
-type InstitutionStatus = 'active' | 'archived'
 type ProgramDialogTarget = 'create-program' | 'edit-program' | null
 
-const initialProgramForm = {
+const programFormSchema = z.object({
+  name: z.string().min(1, 'Program name is required'),
+  description: z.string(),
+  duration_years: z.number().min(1, 'Duration must be at least 1 year').max(10, 'Duration must be at most 10 years'),
+  institution_id: z.string().min(1, 'Institution is required'),
+  tuition_fee: z.string(),
+  regulatory_body: z.string(),
+  accreditation_status: z.string(),
+})
+
+type ProgramFormData = z.infer<typeof programFormSchema>
+
+const institutionFormSchema = z.object({
+  name: z.string().min(1, 'Institution name is required'),
+  full_name: z.string(),
+  code: z.string(),
+  description: z.string(),
+  status: z.enum(['active', 'archived']),
+  address: z.string(),
+  phone: z.string(),
+  email: z.string(),
+  website: z.string(),
+})
+
+type InstitutionFormData = z.infer<typeof institutionFormSchema>
+
+const defaultProgramForm: ProgramFormData = {
   name: '',
   description: '',
   duration_years: 1,
@@ -64,12 +99,12 @@ const initialProgramForm = {
   accreditation_status: 'active',
 }
 
-const initialInstitutionForm = {
+const defaultInstitutionForm: InstitutionFormData = {
   name: '',
   full_name: '',
   code: '',
   description: '',
-  status: 'active' as InstitutionStatus,
+  status: 'active',
   address: '',
   phone: '',
   email: '',
@@ -99,14 +134,22 @@ export default function AdminPrograms() {
   const [showProgramEdit, setShowProgramEdit] = useState(false)
   const [showProgramDelete, setShowProgramDelete] = useState(false)
   const [currentProgram, setCurrentProgram] = useState<Program | null>(null)
-  const [programForm, setProgramForm] = useState(initialProgramForm)
+
+  const programForm = useForm<ProgramFormData>({
+    resolver: zodResolver(programFormSchema),
+    defaultValues: defaultProgramForm,
+  })
 
   const [showInstitutionCreate, setShowInstitutionCreate] = useState(false)
   const [showInstitutionEdit, setShowInstitutionEdit] = useState(false)
   const [showInstitutionDelete, setShowInstitutionDelete] = useState(false)
   const [currentInstitution, setCurrentInstitution] = useState<Institution | null>(null)
-  const [institutionForm, setInstitutionForm] = useState(initialInstitutionForm)
   const [institutionCreateReturnTarget, setInstitutionCreateReturnTarget] = useState<ProgramDialogTarget>(null)
+
+  const institutionForm = useForm<InstitutionFormData>({
+    resolver: zodResolver(institutionFormSchema),
+    defaultValues: defaultInstitutionForm,
+  })
 
   const { data: catalogData, isLoading: loading } = useQuery({
     queryKey: ['admin', 'catalog'],
@@ -141,28 +184,6 @@ export default function AdminPrograms() {
     [programs]
   )
 
-  const handleProgramFieldChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const { name, value } = event.target
-      setProgramForm((current) => ({
-        ...current,
-        [name]: name === 'duration_years' ? Number(value) : value,
-      }))
-    },
-    []
-  )
-
-  const handleInstitutionFieldChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const { name, value } = event.target
-      setInstitutionForm((current) => ({
-        ...current,
-        [name]: value,
-      }))
-    },
-    []
-  )
-
   const handleTabChange = useCallback((value: string) => {
     setActiveTab(value === 'institutions' ? 'institutions' : 'programs')
     setError('')
@@ -172,7 +193,7 @@ export default function AdminPrograms() {
     if (activeInstitutions.length === 0) {
       setActiveTab('institutions')
       setInstitutionCreateReturnTarget(null)
-      setInstitutionForm(initialInstitutionForm)
+      institutionForm.reset(defaultInstitutionForm)
       setShowInstitutionCreate(true)
       setError('Create an institution before adding programs.')
       return
@@ -180,27 +201,27 @@ export default function AdminPrograms() {
 
     setError('')
     setCurrentProgram(null)
-    setProgramForm({
-      ...initialProgramForm,
+    programForm.reset({
+      ...defaultProgramForm,
       institution_id: activeInstitutions[0]?.id || '',
     })
     setShowProgramCreate(true)
-  }, [activeInstitutions])
+  }, [activeInstitutions, programForm, institutionForm])
 
   const openProgramEdit = useCallback((program: Program) => {
     setError('')
     setCurrentProgram(program)
-    setProgramForm({
+    programForm.reset({
       name: program.name,
       description: program.description || '',
       duration_years: program.duration_years,
       institution_id: program.institution_id,
-      tuition_fee: (program as any).tuition_fee || '',
-      regulatory_body: (program as any).regulatory_body || '',
-      accreditation_status: (program as any).accreditation_status || 'active',
+      tuition_fee: program.tuition_fee || '',
+      regulatory_body: program.regulatory_body || '',
+      accreditation_status: program.accreditation_status || 'active',
     })
     setShowProgramEdit(true)
-  }, [])
+  }, [programForm])
 
   const openProgramDelete = useCallback((program: Program) => {
     setError('')
@@ -212,26 +233,26 @@ export default function AdminPrograms() {
     setError('')
     setCurrentInstitution(null)
     setInstitutionCreateReturnTarget(returnTarget)
-    setInstitutionForm(initialInstitutionForm)
+    institutionForm.reset(defaultInstitutionForm)
     setShowInstitutionCreate(true)
-  }, [])
+  }, [institutionForm])
 
   const openInstitutionEdit = useCallback((institution: Institution) => {
     setError('')
     setCurrentInstitution(institution)
-    setInstitutionForm({
+    institutionForm.reset({
       name: institution.name,
       full_name: institution.full_name || '',
       code: institution.code || '',
       description: institution.description || '',
       status: isInstitutionActive(institution) ? 'active' : 'archived',
-      address: (institution as any).address || '',
-      phone: (institution as any).phone || '',
-      email: (institution as any).email || '',
-      website: (institution as any).website || '',
+      address: institution.address || '',
+      phone: institution.phone || '',
+      email: institution.email || '',
+      website: institution.website || '',
     })
     setShowInstitutionEdit(true)
-  }, [])
+  }, [institutionForm])
 
   const openInstitutionDelete = useCallback((institution: Institution) => {
     setError('')
@@ -243,14 +264,14 @@ export default function AdminPrograms() {
     setError('')
     setCurrentInstitution(null)
     setInstitutionCreateReturnTarget(target)
-    setInstitutionForm(initialInstitutionForm)
+    institutionForm.reset(defaultInstitutionForm)
     if (target === 'create-program') {
       setShowProgramCreate(false)
     } else {
       setShowProgramEdit(false)
     }
     setShowInstitutionCreate(true)
-  }, [])
+  }, [institutionForm])
 
   const handleOperation = async (operation: () => Promise<void>, onSuccess: () => void) => {
     try {
@@ -259,74 +280,47 @@ export default function AdminPrograms() {
       await operation()
       onSuccess()
       invalidateCatalog()
-    } catch (err: any) {
-      setError(err.message || 'Unable to save changes')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unable to save changes')
     } finally {
       setSaving(false)
     }
   }
 
-  const createProgram = () => {
-    if (!programForm.name.trim()) {
-      setError('Program name is required')
-      return
-    }
-    if (!programForm.institution_id) {
-      setError('Institution is required')
-      return
-    }
-    if (programForm.duration_years < 1 || programForm.duration_years > 10) {
-      setError('Duration must be between 1 and 10 years')
-      return
-    }
-
+  const createProgram = programForm.handleSubmit((values) => {
     void handleOperation(
       async () => {
         await programService.create({
-          name: programForm.name.trim(),
-          description: programForm.description.trim(),
-          duration_years: programForm.duration_years,
-          institution_id: programForm.institution_id,
-          tuition_fee: programForm.tuition_fee,
-          regulatory_body: programForm.regulatory_body,
-          accreditation_status: programForm.accreditation_status,
+          name: values.name.trim(),
+          description: values.description?.trim() || '',
+          duration_years: values.duration_years,
+          institution_id: values.institution_id,
+          tuition_fee: values.tuition_fee,
+          regulatory_body: values.regulatory_body,
+          accreditation_status: values.accreditation_status,
         })
       },
       () => {
         setShowProgramCreate(false)
-        setProgramForm(initialProgramForm)
+        programForm.reset(defaultProgramForm)
       }
     )
-  }
+  })
 
-  const updateProgram = () => {
-    if (!currentProgram) {
-      return
-    }
-    if (!programForm.name.trim()) {
-      setError('Program name is required')
-      return
-    }
-    if (!programForm.institution_id) {
-      setError('Institution is required')
-      return
-    }
-    if (programForm.duration_years < 1 || programForm.duration_years > 10) {
-      setError('Duration must be between 1 and 10 years')
-      return
-    }
+  const updateProgram = programForm.handleSubmit((values) => {
+    if (!currentProgram) return
 
     void handleOperation(
       async () => {
         await programService.update({
           id: currentProgram.id,
-          name: programForm.name.trim(),
-          description: programForm.description.trim(),
-          duration_years: programForm.duration_years,
-          institution_id: programForm.institution_id,
-          tuition_fee: programForm.tuition_fee,
-          regulatory_body: programForm.regulatory_body,
-          accreditation_status: programForm.accreditation_status,
+          name: values.name.trim(),
+          description: values.description?.trim() || '',
+          duration_years: values.duration_years,
+          institution_id: values.institution_id,
+          tuition_fee: values.tuition_fee,
+          regulatory_body: values.regulatory_body,
+          accreditation_status: values.accreditation_status,
         })
       },
       () => {
@@ -334,7 +328,7 @@ export default function AdminPrograms() {
         setCurrentProgram(null)
       }
     )
-  }
+  })
 
   const deleteProgram = () => {
     if (!currentProgram) {
@@ -352,40 +346,32 @@ export default function AdminPrograms() {
     )
   }
 
-  const createInstitution = () => {
-    const name = institutionForm.name.trim()
+  const createInstitution = institutionForm.handleSubmit((values) => {
+    const name = values.name.trim()
     const returnTarget = institutionCreateReturnTarget
-
-    if (!name) {
-      setError('Institution name is required')
-      return
-    }
 
     void handleOperation(
       async () => {
         const response = await institutionService.create({
           name,
-          full_name: institutionForm.full_name.trim() || name,
-          code: institutionForm.code.trim() || undefined,
-          description: institutionForm.description.trim() || undefined,
-          address: institutionForm.address.trim() || undefined,
-          phone: institutionForm.phone.trim() || undefined,
-          email: institutionForm.email.trim() || undefined,
-          website: institutionForm.website.trim() || undefined,
+          full_name: values.full_name?.trim() || name,
+          code: values.code?.trim() || undefined,
+          description: values.description?.trim() || undefined,
+          address: values.address?.trim() || undefined,
+          phone: values.phone?.trim() || undefined,
+          email: values.email?.trim() || undefined,
+          website: values.website?.trim() || undefined,
         })
 
         const createdInstitution = response?.institution
         if (createdInstitution?.id) {
-          setProgramForm((current) => ({
-            ...current,
-            institution_id: createdInstitution.id,
-          }))
+          programForm.setValue('institution_id', createdInstitution.id)
         }
       },
       () => {
         setShowInstitutionCreate(false)
         setInstitutionCreateReturnTarget(null)
-        setInstitutionForm(initialInstitutionForm)
+        institutionForm.reset(defaultInstitutionForm)
         if (returnTarget === 'create-program') {
           setShowProgramCreate(true)
         }
@@ -394,33 +380,26 @@ export default function AdminPrograms() {
         }
       }
     )
-  }
+  })
 
-  const updateInstitution = () => {
-    if (!currentInstitution) {
-      return
-    }
+  const updateInstitution = institutionForm.handleSubmit((values) => {
+    if (!currentInstitution) return
 
-    const name = institutionForm.name.trim()
-
-    if (!name) {
-      setError('Institution name is required')
-      return
-    }
+    const name = values.name.trim()
 
     void handleOperation(
       async () => {
         await institutionService.update({
           id: currentInstitution.id,
           name,
-          full_name: institutionForm.full_name.trim() || name,
-          code: institutionForm.code.trim() || undefined,
-          description: institutionForm.description.trim() || undefined,
-          is_active: institutionForm.status === 'active',
-          address: institutionForm.address.trim() || undefined,
-          phone: institutionForm.phone.trim() || undefined,
-          email: institutionForm.email.trim() || undefined,
-          website: institutionForm.website.trim() || undefined,
+          full_name: values.full_name?.trim() || name,
+          code: values.code?.trim() || undefined,
+          description: values.description?.trim() || undefined,
+          is_active: values.status === 'active',
+          address: values.address?.trim() || undefined,
+          phone: values.phone?.trim() || undefined,
+          email: values.email?.trim() || undefined,
+          website: values.website?.trim() || undefined,
         })
       },
       () => {
@@ -428,7 +407,7 @@ export default function AdminPrograms() {
         setCurrentInstitution(null)
       }
     )
-  }
+  })
 
   const deleteInstitution = () => {
     if (!currentInstitution) {
@@ -832,31 +811,31 @@ export default function AdminPrograms() {
             <DialogTitle>Create Program</DialogTitle>
             <DialogDescription>Add the academic program details and assign it to an institution.</DialogDescription>
           </DialogHeader>
+          <form onSubmit={createProgram}>
           <div className="space-y-4 py-4">
-            <Input label="Program name" name="name" value={programForm.name} onChange={handleProgramFieldChange} required />
+            <Input label="Program name" {...programForm.register('name')} error={programForm.formState.errors.name?.message} required />
             <CanonicalSelect
               label="Institution"
-              value={programForm.institution_id}
-              onChange={(value) => setProgramForm((current) => ({ ...current, institution_id: value }))}
+              value={programForm.watch('institution_id')}
+              onChange={(value) => programForm.setValue('institution_id', value)}
               placeholder="Select an institution"
               options={activeInstitutions.map((institution) => ({
                 value: institution.id,
                 label: getInstitutionOptionLabel(institution),
               }))}
+              error={programForm.formState.errors.institution_id?.message}
               required
             />
             <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2">
               <p className="text-sm text-muted-foreground">Need a new institution before saving this program?</p>
-              <Button variant="ghost" size="sm" onClick={() => openInstitutionCreateFromProgram('create-program')}>
+              <Button variant="ghost" size="sm" type="button" onClick={() => openInstitutionCreateFromProgram('create-program')}>
                 <Plus className="h-4 w-4 mr-1" />
                 Add institution
               </Button>
             </div>
             <Textarea
               label="Program description"
-              name="description"
-              value={programForm.description}
-              onChange={handleProgramFieldChange}
+              {...programForm.register('description')}
               helperText="Use this to clarify the course focus for admissions teams and applicants."
             />
             <Input
@@ -864,21 +843,25 @@ export default function AdminPrograms() {
               type="number"
               min={1}
               max={10}
-              name="duration_years"
-              value={programForm.duration_years}
-              onChange={handleProgramFieldChange}
+              {...programForm.register('duration_years', { valueAsNumber: true })}
+              error={programForm.formState.errors.duration_years?.message}
             />
-                  <div>
-                    <label htmlFor="tuition_fee" className="block text-sm font-medium text-foreground mb-1">Tuition fee (ZMW)</label>
-                    <input id="tuition_fee" type="number" min="0" step="0.01" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.tuition_fee} onChange={e => setProgramForm(f => ({ ...f, tuition_fee: e.target.value }))} placeholder="e.g. 15000" />
-                  </div>
-                  <div>
-                    <label htmlFor="regulatory_body" className="block text-sm font-medium text-foreground mb-1">Regulatory body</label>
-                    <input id="regulatory_body" type="text" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.regulatory_body} onChange={e => setProgramForm(f => ({ ...f, regulatory_body: e.target.value }))} placeholder="e.g. HPCZ, NMCZ, ECZ" />
-                  </div>
+                  <Input
+                    label="Tuition fee (ZMW)"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    {...programForm.register('tuition_fee')}
+                    placeholder="e.g. 15000"
+                  />
+                  <Input
+                    label="Regulatory body"
+                    {...programForm.register('regulatory_body')}
+                    placeholder="e.g. HPCZ, NMCZ, ECZ"
+                  />
                   <div>
                     <label htmlFor="accreditation_status" className="block text-sm font-medium text-foreground mb-1">Accreditation status</label>
-                    <select id="accreditation_status" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.accreditation_status} onChange={e => setProgramForm(f => ({ ...f, accreditation_status: e.target.value }))}>
+                    <select id="accreditation_status" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" {...programForm.register('accreditation_status')}>
                       <option value="active">Active</option>
                       <option value="provisional">Provisional</option>
                       <option value="suspended">Suspended</option>
@@ -887,9 +870,10 @@ export default function AdminPrograms() {
                   </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowProgramCreate(false)} disabled={saving}>Cancel</Button>
-            <Button onClick={createProgram} loading={saving}>Create Program</Button>
+            <Button variant="outline" type="button" onClick={() => setShowProgramCreate(false)} disabled={saving}>Cancel</Button>
+            <Button type="submit" loading={saving}>Create Program</Button>
           </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -899,31 +883,31 @@ export default function AdminPrograms() {
             <DialogTitle>Edit Program</DialogTitle>
             <DialogDescription>Update the academic program details and institution ownership.</DialogDescription>
           </DialogHeader>
+          <form onSubmit={updateProgram}>
           <div className="space-y-4 py-4">
-            <Input label="Program name" name="name" value={programForm.name} onChange={handleProgramFieldChange} required />
+            <Input label="Program name" {...programForm.register('name')} error={programForm.formState.errors.name?.message} required />
             <CanonicalSelect
               label="Institution"
-              value={programForm.institution_id}
-              onChange={(value) => setProgramForm((current) => ({ ...current, institution_id: value }))}
+              value={programForm.watch('institution_id')}
+              onChange={(value) => programForm.setValue('institution_id', value)}
               placeholder="Select an institution"
               options={activeInstitutions.map((institution) => ({
                 value: institution.id,
                 label: getInstitutionOptionLabel(institution),
               }))}
+              error={programForm.formState.errors.institution_id?.message}
               required
             />
             <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2">
               <p className="text-sm text-muted-foreground">Need to register a missing institution first?</p>
-              <Button variant="ghost" size="sm" onClick={() => openInstitutionCreateFromProgram('edit-program')}>
+              <Button variant="ghost" size="sm" type="button" onClick={() => openInstitutionCreateFromProgram('edit-program')}>
                 <Plus className="h-4 w-4 mr-1" />
                 Add institution
               </Button>
             </div>
             <Textarea
               label="Program description"
-              name="description"
-              value={programForm.description}
-              onChange={handleProgramFieldChange}
+              {...programForm.register('description')}
               helperText="Use this to clarify the course focus for admissions teams and applicants."
             />
             <Input
@@ -931,21 +915,25 @@ export default function AdminPrograms() {
               type="number"
               min={1}
               max={10}
-              name="duration_years"
-              value={programForm.duration_years}
-              onChange={handleProgramFieldChange}
+              {...programForm.register('duration_years', { valueAsNumber: true })}
+              error={programForm.formState.errors.duration_years?.message}
             />
-                  <div>
-                    <label htmlFor="edit_tuition_fee" className="block text-sm font-medium text-foreground mb-1">Tuition fee (ZMW)</label>
-                    <input id="edit_tuition_fee" type="number" min="0" step="0.01" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.tuition_fee} onChange={e => setProgramForm(f => ({ ...f, tuition_fee: e.target.value }))} placeholder="e.g. 15000" />
-                  </div>
-                  <div>
-                    <label htmlFor="edit_regulatory_body" className="block text-sm font-medium text-foreground mb-1">Regulatory body</label>
-                    <input id="edit_regulatory_body" type="text" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.regulatory_body} onChange={e => setProgramForm(f => ({ ...f, regulatory_body: e.target.value }))} placeholder="e.g. HPCZ, NMCZ, ECZ" />
-                  </div>
+                  <Input
+                    label="Tuition fee (ZMW)"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    {...programForm.register('tuition_fee')}
+                    placeholder="e.g. 15000"
+                  />
+                  <Input
+                    label="Regulatory body"
+                    {...programForm.register('regulatory_body')}
+                    placeholder="e.g. HPCZ, NMCZ, ECZ"
+                  />
                   <div>
                     <label htmlFor="edit_accreditation_status" className="block text-sm font-medium text-foreground mb-1">Accreditation status</label>
-                    <select id="edit_accreditation_status" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={programForm.accreditation_status} onChange={e => setProgramForm(f => ({ ...f, accreditation_status: e.target.value }))}>
+                    <select id="edit_accreditation_status" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" {...programForm.register('accreditation_status')}>
                       <option value="active">Active</option>
                       <option value="provisional">Provisional</option>
                       <option value="suspended">Suspended</option>
@@ -954,9 +942,10 @@ export default function AdminPrograms() {
                   </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowProgramEdit(false)} disabled={saving}>Cancel</Button>
-            <Button onClick={updateProgram} loading={saving}>Save Changes</Button>
+            <Button variant="outline" type="button" onClick={() => setShowProgramEdit(false)} disabled={saving}>Cancel</Button>
+            <Button type="submit" loading={saving}>Save Changes</Button>
           </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -986,59 +975,61 @@ export default function AdminPrograms() {
             <DialogTitle>Create Institution</DialogTitle>
             <DialogDescription>Add the institution first so programs can be assigned to it immediately.</DialogDescription>
           </DialogHeader>
+          <form onSubmit={createInstitution}>
           <div className="space-y-4 py-4">
             <Input
               label="Institution name"
-              name="name"
-              value={institutionForm.name}
-              onChange={handleInstitutionFieldChange}
+              {...institutionForm.register('name')}
+              error={institutionForm.formState.errors.name?.message}
               helperText="Use the short operational name used throughout the system."
               required
             />
             <Input
               label="Full name"
-              name="full_name"
-              value={institutionForm.full_name}
-              onChange={handleInstitutionFieldChange}
+              {...institutionForm.register('full_name')}
               helperText="Optional, but recommended for formal reports and applicant-facing labels."
             />
             <Input
               label="Institution code"
-              name="code"
-              value={institutionForm.code}
-              onChange={handleInstitutionFieldChange}
+              {...institutionForm.register('code')}
               helperText="Short internal code such as MIHAS."
             />
             <Textarea
               label="Description"
-              name="description"
-              value={institutionForm.description}
-              onChange={handleInstitutionFieldChange}
+              {...institutionForm.register('description')}
               helperText="Briefly describe the institution for admins managing programs and applications."
             />
-                  <div>
-                    <label htmlFor="inst_address" className="block text-sm font-medium text-foreground mb-1">Address</label>
-                    <input id="inst_address" type="text" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.address} onChange={e => setInstitutionForm(f => ({ ...f, address: e.target.value }))} placeholder="Physical address" />
-                  </div>
+                  <Input
+                    label="Address"
+                    {...institutionForm.register('address')}
+                    placeholder="Physical address"
+                  />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label htmlFor="inst_phone" className="block text-sm font-medium text-foreground mb-1">Phone</label>
-                      <input id="inst_phone" type="tel" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.phone} onChange={e => setInstitutionForm(f => ({ ...f, phone: e.target.value }))} placeholder="+260..." />
-                    </div>
-                    <div>
-                      <label htmlFor="inst_email" className="block text-sm font-medium text-foreground mb-1">Email</label>
-                      <input id="inst_email" type="email" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.email} onChange={e => setInstitutionForm(f => ({ ...f, email: e.target.value }))} placeholder="info@institution.edu.zm" />
-                    </div>
+                    <Input
+                      label="Phone"
+                      type="tel"
+                      {...institutionForm.register('phone')}
+                      placeholder="+260..."
+                    />
+                    <Input
+                      label="Email"
+                      type="email"
+                      {...institutionForm.register('email')}
+                      placeholder="info@institution.edu.zm"
+                    />
                   </div>
-                  <div>
-                    <label htmlFor="inst_website" className="block text-sm font-medium text-foreground mb-1">Website</label>
-                    <input id="inst_website" type="url" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.website} onChange={e => setInstitutionForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
-                  </div>
+                  <Input
+                    label="Website"
+                    type="url"
+                    {...institutionForm.register('website')}
+                    placeholder="https://..."
+                  />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowInstitutionCreate(false)} disabled={saving}>Cancel</Button>
-            <Button onClick={createInstitution} loading={saving}>Create Institution</Button>
+            <Button variant="outline" type="button" onClick={() => setShowInstitutionCreate(false)} disabled={saving}>Cancel</Button>
+            <Button type="submit" loading={saving}>Create Institution</Button>
           </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -1048,62 +1039,60 @@ export default function AdminPrograms() {
             <DialogTitle>Edit Institution</DialogTitle>
             <DialogDescription>Update institution details and control whether it stays active in the admissions catalog.</DialogDescription>
           </DialogHeader>
+          <form onSubmit={updateInstitution}>
           <div className="space-y-4 py-4">
             <Input
               label="Institution name"
-              name="name"
-              value={institutionForm.name}
-              onChange={handleInstitutionFieldChange}
+              {...institutionForm.register('name')}
+              error={institutionForm.formState.errors.name?.message}
               helperText="Use the short operational name used throughout the system."
               required
             />
             <Input
               label="Full name"
-              name="full_name"
-              value={institutionForm.full_name}
-              onChange={handleInstitutionFieldChange}
+              {...institutionForm.register('full_name')}
               helperText="Optional, but recommended for formal reports and applicant-facing labels."
             />
             <Input
               label="Institution code"
-              name="code"
-              value={institutionForm.code}
-              onChange={handleInstitutionFieldChange}
+              {...institutionForm.register('code')}
               helperText="Short internal code such as MIHAS."
             />
             <Textarea
               label="Description"
-              name="description"
-              value={institutionForm.description}
-              onChange={handleInstitutionFieldChange}
+              {...institutionForm.register('description')}
               helperText="Briefly describe the institution for admins managing programs and applications."
             />
-                  <div>
-                    <label htmlFor="edit_inst_address" className="block text-sm font-medium text-foreground mb-1">Address</label>
-                    <input id="edit_inst_address" type="text" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.address} onChange={e => setInstitutionForm(f => ({ ...f, address: e.target.value }))} placeholder="Physical address" />
-                  </div>
+                  <Input
+                    label="Address"
+                    {...institutionForm.register('address')}
+                    placeholder="Physical address"
+                  />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label htmlFor="edit_inst_phone" className="block text-sm font-medium text-foreground mb-1">Phone</label>
-                      <input id="edit_inst_phone" type="tel" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.phone} onChange={e => setInstitutionForm(f => ({ ...f, phone: e.target.value }))} placeholder="+260..." />
-                    </div>
-                    <div>
-                      <label htmlFor="edit_inst_email" className="block text-sm font-medium text-foreground mb-1">Email</label>
-                      <input id="edit_inst_email" type="email" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.email} onChange={e => setInstitutionForm(f => ({ ...f, email: e.target.value }))} placeholder="info@institution.edu.zm" />
-                    </div>
+                    <Input
+                      label="Phone"
+                      type="tel"
+                      {...institutionForm.register('phone')}
+                      placeholder="+260..."
+                    />
+                    <Input
+                      label="Email"
+                      type="email"
+                      {...institutionForm.register('email')}
+                      placeholder="info@institution.edu.zm"
+                    />
                   </div>
-                  <div>
-                    <label htmlFor="edit_inst_website" className="block text-sm font-medium text-foreground mb-1">Website</label>
-                    <input id="edit_inst_website" type="url" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm h-12" value={institutionForm.website} onChange={e => setInstitutionForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
-                  </div>
+                  <Input
+                    label="Website"
+                    type="url"
+                    {...institutionForm.register('website')}
+                    placeholder="https://..."
+                  />
             <CanonicalSelect
               label="Status"
-              value={institutionForm.status}
+              value={institutionForm.watch('status')}
               onChange={(value) =>
-                setInstitutionForm((current) => ({
-                  ...current,
-                  status: value === 'archived' ? 'archived' : 'active',
-                }))
+                institutionForm.setValue('status', value === 'archived' ? 'archived' : 'active')
               }
               options={[
                 { value: 'active', label: 'Active' },
@@ -1113,9 +1102,10 @@ export default function AdminPrograms() {
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowInstitutionEdit(false)} disabled={saving}>Cancel</Button>
-            <Button onClick={updateInstitution} loading={saving}>Save Changes</Button>
+            <Button variant="outline" type="button" onClick={() => setShowInstitutionEdit(false)} disabled={saving}>Cancel</Button>
+            <Button type="submit" loading={saving}>Save Changes</Button>
           </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 

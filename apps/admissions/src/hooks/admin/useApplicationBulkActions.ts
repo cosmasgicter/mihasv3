@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
-import { exportToCSV, exportToExcel } from '@/lib/exportUtils'
+import { exportToCSV, exportToExcel, type ApplicationData } from '@/lib/exportUtils'
 import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
+import { logger } from '@/lib/logger'
 
 interface ApplicationSummary {
   id: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export function useApplicationBulkActions() {
@@ -42,7 +43,7 @@ export function useApplicationBulkActions() {
       await invalidateAdminApplicationQueries(queryClient)
       clearSelection()
     } catch (error) {
-      console.error('Bulk status update failed:', error)
+      logger.error('Bulk status update failed:', error)
       throw error
     } finally {
       setLoading(false)
@@ -61,7 +62,7 @@ export function useApplicationBulkActions() {
       await invalidateAdminApplicationQueries(queryClient, { includePaymentStatus: true })
       clearSelection()
     } catch (error) {
-      console.error('Bulk payment update failed:', error)
+      logger.error('Bulk payment update failed:', error)
       throw error
     } finally {
       setLoading(false)
@@ -81,9 +82,9 @@ export function useApplicationBulkActions() {
     const filename = `applications_${new Date().toISOString().split('T')[0]}`
 
     if (format === 'csv') {
-      await exportToCSV(dataToExport as any, `${filename}.csv`)
+      await exportToCSV(dataToExport as unknown as ApplicationData[], `${filename}.csv`)
     } else {
-      await exportToExcel(dataToExport as any, `${filename}.xlsx`)
+      await exportToExcel(dataToExport as unknown as ApplicationData[], `${filename}.xlsx`)
     }
   }
 

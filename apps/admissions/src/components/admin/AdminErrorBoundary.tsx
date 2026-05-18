@@ -2,6 +2,7 @@ import React from 'react'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui'
+import { logger } from '@/lib/logger'
 
 interface AdminErrorBoundaryState {
   hasError: boolean
@@ -83,7 +84,7 @@ export class AdminErrorBoundary extends React.Component<
 
     const capturedAt = new Date().toISOString()
 
-    console.error('Admin page error:', {
+    logger.error('Admin page error:', {
       error: {
         name: error.name,
         message: error.message,

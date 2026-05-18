@@ -1,8 +1,9 @@
 """
 Bug 2 (P1) — CSP unsafe-inline for Scripts: Exploration Test
 
-This test encodes the EXPECTED (fixed) behavior. It MUST FAIL on unfixed code,
-confirming that `unsafe-inline` is present in the CSP without risk documentation.
+This test encodes the fixed behavior after script CSP hardening:
+script-src must not allow `unsafe-inline`, and the note should document why the
+remaining Wasm allowance exists.
 
 **Validates: Requirements 2.4**
 """
@@ -49,15 +50,12 @@ def _find_header_by_key(headers_config: dict, key: str) -> str | None:
 
 class TestBug2CSPExploration:
     """
-    Bug condition exploration: if the CSP contains 'unsafe-inline', there must
-    be a risk documentation header (X-CSP-Note) in the same headers array that
-    mentions the unsafe-inline risk and contains a TODO for nonce-based CSP.
+    Preserve the hardened script CSP and the accompanying operational note.
     """
 
-    def test_csp_contains_unsafe_inline(self):
+    def test_script_src_does_not_contain_unsafe_inline(self):
         """
-        Precondition check: verify that the CSP header actually contains
-        'unsafe-inline' so the bug condition is relevant.
+        script-src must not permit inline scripts.
 
         **Validates: Requirements 2.4**
         """
@@ -67,19 +65,21 @@ class TestBug2CSPExploration:
         csp_found = False
         for block in headers_blocks:
             csp_value = _find_csp_header(block)
-            if csp_value and "unsafe-inline" in csp_value:
+            if csp_value:
                 csp_found = True
-                break
+                script_src = next(
+                    part.strip() for part in csp_value.split(";")
+                    if part.strip().startswith("script-src")
+                )
+                assert "'unsafe-inline'" not in script_src
 
         assert csp_found, (
-            "Expected CSP header with 'unsafe-inline' in vercel.json — "
-            "bug condition precondition not met"
+            "Expected a CSP header in vercel.json"
         )
 
-    def test_unsafe_inline_has_risk_documentation_header(self):
+    def test_script_csp_has_operational_note(self):
         """
-        If 'unsafe-inline' is present in the CSP, there must be an X-CSP-Note
-        header in the same headers array documenting the risk.
+        The CSP block should document the remaining Wasm exception.
 
         **Validates: Requirements 2.4**
         """
@@ -88,19 +88,16 @@ class TestBug2CSPExploration:
 
         for block in headers_blocks:
             csp_value = _find_csp_header(block)
-            if csp_value and "unsafe-inline" in csp_value:
-                # This block has CSP with unsafe-inline — check for documentation
+            if csp_value:
                 note = _find_header_by_key(block, "X-CSP-Note")
                 assert note is not None, (
-                    "CSP contains 'unsafe-inline' but no X-CSP-Note header exists "
-                    "in the same headers block to document the risk. "
+                    "CSP exists but no X-CSP-Note header documents the remaining exception. "
                     f"CSP value: {csp_value}"
                 )
 
-    def test_risk_documentation_mentions_unsafe_inline(self):
+    def test_operational_note_mentions_wasm_exception(self):
         """
-        The X-CSP-Note header must explicitly mention 'unsafe-inline' to
-        document the specific risk.
+        The X-CSP-Note header must explain the Wasm exception.
 
         **Validates: Requirements 2.4**
         """
@@ -109,19 +106,19 @@ class TestBug2CSPExploration:
 
         for block in headers_blocks:
             csp_value = _find_csp_header(block)
-            if csp_value and "unsafe-inline" in csp_value:
+            if csp_value:
                 note = _find_header_by_key(block, "X-CSP-Note")
                 assert note is not None, (
-                    "X-CSP-Note header not found — cannot verify risk documentation"
+                    "X-CSP-Note header not found — cannot verify CSP documentation"
                 )
-                assert "unsafe-inline" in note, (
-                    f"X-CSP-Note header exists but does not mention 'unsafe-inline'. "
+                assert "wasm-unsafe-eval" in note, (
+                    f"X-CSP-Note header exists but does not mention the Wasm exception. "
                     f"Value: {note}"
                 )
 
-    def test_risk_documentation_contains_nonce_todo(self):
+    def test_operational_note_records_inline_script_removal(self):
         """
-        The X-CSP-Note header must contain a TODO for nonce-based CSP migration.
+        The note must explicitly record that script-src no longer allows inline scripts.
 
         **Validates: Requirements 2.4**
         """
@@ -130,16 +127,12 @@ class TestBug2CSPExploration:
 
         for block in headers_blocks:
             csp_value = _find_csp_header(block)
-            if csp_value and "unsafe-inline" in csp_value:
+            if csp_value:
                 note = _find_header_by_key(block, "X-CSP-Note")
                 assert note is not None, (
-                    "X-CSP-Note header not found — cannot verify nonce TODO"
+                    "X-CSP-Note header not found — cannot verify script-src note"
                 )
-                assert "nonce" in note.lower(), (
-                    f"X-CSP-Note header does not mention nonce-based CSP migration. "
-                    f"Value: {note}"
-                )
-                assert "TODO" in note or "todo" in note.lower(), (
-                    f"X-CSP-Note header does not contain a TODO marker. "
+                assert "script-src does NOT allow unsafe-inline" in note, (
+                    f"X-CSP-Note header does not record inline-script removal. "
                     f"Value: {note}"
                 )

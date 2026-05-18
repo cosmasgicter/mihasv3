@@ -1,72 +1,77 @@
 /**
- * Structured Logger
- * 
- * Canonical logger for the application. Provides structured log entries
- * with timestamps and level fields.
- * 
- * - Development: logs debug, info, warn, error
- * - Production: logs warn and error only (errors always logged)
- * 
- * Consolidated from: src/lib/logger.ts, src/utils/logger.ts
+ * Structured logger that routes to GlitchTip (Sentry) in production
+ * and console in development. Centralises error/warn reporting so we
+ * never lose visibility into production issues.
  */
+import * as Sentry from '@sentry/react'
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+const isDev = import.meta.env.DEV
 
-export interface LogEntry {
-  level: LogLevel;
-  message: string;
-  data?: unknown;
-  timestamp: string;
-}
+export const logger = {
+  /**
+   * Log an error. Routes to GlitchTip in prod, console.error in dev.
+   * Use for unexpected failures that should produce an alert.
+   */
+  error(message: string, errorOrContext?: unknown, context?: unknown): void {
+    if (isDev) {
+      // eslint-disable-next-line no-console
+      console.error(`[ERROR] ${message}`, errorOrContext, context)
+      return
+    }
+    const extra = (typeof context === 'object' && context !== null ? context : {}) as Record<string, unknown>
+    if (errorOrContext instanceof Error) {
+      Sentry.captureException(errorOrContext, { extra: { message, ...extra } })
+    } else {
+      Sentry.captureMessage(message, {
+        level: 'error',
+        extra: { context: errorOrContext, ...extra },
+      })
+    }
+  },
 
-class Logger {
-  private isDevelopment = typeof import.meta !== 'undefined'
-    ? (import.meta.env?.DEV || import.meta.env?.MODE === 'development')
-    : process.env.NODE_ENV !== 'production';
-
-  private createEntry(level: LogLevel, message: string, data?: unknown): LogEntry {
-    return {
-      level,
+  /**
+   * Log a warning. Routes to GlitchTip as a warning-level breadcrumb in prod,
+   * console.warn in dev.
+   */
+  warn(message: string, context?: unknown): void {
+    if (isDev) {
+      // eslint-disable-next-line no-console
+      console.warn(message, context)
+      return
+    }
+    Sentry.addBreadcrumb({
+      category: 'warning',
       message,
-      data,
-      timestamp: new Date().toISOString(),
-    };
-  }
+      level: 'warning',
+      data: typeof context === 'object' && context !== null ? (context as Record<string, unknown>) : undefined,
+    })
+  },
 
-  private log(level: LogLevel, message: string, data?: unknown): void {
-    const entry = this.createEntry(level, message, data);
-
-    // Always log errors; log warn in production; others only in dev
-    if (this.isDevelopment || level === 'error' || level === 'warn') {
-      const method = level === 'warn' ? 'warn' : level === 'error' ? 'error' : 'log';
-      console[method](`[${level.toUpperCase()}] ${message}`, data ?? '');
+  /**
+   * Informational log. Routes to GlitchTip as an info-level breadcrumb in prod,
+   * console.info in dev.
+   */
+  info(message: string, context?: unknown): void {
+    if (isDev) {
+      // eslint-disable-next-line no-console
+      console.info(message, context)
+      return
     }
+    Sentry.addBreadcrumb({
+      category: 'info',
+      message,
+      level: 'info',
+      data: typeof context === 'object' && context !== null ? (context as Record<string, unknown>) : undefined,
+    })
+  },
 
-    // Production error monitoring hook (placeholder)
-    if (!this.isDevelopment && level === 'error') {
-      this.sendToMonitoring(entry);
+  /**
+   * Dev-only debug log. No-op in production.
+   */
+  debug(...args: unknown[]): void {
+    if (isDev) {
+      // eslint-disable-next-line no-console
+      console.log(...args)
     }
-  }
-
-  private sendToMonitoring(_entry: LogEntry): void {
-    // monitoring service removed — placeholder for future integration
-  }
-
-  debug(message: string, data?: unknown): void {
-    this.log('debug', message, data);
-  }
-
-  info(message: string, data?: unknown): void {
-    this.log('info', message, data);
-  }
-
-  warn(message: string, data?: unknown): void {
-    this.log('warn', message, data);
-  }
-
-  error(message: string, data?: unknown): void {
-    this.log('error', message, data);
-  }
+  },
 }
-
-export const logger = new Logger();

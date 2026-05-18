@@ -193,12 +193,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 // Expose a global function for the app to dismiss the preloader when visually ready.
 // This prevents the white flash between preloader removal and first meaningful paint.
 if (typeof window !== 'undefined') {
-  ;(window as any).__dismissPreloader = () => {
-    if ((window as any).__preloaderTimeout) {
-      clearTimeout((window as any).__preloaderTimeout)
+  window.__dismissPreloader = () => {
+    if (window.__preloaderTimeout) {
+      clearTimeout(window.__preloaderTimeout)
     }
-    if ((window as any).__preloaderMaxTimeout) {
-      clearTimeout((window as any).__preloaderMaxTimeout)
+    if (window.__preloaderMaxTimeout) {
+      clearTimeout(window.__preloaderMaxTimeout)
     }
     const preloader = document.getElementById('preloader')
     if (preloader) {

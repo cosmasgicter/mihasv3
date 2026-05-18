@@ -12,6 +12,12 @@ interface BulkUserOperationsProps {
   onOperationComplete: () => void
 }
 
+interface BulkOperationResult {
+  success: number
+  failed: number
+  errors?: string[]
+}
+
 const AVAILABLE_ROLES = [
   { value: 'student', label: 'Student' },
   { value: 'reviewer', label: 'Reviewer' },
@@ -33,7 +39,7 @@ export function BulkUserOperations({
   const [showRoleDialog, setShowRoleDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedRole, setSelectedRole] = useState('student')
-  const [operationResult, setOperationResult] = useState<any>(null)
+  const [operationResult, setOperationResult] = useState<BulkOperationResult | null>(null)
   const [confirmationToken, setConfirmationToken] = useState<string | null>(null)
   const [confirmInput, setConfirmInput] = useState('')
 
@@ -324,11 +330,11 @@ export function BulkUserOperations({
                   <p className="text-sm text-error">Failed</p>
                 </div>
               </div>
-              {operationResult.errors.length > 0 && (
+                  {(operationResult.errors?.length ?? 0) > 0 && (
                 <div className="bg-destructive/5 border border-destructive/30 rounded-lg p-3">
                   <p className="text-sm font-medium text-error mb-2">Errors:</p>
                   <ul className="text-xs text-destructive space-y-1">
-                    {operationResult.errors.map((error: string, index: number) => (
+                      {operationResult.errors?.map((error: string, index: number) => (
                       <li key={index}>• {error?.replace(/[<>"'&]/g, '')}</li>
                     ))}
                   </ul>

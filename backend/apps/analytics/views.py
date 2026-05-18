@@ -46,7 +46,7 @@ class FunnelAnalyticsView(APIView):
         cache_key = f"admissions_funnel:{hashlib.md5(json.dumps(filters, sort_keys=True).encode()).hexdigest()}"
         cached = cache.get(cache_key)
         if cached:
-            return Response(cached)
+            return Response({"success": True, "data": cached})
 
         try:
             service = AdmissionsAnalyticsService()
@@ -56,10 +56,10 @@ class FunnelAnalyticsView(APIView):
                 "payments": service.payment_metrics(filters),
             }
             cache.set(cache_key, data, 300)  # 5-minute cache
-            return Response(data)
+            return Response({"success": True, "data": data})
         except Exception:
             logger.exception("Funnel analytics query failed, returning sample data")
-            return Response(sample_funnel_analytics())
+            return Response({"success": True, "data": sample_funnel_analytics()})
 
 
 class SourceAnalyticsView(APIView):
@@ -67,7 +67,7 @@ class SourceAnalyticsView(APIView):
 
     @extend_schema(operation_id="analytics_sources", tags=["analytics"], responses={200: OpenApiResponse(response=SOURCE_RESPONSE)})
     def get(self, request):
-        return Response(sample_source_analytics())
+        return Response({"success": True, "data": sample_source_analytics()})
 
 
 class OutreachAnalyticsView(APIView):
@@ -75,7 +75,7 @@ class OutreachAnalyticsView(APIView):
 
     @extend_schema(operation_id="analytics_outreach", tags=["analytics"], responses={200: OpenApiResponse(response=OUTREACH_RESPONSE)})
     def get(self, request):
-        return Response(sample_outreach_analytics())
+        return Response({"success": True, "data": sample_outreach_analytics()})
 
 
 class DailyDigestReportView(APIView):
@@ -83,4 +83,4 @@ class DailyDigestReportView(APIView):
 
     @extend_schema(operation_id="reports_daily_digest", tags=["reports"], responses={200: OpenApiResponse(response=DAILY_DIGEST_RESPONSE)})
     def get(self, request):
-        return Response(sample_daily_digest())
+        return Response({"success": True, "data": sample_daily_digest()})

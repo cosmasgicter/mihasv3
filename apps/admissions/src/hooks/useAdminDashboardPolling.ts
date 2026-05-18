@@ -15,6 +15,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { adminDashboardService } from '@/services/admin/dashboard'
+import { logger } from '@/lib/logger'
 
 /** Threshold in ms after which polling stops entirely when tab is hidden */
 const HIDDEN_PAUSE_THRESHOLD = 300000 // 5 minutes
@@ -131,7 +132,7 @@ export function useAdminDashboardPolling(
     try {
       return await fetchDashboardStats()
     } catch (error) {
-      console.error('[useAdminDashboardPolling] Error:', error instanceof Error ? error.message : error)
+      logger.error('[useAdminDashboardPolling] Error:', error instanceof Error ? error.message : error)
       throw error
     }
   }, [])

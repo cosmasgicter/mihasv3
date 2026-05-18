@@ -29,6 +29,7 @@ import {
   SESSION_QUERY_KEY,
   type SessionQueryData,
 } from './authQueries'
+import { logger } from '@/lib/logger'
 
 export type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 export type AuthUser = User
@@ -36,7 +37,7 @@ export type AuthUser = User
 function extractAuthUser(result: unknown): User | null {
   const direct = extractAuthUserFromResult(result)
   if (!direct) {
-    console.warn(
+    logger.warn(
       '[auth] Unexpected auth response shape — could not extract user:',
       typeof result === 'object' && result !== null ? Object.keys(result as object) : typeof result
     )
@@ -136,7 +137,7 @@ export function useSessionListener() {
   }, [queryClient])
 
   // signUp — register, auto-login, seed cache
-  const signUp = useCallback(async (email: string, password: string, userData: Record<string, any>): Promise<SignUpResult> => {
+  const signUp = useCallback(async (email: string, password: string, userData: Record<string, string | undefined>): Promise<SignUpResult> => {
     const { confirmPassword, turnstileToken, full_name, ...cleanUserData } = userData
     const normalizedFullName = typeof full_name === 'string' ? full_name.trim() : ''
     const [firstName, ...lastNameParts] = normalizedFullName.split(/\s+/).filter(Boolean)

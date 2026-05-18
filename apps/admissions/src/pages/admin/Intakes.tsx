@@ -407,6 +407,7 @@ export default function AdminIntakes() {
                     },
                   },
                   {
+                    id: 'available_capacity',
                     key: 'max_capacity' as keyof Intake,
                     header: 'Available',
                     priority: 'always',

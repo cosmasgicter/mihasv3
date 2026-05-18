@@ -5,6 +5,7 @@ import { apiClient } from '@/services/client'
 import { Upload, FileText, AlertTriangle, CheckCircle, XCircle, Users, Download } from 'lucide-react'
 import { sanitizeForLog, sanitizeText, sanitizeEmail } from '@/lib/sanitize'
 import { toast } from '@/hooks/useToast'
+import { logger } from '@/lib/logger'
 
 interface UserImportProps {
   isOpen: boolean
@@ -226,7 +227,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
         onImportComplete()
       }
     } catch (error) {
-      console.error('Import failed:', sanitizeForLog(error))
+      logger.error('Import failed:', sanitizeForLog(error))
       toast.error('Import Failed', 'Please try again')
     } finally {
       setImporting(false)

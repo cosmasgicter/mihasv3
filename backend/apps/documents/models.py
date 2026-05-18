@@ -68,14 +68,15 @@ class Payment(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(
-        'applications.Application', on_delete=models.CASCADE, null=True, blank=True
-    )
-    user = models.ForeignKey('accounts.Profile', on_delete=models.CASCADE)
+        'applications.Application', on_delete=models.CASCADE, null=True, blank=True,
+        db_index=True,
+    )  # TODO: NOT NULL after orphan-payment cleanup migration
+    user = models.ForeignKey('accounts.Profile', on_delete=models.CASCADE, db_index=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, null=True, blank=True, default='ZMW')
     payment_method = models.CharField(max_length=50, null=True, blank=True)
     transaction_reference = models.CharField(max_length=100, null=True, blank=True)
-    status = models.CharField(max_length=20, default='pending', blank=True)
+    status = models.CharField(max_length=20, default='pending', blank=True, db_index=True)
     verified_by = models.ForeignKey(
         'accounts.Profile',
         on_delete=models.SET_NULL,
@@ -85,7 +86,7 @@ class Payment(models.Model):
         db_column='verified_by',
     )
     verified_at = models.DateTimeField(null=True, blank=True)
-    receipt_number = models.CharField(max_length=50, null=True, blank=True)
+    receipt_number = models.CharField(max_length=50, null=True, blank=True, unique=True)
     receipt_url = models.TextField(null=True, blank=True)
     metadata = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(null=True, blank=True)

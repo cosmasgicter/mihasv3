@@ -7,6 +7,7 @@ import {
   type EligibilityResult,
   type SubjectGrade,
 } from '@/lib/eligibilityEngine'
+import { logger } from '@/lib/logger'
 
 interface UseEligibilityCheckerProps {
   applicationId: string
@@ -90,7 +91,7 @@ export function useEligibilityChecker({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to check eligibility'
       setError(errorMessage)
-      console.error('Eligibility check failed:', err)
+      logger.error('Eligibility check failed:', err)
 
       // Provide advisory fallback so the student is never blocked
       setAssessment({

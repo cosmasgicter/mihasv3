@@ -175,7 +175,7 @@ class SessionRevokeAllView(APIView):
                 payload = verify_token(refresh_token, token_type="refresh")
                 blacklist_jti(payload.get("jti", ""))
             except Exception:
-                pass
+                logger.warning("Failed to blacklist current refresh token during revoke-all", exc_info=True)
 
         return Response({"success": True, "data": {"message": f"{updated} session(s) revoked"}})
 
@@ -198,4 +198,4 @@ def _try_blacklist_refresh_for_session(request, session):
             payload = verify_token(refresh_token, token_type="refresh")
             blacklist_jti(payload.get("jti", ""))
         except Exception:
-            pass
+            logger.warning("Failed to blacklist refresh token for revoked session", exc_info=True)

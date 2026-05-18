@@ -15,34 +15,40 @@ interface ApplicationSlipActionsProps {
 }
 
 function buildSlipPayload(
-  application: Record<string, any>,
+  application: Record<string, unknown>,
   fallbackEmail?: string,
   userId?: string,
   applicationId?: string
 ): ApplicationSlipData | null {
-  const email = application.email || fallbackEmail
-  const trackingCode = application.public_tracking_code
+  const getString = (value: unknown): string | undefined =>
+    typeof value === 'string' ? value : undefined
+  const getNullableString = (value: unknown): string | null =>
+    typeof value === 'string' ? value : null
 
-  if (!email || !trackingCode || !application.application_number) return null
+  const email = getString(application.email) || fallbackEmail
+  const trackingCode = getString(application.public_tracking_code)
+  const applicationNumber = getString(application.application_number)
+
+  if (!email || !trackingCode || !applicationNumber) return null
 
   return {
-    application_id: applicationId || application.id || undefined,
+    application_id: applicationId || getString(application.id),
     public_tracking_code: trackingCode,
-    application_number: application.application_number,
-    status: application.status || 'submitted',
-    payment_status: application.payment_status ?? null,
-    submitted_at: application.submitted_at ?? null,
-    updated_at: application.updated_at ?? null,
-    program_name: application.program ?? application.program_name ?? null,
-    intake_name: application.intake ?? application.intake_name ?? null,
-    institution: application.institution ?? null,
-    institution_name: application.institution_name ?? null,
-    full_name: application.full_name ?? null,
+    application_number: applicationNumber,
+    status: getString(application.status) || 'submitted',
+    payment_status: getNullableString(application.payment_status),
+    submitted_at: getNullableString(application.submitted_at),
+    updated_at: getNullableString(application.updated_at),
+    program_name: getNullableString(application.program) ?? getNullableString(application.program_name),
+    intake_name: getNullableString(application.intake) ?? getNullableString(application.intake_name),
+    institution: getNullableString(application.institution),
+    institution_name: getNullableString(application.institution_name),
+    full_name: getNullableString(application.full_name),
     email,
-    phone: application.phone ?? null,
-    nationality: application.nationality ?? null,
-    admin_feedback: application.admin_feedback ?? null,
-    admin_feedback_date: application.admin_feedback_date ?? null,
+    phone: getNullableString(application.phone),
+    nationality: getNullableString(application.nationality),
+    admin_feedback: getNullableString(application.admin_feedback),
+    admin_feedback_date: getNullableString(application.admin_feedback_date),
     userId,
   }
 }
@@ -61,7 +67,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
     const application = response?.application
     if (!application) throw new Error('Application details are unavailable')
 
-    const payload = buildSlipPayload(application as Record<string, any>, user?.email, user?.id, applicationId)
+    const payload = buildSlipPayload(application as Record<string, unknown>, user?.email, user?.id, applicationId)
     if (!payload) throw new Error('Missing application details required for the slip')
 
     if (targetEmail) payload.email = targetEmail

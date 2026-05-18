@@ -10,6 +10,7 @@ import logging
 import re
 from datetime import timedelta
 
+from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
@@ -201,46 +202,62 @@ class InterviewService:
         Raises:
             InterviewSchedulingError: If validation fails.
         """
-        # --- 1. Validate scheduling constraints ---
-        validation = InterviewService.validate_scheduling(
-            application, scheduled_at, admin_id
-        )
-
-        # --- 2. Validate mode ---
-        InterviewService._validate_mode(mode, location, notes)
-
-        now = timezone.now()
-
-        # --- 3. Create interview ---
-        interview = ApplicationInterview.objects.create(
-            application_id=application.id,
-            scheduled_at=scheduled_at,
-            mode=mode,
-            location=location or "",
-            status="scheduled",
-            notes=notes or "",
-            created_by_id=admin_id,
-            updated_by_id=admin_id,
-            created_at=now,
-            updated_at=now,
-        )
-
-        # --- 4. Auto-transition to under_review (Req 2.11) ---
-        if application.status == "submitted":
+        # Wrap the entire schedule operation in a transaction with a row-level
+        # lock on the application to prevent concurrent admins from creating
+        # duplicate interviews or racing on the auto-transition.
+        with transaction.atomic():
+            # Lock the application row for the duration of this transaction.
             try:
-                transition_application_status(
-                    application=application,
-                    new_status="under_review",
-                    changed_by=admin_id,
-                    notes="Auto-transitioned to under_review on interview scheduling.",
+                application = (
+                    Application.objects.select_for_update().get(pk=application.pk)
                 )
-            except ValueError:
-                logger.warning(
-                    "Failed to auto-transition app=%s to under_review",
-                    application.id,
+            except Application.DoesNotExist:
+                raise InterviewSchedulingError(
+                    "APPLICATION_NOT_FOUND",
+                    "Application not found.",
                 )
 
-        # --- 5. Send notification (Req 2.5) ---
+            # --- 1. Validate scheduling constraints (re-checked under lock) ---
+            validation = InterviewService.validate_scheduling(
+                application, scheduled_at, admin_id
+            )
+
+            # --- 2. Validate mode ---
+            InterviewService._validate_mode(mode, location, notes)
+
+            now = timezone.now()
+
+            # --- 3. Create interview ---
+            interview = ApplicationInterview.objects.create(
+                application_id=application.id,
+                scheduled_at=scheduled_at,
+                mode=mode,
+                location=location or "",
+                status="scheduled",
+                notes=notes or "",
+                created_by_id=admin_id,
+                updated_by_id=admin_id,
+                created_at=now,
+                updated_at=now,
+            )
+
+            # --- 4. Auto-transition to under_review (Req 2.11) ---
+            if application.status == "submitted":
+                try:
+                    transition_application_status(
+                        application=application,
+                        new_status="under_review",
+                        changed_by=admin_id,
+                        notes="Auto-transitioned to under_review on interview scheduling.",
+                    )
+                except ValueError:
+                    logger.warning(
+                        "Failed to auto-transition app=%s to under_review",
+                        application.id,
+                    )
+
+        # --- 5. Send notification (Req 2.5) — outside the transaction so
+        # the email/SMS dispatch failure can't roll back the interview record.
         _send_interview_notification(
             application, interview, template="interview_scheduled"
         )

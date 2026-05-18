@@ -11,9 +11,8 @@ The design requires the following indexes on `payments`:
     - idx_payments_user_status
     - idx_payments_status_created_at
 
-And on `webhook_event_logs`:
+    And on `webhook_event_logs`:
     - uq_webhook_processed_reference_event          (partial unique)
-    - idx_webhook_provider_event_id
 
 These indexes are created by the SQL scripts under backend/scripts/ (the
 `payment_hardening_*.sql` files) and are enforced as a hard invariant by the
@@ -42,7 +41,6 @@ EXPECTED_INDEXES: dict[str, set[str]] = {
     },
     "webhook_event_logs": {
         "uq_webhook_processed_reference_event",
-        "idx_webhook_provider_event_id",
     },
 }
 

@@ -14,6 +14,7 @@ import {
   terminateSessionById,
 } from '@/services/sessionService'
 import { useToastStore } from '@/hooks/useToast'
+import { logger } from '@/lib/logger'
 
 const isDeviceSession = (value: unknown): value is DeviceSession => {
   if (!value || typeof value !== 'object') return false
@@ -104,7 +105,7 @@ export function ActiveSessions() {
       setHasSessionAccessIssue(Boolean(result.accessIssue))
       setLastSyncedAt(new Date().toISOString())
     } catch (error) {
-      console.error('Failed to load sessions:', error)
+      logger.error('Failed to load sessions:', error)
       setSessions([])
       setHasSessionAccessIssue(false)
     } finally {
@@ -141,7 +142,7 @@ export function ActiveSessions() {
         addToast('error', result.error || 'Failed to terminate the selected session')
       }
     } catch (error) {
-      console.error('Failed to terminate session:', error)
+      logger.error('Failed to terminate session:', error)
       addToast('error', 'Failed to terminate the selected session')
     } finally {
       setTerminating(null)
@@ -175,7 +176,7 @@ export function ActiveSessions() {
         addToast('error', result.error || 'Failed to terminate sessions. Please try again.')
       }
     } catch (error) {
-      console.error('Failed to terminate all sessions:', error)
+      logger.error('Failed to terminate all sessions:', error)
       addToast('error', 'Failed to terminate sessions. Please try again.')
     } finally {
       setTerminatingAll(false)

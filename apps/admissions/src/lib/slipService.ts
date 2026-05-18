@@ -49,7 +49,7 @@ export async function createApplicationSlip(
 
     // Always generate locally via @react-pdf/renderer
     const blob = await generateApplicationSlip(data).catch((err: unknown) => {
-      console.error('Slip generation error:', err)
+      logger.error('Slip generation error:', err)
       const message = err instanceof Error ? err.message : 'Unknown error'
       throw new Error(`Failed to generate PDF: ${message}`)
     })
@@ -65,7 +65,7 @@ export async function createApplicationSlip(
       logger.info('[slipService] Persist result:', uploadResult)
       if (!uploadResult.success) {
         uploadError = uploadResult.error || 'Unable to store application slip'
-        console.error('[slipService] Upload failed:', uploadError)
+        logger.error('[slipService] Upload failed:', uploadError)
         toast?.showWarning?.('Slip not stored', 'We could not store your slip automatically. You can still download it below.')
       } else {
         publicUrl = uploadResult.publicUrl
@@ -77,7 +77,7 @@ export async function createApplicationSlip(
       }
     } catch (storageError) {
       uploadError = storageError instanceof Error ? storageError.message : 'Failed to persist application slip'
-      console.error('Application slip storage error:', sanitizeForLog(uploadError))
+      logger.error('Application slip storage error:', sanitizeForLog(uploadError))
       toast?.showWarning?.('Storage issue', 'We could not store your slip automatically. You can still download it below.')
     }
 
@@ -125,7 +125,7 @@ export async function createApplicationSlip(
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to create application slip'
-    console.error('Application slip generation failed:', sanitizeForLog(message))
+    logger.error('Application slip generation failed:', sanitizeForLog(message))
     return { error: message }
   }
 }

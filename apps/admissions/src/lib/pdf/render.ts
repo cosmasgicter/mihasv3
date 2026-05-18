@@ -17,6 +17,7 @@ import type { ReactElement } from 'react'
 import { sanitizeForLog } from '../security'
 
 import { registerPdfFonts } from './theme'
+import { logger } from '@/lib/logger'
 
 export async function renderToBlob(
   element: ReactElement<DocumentProps>,
@@ -34,7 +35,7 @@ export async function renderToBlob(
     return new Blob([await buffer.arrayBuffer()], { type: 'application/pdf' })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    console.error('[pdf] renderToBlob failed:', sanitizeForLog(message))
+    logger.error('[pdf] renderToBlob failed:', sanitizeForLog(message))
     throw new Error(`PDF rendering failed: ${message}`)
   }
 }

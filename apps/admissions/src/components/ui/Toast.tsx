@@ -319,7 +319,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
                 'mt-2 inline-flex items-center gap-1.5 text-sm font-medium',
                 'rounded-md px-3 py-1.5 transition-colors',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring',
-                'bg-destructive/10 hover:bg-destructive/20 text-destructive min-h-touch min-w-touch'
+                'bg-destructive/10 hover:bg-destructive/20 text-destructive min-h-[44px] min-w-[44px] min-h-touch min-w-touch'
               )}
             >
               <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />

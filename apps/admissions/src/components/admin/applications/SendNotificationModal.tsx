@@ -8,6 +8,7 @@ import {
   DialogFooter 
 } from '@/components/ui/Dialog'
 import { Send } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 interface SendNotificationModalProps {
   show: boolean
@@ -39,7 +40,7 @@ export function SendNotificationModal({
       setMessage('')
       onClose()
     } catch (error) {
-      console.error('Failed to send notification:', error)
+      logger.error('Failed to send notification:', error)
     } finally {
       setSending(false)
     }

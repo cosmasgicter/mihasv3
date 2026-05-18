@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { QueryObserverResult, RefetchOptions } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import { authService } from '@/services/auth'
 import type { User, UserProfile } from '@/types/auth'
@@ -27,7 +28,7 @@ type ProfileQueryResult = {
   isLoading: boolean
   isFetching: boolean
   error: unknown
-  refetch: () => Promise<any>
+  refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<UserProfile | null, Error>>
   updateProfile: (updates: ProfileUpdate) => Promise<UserProfile>
   updatingProfile: boolean
   updateError: unknown

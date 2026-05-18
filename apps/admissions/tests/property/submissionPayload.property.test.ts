@@ -67,7 +67,10 @@ const formDataArb = fc.record({
   full_name: fc.string({ minLength: 1, maxLength: 50 }),
   email: fc.emailAddress(),
   phone: fc.string({ minLength: 5, maxLength: 20 }),
-  date_of_birth: fc.date({ min: new Date('1950-01-01'), max: new Date('2010-01-01') }).map(d => d.toISOString().split('T')[0]),
+  date_of_birth: fc
+    .date({ min: new Date('1950-01-01'), max: new Date('2010-01-01') })
+    .filter((date) => Number.isFinite(date.getTime()))
+    .map((date) => date.toISOString().split('T')[0]),
   sex: fc.constantFrom('Male', 'Female'),
   residence_town: fc.string({ minLength: 1, maxLength: 50 }),
   country: fc.constantFrom('Zambia', 'Zimbabwe', 'South Africa', 'Kenya'),

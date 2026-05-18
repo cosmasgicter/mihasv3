@@ -7,6 +7,7 @@
 
 import { sanitizeForLog } from './security'
 import { apiClient } from '@/services/client'
+import { logger } from '@/lib/logger'
 
 export interface UploadResult {
   success: boolean
@@ -98,7 +99,7 @@ async function uploadDocument(
       url: uploaded.file_url,
     }
   } catch (error) {
-    console.error('Upload error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
+    logger.error('Upload error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
     const message = error instanceof Error ? error.message : 'Upload failed'
     const lowerMessage = message.toLowerCase()
     return {
@@ -145,7 +146,7 @@ export async function uploadApplicationFile(
 
     return uploadDocument(file, applicationId, fileType)
   } catch (error) {
-    console.error('Upload error:', error)
+    logger.error('Upload error:', error)
     const message = error instanceof Error ? error.message : 'Upload failed'
     const lowerMessage = message.toLowerCase()
     const retryable =
@@ -228,7 +229,7 @@ export async function uploadFile(
       retryable: false,
     }
   } catch (error) {
-    console.error('Upload error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
+    logger.error('Upload error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Upload failed'
@@ -248,7 +249,7 @@ export async function deleteFile(bucket: string, path: string): Promise<{ succes
     })
     return { success: true }
   } catch (error) {
-    console.error('Delete error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
+    logger.error('Delete error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Delete failed'
@@ -273,7 +274,7 @@ export async function getFileUrl(bucket: string, path: string): Promise<{ succes
       url: result?.url,
     }
   } catch (error) {
-    console.error('Get URL error:', error)
+    logger.error('Get URL error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get URL'
@@ -315,7 +316,7 @@ export async function downloadFile(bucket: string, path: string): Promise<{ succ
       error: 'Download returned empty response'
     }
   } catch (error) {
-    console.error('Download error:', error)
+    logger.error('Download error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Download failed'
@@ -326,17 +327,17 @@ export async function downloadFile(bucket: string, path: string): Promise<{ succ
 /**
  * List files via API
  */
-export async function listFiles(bucket: string, folder?: string): Promise<{ success: boolean; files?: any[]; error?: string }> {
+export async function listFiles(bucket: string, folder?: string): Promise<{ success: boolean; files?: Record<string, unknown>[]; error?: string }> {
   void bucket
   try {
     const params = folder ? `?folder=${encodeURIComponent(folder)}` : ''
-    const result = await apiClient.request<any[]>(`/documents/${params}`)
+    const result = await apiClient.request<Record<string, unknown>[]>(`/documents/${params}`)
     return {
       success: true,
       files: result ?? [],
     }
   } catch (error) {
-    console.error('List error:', error)
+    logger.error('List error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'List failed'
@@ -356,17 +357,17 @@ export async function ensureBucketExists(bucketName: string): Promise<{ success:
 /**
  * Get file info via API
  */
-export async function getFileInfo(bucket: string, path: string): Promise<{ success: boolean; info?: any; error?: string }> {
+export async function getFileInfo(bucket: string, path: string): Promise<{ success: boolean; info?: Record<string, unknown>; error?: string }> {
   void bucket
   try {
     const encodedPath = encodeURIComponent(path)
     const result = await apiClient.request<Record<string, unknown>>(`/documents/${encodedPath}/info/`)
     return {
       success: true,
-      info: result,
+      info: result ?? undefined,
     }
   } catch (error) {
-    console.error('File info error:', error)
+    logger.error('File info error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get file info'

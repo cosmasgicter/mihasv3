@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { AuthenticationError } from '@/services/client'
+import { logger } from '@/lib/logger'
 
 interface UseSmartAutoSaveProps {
   onSave: (context?: { isManual: boolean }) => Promise<void>
-  watchValues: () => any
+  watchValues: () => Record<string, unknown>
   enabled?: boolean
   interval?: number
 }
@@ -23,7 +24,7 @@ export const useSmartAutoSave = ({
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [changedFields, setChangedFields] = useState<string[]>([])
   const [isAuthExpired, setIsAuthExpired] = useState(false)
-  const previousValues = useRef<any>(null)
+  const previousValues = useRef<Record<string, unknown> | null>(null)
   const currentValues = watchValues()
   const debouncedValues = useDebounce(currentValues, 2000)
 
@@ -42,10 +43,10 @@ export const useSmartAutoSave = ({
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('mihas:auth-expired'))
         }
-        console.error('Auto-save auth expired:', error.message)
+        logger.error('Auto-save auth expired:', error.message)
         return
       }
-      console.error('Auto-save error:', error)
+      logger.error('Auto-save error:', error)
     }
   })
 
@@ -71,8 +72,9 @@ export const useSmartAutoSave = ({
     }
 
     const changed: string[] = []
+    const previousValuesSnapshot = previousValues.current
     Object.keys(currentValues).forEach(key => {
-      if (JSON.stringify(currentValues[key]) !== JSON.stringify(previousValues.current[key])) {
+      if (JSON.stringify(currentValues[key]) !== JSON.stringify(previousValuesSnapshot?.[key])) {
         changed.push(key)
       }
     })

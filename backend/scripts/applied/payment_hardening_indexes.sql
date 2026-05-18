@@ -16,9 +16,16 @@ ON payments (status, created_at);
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_payments_application_status
 ON payments (application_id, status);
 
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_payments_user_status
+ON payments (user_id, status);
+
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_payments_lenco_reference_present
 ON payments (lenco_reference)
 WHERE lenco_reference IS NOT NULL AND lenco_reference <> '';
+
+CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uq_payments_receipt_number
+ON payments (receipt_number)
+WHERE receipt_number IS NOT NULL AND receipt_number <> '';
 
 CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uq_webhook_processed_reference_event
 ON webhook_event_logs (reference, event_type)

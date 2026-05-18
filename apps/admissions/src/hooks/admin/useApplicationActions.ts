@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { applicationService } from '@/services/applications'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { invalidateAdminApplicationQueries } from './applicationQueryInvalidation'
+import { logger } from '@/lib/logger'
 
 export function useApplicationActions() {
   const [updating, setUpdating] = useState<string | null>(null)
@@ -17,7 +18,7 @@ export function useApplicationActions() {
 
       await invalidateAdminApplicationQueries(queryClient, { applicationId })
     } catch (error) {
-      console.error('Error updating application status:', error)
+      logger.error('Error updating application status:', error)
       throw error
     } finally {
       setUpdating(null)
@@ -39,7 +40,7 @@ export function useApplicationActions() {
 
       await invalidateAdminApplicationQueries(queryClient)
     } catch (error) {
-      console.error('Error deleting application:', error)
+      logger.error('Error deleting application:', error)
       throw error
     } finally {
       setUpdating(null)
@@ -52,7 +53,7 @@ export function useApplicationActions() {
       await applicationService.sendNotification(applicationId, notification)
       await invalidateAdminApplicationQueries(queryClient, { applicationId })
     } catch (error) {
-      console.error('Error sending notification:', error)
+      logger.error('Error sending notification:', error)
       throw error
     } finally {
       setLoading(false)
@@ -71,7 +72,7 @@ export function useApplicationActions() {
 
       await invalidateAdminApplicationQueries(queryClient, { applicationId })
     } catch (error) {
-      console.error('Error submitting feedback:', error)
+      logger.error('Error submitting feedback:', error)
       throw error
     } finally {
       setLoading(false)

@@ -58,9 +58,9 @@ export interface PreferenceAuditEntry {
   user_id: string
   action: 'opt_in' | 'opt_out' | 'update_settings' | 'initialize' | 'delete_all'
   channel: string
-  previous_value?: any
-  new_value?: any
-  metadata?: Record<string, any>
+  previous_value?: unknown
+  new_value?: unknown
+  metadata?: Record<string, unknown>
   ip_address?: string
   user_agent?: string
   source: string

@@ -4,6 +4,7 @@ import { UserStatsSummary } from '@/types/users'
 import { userService, type AdminUserRecord } from '@/services/admin/users'
 import { usersData } from '@/data/users'
 import { sanitizeForLog } from '@/lib/sanitize'
+import { logger } from '@/lib/logger'
 
 interface CreateUserData {
   email: string
@@ -43,7 +44,7 @@ export function useUserManagement() {
       return (response?.data as UserProfile) ?? null
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create user'
-      console.error('Failed to create user:', sanitizeForLog(errorMessage))
+      logger.error('Failed to create user:', sanitizeForLog(errorMessage))
       setError(errorMessage)
       return null
     } finally {
@@ -60,7 +61,7 @@ export function useUserManagement() {
       return true
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update user'
-      console.error('Failed to update user:', sanitizeForLog(errorMessage))
+      logger.error('Failed to update user:', sanitizeForLog(errorMessage))
       setError(errorMessage)
       return false
     } finally {
@@ -77,7 +78,7 @@ export function useUserManagement() {
       return true
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete user'
-      console.error('Failed to delete user:', sanitizeForLog(errorMessage))
+      logger.error('Failed to delete user:', sanitizeForLog(errorMessage))
       setError(errorMessage)
       return false
     } finally {
@@ -108,7 +109,7 @@ export function useUserManagement() {
       return result
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Bulk operation failed'
-      console.error('Bulk role update failed:', sanitizeForLog(errorMessage))
+      logger.error('Bulk role update failed:', sanitizeForLog(errorMessage))
       setError(errorMessage)
       return result
     } finally {
@@ -136,7 +137,7 @@ export function useUserManagement() {
       return result
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Bulk delete failed'
-      console.error('Bulk delete failed:', sanitizeForLog(errorMessage))
+      logger.error('Bulk delete failed:', sanitizeForLog(errorMessage))
       setError(errorMessage)
       return result
     } finally {
@@ -160,7 +161,7 @@ export function useUserManagement() {
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to get user stats'
-      console.error('Failed to get user stats:', sanitizeForLog(errorMessage))
+      logger.error('Failed to get user stats:', sanitizeForLog(errorMessage))
       return null
     }
   }, [])
@@ -176,7 +177,7 @@ export function useUserManagement() {
       return result?.users ?? []
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to search users'
-      console.error('Failed to search users:', sanitizeForLog(errorMessage))
+      logger.error('Failed to search users:', sanitizeForLog(errorMessage))
       setError(errorMessage)
       return []
     }

@@ -101,6 +101,7 @@ except ImportError as exc:  # pragma: no cover - env safety net
 
 django.setup()
 
+from django.core.exceptions import ValidationError  # noqa: E402
 from django.db import transaction  # noqa: E402
 from django.db.models import Q  # noqa: E402
 from django.utils import timezone  # noqa: E402
@@ -159,7 +160,7 @@ def _is_ambiguous(application: Application) -> tuple[bool, str]:
     try:
         Program.objects.get(id=program_code, is_active=True)
         return False, ""
-    except (Program.DoesNotExist, ValueError):
+    except (Program.DoesNotExist, ValueError, ValidationError):
         return True, f"program '{program_code}' does not match an active Program"
 
 

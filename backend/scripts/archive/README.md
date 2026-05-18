@@ -1,22 +1,37 @@
 # Archived SQL Scripts
 
-These SQL scripts have been **fully applied to production** and are kept here for historical reference only. They should **not** be re-run against any environment.
+This directory contains SQL scripts that were archived after application to
+production. Only files physically present in this directory can currently be
+verified from the checkout.
 
 ## Archived Scripts
 
 | Script | Purpose | Applied |
 |--------|---------|---------|
 | `add_missing_payment_columns.sql` | Added payment-related columns to the applications table (redundant with `lenco_payment_integration.sql`) | Pre-Lenco migration |
-| `lenco_payment_integration.sql` | Created `program_fees` and `webhook_event_logs` tables, added payment columns to `payments` and `applications` | Lenco payment integration |
-| `business_logic_densification.sql` | Created `application_conditions`, `communication_templates`, `academic_calendar_events`, `fee_waivers`, `application_amendments` tables with indexes and seed data | Business logic densification phase |
-| `add_audit_log_encrypted_network_context.sql` | Added encrypted network context column to `audit_logs` | Security hardening audit |
-| `drop_program_fee_full_unique.sql` | Dropped a unique constraint on `program_fees` | Fee model refinement |
-| `add_outbox_events.sql` | Created the `outbox_events` table for transactional outbox pattern | Outbox pattern implementation |
-| `create_error_logs_table.sql` | Created the `error_logs` table (now deprecated — replaced by GlitchTip) | Error monitoring setup |
+Only `add_missing_payment_columns.sql` is present in this checkout on
+2026-05-18.
+
+## Historical Scripts Referenced But Missing
+
+The following files are referenced by prior audits/manifests but are not
+currently present on disk, so they cannot truthfully be described as archived
+until recovered:
+
+- `lenco_payment_integration.sql`
+- `business_logic_densification.sql`
+- `add_audit_log_encrypted_network_context.sql`
+- `drop_program_fee_full_unique.sql`
+- `add_outbox_events.sql`
+- `create_error_logs_table.sql`
 
 ## Why These Are Archived
 
-These scripts were identified during the April 2026 full repository audit (SSP-008 through SSP-014 in `AUDIT-REPORT-2026-04-24.md`) as fully applied and stale. Moving them here reduces confusion about which scripts are active and prevents accidental re-execution.
+The April 2026 full repository audit (SSP-008 through SSP-014 in
+`AUDIT-REPORT-2026-04-24.md`) identifies the historical scripts above as
+applied/stale. Because six source files are missing from the present checkout,
+the next database archaeology pass should recover them from git history or
+Neon executed-DDL logs before this archive is considered complete.
 
 ## Active Scripts
 

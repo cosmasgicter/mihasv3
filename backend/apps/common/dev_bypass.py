@@ -90,6 +90,13 @@ def _iter_candidate_mappings(request: Any) -> Iterable[tuple[str, Any]]:
         yield "query", get
 
     # DRF ``request.data`` (parsed body, when the view is DRF-based).
+    # Cache the raw Django body first so downstream HMAC-verifying views can
+    # still read the exact bytes after this detector inspects parsed data.
+    try:
+        raw_request = getattr(request, "_request", request)
+        _ = raw_request.body
+    except Exception:
+        pass
     try:
         data = getattr(request, "data", None)
     except Exception:  # pragma: no cover — DRF raises on unparseable body

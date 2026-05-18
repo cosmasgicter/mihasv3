@@ -8,6 +8,7 @@ Requirements: 14.1–14.8
 
 import logging
 
+from django.db import transaction
 from django.utils import timezone
 
 from apps.applications.models import Application, ApplicationAmendment, ApplicationStatusHistory
@@ -62,48 +63,62 @@ class AmendmentService:
         Raises:
             AmendmentError: If validation fails.
         """
-        application = Application.objects.get(id=application_id)
+        # Wrap the read-validate-create cycle in a transaction with a
+        # row-level lock on the application. This prevents concurrent
+        # amendment requests from each seeing pending_count < MAX and
+        # both succeeding past the cap.
+        with transaction.atomic():
+            try:
+                application = (
+                    Application.objects.select_for_update().get(id=application_id)
+                )
+            except Application.DoesNotExist:
+                raise AmendmentError(
+                    "APPLICATION_NOT_FOUND",
+                    "Application not found.",
+                )
 
-        # Validate status (Req 14.3)
-        if application.status not in AMENDABLE_STATUSES:
-            raise AmendmentError(
-                "INVALID_STATUS_FOR_AMENDMENT",
-                f"Amendments are only allowed from statuses: {', '.join(sorted(AMENDABLE_STATUSES))}.",
+            # Validate status (Req 14.3)
+            if application.status not in AMENDABLE_STATUSES:
+                raise AmendmentError(
+                    "INVALID_STATUS_FOR_AMENDMENT",
+                    f"Amendments are only allowed from statuses: {', '.join(sorted(AMENDABLE_STATUSES))}.",
+                )
+
+            # Validate field is amendable (Req 14.4, 14.5)
+            if field_name not in AMENDABLE_FIELDS:
+                raise AmendmentError(
+                    "FIELD_NOT_AMENDABLE",
+                    f"Field '{field_name}' is not amendable. Amendable fields: {', '.join(sorted(AMENDABLE_FIELDS))}.",
+                )
+
+            # Check pending count under the same lock (Req 14.9)
+            pending_count = ApplicationAmendment.objects.filter(
+                application_id=application_id,
+                status="pending",
+            ).count()
+
+            if pending_count >= MAX_PENDING_AMENDMENTS:
+                raise AmendmentError(
+                    "MAX_PENDING_AMENDMENTS",
+                    f"Maximum of {MAX_PENDING_AMENDMENTS} pending amendments allowed per application.",
+                )
+
+            # Get old value
+            old_value = str(getattr(application, field_name, "") or "")
+
+            # Create amendment in the same transaction
+            amendment = ApplicationAmendment.objects.create(
+                application_id=application_id,
+                field_name=field_name,
+                old_value=old_value,
+                new_value=new_value,
+                reason=reason,
+                status="pending",
             )
 
-        # Validate field is amendable (Req 14.4, 14.5)
-        if field_name not in AMENDABLE_FIELDS:
-            raise AmendmentError(
-                "FIELD_NOT_AMENDABLE",
-                f"Field '{field_name}' is not amendable. Amendable fields: {', '.join(sorted(AMENDABLE_FIELDS))}.",
-            )
-
-        # Check pending count (Req 14.9)
-        pending_count = ApplicationAmendment.objects.filter(
-            application_id=application_id,
-            status="pending",
-        ).count()
-
-        if pending_count >= MAX_PENDING_AMENDMENTS:
-            raise AmendmentError(
-                "MAX_PENDING_AMENDMENTS",
-                f"Maximum of {MAX_PENDING_AMENDMENTS} pending amendments allowed per application.",
-            )
-
-        # Get old value
-        old_value = str(getattr(application, field_name, "") or "")
-
-        # Create amendment
-        amendment = ApplicationAmendment.objects.create(
-            application_id=application_id,
-            field_name=field_name,
-            old_value=old_value,
-            new_value=new_value,
-            reason=reason,
-            status="pending",
-        )
-
-        # Notify admins (Req 14.6)
+        # Notify admins (Req 14.6) — outside the transaction so a notification
+        # failure does not roll back the persisted amendment.
         _notify_admins_of_amendment(application, amendment)
 
         logger.info(

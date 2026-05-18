@@ -1,5 +1,6 @@
 import { apiClient } from '../client'
 import { logApiError } from '@/lib/apiErrorLogger'
+import { logger } from '@/lib/logger'
 
 export type AdminDashboardStatusBreakdown = Record<string, number>
 
@@ -462,11 +463,9 @@ export const adminDashboardService = {
       const expectedKeys = ['applications', 'users', 'recent_activity'] as const
       const missingKeys = expectedKeys.filter(key => !(key in raw))
       if (missingKeys.length > 0) {
-        console.warn(
-          '[admin-dashboard] Response shape mismatch — missing expected keys:',
-          missingKeys,
-          '— received keys:',
-          Object.keys(raw)
+        logger.warn(
+          '[admin-dashboard] Response shape mismatch — missing expected keys',
+          { missingKeys, receivedKeys: Object.keys(raw) }
         )
       }
 

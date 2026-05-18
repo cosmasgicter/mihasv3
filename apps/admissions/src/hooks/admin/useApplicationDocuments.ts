@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { applicationService } from '@/services/applications'
+import { logger } from '@/lib/logger'
 
 interface DocumentInfo {
   id: string
@@ -23,7 +24,7 @@ export function useApplicationDocuments() {
       const response = await applicationService.getDocuments(applicationId) as DocumentInfo[] | undefined
       setDocuments(response || [])
     } catch (error) {
-      console.error('Error fetching documents:', error)
+      logger.error('Error fetching documents:', error)
       setDocuments([])
     } finally {
       setLoading(false)

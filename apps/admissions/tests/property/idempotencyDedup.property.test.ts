@@ -97,7 +97,7 @@ const uuidArb = fc.uuid()
 const payloadArb = fc.record({
   id: fc.uuid(),
   status: fc.constantFrom('submitted', 'approved', 'rejected', 'draft'),
-  updated_at: fc.date().map((d) => d.toISOString()),
+  updated_at: fc.date().filter((date) => Number.isFinite(date.getTime())).map((d) => d.toISOString()),
   data: fc.dictionary(fc.string({ minLength: 1, maxLength: 10 }), fc.oneof(fc.string(), fc.integer(), fc.boolean())),
 })
 

@@ -1,6 +1,7 @@
 import { applicationSessionManager, type DraftDeleteResult } from './applicationSession'
 import { KNOWN_DRAFT_STORAGE_KEYS, removeDraftStorageEntries } from './draftStorageKeys'
 import { sanitizeForLog } from './sanitize'
+import { logger } from '@/lib/logger'
 
 const DRAFT_CONTENT_KEYS = [
   'applicationDraft',
@@ -118,7 +119,7 @@ export class DraftManager {
       // Check for any other draft-related keys
       return this.getDraftKeys(localStorage).length > 0
     } catch (error) {
-      console.error('Error checking for drafts:', sanitizeForLog(error))
+      logger.error('Error checking for drafts:', sanitizeForLog(error))
       return false
     }
   }
@@ -132,7 +133,7 @@ export class DraftManager {
       removeDraftStorageEntries(localStorage)
       localStorage.removeItem('draftDeleted')
     } catch (error) {
-      console.error('Force clean failed:', sanitizeForLog(error))
+      logger.error('Force clean failed:', sanitizeForLog(error))
     }
   }
 }
@@ -166,7 +167,7 @@ export const clearAllDraftData = (): boolean => {
 
     return true;
   } catch (error) {
-    console.error('Error clearing draft data:', error);
+    logger.error('Error clearing draft data:', error);
     return false;
   }
 };

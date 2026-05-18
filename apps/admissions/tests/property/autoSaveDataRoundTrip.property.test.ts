@@ -47,7 +47,10 @@ const draftDataArb = fc.record({
   nrc_number: nrcArb,
   phone: zambianPhoneArb,
   email: fc.emailAddress(),
-  date_of_birth: fc.date({ min: new Date('1950-01-01'), max: new Date('2010-12-31') }).map(d => d.toISOString().split('T')[0]),
+  date_of_birth: fc
+    .date({ min: new Date('1950-01-01'), max: new Date('2010-12-31') })
+    .filter((date) => Number.isFinite(date.getTime()))
+    .map((date) => date.toISOString().split('T')[0]),
   gender: fc.constantFrom('male', 'female', 'other'),
   nationality: fc.constantFrom('Zambian', 'Zimbabwean', 'Malawian', 'Tanzanian', 'Congolese'),
   address: fc.string({ minLength: 1, maxLength: 200 }),

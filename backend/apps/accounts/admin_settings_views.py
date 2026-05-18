@@ -404,6 +404,7 @@ class AdminSettingsImportView(APIView):
                 Setting.objects.update_or_create(key=validated["key"], defaults=defaults)
                 imported.append(validated["key"])
             except Exception as exc:
+                logger.warning("Failed to import admin setting %s", key, exc_info=True)
                 errors.append(f"{key}: {exc}")
 
         return Response({"success": True, "data": {"imported": imported, "errors": errors}})
@@ -434,4 +435,3 @@ class AdminSettingsResetView(APIView):
                 "restored": len(created_settings),
             },
         })
-

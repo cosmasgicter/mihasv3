@@ -51,7 +51,7 @@ def on_task_postrun(sender=None, task_id=None, task=None, **kwargs):
         )
         # Write last-run timestamp for missed-task detection
         from django.core.cache import cache
-        cache.set(f"task_last_run:{task.name}", time.time(), timeout=None)
+        cache.set(f"task_last_run:{task.name}", time.time(), timeout=86400)
     except Exception:
         pass
 

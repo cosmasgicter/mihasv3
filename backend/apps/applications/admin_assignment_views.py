@@ -347,6 +347,7 @@ class ApplicationFeeWaiverView(APIView):
         tags=["applications"],
         summary="Grant a fee waiver (super-admin only)",
     )
+    @idempotent
     def post(self, request, application_id):
         from apps.documents.fee_waiver_service import FeeWaiverError, FeeWaiverService
 

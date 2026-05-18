@@ -212,7 +212,7 @@ export default function AdminDashboard() {
       void loadDashboardStats('manual')
     },
     onError: (err) => {
-      console.error('Manual refresh failed:', err)
+      logger.error('Manual refresh failed:', err)
       useToastStore.getState().addToast('error', 'Failed to refresh data')
     }
   })

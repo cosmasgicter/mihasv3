@@ -665,7 +665,7 @@ const useWizardController = (): UseWizardControllerResult => {
           )
           return
         }
-        console.error('Auto-fill error:', e)
+        logger.error('Auto-fill error:', e)
         showWarning('Auto-fill failed. Please enter grades manually.')
         await persistResultSlipUrl()
       }
@@ -1050,7 +1050,7 @@ const useWizardController = (): UseWizardControllerResult => {
         // 1. Check localStorage for local draft
         const draft = await applicationSessionManager.getLocalWizardDraft(user.id)
         if (draft && draft.formData && draft.version === 2) {
-          localDraft = draft as LocalDraftShape
+          localDraft = draft as unknown as LocalDraftShape
           localTimestamp = draft.savedAt ? new Date(draft.savedAt) : null
         } else if (localStorage.getItem('applicationWizardDraft')) {
           localStorage.removeItem('applicationWizardDraft')
@@ -1281,7 +1281,7 @@ const useWizardController = (): UseWizardControllerResult => {
           }
         }
       } catch (error) {
-        console.error('Error loading draft application:', { error: sanitizeForLog(toError(error).message) })
+        logger.error('Error loading draft application:', { error: sanitizeForLog(toError(error).message) })
       } finally {
         setRestoringDraft(false)
         setDraftLoaded(true)
@@ -1457,7 +1457,7 @@ const useWizardController = (): UseWizardControllerResult => {
         sessionStorage.removeItem('applicationWizardDraft')
         window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draft }))
       } catch (error) {
-        console.error('Error saving draft:', { error: sanitizeForLog(toError(error).message) })
+        logger.error('Error saving draft:', { error: sanitizeForLog(toError(error).message) })
       }
 
       if (syncServer && !applicationId && !createBlockedRef.current && navigator.onLine && canCreateServerDraft(formData)) {
@@ -1537,7 +1537,7 @@ const useWizardController = (): UseWizardControllerResult => {
             }
           } else {
             logApiError('application-wizard', 'POST /applications/', serverError)
-            console.warn('Server draft create failed, local draft retained:', sanitizeForLog(toError(serverError).message))
+            logger.warn('Server draft create failed, local draft retained:', sanitizeForLog(toError(serverError).message))
           }
         }
       }

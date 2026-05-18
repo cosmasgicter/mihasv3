@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { applicationService } from '@/services/applications'
+import { logger } from '@/lib/logger'
 
 interface StatusHistory {
   id: string
@@ -20,7 +21,7 @@ export function useApplicationStatusHistory() {
       const history: StatusHistory[] = response?.status_history || []
       setStatusHistory(history.sort((a: StatusHistory, b: StatusHistory) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
     } catch (error) {
-      console.error('Error fetching status history:', error)
+      logger.error('Error fetching status history:', error)
       setStatusHistory([])
     } finally {
       setLoading(false)

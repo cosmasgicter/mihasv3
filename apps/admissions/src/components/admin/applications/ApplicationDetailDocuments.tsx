@@ -20,7 +20,7 @@ function ViewDocButton({ doc }: { doc: DocumentItem }) {
     setLoading(true)
     try {
       const result = await documentService.getSignedUrl(doc.id)
-      const url = (result as any)?.url || doc.file_url
+      const url = result?.url || doc.file_url
       window.open(url, '_blank', 'noopener,noreferrer')
     } catch {
       showError('Document unavailable', 'The file link could not be prepared. Please refresh and try again.')
@@ -97,7 +97,7 @@ export function ApplicationDetailDocuments({ documents, loading, application }: 
 
   const getDocAgeBadge = (doc: DocumentItem) => {
     if (doc.verification_status !== 'pending') return null
-    const createdAt = (doc as any).created_at || (doc as any).uploaded_at
+    const createdAt = doc.created_at || doc.uploaded_at
     if (!createdAt) return null
     const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24))
     if (days > 5) return { label: `${days}d pending`, className: 'bg-red-100 text-red-800' }
@@ -155,11 +155,11 @@ export function ApplicationDetailDocuments({ documents, loading, application }: 
                 {doc.verification_notes && (
                   <p className="mt-2 break-words text-xs leading-5 text-muted-foreground">{doc.verification_notes}</p>
                 )}
-                {(doc as any).ecz_exam_number && (
+                {doc.ecz_exam_number && (
                   <p className="mt-2 text-xs text-muted-foreground">
                     <span className="font-medium">ECZ Exam:</span>{' '}
-                    {(doc as any).ecz_exam_number}
-                    {(doc as any).ecz_exam_year && ` (${(doc as any).ecz_exam_year})`}
+                    {doc.ecz_exam_number}
+                    {doc.ecz_exam_year && ` (${doc.ecz_exam_year})`}
                   </p>
                 )}
               </div>

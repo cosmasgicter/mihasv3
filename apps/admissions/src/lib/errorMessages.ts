@@ -221,7 +221,13 @@ export enum ErrorCategory {
   UNKNOWN = 'unknown',
 }
 
-export function getErrorMessage(error: any): ErrorMessage {
+interface ErrorLike {
+  message?: string
+  status?: number
+  details?: string
+}
+
+export function getErrorMessage(error: ErrorLike): ErrorMessage {
   if (error.message?.includes('fetch') || error.message?.includes('network')) {
     return { title: 'Connection Problem', description: 'We couldn\'t connect to the server.', action: 'retry', actionLabel: 'Try Again', technicalDetails: error.message };
   }
@@ -237,7 +243,7 @@ export function getErrorMessage(error: any): ErrorMessage {
   if (error.status === 404) {
     return { title: 'Not Found', description: 'The resource you\'re looking for doesn\'t exist.', action: '/', actionLabel: 'Go Home', technicalDetails: error.message };
   }
-  if (error.status >= 500) {
+  if (error.status && error.status >= 500) {
     return { title: 'Server Error', description: 'Something went wrong on our end.', action: 'retry', actionLabel: 'Try Again', technicalDetails: error.message };
   }
   if (error.message?.includes('timeout')) {
@@ -249,28 +255,28 @@ export function getErrorMessage(error: any): ErrorMessage {
   return { title: 'Something Went Wrong', description: 'An unexpected error occurred.', action: 'retry', actionLabel: 'Try Again', technicalDetails: error.message || JSON.stringify(error) };
 }
 
-export function getErrorCategory(error: any): ErrorCategory {
+export function getErrorCategory(error: ErrorLike): ErrorCategory {
   if (error.message?.includes('fetch') || error.message?.includes('network')) return ErrorCategory.NETWORK;
   if (error.status === 401) return ErrorCategory.AUTHENTICATION;
   if (error.status === 403) return ErrorCategory.AUTHORIZATION;
   if (error.status === 400) return ErrorCategory.VALIDATION;
   if (error.status === 404) return ErrorCategory.NOT_FOUND;
   if (error.status === 429) return ErrorCategory.RATE_LIMIT;
-  if (error.status >= 500) return ErrorCategory.SERVER;
+  if (error.status && error.status >= 500) return ErrorCategory.SERVER;
   if (error.message?.includes('timeout')) return ErrorCategory.TIMEOUT;
   return ErrorCategory.UNKNOWN;
 }
 
-export function formatError(error: any): ErrorMessage {
+export function formatError(error: ErrorLike): ErrorMessage {
   return getErrorMessage(error);
 }
 
-export function isRetryableError(error: any): boolean {
+export function isRetryableError(error: ErrorLike): boolean {
   const category = getErrorCategory(error);
   return [ErrorCategory.NETWORK, ErrorCategory.TIMEOUT, ErrorCategory.SERVER, ErrorCategory.RATE_LIMIT].includes(category);
 }
 
-export function getRetryDelay(error: any, attempt: number): number {
+export function getRetryDelay(error: ErrorLike, attempt: number): number {
   const category = getErrorCategory(error);
   const baseDelay = 1000;
   const maxDelay = 30000;

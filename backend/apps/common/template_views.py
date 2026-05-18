@@ -7,6 +7,7 @@ Requirements: 9.6
 import logging
 
 from rest_framework import serializers, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
@@ -65,6 +66,7 @@ class CommunicationTemplateUpdateResponseSerializer(serializers.Serializer):
 class CommunicationTemplateListView(APIView):
     """GET /api/v1/admin/templates/ — list all communication templates (admin only)."""
 
+    permission_classes = [IsAuthenticated]
     serializer_class = CommunicationTemplateSerializer
 
     def get_permissions(self):
@@ -85,6 +87,7 @@ class CommunicationTemplateListView(APIView):
 class CommunicationTemplateUpdateView(APIView):
     """PUT /api/v1/admin/templates/{key}/ — update a template by key (admin only)."""
 
+    permission_classes = [IsAuthenticated]
     serializer_class = CommunicationTemplateUpdateRequestSerializer
 
     def get_permissions(self):

@@ -28,7 +28,7 @@ const SelectTrigger = React.forwardRef<
     aria-invalid={error ? "true" : "false"}
     className={cn(
       // Touch target compliance - 44px minimum height
-      "flex min-h-touch w-full items-start justify-between sm:items-center",
+      "flex min-h-[44px] min-h-touch w-full items-start justify-between sm:items-center",
       // Styling
       "rounded-md border bg-background px-3 py-2",
       // Border color - normal vs error state

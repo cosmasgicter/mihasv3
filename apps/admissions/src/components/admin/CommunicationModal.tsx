@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui'
 import { Alert } from '@/components/ui/Alert'
 import { Mail, MessageSquare, Phone, Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 interface CommunicationModalProps {
   open: boolean
@@ -149,7 +150,7 @@ export function CommunicationModal({ open, onOpenChange, applicant, onSend }: Co
         onOpenChange(false)
       }, 1500)
     } catch (err) {
-      console.error('Error sending message:', err)
+      logger.error('Error sending message:', err)
       setError(err instanceof Error ? err.message : 'Failed to send message')
     } finally {
       setSending(false)

@@ -28,6 +28,7 @@ import type {
   Grade,
 } from './applicationDetailTypes'
 import { getInstitutionName } from './applicationDetailTypes'
+import { logger } from '@/lib/logger'
 
 interface ApplicationDetailModalProps {
  application: ApplicationWithDetails | null
@@ -359,7 +360,7 @@ export function ApplicationDetailModal({
  setIsGeneratingAcceptance(true)
  await onGenerateAcceptanceLetter()
  } catch (error) {
- console.error('Failed to generate acceptance letter:', error)
+ logger.error('Failed to generate acceptance letter:', error)
  } finally {
  setIsGeneratingAcceptance(false)
  }
@@ -370,7 +371,7 @@ export function ApplicationDetailModal({
  setIsGeneratingFinanceReceipt(true)
  await onGenerateFinanceReceipt()
  } catch (error) {
- console.error('Failed to generate finance receipt:', error)
+ logger.error('Failed to generate finance receipt:', error)
  } finally {
  setIsGeneratingFinanceReceipt(false)
  }

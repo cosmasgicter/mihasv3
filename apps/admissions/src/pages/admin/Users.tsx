@@ -1,4 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from '@/lib/zod'
 import { isSuperAdmin } from '@/types/roles'
 import { useDebounce } from '@/hooks/useDebounce'
 import { Link } from 'react-router-dom'
@@ -52,21 +55,27 @@ import { sanitizeForLog } from '@/lib/security'
 import { isAdminRole } from '@/lib/auth/roles'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import type { AdminUserMutationResult } from '@/services/admin/users'
+import { logger } from '@/lib/logger'
 
-interface CreateUserForm {
-  email: string
-  password: string
-  full_name: string
-  phone: string
-  role: string
-}
+const ROLE_VALUES = ['student', 'reviewer', 'admissions_officer', 'registrar', 'finance_officer', 'academic_head', 'admin', 'super_admin'] as const
 
-interface EditUserForm {
-  full_name: string
-  email: string
-  phone: string
-  role: string
-}
+const createUserSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  full_name: z.string().min(2, 'Full name is required'),
+  phone: z.string(),
+  role: z.enum(ROLE_VALUES, { error: 'Role is required' }),
+})
+
+const editUserSchema = z.object({
+  full_name: z.string().min(2, 'Full name is required'),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string(),
+  role: z.enum(ROLE_VALUES, { error: 'Role is required' }),
+})
+
+type CreateUserForm = z.infer<typeof createUserSchema>
+type EditUserForm = z.infer<typeof editUserSchema>
 
 const AVAILABLE_ROLES = [
   { value: 'student', label: 'Student', description: 'Regular student user' },
@@ -148,18 +157,13 @@ export default function AdminUsers() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showPermissionsDialog, setShowPermissionsDialog] = useState(false)
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null)
-  const [createForm, setCreateForm] = useState<CreateUserForm>({
-    email: '',
-    password: '',
-    full_name: '',
-    phone: '',
-    role: 'student',
+  const createFormHook = useForm<CreateUserForm>({
+    resolver: zodResolver(createUserSchema),
+    defaultValues: { email: '', password: '', full_name: '', phone: '', role: 'student' },
   })
-  const [editForm, setEditForm] = useState<EditUserForm>({
-    full_name: '',
-    email: '',
-    phone: '',
-    role: 'student',
+  const editFormHook = useForm<EditUserForm>({
+    resolver: zodResolver(editUserSchema),
+    defaultValues: { full_name: '', email: '', phone: '', role: 'student' },
   })
   const [showPassword, setShowPassword] = useState(false)
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
@@ -269,13 +273,13 @@ export default function AdminUsers() {
     }).length
   }, [users])
 
-  const createUser = async () => {
+  const createUser = createFormHook.handleSubmit(async (values) => {
     try {
-      const result = await createUserMutation.mutateAsync(createForm) as AdminUserMutationResult
+      const result = await createUserMutation.mutateAsync(values) as AdminUserMutationResult
       setError('')
       setShowCreateDialog(false)
-      setCreateForm({ email: '', password: '', full_name: '', phone: '', role: 'student' })
-      showSuccess('User created', `${createForm.full_name} can now sign in as ${getRoleLabel(createForm.role)}.`)
+      createFormHook.reset({ email: '', password: '', full_name: '', phone: '', role: 'student' })
+      showSuccess('User created', `${values.full_name} can now sign in as ${getRoleLabel(values.role)}.`)
       showInfo('Secure handoff', 'Share the temporary password through a trusted channel and ask the user to change it after first sign-in.')
 
       if (result?.message) {
@@ -283,21 +287,21 @@ export default function AdminUsers() {
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create user'
-      console.error('Failed to create user:', sanitizeForLog(errorMessage))
+      logger.error('Failed to create user:', sanitizeForLog(errorMessage))
       setError(errorMessage)
     }
-  }
+  })
 
   const openEditDialog = useCallback((user: UserProfile) => {
     setSelectedUser(user)
-    setEditForm({
+    editFormHook.reset({
       full_name: user.full_name || '',
       email: user.email || '',
       phone: user.phone || '',
-      role: user.role || 'student',
+      role: (user.role || 'student') as EditUserForm['role'],
     })
     setShowEditDialog(true)
-  }, [])
+  }, [editFormHook])
 
   const openPermissionsDialog = useCallback((user: UserProfile) => {
     setSelectedUser(user)
@@ -309,32 +313,30 @@ export default function AdminUsers() {
     setShowDeleteDialog(true)
   }, [])
 
-  const updateUser = async () => {
-    if (!selectedUserId) {
-      return
-    }
+  const updateUser = editFormHook.handleSubmit(async (values) => {
+    if (!selectedUserId) return
 
     try {
-      const roleChanged = selectedUser?.role !== editForm.role
+      const roleChanged = selectedUser?.role !== values.role
       const result = await updateUserMutation.mutateAsync({
         id: selectedUserId,
-        data: editForm,
+        data: values,
       }) as AdminUserMutationResult
 
       setError('')
       setShowEditDialog(false)
       setSelectedUser(null)
-      showSuccess('User updated', roleChanged ? `${editForm.full_name} now has the ${getRoleLabel(editForm.role)} role.` : 'Profile details were updated.')
+      showSuccess('User updated', roleChanged ? `${values.full_name} now has the ${getRoleLabel(values.role)} role.` : 'Profile details were updated.')
 
       if (result?.revokedSessions) {
         showInfo('Reauthentication required', getSessionSummary(result.revokedSessions))
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update user'
-      console.error('Failed to update user:', sanitizeForLog(errorMessage))
+      logger.error('Failed to update user:', sanitizeForLog(errorMessage))
       setError(errorMessage)
     }
-  }
+  })
 
   const deactivateUser = async () => {
     if (!selectedUserId) {
@@ -355,7 +357,7 @@ export default function AdminUsers() {
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to deactivate user'
-      console.error('Failed to deactivate user:', sanitizeForLog(errorMessage))
+      logger.error('Failed to deactivate user:', sanitizeForLog(errorMessage))
       setError(errorMessage)
     }
   }
@@ -381,7 +383,7 @@ export default function AdminUsers() {
       showInfo('Reauthentication required', getSessionSummary(result?.revokedSessions))
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update permissions'
-      console.error('Failed to update permissions:', sanitizeForLog(errorMessage))
+      logger.error('Failed to update permissions:', sanitizeForLog(errorMessage))
       setError(errorMessage)
       throw err
     }
@@ -797,6 +799,7 @@ export default function AdminUsers() {
                 <span>Create user</span>
               </DialogTitle>
             </DialogHeader>
+            <form onSubmit={createUser}>
             <div className="space-y-4">
               <div className="rounded-lg border border-border bg-muted/50 p-4">
                 <p className="text-sm font-medium text-foreground">Create the account with its operational role from the start.</p>
@@ -806,16 +809,16 @@ export default function AdminUsers() {
               </div>
               <Input
                 label="Full name"
-                value={createForm.full_name}
-                onChange={(event) => setCreateForm({ ...createForm, full_name: event.target.value })}
+                {...createFormHook.register('full_name')}
+                error={createFormHook.formState.errors.full_name?.message}
                 placeholder="Enter full name"
                 required
               />
               <Input
                 label="Email"
                 type="email"
-                value={createForm.email}
-                onChange={(event) => setCreateForm({ ...createForm, email: event.target.value })}
+                {...createFormHook.register('email')}
+                error={createFormHook.formState.errors.email?.message}
                 placeholder="Enter email address"
                 required
               />
@@ -823,8 +826,8 @@ export default function AdminUsers() {
                 <Input
                   label="Temporary password"
                   type={showPassword ? 'text' : 'password'}
-                  value={createForm.password}
-                  onChange={(event) => setCreateForm({ ...createForm, password: event.target.value })}
+                  {...createFormHook.register('password')}
+                  error={createFormHook.formState.errors.password?.message}
                   placeholder="Enter password"
                   helperText="Share this securely with the user after creation."
                   required
@@ -840,8 +843,7 @@ export default function AdminUsers() {
               </div>
               <Input
                 label="Phone"
-                value={createForm.phone}
-                onChange={(event) => setCreateForm({ ...createForm, phone: event.target.value })}
+                {...createFormHook.register('phone')}
                 placeholder="Enter phone number"
               />
               <div>
@@ -849,8 +851,7 @@ export default function AdminUsers() {
                   Role <span className="text-destructive">*</span>
                 </label>
                 <select
-                  value={createForm.role}
-                  onChange={(event) => setCreateForm({ ...createForm, role: event.target.value })}
+                  {...createFormHook.register('role')}
                   className="min-h-touch h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
                 >
@@ -860,16 +861,20 @@ export default function AdminUsers() {
                     </option>
                   ))}
                 </select>
+                {createFormHook.formState.errors.role?.message && (
+                  <p className="mt-1.5 text-sm text-destructive">{createFormHook.formState.errors.role.message}</p>
+                )}
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowCreateDialog(false)} disabled={createUserMutation.isPending}>
+              <Button variant="outline" type="button" onClick={() => setShowCreateDialog(false)} disabled={createUserMutation.isPending}>
                 Cancel
               </Button>
-              <Button onClick={createUser} loading={createUserMutation.isPending}>
+              <Button type="submit" loading={createUserMutation.isPending}>
                 Create user
               </Button>
             </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
 
@@ -881,6 +886,7 @@ export default function AdminUsers() {
                 <span>Edit user</span>
               </DialogTitle>
             </DialogHeader>
+            <form onSubmit={updateUser}>
             <div className="space-y-4">
               {selectedUser && (
                 <div className="rounded-lg border border-border bg-muted/50 p-4">
@@ -892,23 +898,22 @@ export default function AdminUsers() {
               )}
               <Input
                 label="Full name"
-                value={editForm.full_name}
-                onChange={(event) => setEditForm({ ...editForm, full_name: event.target.value })}
+                {...editFormHook.register('full_name')}
+                error={editFormHook.formState.errors.full_name?.message}
                 placeholder="Enter full name"
                 required
               />
               <Input
                 label="Email"
                 type="email"
-                value={editForm.email}
-                onChange={(event) => setEditForm({ ...editForm, email: event.target.value })}
+                {...editFormHook.register('email')}
+                error={editFormHook.formState.errors.email?.message}
                 placeholder="Enter email address"
                 required
               />
               <Input
                 label="Phone"
-                value={editForm.phone}
-                onChange={(event) => setEditForm({ ...editForm, phone: event.target.value })}
+                {...editFormHook.register('phone')}
                 placeholder="Enter phone number"
               />
               <div>
@@ -916,8 +921,7 @@ export default function AdminUsers() {
                   Role <span className="text-destructive">*</span>
                 </label>
                 <select
-                  value={editForm.role}
-                  onChange={(event) => setEditForm({ ...editForm, role: event.target.value })}
+                  {...editFormHook.register('role')}
                   className="min-h-touch h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
                   disabled={isSuperAdmin(selectedUser)}
@@ -928,6 +932,9 @@ export default function AdminUsers() {
                     </option>
                   ))}
                 </select>
+                {editFormHook.formState.errors.role?.message && (
+                  <p className="mt-1.5 text-sm text-destructive">{editFormHook.formState.errors.role.message}</p>
+                )}
                 {isSuperAdmin(selectedUser) ? (
                   <p className="mt-1.5 text-sm text-foreground">Super admin access is locked from this dialog.</p>
                 ) : (
@@ -936,13 +943,14 @@ export default function AdminUsers() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowEditDialog(false)} disabled={updateUserMutation.isPending}>
+              <Button variant="outline" type="button" onClick={() => setShowEditDialog(false)} disabled={updateUserMutation.isPending}>
                 Cancel
               </Button>
-              <Button onClick={updateUser} loading={updateUserMutation.isPending}>
+              <Button type="submit" loading={updateUserMutation.isPending}>
                 Update user
               </Button>
             </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
 

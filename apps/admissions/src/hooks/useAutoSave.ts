@@ -3,9 +3,10 @@ import { useLocation } from 'react-router-dom'
 import { stripPiiFields } from '@/lib/secureStorage'
 import { cachedGetItem, cachedSetItem, cachedRemoveItem } from '@/lib/localStorageCache'
 import { AuthenticationError } from '@/services/client'
+import { logger } from '@/lib/logger'
 
 export interface AutoSaveData {
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface AutoSaveOptions {
@@ -175,7 +176,7 @@ export function useAutoSave(
           }
           
           cloudSaveFailed = true
-          console.warn('Cloud save failed, data saved locally:', cloudError)
+          logger.warn('Cloud save failed, data saved locally:', cloudError)
           const nextAttempts = saveAttemptsRef.current + 1
           saveAttemptsRef.current = nextAttempts
           if (mountedRef.current) {
@@ -236,7 +237,7 @@ export function useAutoSave(
     } catch (error) {
       if (abortController.signal.aborted) return
       
-      console.error('Auto-save failed:', error)
+      logger.error('Auto-save failed:', error)
       if (mountedRef.current) {
         setSaveStatus('error')
         setSaveError(error instanceof Error ? error.message : 'Save failed')
@@ -299,7 +300,7 @@ export function useAutoSave(
       setSaveStatus('saved')
       
     } catch (error) {
-      console.error('Failed to process save queue:', error)
+      logger.error('Failed to process save queue:', error)
       setSaveStatus('error')
       setSaveError('Failed to sync queued changes')
     } finally {
@@ -409,7 +410,7 @@ export function useAutoSave(
       setLastSaved(savedTimestamp)
       return { data: savedData, timestamp: savedTimestamp }
     } catch (error) {
-      console.error('Failed to restore auto-saved data:', error)
+      logger.error('Failed to restore auto-saved data:', error)
       cachedRemoveItem(storageKey) // Remove corrupted data
       onError?.(error as Error)
       return null
@@ -607,7 +608,7 @@ export function useDraftManager(formId: string) {
           }
         }
       } catch (error) {
-        console.error('Failed to check for draft:', error)
+        logger.error('Failed to check for draft:', error)
         cachedRemoveItem(draftKey)
       }
     }
@@ -629,7 +630,7 @@ export function useDraftManager(formId: string) {
       setHasDraft(true)
       setDraftData(draftPayload)
     } catch (error) {
-      console.error('Failed to save draft:', error)
+      logger.error('Failed to save draft:', error)
     }
   }, [draftKey, formId, location])
 

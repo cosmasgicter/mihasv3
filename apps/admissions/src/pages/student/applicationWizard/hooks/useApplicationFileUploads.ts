@@ -6,6 +6,7 @@ import { extractAuthUser } from '@/lib/authSession'
 import { sanitizeForLog } from '@/lib/security'
 import { isPermissionDenial } from '@/lib/sessionHardening'
 import { apiClient } from '@/services/client'
+import { logger } from '@/lib/logger'
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024
 export const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'] as const
@@ -347,7 +348,7 @@ export function useApplicationFileUploads({
 
           return result.url!
         } catch (error) {
-          console.error(`File upload error (attempt ${retryCount + 1}/${MAX_UPLOAD_RETRIES + 1}):`, {
+          logger.error(`File upload error (attempt ${retryCount + 1}/${MAX_UPLOAD_RETRIES + 1}):`, {
             error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error')
           })
 
@@ -403,7 +404,7 @@ export function useApplicationFileUploads({
             const url = await startUpload(file, fileType)
             onUploadComplete?.(file, url, uploadedDocumentIds.current[fileType])
           } catch (error) {
-            console.error('Auto-upload failed:', error)
+            logger.error('Auto-upload failed:', error)
             onValidationError?.(error instanceof Error ? error.message : 'Upload failed')
           }
         }
@@ -442,7 +443,7 @@ export function useApplicationFileUploads({
           try {
             await startUpload(file, fileType)
           } catch (error) {
-            console.error('Auto-upload failed:', error)
+            logger.error('Auto-upload failed:', error)
             onValidationError?.(error instanceof Error ? error.message : 'Upload failed')
           }
         }
