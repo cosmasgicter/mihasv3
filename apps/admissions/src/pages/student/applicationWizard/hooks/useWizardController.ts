@@ -2135,7 +2135,7 @@ const useWizardController = (): UseWizardControllerResult => {
       const idempotencyKey = crypto.randomUUID()
       const updatedApp = await submitApplicationMutation.mutateAsync({
         id: applicationId,
-        headers: { 'Idempotency-Key': idempotencyKey, 'X-Idempotency-Key': idempotencyKey },
+        headers: { 'Idempotency-Key': idempotencyKey },
       })
       
 

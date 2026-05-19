@@ -318,7 +318,7 @@ export default function PaymentPage() {
         const allRecords = normalizePaymentRecords(data)
         applicationIds.forEach((id) => { result[id] = [] })
         allRecords.forEach((r) => {
-          const appId = (r as any).application_id
+          const appId = r.application_id
           if (appId && result[appId]) result[appId].push(r)
           else if (appId) result[appId] = [r]
         })

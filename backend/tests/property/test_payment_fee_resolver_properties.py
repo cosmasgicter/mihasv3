@@ -423,7 +423,7 @@ def test_property_16_phone_normalization_idempotence(phone):
 @settings(
     max_examples=100,
     deadline=None,
-    suppress_health_check=[HealthCheck.too_slow],
+    suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
 )
 def test_property_16_operator_prefix_determinism(phone_a, phone_b):
     """P16 Invariant 2 — operator prefix determinism:

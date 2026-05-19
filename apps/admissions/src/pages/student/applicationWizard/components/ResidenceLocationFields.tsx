@@ -112,7 +112,7 @@ export function ResidenceLocationFields({
                 value={field.value ?? DEFAULT_RESIDENCE_COUNTRY}
                 label="Country of Residence"
                 autoComplete="country-name"
-                error={(errors as any).country?.message}
+                error={errors.country?.message}
                 helperText={countryHelper}
                 extraDescribedBy={getFieldAriaDescribedBy?.('country')}
                 onFocus={event => {

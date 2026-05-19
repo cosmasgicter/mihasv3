@@ -7,11 +7,12 @@ import { useMultiDraft } from '../hooks/useMultiDraft'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logger } from '@/lib/logger'
+import type { Application } from '@/types/database'
 
 interface DraftManagerProps {
   userId: string | undefined
   currentDraftId?: string
-  onLoadDraft: (draftData: any, draftId: string) => void
+  onLoadDraft: (draftData: Application, draftId: string) => void
   onCreateNew: () => void
 }
 

@@ -248,7 +248,7 @@ class PaymentInitiateView(APIView):
                 emit_metric('payment.initiation_failed', method='card', reason='max_attempts_exceeded', application_id=str(application_id))
                 payment_metrics.increment("payment.initiation.failure", tags={"endpoint": "initiate", "outcome": "failure"})
                 return Response(
-                    {"success": False, "error": {"code": "MAX_PAYMENT_ATTEMPTS_EXCEEDED", "message": "Maximum payment attempts exceeded. Please contact support."}, "remaining_attempts": remaining},
+                    {"success": False, "error": {"code": "MAX_PAYMENT_ATTEMPTS_EXCEEDED", "message": "Maximum payment attempts exceeded. Please contact support."}, "code": "MAX_PAYMENT_ATTEMPTS_EXCEEDED", "remaining_attempts": remaining},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -497,4 +497,3 @@ class PaymentDevBypassView(APIView):
                 "payment_status": "successful",
             },
         })
-

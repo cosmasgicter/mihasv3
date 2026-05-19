@@ -324,6 +324,83 @@ _PROTECTED = {
     "apps.common.template_views.CommunicationTemplateUpdateView",
 }
 
+_PUBLIC_PERSONALIZABLE.update(
+    {
+        "apps.accounts.auth_views.SessionView",
+    }
+)
+
+_AUTH_EXEMPT.update(
+    {
+        "apps.accounts.auth_views.LoginView",
+        "apps.accounts.auth_views.RegisterView",
+        "apps.accounts.auth_views.RefreshView",
+        "apps.accounts.password_views.PasswordResetRequestView",
+        "apps.accounts.password_views.PasswordResetConfirmView",
+        "apps.documents.lenco_webhook_views.LencoWebhookView",
+    }
+)
+
+_PROTECTED.update(
+    {
+        # accounts split modules
+        "apps.accounts.auth_views.LogoutView",
+        "apps.accounts.profile_views.ProfileView",
+        "apps.accounts.admin_user_views.AdminDashboardView",
+        "apps.accounts.admin_user_views.AdminUserListView",
+        "apps.accounts.admin_user_views.AdminUserDetailView",
+        "apps.accounts.admin_user_views.AdminUserExportView",
+        "apps.accounts.admin_audit_views.AdminAuditLogView",
+        "apps.accounts.admin_settings_views.AdminSettingsListView",
+        "apps.accounts.admin_settings_views.AdminSettingDetailView",
+        "apps.accounts.admin_settings_views.AdminSettingsImportView",
+        "apps.accounts.admin_settings_views.AdminSettingsResetView",
+        # applications split modules
+        "apps.applications.admin_amendment_views.ApplicationAdminSummaryView",
+        "apps.applications.admin_amendment_views.ApplicationAmendmentReviewView",
+        "apps.applications.admin_amendment_views.ApplicationConditionVerifyView",
+        "apps.applications.admin_assignment_views.ApplicationAssignView",
+        "apps.applications.admin_assignment_views.ApplicationAutoAssignView",
+        "apps.applications.admin_assignment_views.ApplicationFeeWaiverView",
+        "apps.applications.admin_bulk_views.ApplicationBulkStatusView",
+        "apps.applications.admin_export_views.ApplicationExportView",
+        "apps.applications.admin_review_views.ApplicationListCreateView",
+        "apps.applications.admin_review_views.ApplicationReviewView",
+        "apps.applications.student_amendment_views.ApplicationAmendmentView",
+        "apps.applications.student_document_views.ApplicationDocumentsView",
+        "apps.applications.student_document_views.EmailSlipView",
+        "apps.applications.student_draft_views.ApplicationDetailView",
+        "apps.applications.student_draft_views.ApplicationDetailsView",
+        "apps.applications.student_draft_views.ApplicationDraftView",
+        "apps.applications.student_submission_views.ApplicationGradesView",
+        "apps.applications.student_submission_views.ApplicationPreviewSummaryView",
+        "apps.applications.student_submission_views.ApplicationSubmitView",
+        "apps.applications.student_submission_views.ApplicationSummaryView",
+        "apps.applications.student_withdrawal_views.ApplicationConditionsView",
+        "apps.applications.student_withdrawal_views.ApplicationConfirmEnrollmentView",
+        "apps.applications.student_withdrawal_views.ApplicationWaitlistPositionView",
+        "apps.applications.student_withdrawal_views.ApplicationWithdrawView",
+        # documents split modules
+        "apps.documents.document_storage_views.DocumentDeleteView",
+        "apps.documents.document_storage_views.DocumentDownloadView",
+        "apps.documents.document_storage_views.DocumentExtractView",
+        "apps.documents.document_storage_views.DocumentInfoView",
+        "apps.documents.document_storage_views.DocumentSignedUrlView",
+        "apps.documents.document_storage_views.DocumentUploadView",
+        "apps.documents.mobile_money_views.MobileMoneyInitiateView",
+        "apps.documents.payment_admin_views.SuperAdminPaymentCorrectionView",
+        "apps.documents.payment_query_views.FeeResolveView",
+        "apps.documents.payment_query_views.PaymentListView",
+        "apps.documents.payment_query_views.PaymentReceiptView",
+        "apps.documents.payment_query_views.PaymentVerifyView",
+        "apps.documents.payment_query_views.ProgramFeeViewSet",
+        "apps.documents.payment_widget_views.DeferPaymentView",
+        "apps.documents.payment_widget_views.PaymentDevBypassView",
+        "apps.documents.payment_widget_views.PaymentInitiateView",
+        "apps.documents.risk_views.RiskFlagsListView",
+    }
+)
+
 _ALL_CLASSIFIED = _PUBLIC_PERSONALIZABLE | _AUTH_EXEMPT | _PROTECTED
 
 

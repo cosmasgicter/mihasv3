@@ -86,13 +86,13 @@ class TestSessionRevokeAllLifecycle(SimpleTestCase):
 
 
 class TestRefreshBackfillsDeviceSession(SimpleTestCase):
-    @patch("apps.accounts.views._generate_csrf_token", return_value="csrf-token")
-    @patch("apps.accounts.views._set_auth_cookies")
-    @patch("apps.accounts.views.DeviceSession.objects.create")
-    @patch("apps.accounts.views.DeviceSession.objects.filter")
-    @patch("apps.accounts.views.rotate_tokens", return_value=("new-access", "new-refresh"))
-    @patch("apps.accounts.views.Profile.objects.get")
-    @patch("apps.accounts.views.verify_token", return_value={"user_id": "6e147ead-e34d-41e2-bc05-358a653ff633"})
+    @patch("apps.accounts.auth_views._generate_csrf_token", return_value="csrf-token")
+    @patch("apps.accounts.auth_views._set_auth_cookies")
+    @patch("apps.accounts.auth_views.DeviceSession.objects.create")
+    @patch("apps.accounts.auth_views.DeviceSession.objects.filter")
+    @patch("apps.accounts.auth_views.rotate_tokens", return_value=("new-access", "new-refresh"))
+    @patch("apps.accounts.auth_views.Profile.objects.get")
+    @patch("apps.accounts.auth_views.verify_token", return_value={"user_id": "6e147ead-e34d-41e2-bc05-358a653ff633"})
     def test_refresh_creates_session_when_old_hash_not_found(
         self,
         mock_verify_token,
@@ -129,16 +129,16 @@ class TestRefreshBackfillsDeviceSession(SimpleTestCase):
 
 
 class TestLoginCreatesExpiringSession(SimpleTestCase):
-    @patch("apps.accounts.views._generate_csrf_token", return_value="csrf-token")
-    @patch("apps.accounts.views._set_auth_cookies")
-    @patch("apps.accounts.views.DeviceSession.objects.create")
-    @patch("apps.accounts.views.generate_refresh_token", return_value="refresh-token")
-    @patch("apps.accounts.views.generate_access_token", return_value="access-token")
-    @patch("apps.accounts.views.needs_rehash", return_value=False)
-    @patch("apps.accounts.views.record_login_attempt")
-    @patch("apps.accounts.views.verify_password", return_value=True)
-    @patch("apps.accounts.views.Profile.objects.get")
-    @patch("apps.accounts.views.check_login_attempts", return_value=None)
+    @patch("apps.accounts.auth_views._generate_csrf_token", return_value="csrf-token")
+    @patch("apps.accounts.auth_views._set_auth_cookies")
+    @patch("apps.accounts.auth_views.DeviceSession.objects.create")
+    @patch("apps.accounts.auth_views.generate_refresh_token", return_value="refresh-token")
+    @patch("apps.accounts.auth_views.generate_access_token", return_value="access-token")
+    @patch("apps.accounts.auth_views.needs_rehash", return_value=False)
+    @patch("apps.accounts.auth_views.record_login_attempt")
+    @patch("apps.accounts.auth_views.verify_password", return_value=True)
+    @patch("apps.accounts.auth_views.Profile.objects.get")
+    @patch("apps.accounts.auth_views.check_login_attempts", return_value=None)
     def test_login_creates_session_with_expiry(
         self,
         mock_check_login_attempts,

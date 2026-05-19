@@ -241,6 +241,8 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
         prefix, rate = RateLimitMiddleware.SCOPE_LIMITS[scope_idx]
         if rate is None:
             return
+        if prefix in RateLimitMiddleware.VIEW_MANAGED_PAYMENT_PREFIXES:
+            return
         expected_seconds = RateLimitMiddleware._retry_after_seconds(rate)
 
         request = _make_request(method="GET", path=prefix + "something/")
@@ -274,13 +276,18 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
             ("/api/v1/auth/", "60/5m"),
             ("/api/v1/admin/", "60/10m"),
             ("/api/v1/documents/", "20/10m"),
+            ("/api/v1/applications/track/", "20/10m"),
             ("/api/v1/sessions/", "30/10m"),
             ("/api/v1/notifications/", "50/10m"),
             ("/api/v1/errors/", "10/5m"),
             ("/api/v1/outreach/", "30/10m"),
             ("/api/v1/email/", "30/10m"),
             ("/api/v1/integrations/", "20/10m"),
-            ("/api/v1/payments/webhook/", "30/10m"),
+            ("/api/v1/payments/initiate/", "10/10m"),
+            ("/api/v1/payments/mobile-money/", "5/10m"),
+            ("/api/v1/payments/defer/", "10/10m"),
+            ("/api/v1/payments/resolve-fee/", "30/10m"),
+            ("/api/v1/payments/webhook/", None),
             ("/api/v1/payments/", "60/10m"),
             ("/api/v1/", "120/10m"),
         ]

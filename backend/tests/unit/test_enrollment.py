@@ -11,8 +11,8 @@ from apps.applications.views import ApplicationConfirmEnrollmentView
 
 
 _ES = "apps.applications.enrollment_service.EnrollmentService.confirm_enrollment"
-_AO = "apps.applications.student_views.Application.objects"
-_AS = "apps.applications.student_views.ApplicationSerializer"
+_AO = "apps.applications.student_withdrawal_views.Application.objects"
+_AS = "apps.applications.student_withdrawal_views.ApplicationSerializer"
 
 
 def _user(uid=None):

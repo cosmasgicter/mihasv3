@@ -80,11 +80,11 @@ class TestUptimeStateTransitions(SimpleTestCase):
             mock_record.id = f"fake-email-{len(email_creates)}"
             return mock_record
 
-        # Track send_email_task.delay calls.
-        delay_calls = []
+        # Track queued dispatch calls.
+        dispatch_calls = []
 
-        def mock_delay(*args, **kwargs):
-            delay_calls.append(args)
+        def mock_dispatch(*args, **kwargs):
+            dispatch_calls.append(args)
 
         # Iterate through the health result sequence, calling
         # check_uptime_task for each result.
@@ -121,8 +121,8 @@ class TestUptimeStateTransitions(SimpleTestCase):
             ), patch(
                 "apps.common.models.OutboxEvent.objects.create",
             ), patch(
-                "apps.common.tasks.send_email_task.delay",
-                side_effect=mock_delay,
+                "apps.common.outbox.dispatch_email",
+                side_effect=mock_dispatch,
             ):
                 # Call the task directly (bypass Celery).
                 check_uptime_task()
@@ -155,10 +155,10 @@ class TestUptimeStateTransitions(SimpleTestCase):
         )
 
         self.assertEqual(
-            len(delay_calls),
+            len(dispatch_calls),
             expected_total_emails,
-            f"Expected {expected_total_emails} send_email_task.delay calls "
-            f"for sequence {health_results}, got {len(delay_calls)}",
+            f"Expected {expected_total_emails} dispatch_email calls "
+            f"for sequence {health_results}, got {len(dispatch_calls)}",
         )
 
         # Verify email subjects match the transition type in order.

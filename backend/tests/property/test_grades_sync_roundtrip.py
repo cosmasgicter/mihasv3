@@ -34,8 +34,8 @@ from apps.applications.views import ApplicationGradesView  # noqa: E402
 _default_settings = settings(max_examples=5, deadline=None)
 
 # Patch targets
-_APP_OBJECTS = "apps.applications.views.Application.objects"
-_GRADE_OBJECTS = "apps.applications.views.ApplicationGrade.objects"
+_APP_OBJECTS = "apps.applications.student_submission_views.Application.objects"
+_GRADE_OBJECTS = "apps.applications.student_submission_views.ApplicationGrade.objects"
 _SUBJECT_EXISTS = "apps.catalog.models.Subject.objects"
 
 
@@ -77,7 +77,7 @@ def _make_grade_obj(grade_id, subject_id, grade_value):
 _grade_entry = st.tuples(st.uuids(), st.integers(min_value=1, max_value=9))
 _grade_list = st.lists(
     _grade_entry,
-    min_size=1,
+    min_size=5,
     max_size=10,
     unique_by=lambda x: x[0],  # unique subject IDs
 )

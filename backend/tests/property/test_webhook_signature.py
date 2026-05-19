@@ -53,8 +53,8 @@ random_hex_signatures = st.binary(min_size=32, max_size=64).map(lambda b: b.hex(
 
 def compute_signature(raw_body: bytes, api_secret: str) -> str:
     """Reproduce the Lenco webhook signature algorithm."""
-    hash_key = hashlib.sha256(api_secret.encode("utf-8")).digest()
-    return hmac.new(hash_key, raw_body, hashlib.sha512).hexdigest()
+    hash_key = hashlib.sha256(api_secret.encode("utf-8")).hexdigest()
+    return hmac.new(hash_key.encode("utf-8"), raw_body, hashlib.sha512).hexdigest()
 
 
 # ---------------------------------------------------------------------------

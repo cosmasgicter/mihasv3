@@ -24,7 +24,7 @@ interface UseEligibilityCheckerReturn {
   loading: boolean
   error: string | null
   refresh: () => Promise<void>
-  submitAppeal: (reason: string, documents?: any[]) => Promise<void>
+  submitAppeal: (reason: string, documents?: unknown[]) => Promise<void>
 }
 
 /**
@@ -112,7 +112,7 @@ export function useEligibilityChecker({
   }, [runCheck])
 
   const submitAppeal = useCallback(
-    async (reason: string, documents: any[] = []) => {
+    async (reason: string, documents: unknown[] = []) => {
       if (!detailedAssessment?.id) {
         throw new Error('No assessment available for appeal')
       }

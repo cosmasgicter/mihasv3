@@ -1,5 +1,6 @@
 import { formatDate as _fmtDate, formatTimestamp as _fmtTimestamp } from '@/lib/dateFormat'
 import { downloadXlsx } from '@/lib/xlsxWriter'
+import { autoTable, type HookData } from 'jspdf-autotable'
 
 export interface ApplicationData {
   application_number: string
@@ -64,7 +65,10 @@ const delayForStreaming = async () => {
 }
 
 const isAsyncIterable = (value: unknown): value is AsyncIterable<unknown> => {
-  return value != null && typeof (value as any)[Symbol.asyncIterator] === 'function'
+  return (
+    value != null &&
+    typeof (value as { [Symbol.asyncIterator]?: unknown })[Symbol.asyncIterator] === 'function'
+  )
 }
 
 async function* iterateApplicationData(source: ApplicationDataSource): AsyncGenerator<ApplicationData> {
@@ -267,7 +271,6 @@ export async function exportToPDF(
   filename: string = 'applications.pdf'
 ) {
   const { jsPDF } = await import('jspdf')
-  await import('jspdf-autotable')
 
   const doc = new jsPDF({ orientation: 'landscape' })
   const rows: string[][] = []
@@ -309,7 +312,7 @@ export async function exportToPDF(
 
   const exportTimestamp = _fmtTimestamp(new Date());
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     head: [Array.from(HEADERS)],
     body: rows,
     startY: 25,
@@ -330,7 +333,7 @@ export async function exportToPDF(
     margin: { top: 30, bottom: 15, left: 8, right: 8 },
     theme: 'grid',
     tableWidth: 'auto',
-    didDrawPage: (data: any) => {
+    didDrawPage: (data: HookData) => {
       doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
       doc.text('Applications Export', data.settings.margin.left, 15)
@@ -339,7 +342,7 @@ export async function exportToPDF(
       doc.text(`Generated: ${exportTimestamp}`, data.settings.margin.left, 22)
       
       const pageCount = doc.internal.pages.length - 1
-      const pageNum = (doc.internal as any).getCurrentPageInfo().pageNumber
+      const pageNum = doc.getCurrentPageInfo().pageNumber
       doc.setFontSize(8)
       doc.text(`Page ${pageNum} of ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10)
     }

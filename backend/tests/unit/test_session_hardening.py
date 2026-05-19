@@ -169,7 +169,7 @@ class TestRefreshEndpointErrorCodes(SimpleTestCase):
 
     def test_expired_refresh_returns_token_expired(self):
         """Expired refresh token → TOKEN_EXPIRED code."""
-        with patch("apps.accounts.views.verify_token", side_effect=pyjwt.ExpiredSignatureError("expired")):
+        with patch("apps.accounts.auth_views.verify_token", side_effect=pyjwt.ExpiredSignatureError("expired")):
             response = self._call_refresh_view(cookies={"refresh_token": "expired.token"})
 
         self.assertEqual(response.status_code, 401)
@@ -178,10 +178,10 @@ class TestRefreshEndpointErrorCodes(SimpleTestCase):
     def test_blacklisted_jti_returns_token_expired(self):
         """Revoked/consumed refresh token → TOKEN_EXPIRED code."""
         mock_payload = {"user_id": str(uuid.uuid4()), "token_type": "refresh"}
-        with patch("apps.accounts.views.verify_token", return_value=mock_payload):
-            with patch("apps.accounts.views.Profile") as MockProfile:
+        with patch("apps.accounts.auth_views.verify_token", return_value=mock_payload):
+            with patch("apps.accounts.auth_views.Profile") as MockProfile:
                 MockProfile.objects.get.return_value = MagicMock(id=mock_payload["user_id"])
-                with patch("apps.accounts.views.rotate_tokens", side_effect=ValueError("Token has been revoked")):
+                with patch("apps.accounts.auth_views.rotate_tokens", side_effect=ValueError("Token has been revoked")):
                     response = self._call_refresh_view(cookies={"refresh_token": "revoked.token"})
 
         self.assertEqual(response.status_code, 401)
@@ -189,7 +189,7 @@ class TestRefreshEndpointErrorCodes(SimpleTestCase):
 
     def test_invalid_token_returns_token_expired(self):
         """Invalid/malformed refresh token → TOKEN_EXPIRED code."""
-        with patch("apps.accounts.views.verify_token", side_effect=pyjwt.InvalidTokenError("bad")):
+        with patch("apps.accounts.auth_views.verify_token", side_effect=pyjwt.InvalidTokenError("bad")):
             response = self._call_refresh_view(cookies={"refresh_token": "garbage"})
 
         self.assertEqual(response.status_code, 401)

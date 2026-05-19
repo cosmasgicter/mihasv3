@@ -41,7 +41,10 @@ def _setup_enforcer_mocks(mock_resolver, mock_intake_objects, intake):
     resolved = MagicMock()
     resolved.source = "db"
     resolved.id = intake.id
+    unresolved_program = MagicMock()
+    unresolved_program.id = None
     mock_resolver.resolve_intake.return_value = resolved
+    mock_resolver.resolve_program.return_value = unresolved_program
     mock_intake_objects.filter.return_value.first.return_value = intake
 
 

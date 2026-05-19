@@ -3,6 +3,7 @@ import uuid
 from datetime import timedelta
 from unittest.mock import MagicMock, patch, PropertyMock
 
+from django.test import override_settings
 from django.utils import timezone
 
 from apps.documents.payment_service import (
@@ -31,6 +32,7 @@ class TestPaymentExpiry24Hours:
     @patch("apps.common.communication_service.CommunicationService.send")
     @patch("apps.applications.models.Application.objects")
     @patch("apps.documents.models.Payment.objects")
+    @override_settings(PAYMENT_HARDENING_FORWARD_ONLY=False)
     def test_payments_older_than_24h_expired(self, mock_pay_qs, mock_app_qs, mock_comm, mock_tx):
         """Payments pending > 24 hours are transitioned to expired."""
         mock_tx.atomic.return_value.__enter__ = MagicMock(return_value=None)

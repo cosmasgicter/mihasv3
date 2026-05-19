@@ -152,11 +152,11 @@ class TestPreservationRefreshValidToken:
         self.factory = APIRequestFactory()
         self.view = RefreshView.as_view()
 
-    @patch("apps.accounts.views.DeviceSession.objects")
-    @patch("apps.accounts.views._generate_csrf_token", return_value="csrf-test-token")
-    @patch("apps.accounts.views.rotate_tokens")
-    @patch("apps.accounts.views.verify_token")
-    @patch("apps.accounts.views.Profile.objects")
+    @patch("apps.accounts.auth_views.DeviceSession.objects")
+    @patch("apps.accounts.auth_views._generate_csrf_token", return_value="csrf-test-token")
+    @patch("apps.accounts.auth_views.rotate_tokens")
+    @patch("apps.accounts.auth_views.verify_token")
+    @patch("apps.accounts.auth_views.Profile.objects")
     def test_valid_refresh_returns_200_with_cookies(
         self, mock_profile_qs, mock_verify, mock_rotate, mock_csrf, mock_device_qs,
     ):

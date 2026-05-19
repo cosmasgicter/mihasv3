@@ -57,7 +57,7 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
 
     For any email dispatch (password reset or lockout), an EmailQueue record
     with status='pending', a non-empty recipient_email, non-empty subject,
-    and non-empty body must exist in the database before send_email_task.delay()
+    and non-empty body must exist in the database before dispatch_email()
     is called with that record's ID.
 
     **Validates: Requirements 2.3**
@@ -67,7 +67,7 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
     @settings(max_examples=5, deadline=None)
     def test_lockout_email_creates_queue_record_before_dispatch(self, email):
         """send_lockout_email() creates an EmailQueue record with correct
-        fields before dispatching send_email_task.delay()."""
+        fields before dispatching through the outbox helper."""
         user = _make_mock_user(email=email)
 
         # Track the order of operations: create must happen before delay
@@ -86,8 +86,8 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
             call_order.append("create")
             return mock_record
 
-        def mock_delay(*args, **kwargs):
-            call_order.append("delay")
+        def mock_dispatch(*args, **kwargs):
+            call_order.append("dispatch")
 
         with patch(
             "apps.common.outbox.transaction.atomic",
@@ -101,15 +101,15 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
         ), patch(
             "apps.common.models.OutboxEvent.objects.create",
         ), patch(
-            "apps.common.tasks.send_email_task.delay",
-            side_effect=mock_delay,
+            "apps.common.outbox.dispatch_email",
+            side_effect=mock_dispatch,
         ):
             from apps.accounts.services import send_lockout_email
 
             send_lockout_email(user)
 
         # Verify create was called before delay
-        self.assertEqual(call_order, ["create", "delay"])
+        self.assertEqual(call_order, ["create", "dispatch"])
 
         # Verify EmailQueue record fields
         self.assertEqual(captured_create_kwargs["recipient_email"], email)
@@ -123,7 +123,7 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
         self, email, first_name, last_name
     ):
         """PasswordResetRequestView creates an EmailQueue record with correct
-        fields before dispatching send_email_task.delay()."""
+        fields before dispatching through the outbox helper."""
         from rest_framework.test import APIRequestFactory
 
         from apps.accounts.views import PasswordResetRequestView
@@ -146,8 +146,8 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
             call_order.append("create")
             return mock_record
 
-        def mock_delay(*args, **kwargs):
-            call_order.append("delay")
+        def mock_dispatch(*args, **kwargs):
+            call_order.append("dispatch")
 
         raw_token = "abc123testtoken"
 
@@ -163,13 +163,13 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
         ), patch(
             "apps.common.models.OutboxEvent.objects.create",
         ), patch(
-            "apps.common.tasks.send_email_task.delay",
-            side_effect=mock_delay,
+            "apps.common.outbox.dispatch_email",
+            side_effect=mock_dispatch,
         ), patch(
-            "apps.accounts.views.Profile.objects.get",
+            "apps.accounts.password_views.Profile.objects.get",
             return_value=user,
         ), patch(
-            "apps.accounts.views.generate_password_reset_token",
+            "apps.accounts.password_views.generate_password_reset_token",
             return_value=raw_token,
         ), patch(
             "apps.accounts.models.PasswordResetToken.objects.filter",
@@ -186,8 +186,8 @@ class TestEmailDispatchCreatesQueueRecord(SimpleTestCase):
             view = PasswordResetRequestView.as_view()
             view(request)
 
-        # Verify create was called before delay
-        self.assertEqual(call_order, ["create", "delay"])
+        # Verify create was called before dispatch
+        self.assertEqual(call_order, ["create", "dispatch"])
 
         # Verify EmailQueue record fields
         self.assertEqual(captured_create_kwargs["recipient_email"], email)
@@ -243,12 +243,12 @@ class TestPasswordResetEmailContainsTokenAndUrl(SimpleTestCase):
             "apps.common.models.EmailQueue.objects.create",
             side_effect=mock_create,
         ), patch(
-            "apps.common.tasks.send_email_task.delay",
+            "apps.common.outbox.dispatch_email",
         ), patch(
-            "apps.accounts.views.Profile.objects.get",
+            "apps.accounts.password_views.Profile.objects.get",
             return_value=user,
         ), patch(
-            "apps.accounts.views.generate_password_reset_token",
+            "apps.accounts.password_views.generate_password_reset_token",
             return_value=token,
         ), patch(
             "apps.accounts.models.PasswordResetToken.objects.filter",

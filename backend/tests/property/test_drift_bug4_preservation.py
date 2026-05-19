@@ -108,6 +108,10 @@ class TestExistingSnakeCaseFiltersUnchanged(SimpleTestCase):
         assert len(ordering) > 0, f"sort={sort} should produce ordering"
 
         field = sort.lstrip("-")
+        # Legacy ``created_at`` sort now intentionally routes through the
+        # canonical activity timeline while preserving direction.
+        if field == "created_at":
+            field = "activity_at"
         desc = sort.startswith("-")
         expected = f"-{field}" if desc else field
         assert ordering[0] == expected, (

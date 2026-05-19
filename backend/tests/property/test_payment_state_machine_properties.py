@@ -295,6 +295,9 @@ def test_property_1_race_safety(seed_applicant, n):
     from apps.documents.models import Payment
     from apps.documents.payment_service import PaymentService
 
+    if connection.vendor == "sqlite":
+        pytest.skip("SQLite locks the whole table during concurrent write race tests")
+
     # Reset database state between Hypothesis examples so each example
     # starts from a clean slate. The ``seed_applicant`` fixture only runs
     # once per test function, not per example.

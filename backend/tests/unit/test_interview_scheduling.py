@@ -1,4 +1,5 @@
 """Unit tests for interview scheduling business rules (Requirement 2). Requirements: 2.1-2.12"""
+from contextlib import nullcontext
 import uuid
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
@@ -20,6 +21,7 @@ def _app(status="submitted", uid=None, aid=None):
     """Build a mock Application."""
     a = MagicMock()
     a.id = aid or uuid.uuid4()
+    a.pk = a.id
     a.user_id = str(uid or uuid.uuid4())
     a.status = status
     a.program = "CS"
@@ -34,6 +36,8 @@ def _future(hours=72):
 
 
 _AI = "apps.applications.interview_service.ApplicationInterview"
+_APP = "apps.applications.interview_service.Application"
+_TRANSACTION = "apps.applications.interview_service.transaction.atomic"
 
 
 class TestMinimumNoticeEnforcement:
@@ -146,11 +150,16 @@ class TestAutoTransitionToUnderReview:
     @patch("apps.applications.interview_service._send_interview_notification")
     @patch("apps.applications.interview_service.transition_application_status")
     @patch(f"{_AI}.objects")
-    def test_submitted_transitions_to_under_review(self, mock_qs, mock_transition, mock_notify):
+    @patch(f"{_APP}.objects")
+    @patch(_TRANSACTION, side_effect=lambda: nullcontext())
+    def test_submitted_transitions_to_under_review(
+        self, mock_atomic, mock_app_qs, mock_qs, mock_transition, mock_notify
+    ):
         app = _app("submitted")
         scheduled = _future(72)
         admin_id = str(uuid.uuid4())
 
+        mock_app_qs.select_for_update.return_value.get.return_value = app
         # validate_scheduling mocks
         mock_qs.filter.return_value.first.return_value = None
         mock_qs.filter.return_value.exclude.return_value.first.return_value = None
@@ -173,10 +182,15 @@ class TestAutoTransitionToUnderReview:
     @patch("apps.applications.interview_service._send_interview_notification")
     @patch("apps.applications.interview_service.transition_application_status")
     @patch(f"{_AI}.objects")
-    def test_under_review_does_not_transition(self, mock_qs, mock_transition, mock_notify):
+    @patch(f"{_APP}.objects")
+    @patch(_TRANSACTION, side_effect=lambda: nullcontext())
+    def test_under_review_does_not_transition(
+        self, mock_atomic, mock_app_qs, mock_qs, mock_transition, mock_notify
+    ):
         app = _app("under_review")
         scheduled = _future(72)
 
+        mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_qs.filter.return_value.first.return_value = None
         mock_qs.filter.return_value.exclude.return_value.first.return_value = None
         mock_qs.create.return_value = MagicMock(id=uuid.uuid4())
@@ -197,10 +211,15 @@ class TestNotificationCreation:
     @patch("apps.applications.interview_service._send_interview_notification")
     @patch("apps.applications.interview_service.transition_application_status")
     @patch(f"{_AI}.objects")
-    def test_schedule_sends_notification(self, mock_qs, mock_transition, mock_notify):
+    @patch(f"{_APP}.objects")
+    @patch(_TRANSACTION, side_effect=lambda: nullcontext())
+    def test_schedule_sends_notification(
+        self, mock_atomic, mock_app_qs, mock_qs, mock_transition, mock_notify
+    ):
         app = _app("submitted")
         scheduled = _future(72)
 
+        mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_qs.filter.return_value.first.return_value = None
         mock_qs.filter.return_value.exclude.return_value.first.return_value = None
         created_interview = MagicMock(id=uuid.uuid4())

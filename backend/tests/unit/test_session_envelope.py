@@ -22,7 +22,7 @@ class TestSessionEnvelope(SimpleTestCase):
         self.assertTrue(response.data["success"])
         self.assertEqual(response.data["data"], {"authenticated": False})
 
-    @patch("apps.accounts.views._has_recent_csrf_token", return_value=True)
+    @patch("apps.accounts.auth_views._has_recent_csrf_token", return_value=True)
     def test_authenticated_returns_envelope_with_user_data(self, _mock_csrf):
         request = factory.get("/api/v1/auth/session/")
         request.user = MagicMock(
@@ -43,8 +43,8 @@ class TestSessionEnvelope(SimpleTestCase):
         self.assertEqual(data["email"], "test@example.com")
         self.assertEqual(data["role"], "student")
 
-    @patch("apps.accounts.views._generate_csrf_token", return_value="fresh-csrf")
-    @patch("apps.accounts.views._has_recent_csrf_token", return_value=False)
+    @patch("apps.accounts.auth_views._generate_csrf_token", return_value="fresh-csrf")
+    @patch("apps.accounts.auth_views._has_recent_csrf_token", return_value=False)
     def test_refresh_csrf_returns_header(self, _mock_recent, _mock_gen):
         request = factory.get("/api/v1/auth/session/?refresh_csrf=1")
         request.user = MagicMock(

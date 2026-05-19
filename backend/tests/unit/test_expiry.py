@@ -4,6 +4,7 @@ from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 from apps.applications.duplicate_checker import NON_TERMINAL_STATUSES, TERMINAL_STATUSES
+from apps.applications.services import SYSTEM_ACTOR_ID
 
 
 def _mock_app(status="draft", days_since_update=10, program="CS", intake="Jan 2026"):
@@ -98,7 +99,7 @@ class TestDraftExpiryTransition:
         mock_transition.assert_called_once()
         call_kwargs = mock_transition.call_args[1]
         assert call_kwargs["new_status"] == "expired"
-        assert call_kwargs["changed_by"] == "system"
+        assert call_kwargs["changed_by"] == SYSTEM_ACTOR_ID
 
     @patch(_OUTBOX_EMAIL)
     @patch(_OUTBOX_NOTIFY)

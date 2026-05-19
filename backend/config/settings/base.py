@@ -359,6 +359,8 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/min",
+        "user": "1000/min",
         "error_report": "5/min",
         "payment_initiate": "6/min",
         "payment_verify": "30/min",

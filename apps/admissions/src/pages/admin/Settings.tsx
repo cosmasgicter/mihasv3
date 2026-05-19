@@ -226,6 +226,10 @@ function matchesVisibility(isPublic: boolean, filterType: VisibilityFilter) {
   return !isPublic
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback
+}
+
 function buildGuidedDraft(blueprint: SettingBlueprint, setting?: SystemSetting): GuidedSettingDraft {
   return {
     value: setting?.value || '',
@@ -302,8 +306,8 @@ export default function AdminSettings() {
       }
       setSuccess(successMessage)
       invalidateSettings()
-    } catch (requestError: any) {
-      setError(requestError.message || 'Unable to save settings')
+    } catch (requestError: unknown) {
+      setError(getErrorMessage(requestError, 'Unable to save settings'))
     } finally {
       setSaving(false)
     }
@@ -354,8 +358,8 @@ export default function AdminSettings() {
 
       setSuccess(`${blueprint.label} updated successfully`)
       invalidateSettings()
-    } catch (requestError: any) {
-      setError(requestError.message || `Failed to update ${blueprint.label}`)
+    } catch (requestError: unknown) {
+      setError(getErrorMessage(requestError, `Failed to update ${blueprint.label}`))
     } finally {
       setActiveMutationKey(null)
     }
@@ -463,8 +467,8 @@ export default function AdminSettings() {
 
       setSuccess(result.message || `Successfully imported ${data.settings.length} settings`)
       invalidateSettings()
-    } catch (requestError: any) {
-      setError(`Import failed: ${requestError.message}`)
+    } catch (requestError: unknown) {
+      setError(`Import failed: ${getErrorMessage(requestError, 'Unknown error')}`)
     } finally {
       setSaving(false)
       event.target.value = ''
@@ -489,8 +493,8 @@ export default function AdminSettings() {
       }
       setSuccess(result.message || 'Settings reset to defaults successfully')
       invalidateSettings()
-    } catch (requestError: any) {
-      setError(requestError.message || 'Reset failed')
+    } catch (requestError: unknown) {
+      setError(getErrorMessage(requestError, 'Reset failed'))
     } finally {
       setSaving(false)
     }

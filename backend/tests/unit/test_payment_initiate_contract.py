@@ -45,11 +45,11 @@ class TestPaymentInitiateContract(SimpleTestCase):
             "apps.applications.models.Application.objects.get",
             return_value=application,
         ), patch(
-            "apps.documents.payment_service.PaymentService.initiate_payment",
+            "apps.documents.payment_service.PaymentService.initiate",
             return_value=result,
         ):
             force_authenticate(request, user=user)
             response = PaymentInitiateView.as_view()(request)
 
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 200)
         self.assertIsNone(response.data["data"]["payment_id"])

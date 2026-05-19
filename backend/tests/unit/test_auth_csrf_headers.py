@@ -38,7 +38,7 @@ class TestSessionViewCsrfHeader(SimpleTestCase):
         self.assertEqual(response.data, {"success": True, "data": {"authenticated": False}})
         self.assertNotIn("X-CSRF-Token", response)
 
-    @patch("apps.accounts.views._generate_csrf_token", return_value="session-csrf-token")
+    @patch("apps.accounts.auth_views._generate_csrf_token", return_value="session-csrf-token")
     def test_session_view_returns_fresh_csrf_header(self, mock_generate_csrf):
         request = factory.get("/api/v1/auth/session/")
         request.user = MagicMock(
@@ -56,8 +56,8 @@ class TestSessionViewCsrfHeader(SimpleTestCase):
         self.assertEqual(response["X-CSRF-Token"], "session-csrf-token")
         mock_generate_csrf.assert_called_once_with(request.user)
 
-    @patch("apps.accounts.views._has_recent_csrf_token", return_value=True)
-    @patch("apps.accounts.views._generate_csrf_token", return_value="forced-csrf-token")
+    @patch("apps.accounts.auth_views._has_recent_csrf_token", return_value=True)
+    @patch("apps.accounts.auth_views._generate_csrf_token", return_value="forced-csrf-token")
     def test_session_view_forces_csrf_header_for_recovery_requests(
         self,
         mock_generate_csrf,
@@ -80,8 +80,8 @@ class TestSessionViewCsrfHeader(SimpleTestCase):
         mock_has_recent.assert_not_called()
         mock_generate_csrf.assert_called_once_with(request.user)
 
-    @patch("apps.accounts.views.CSRFToken.objects.create")
-    @patch("apps.accounts.views.Profile.objects.get")
+    @patch("apps.accounts.auth_views.CSRFToken.objects.create")
+    @patch("apps.accounts.auth_views.Profile.objects.get")
     def test_session_view_accepts_jwt_user_when_reissuing_csrf_header(
         self, mock_get_profile, mock_create
     ):
@@ -112,12 +112,12 @@ class TestSessionViewCsrfHeader(SimpleTestCase):
 class TestRefreshViewCsrfHeader(SimpleTestCase):
     """RefreshView should issue a fresh CSRF token after rotating tokens."""
 
-    @patch("apps.accounts.views._generate_csrf_token", return_value="refresh-csrf-token")
-    @patch("apps.accounts.views._set_auth_cookies")
-    @patch("apps.accounts.views.DeviceSession.objects.filter")
-    @patch("apps.accounts.views.rotate_tokens", return_value=("new-access", "new-refresh"))
-    @patch("apps.accounts.views.Profile.objects.get")
-    @patch("apps.accounts.views.verify_token", return_value={"user_id": "user-1"})
+    @patch("apps.accounts.auth_views._generate_csrf_token", return_value="refresh-csrf-token")
+    @patch("apps.accounts.auth_views._set_auth_cookies")
+    @patch("apps.accounts.auth_views.DeviceSession.objects.filter")
+    @patch("apps.accounts.auth_views.rotate_tokens", return_value=("new-access", "new-refresh"))
+    @patch("apps.accounts.auth_views.Profile.objects.get")
+    @patch("apps.accounts.auth_views.verify_token", return_value={"user_id": "user-1"})
     def test_refresh_view_returns_fresh_csrf_header(
         self,
         mock_verify_token,
@@ -147,7 +147,7 @@ class TestRefreshViewCsrfHeader(SimpleTestCase):
 class TestLogoutViewCsrfCleanup(SimpleTestCase):
     """LogoutView should delete CSRF rows for JWT-authenticated users."""
 
-    @patch("apps.accounts.views.CSRFToken.objects.filter")
+    @patch("apps.accounts.auth_views.CSRFToken.objects.filter")
     def test_logout_view_filters_csrf_tokens_by_user_id_for_jwt_user(self, mock_filter):
         request = factory.post("/api/v1/auth/logout/", {}, format="json")
         request.user = JWTUser(

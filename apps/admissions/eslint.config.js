@@ -1,6 +1,7 @@
 import tseslint from 'typescript-eslint';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
 import pluginReactRefresh from 'eslint-plugin-react-refresh';
+import pluginImport from 'eslint-plugin-import';
 import globals from 'globals';
 
 const migratedModuleFiles = [
@@ -39,8 +40,10 @@ export default [
       '@typescript-eslint': tseslint.plugin,
       'react-hooks': pluginReactHooks,
       'react-refresh': pluginReactRefresh,
+      'import': pluginImport,
     },
     rules: {
+      'import/first': 'warn',
       '@typescript-eslint/no-dynamic-delete': 'off',
       'react-hooks/rules-of-hooks': 'error',
       'react-refresh/only-export-components': 'off',
@@ -153,6 +156,9 @@ export default [
         ...globals.mocha,
         vi: 'readonly',
       },
+    },
+    rules: {
+      'import/first': 'off',
     },
   },
 ];

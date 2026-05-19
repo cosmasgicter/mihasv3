@@ -246,7 +246,14 @@ def test_payment_verify_preserves_envelope_shape():
         f"/api/v1/payments/{payment_id}/verify/",
         user=user,
     )
-    response = view(request, payment_id=payment_id)
+    with pytest.MonkeyPatch.context() as mp:
+        from apps.documents.models import Payment
+
+        mp.setattr(
+            "apps.documents.payment_query_views.Payment.objects.get",
+            lambda **kwargs: (_ for _ in ()).throw(Payment.DoesNotExist()),
+        )
+        response = view(request, payment_id=payment_id)
 
     # Verify can legitimately return 200 (terminal status cached), 200
     # with success=False (verification error envelope), 403 (ownership),
@@ -279,7 +286,14 @@ def test_payment_resolve_fee_preserves_envelope_shape():
         {"program_code": "CONTRACT_PRESERVATION_TEST"},
     )
     force_authenticate(request, user=user)
-    response = view(request)
+    with pytest.MonkeyPatch.context() as mp:
+        from apps.catalog.models import Program
+
+        mp.setattr(
+            "apps.documents.fee_resolver.FeeResolver.resolve_fee",
+            lambda *args, **kwargs: (_ for _ in ()).throw(Program.DoesNotExist()),
+        )
+        response = view(request)
 
     assert response.status_code in (200, 400, 404), (
         f"unexpected resolve-fee status {response.status_code}: {response.data!r}"

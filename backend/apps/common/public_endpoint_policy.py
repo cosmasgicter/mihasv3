@@ -17,6 +17,12 @@ PUBLIC_ENDPOINT_CLASSIFICATIONS = {
     "apps.jobs.views.JobListView": "health_meta_catalog_public_read",
     "apps.jobs.views.JobDetailView": "health_meta_catalog_public_read",
     # auth/password public flow
+    "apps.accounts.auth_views.LoginView": "auth_password_public_flow",
+    "apps.accounts.auth_views.RefreshView": "auth_password_public_flow",
+    "apps.accounts.auth_views.RegisterView": "auth_password_public_flow",
+    "apps.accounts.auth_views.SessionView": "auth_password_public_flow",
+    "apps.accounts.password_views.PasswordResetRequestView": "auth_password_public_flow",
+    "apps.accounts.password_views.PasswordResetConfirmView": "auth_password_public_flow",
     "apps.accounts.views.LoginView": "auth_password_public_flow",
     "apps.accounts.views.RefreshView": "auth_password_public_flow",
     "apps.accounts.views.RegisterView": "auth_password_public_flow",
@@ -24,6 +30,7 @@ PUBLIC_ENDPOINT_CLASSIFICATIONS = {
     "apps.accounts.views.PasswordResetRequestView": "auth_password_public_flow",
     "apps.accounts.views.PasswordResetConfirmView": "auth_password_public_flow",
     # signed webhook
+    "apps.documents.lenco_webhook_views.LencoWebhookView": "signed_webhook",
     "apps.documents.views.LencoWebhookView": "signed_webhook",
     "apps.integrations.views.TelegramWebhookView": "signed_webhook",
     "apps.integrations.email_views.EmailDeliveryWebhookView": "signed_webhook",

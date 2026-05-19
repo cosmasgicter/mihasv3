@@ -77,6 +77,9 @@ jobs:
       - name: Contract parity tests
         run: python -m pytest tests/contract/test_contract_parity.py -q
         working-directory: backend
+      - name: Production-fix regression tests (2026-05-19)
+        run: python -m pytest tests/integration/test_cors_idempotency_headers.py -v
+        working-directory: backend
       - name: Run tests
         run: python -m pytest tests/unit/ tests/property/ -x -q --tb=short
         working-directory: backend
@@ -122,6 +125,9 @@ jobs:
         working-directory: apps/admissions
       - name: Build
         run: bun run build
+        working-directory: apps/admissions
+      - name: PDF chunk smoke check (TDZ regression guard)
+        run: node ../../scripts/check-pdf-chunk-load.mjs
         working-directory: apps/admissions
       - name: Dependency audit
         run: bun pm scan

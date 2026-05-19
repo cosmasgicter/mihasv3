@@ -132,13 +132,40 @@ def seeded_payments(db):
     for count, status, metadata, method, has_receipt, has_txref in _ROW_SHAPES:
         for _ in range(count):
             seq += 1
+            payment_application = application
+            # The production hardening index now permits only one active
+            # payment (pending/deferred) per application. This fixture is a
+            # read-compatibility catalogue, not an invariant-bypass test, so
+            # active legacy rows get their own otherwise-identical
+            # applications while terminal rows keep sharing the base one.
+            if status in {"pending", "deferred"}:
+                payment_application = Application.objects.create(
+                    id=uuid.uuid4(),
+                    application_number=f"APP-{now:%Y%m%d}-{uuid.uuid4().hex[:8].upper()}",
+                    user=user,
+                    full_name="Backward Compat Student",
+                    date_of_birth=now.date().replace(year=2000),
+                    sex="Male",
+                    phone="+260977000000",
+                    email=user.email,
+                    residence_town="Lusaka",
+                    nationality="Zambian",
+                    country="Zambia",
+                    program="CLM",
+                    intake="January 2025",
+                    institution="MIHAS",
+                    status="submitted",
+                    version=1,
+                    created_at=now,
+                    updated_at=now,
+                )
             # Stagger created_at so the ``order_by('-created_at')`` slice
             # is deterministic and hits every row.
             created_at = now - timedelta(minutes=seq)
             payments.append(
                 Payment.objects.create(
                     id=uuid.uuid4(),
-                    application=application,
+                    application=payment_application,
                     user=user,
                     amount=Decimal("153.00"),
                     currency="ZMW",

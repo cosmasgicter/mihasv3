@@ -27,6 +27,7 @@ import django  # noqa: E402
 
 django.setup()
 
+import pytest  # noqa: E402
 from django.test import SimpleTestCase  # noqa: E402
 from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
@@ -63,6 +64,11 @@ def _split_statements(sql: str) -> list[str]:
 
 
 STATEMENTS = _split_statements(MIGRATION_SQL)
+
+pytestmark = pytest.mark.skipif(
+    not MIGRATION_SCRIPT_PATH.exists(),
+    reason="Legacy lenco_payment_integration.sql archive is not present in this checkout",
+)
 
 # ---------------------------------------------------------------------------
 # Classify statements for idempotency checks

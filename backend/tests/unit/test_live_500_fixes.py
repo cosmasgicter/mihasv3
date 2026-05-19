@@ -68,8 +68,8 @@ class TestReviewViewNoDebugWrapper(SimpleTestCase):
 class TestAdminDashboardResponseShape(SimpleTestCase):
     """Verify admin dashboard returns JSON with expected top-level keys."""
 
-    @patch("apps.accounts.admin_views.AuditLog")
-    @patch("apps.accounts.admin_views.Profile")
+    @patch("apps.accounts.admin_user_views.AuditLog")
+    @patch("apps.accounts.admin_user_views.Profile")
     @patch("apps.applications.models.Application")
     def test_response_contains_expected_keys(
         self, mock_app, mock_profile, mock_audit
@@ -103,8 +103,14 @@ class TestAdminDashboardResponseShape(SimpleTestCase):
         request.user.is_authenticated = True
         request.user.role = "admin"
 
-        view = AdminDashboardView()
-        response = view.get(request)
+        with (
+            patch("apps.applications.models.ApplicationStatusHistory.objects"),
+            patch("apps.documents.models.Payment.objects"),
+            patch("apps.documents.models.ApplicationDocument.objects"),
+            patch("apps.applications.models.ApplicationInterview.objects"),
+        ):
+            view = AdminDashboardView()
+            response = view.get(request)
 
         self.assertEqual(response.status_code, 200)
 
@@ -113,8 +119,8 @@ class TestAdminDashboardResponseShape(SimpleTestCase):
         self.assertIn("users", data)
         self.assertIn("recent_activity", data)
 
-    @patch("apps.accounts.admin_views.AuditLog")
-    @patch("apps.accounts.admin_views.Profile")
+    @patch("apps.accounts.admin_user_views.AuditLog")
+    @patch("apps.accounts.admin_user_views.Profile")
     @patch("apps.applications.models.Application")
     def test_applications_contains_expected_subkeys(
         self, mock_app, mock_profile, mock_audit
@@ -141,8 +147,14 @@ class TestAdminDashboardResponseShape(SimpleTestCase):
         request.user.is_authenticated = True
         request.user.role = "admin"
 
-        view = AdminDashboardView()
-        response = view.get(request)
+        with (
+            patch("apps.applications.models.ApplicationStatusHistory.objects"),
+            patch("apps.documents.models.Payment.objects"),
+            patch("apps.documents.models.ApplicationDocument.objects"),
+            patch("apps.applications.models.ApplicationInterview.objects"),
+        ):
+            view = AdminDashboardView()
+            response = view.get(request)
 
         data = response.data.get("data", response.data)
         apps_data = data["applications"]

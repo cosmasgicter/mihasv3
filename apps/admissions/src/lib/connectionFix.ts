@@ -145,7 +145,7 @@ export class ConnectionManager {
 export async function syncGradesWithRecovery(
   applicationId: string,
   grades: Array<{ subject_id: string; grade: number }>
-): Promise<any> {
+): Promise<unknown> {
   const connectionManager = ConnectionManager.getInstance()
   const syncableGrades = grades.filter(
     grade =>

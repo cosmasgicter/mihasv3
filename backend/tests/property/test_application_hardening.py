@@ -306,10 +306,10 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
         mock_history = MagicMock()
         mock_history.changes = None
 
-        with patch("apps.applications.admin_views.transaction.atomic"), \
-             patch("apps.applications.admin_views.Application.objects") as mock_app_objects, \
-             patch("apps.applications.admin_views.transition_application_status") as mock_transition, \
-             patch("apps.applications.admin_views.ApplicationStatusHistory.objects") as mock_history_objects:
+        with patch("apps.applications.admin_review_views.transaction.atomic"), \
+             patch("apps.applications.admin_review_views.Application.objects") as mock_app_objects, \
+             patch("apps.applications.admin_review_views.transition_application_status") as mock_transition, \
+             patch("apps.applications.admin_review_views.ApplicationStatusHistory.objects") as mock_history_objects:
 
             mock_app_objects.get.return_value = mock_app
             mock_transition.return_value = "submitted"  # old_status
@@ -372,11 +372,11 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
         mock_app.status = "under_review"
         mock_app.payment_status = "verified"
 
-        with patch("apps.applications.admin_views.transaction.atomic"), \
-             patch("apps.applications.admin_views.Application.objects") as mock_app_objects, \
-             patch("apps.applications.admin_views.transition_application_status") as mock_transition, \
-             patch("apps.applications.admin_views.ApplicationStatusHistory.objects") as mock_history_objects, \
-             patch("apps.applications.admin_views.Payment.objects") as mock_payment:
+        with patch("apps.applications.admin_review_views.transaction.atomic"), \
+             patch("apps.applications.admin_review_views.Application.objects") as mock_app_objects, \
+             patch("apps.applications.admin_review_views.transition_application_status") as mock_transition, \
+             patch("apps.applications.admin_review_views.ApplicationStatusHistory.objects") as mock_history_objects, \
+             patch("apps.applications.admin_review_views.Payment.objects") as mock_payment:
 
             mock_app_objects.get.return_value = mock_app
             mock_transition.return_value = "under_review"

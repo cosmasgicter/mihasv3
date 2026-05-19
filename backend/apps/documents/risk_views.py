@@ -54,6 +54,8 @@ Validates: Requirements R17.1, R17.2, R17.5.
 from __future__ import annotations
 
 import logging
+import json
+import re
 from datetime import datetime
 from typing import Any, Optional
 
@@ -73,6 +75,7 @@ from rest_framework.response import Response
 from apps.accounts.permissions import IsSuperAdmin
 from apps.common.dev_bypass import require_not_dev_bypass_in_production
 from apps.common.throttling import PaymentUserScopedRateThrottle
+from apps.documents.models import Payment
 from apps.documents.payment_audit_service import PaymentAuditService
 
 logger = logging.getLogger(__name__)
@@ -161,7 +164,12 @@ def _parse_iso_datetime(raw: Optional[str]) -> tuple[Optional[datetime], Optiona
     """
     if raw is None or raw == "":
         return None, None
-    parsed = parse_datetime(raw)
+    # Query strings frequently arrive with a timezone ``+`` decoded as a
+    # space when clients concatenate ISO strings manually instead of URL
+    # encoding them. Accept that common transport mutation without relaxing
+    # the timestamp contract itself.
+    normalized = re.sub(r" ([0-9]{2}:[0-9]{2})$", r"+\1", raw)
+    parsed = parse_datetime(normalized)
     if parsed is None:
         return None, "must be a valid ISO8601 timestamp"
     return parsed, None
@@ -261,60 +269,109 @@ class RiskFlagsListView(GenericAPIView):
 
         offset = (page - 1) * page_size
 
-        # ---- Build the shared WHERE clause ----------------------------------
-        # ``jsonb_array_elements`` fans out the ``risk_flags`` array into one
-        # row per flag. ``COALESCE`` ensures payments without a ``risk_flags``
-        # key produce zero rows (no NULL-vs-missing surprises).
-        where_sql = (
-            "WHERE (%s::text IS NULL OR flag->>'type' = %s) "
-            "AND (%s::timestamptz IS NULL "
-            "     OR (flag->>'recorded_at')::timestamptz >= %s) "
-            "AND (%s::timestamptz IS NULL "
-            "     OR (flag->>'recorded_at')::timestamptz <= %s)"
-        )
-        where_params = [
-            risk_type, risk_type,
-            since, since,
-            until, until,
-        ]
+        if connection.vendor == "sqlite":
+            all_rows: list[tuple[str, Any, str | None, Any, datetime | None]] = []
+            payments = Payment.objects.exclude(metadata__isnull=True).only(
+                "id",
+                "application_id",
+                "metadata",
+            )
+            for payment in payments:
+                flags = (payment.metadata or {}).get("risk_flags") or []
+                if not isinstance(flags, list):
+                    continue
+                for flag in flags:
+                    if not isinstance(flag, dict):
+                        continue
+                    flag_type = flag.get("type")
+                    recorded_at_raw = flag.get("recorded_at")
+                    recorded_at = (
+                        parse_datetime(recorded_at_raw)
+                        if isinstance(recorded_at_raw, str)
+                        else None
+                    )
+                    if risk_type is not None and flag_type != risk_type:
+                        continue
+                    if since is not None and (recorded_at is None or recorded_at < since):
+                        continue
+                    if until is not None and (recorded_at is None or recorded_at > until):
+                        continue
+                    all_rows.append(
+                        (
+                            str(payment.id),
+                            payment.application_id,
+                            str(flag_type) if flag_type is not None else None,
+                            flag.get("details") or {},
+                            recorded_at,
+                        )
+                    )
 
-        count_sql = (
-            "SELECT COUNT(*) "
-            "FROM payments p, "
-            "     jsonb_array_elements("
-            "       COALESCE(p.metadata->'risk_flags', '[]'::jsonb)"
-            "     ) AS flag "
-            f"{where_sql}"
-        )
-        select_sql = (
-            "SELECT p.id AS payment_id, "
-            "       p.application_id, "
-            "       flag->>'type' AS type, "
-            "       flag->'details' AS details, "
-            "       (flag->>'recorded_at')::timestamptz AS recorded_at "
-            "FROM payments p, "
-            "     jsonb_array_elements("
-            "       COALESCE(p.metadata->'risk_flags', '[]'::jsonb)"
-            "     ) AS flag "
-            f"{where_sql} "
-            "ORDER BY (flag->>'recorded_at')::timestamptz DESC NULLS LAST "
-            "LIMIT %s OFFSET %s"
-        )
+            all_rows.sort(
+                key=lambda row: row[4].timestamp() if row[4] is not None else float("-inf"),
+                reverse=True,
+            )
+            total_count = len(all_rows)
+            rows = all_rows[offset: offset + page_size]
+        else:
+            # ---- Build the shared WHERE clause ----------------------------------
+            # ``jsonb_array_elements`` fans out the ``risk_flags`` array into one
+            # row per flag. ``COALESCE`` ensures payments without a ``risk_flags``
+            # key produce zero rows (no NULL-vs-missing surprises).
+            where_sql = (
+                "WHERE (%s::text IS NULL OR flag->>'type' = %s) "
+                "AND (%s::timestamptz IS NULL "
+                "     OR (flag->>'recorded_at')::timestamptz >= %s) "
+                "AND (%s::timestamptz IS NULL "
+                "     OR (flag->>'recorded_at')::timestamptz <= %s)"
+            )
+            where_params = [
+                risk_type, risk_type,
+                since, since,
+                until, until,
+            ]
 
-        with connection.cursor() as cursor:
-            cursor.execute(count_sql, where_params)
-            total_count = int(cursor.fetchone()[0] or 0)
+            count_sql = (
+                "SELECT COUNT(*) "
+                "FROM payments p, "
+                "     jsonb_array_elements("
+                "       COALESCE(p.metadata->'risk_flags', '[]'::jsonb)"
+                "     ) AS flag "
+                f"{where_sql}"
+            )
+            select_sql = (
+                "SELECT p.id AS payment_id, "
+                "       p.application_id, "
+                "       flag->>'type' AS type, "
+                "       flag->'details' AS details, "
+                "       (flag->>'recorded_at')::timestamptz AS recorded_at "
+                "FROM payments p, "
+                "     jsonb_array_elements("
+                "       COALESCE(p.metadata->'risk_flags', '[]'::jsonb)"
+                "     ) AS flag "
+                f"{where_sql} "
+                "ORDER BY (flag->>'recorded_at')::timestamptz DESC NULLS LAST "
+                "LIMIT %s OFFSET %s"
+            )
 
-            cursor.execute(select_sql, where_params + [page_size, offset])
-            rows = cursor.fetchall()
+            with connection.cursor() as cursor:
+                cursor.execute(count_sql, where_params)
+                total_count = int(cursor.fetchone()[0] or 0)
+
+                cursor.execute(select_sql, where_params + [page_size, offset])
+                rows = cursor.fetchall()
 
         # ---- Redact + serialise ---------------------------------------------
         results: list[dict[str, Any]] = []
         for payment_id, application_id, flag_type, details, recorded_at in rows:
-            # psycopg returns ``jsonb`` as a Python dict/list/scalar. Pass the
-            # raw value through ``_redact_pii`` so nested PII (phone, NRC,
-            # passport, PAN, card_number, raw_payload, document_body) is
-            # redacted at any depth before it leaves the server.
+            # Depending on driver registration, psycopg may return ``jsonb``
+            # as a Python object or as JSON text. Normalize both shapes before
+            # redaction so callers never receive a quoted JSON blob.
+            if isinstance(details, str):
+                try:
+                    details = json.loads(details)
+                except json.JSONDecodeError:
+                    details = {}
+
             redacted_details = PaymentAuditService._redact_pii(details)
             results.append(
                 {

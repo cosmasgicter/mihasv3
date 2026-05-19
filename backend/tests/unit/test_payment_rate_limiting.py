@@ -36,6 +36,7 @@ import pytest
 from django.core.cache import cache
 from django.test import override_settings
 from rest_framework.test import APIClient
+from apps.accounts.authentication import JWTUser
 
 
 # ---------------------------------------------------------------------------
@@ -58,6 +59,18 @@ def _seed_profile(role: str = "student"):
         is_active=True,
         created_at=now,
         updated_at=now,
+    )
+
+
+def _jwt_user(profile):
+    return JWTUser(
+        {
+            "user_id": str(profile.id),
+            "email": profile.email,
+            "role": profile.role,
+            "first_name": profile.first_name,
+            "last_name": profile.last_name,
+        }
     )
 
 
@@ -113,7 +126,7 @@ def test_per_scope_429_at_budget_plus_one(
     client = APIClient()
     profile = _seed_profile()
     if requires_auth:
-        client.force_authenticate(user=profile)
+        client.force_authenticate(user=_jwt_user(profile))
 
     # Fire exactly ``budget`` requests — none should be 429.
     for i in range(budget):
@@ -148,10 +161,10 @@ def test_second_user_is_not_throttled_by_first_users_budget():
     user_b = _seed_profile()
 
     client_a = APIClient()
-    client_a.force_authenticate(user=user_a)
+    client_a.force_authenticate(user=_jwt_user(user_a))
 
     client_b = APIClient()
-    client_b.force_authenticate(user=user_b)
+    client_b.force_authenticate(user=_jwt_user(user_b))
 
     scope_budget = 6  # payment_initiate
     path = "/api/v1/payments/initiate/"

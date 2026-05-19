@@ -12,6 +12,8 @@ All Django models use `managed = False`. Schema changes are applied via raw SQL 
 | `legacy_columns_drop_2026_08_15.sql` | Drop deprecated payment columns from applications | N (scheduled) |
 | `payment_hardening_indexes_rollback.sql` | Rollback for payment hardening indexes | N (rollback only) |
 | `2026_05_18_hot_query_indexes.sql` | Hot-query indexes for applications, payments, audit_logs | N |
+| `2026_05_18_expand_application_status_columns.sql` | Widen application status columns for canonical lifecycle values | N |
+| `2026_05_19_seed_communication_templates.sql` | Seed all 19 communication_templates rows used in production code | N |
 
 ## Applied Scripts (in `applied/` subdirectory)
 

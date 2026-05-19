@@ -97,7 +97,7 @@ function RoutedAuthenticatedApp() {
 
   // Dismiss preloader on first paint — app has real content now
   useEffect(() => {
-    (window as any).__dismissPreloader?.()
+    ;(window as Window & { __dismissPreloader?: () => void }).__dismissPreloader?.()
   }, [])
 
   useEffect(() => {

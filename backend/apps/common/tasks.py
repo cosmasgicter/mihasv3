@@ -5,6 +5,7 @@ Requirements: 8.3, 8.4, 12.2, 12.3, 5.2, 5.3, 5.4, 5.5, 7.1, 7.2, 7.3, 7.4, 7.5,
 """
 
 import logging
+import os
 from datetime import timedelta
 
 from celery import shared_task
@@ -36,6 +37,9 @@ def dispatch_email(email_queue_id: str) -> None:
     row still exists with status='pending' and will be picked up by the
     periodic ``process_pending_emails_task`` sweep.
     """
+    if os.environ.get("TESTING", "").lower() in {"1", "true", "yes"}:
+        return
+
     try:
         send_email_task.delay(email_queue_id)
     except Exception:

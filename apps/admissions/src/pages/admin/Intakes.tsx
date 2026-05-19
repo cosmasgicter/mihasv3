@@ -17,7 +17,7 @@ import {
 import { DashboardSkeleton } from '@/components/ui'
 import { ResponsiveTable } from '@/components/ui/ResponsiveTable'
 import { Pencil, Trash2, Plus, ArrowLeft, Calendar, AlertTriangle } from 'lucide-react'
-import { useForm, type Resolver } from 'react-hook-form'
+import { useForm, type FieldErrors, type Resolver, type UseFormRegister } from 'react-hook-form'
 import { z } from '@/lib/zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { PageShell } from '@/components/ui/PageShell'
@@ -33,6 +33,7 @@ interface Intake {
   max_capacity: number
   current_enrollment?: number
   is_active?: boolean
+  semester?: string
 }
 
 /** Returns Tailwind classes for the utilization indicator based on enrollment/capacity ratio */
@@ -77,7 +78,13 @@ export interface IntakeForm {
 
 // formatDate imported from @/lib/dateFormat handles null/invalid dates
 
-const IntakeFormFields = ({ register, errors }: { register: any; errors: any }) => (
+const IntakeFormFields = ({
+  register,
+  errors,
+}: {
+  register: UseFormRegister<IntakeForm>
+  errors: FieldErrors<IntakeForm>
+}) => (
   <div className="space-y-4 py-4">
     <Input label="Name" {...register('name')} error={errors.name?.message} required />
     <Input label="Year" type="number" {...register('year')} error={errors.year?.message} required />
@@ -160,7 +167,7 @@ export default function AdminIntakes() {
     reset({
       name: intake.name,
       year: intake.year,
-      semester: (intake as any).semester || '',
+      semester: intake.semester || '',
       start_date: normalizeDateInputValue(intake.start_date),
       end_date: normalizeDateInputValue(intake.end_date),
       application_deadline: normalizeDateInputValue(intake.application_deadline),

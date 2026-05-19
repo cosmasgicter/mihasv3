@@ -29,6 +29,7 @@ import pytest
 from django.core.cache import cache
 from django.test import override_settings
 from rest_framework.test import APIClient
+from apps.accounts.authentication import JWTUser
 
 
 PAYMENT_INITIATE_PATH = "/api/v1/payments/initiate/"
@@ -52,6 +53,18 @@ def _seed_profile(role: str = "student"):
     )
 
 
+def _jwt_user(profile):
+    return JWTUser(
+        {
+            "user_id": str(profile.id),
+            "email": profile.email,
+            "role": profile.role,
+            "first_name": profile.first_name,
+            "last_name": profile.last_name,
+        }
+    )
+
+
 @pytest.mark.django_db
 @override_settings(PAYMENT_HARDENING_RATE_LIMITS=False)
 def test_flag_default_allows_50_requests_without_429():
@@ -66,7 +79,7 @@ def test_flag_default_allows_50_requests_without_429():
 
     client = APIClient()
     profile = _seed_profile()
-    client.force_authenticate(user=profile)
+    client.force_authenticate(user=_jwt_user(profile))
 
     for i in range(50):
         body = {"application_id": str(uuid.uuid4())}
@@ -112,7 +125,7 @@ def test_all_phase5_flags_disabled_preserves_legacy_behaviour():
 
     client = APIClient()
     profile = _seed_profile()
-    client.force_authenticate(user=profile)
+    client.force_authenticate(user=_jwt_user(profile))
 
     # (label, http_method, path_template, builds_body) — path_template
     # accepts an optional ``{uuid}`` placeholder for per-call uniqueness

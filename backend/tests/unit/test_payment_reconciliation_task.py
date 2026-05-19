@@ -71,7 +71,27 @@ def seed_owner(db):
         updated_at=now,
     )
 
-    application = Application.objects.create(
+    application = _create_application(profile)
+
+    return {"profile": profile, "application": application}
+
+
+@pytest.fixture(autouse=True)
+def _isolate_reconciliation_rows(db):
+    """Keep each reconciliation example independent of global pending rows."""
+    from apps.documents.models import Payment
+
+    Payment.objects.all().delete()
+    yield
+    Payment.objects.all().delete()
+
+
+def _create_application(profile):
+    """Create one submitted application for reconciliation test data."""
+    from apps.applications.models import Application
+
+    now = timezone.now()
+    return Application.objects.create(
         id=uuid.uuid4(),
         application_number=f"APP-{now:%Y%m%d}-{uuid.uuid4().hex[:8].upper()}",
         user=profile,
@@ -92,8 +112,6 @@ def seed_owner(db):
         created_at=now,
         updated_at=now,
     )
-
-    return {"profile": profile, "application": application}
 
 
 def _seed_pending_payment(application, profile, *, age_hours: float):
@@ -176,11 +194,10 @@ def test_expire_stale_expires_all_candidates_older_than_cutoff(seed_owner):
     """
     from apps.documents.payment_service import PaymentService
 
-    app = seed_owner["application"]
     profile = seed_owner["profile"]
 
     payments = [
-        _seed_pending_payment(app, profile, age_hours=25)
+        _seed_pending_payment(_create_application(profile), profile, age_hours=25)
         for _ in range(10)
     ]
 
@@ -239,11 +256,10 @@ def test_expire_stale_is_idempotent_on_second_run(seed_owner):
     from apps.common.models import AuditLog
     from apps.documents.payment_service import PaymentService
 
-    app = seed_owner["application"]
     profile = seed_owner["profile"]
 
     payments = [
-        _seed_pending_payment(app, profile, age_hours=25)
+        _seed_pending_payment(_create_application(profile), profile, age_hours=25)
         for _ in range(10)
     ]
 
@@ -373,11 +389,13 @@ def test_expire_stale_honours_batch_cap(seed_owner):
     from apps.documents.models import Payment
     from apps.documents.payment_service import PaymentService
 
-    app = seed_owner["application"]
     profile = seed_owner["profile"]
 
-    for _ in range(10):
-        _seed_pending_payment(app, profile, age_hours=25)
+    payments = [
+        _seed_pending_payment(_create_application(profile), profile, age_hours=25)
+        for _ in range(10)
+    ]
+    payment_ids = [payment.id for payment in payments]
 
     expired_count = PaymentService().expire_stale(
         older_than_hours=24, batch_cap=3,
@@ -387,9 +405,7 @@ def test_expire_stale_honours_batch_cap(seed_owner):
     )
 
     status_counts = {
-        status: Payment.objects.filter(
-            application_id=app.id, status=status,
-        ).count()
+        status: Payment.objects.filter(id__in=payment_ids, status=status).count()
         for status in ("pending", "expired")
     }
     assert status_counts["expired"] == 3, (
@@ -445,7 +461,7 @@ def test_pending_below_reconcile_min_age_is_skipped(seed_owner, _clear_task_lock
     """A ``pending`` Payment younger than ``PAYMENT_RECONCILE_MIN_AGE_SECONDS``
     (default 300s) MUST NOT be verified by the reconciliation sweep.
 
-    The invariant: ``PaymentService.verify_payment`` is not called for
+    The invariant: ``PaymentService.verify`` is not called for
     the row, and the row remains ``pending`` with no new audit entries
     (beyond any the fixture produced).
 
@@ -461,14 +477,14 @@ def test_pending_below_reconcile_min_age_is_skipped(seed_owner, _clear_task_lock
     young_payment = _seed_pending_payment(app, profile, age_hours=2 / 60)
 
     with patch.object(
-        PaymentService, "verify_payment"
+        PaymentService, "verify"
     ) as mock_verify, patch.object(
         PaymentService, "expire_stale", return_value=0
     ):
         documents_tasks.poll_pending_payments_task()
 
     assert mock_verify.call_count == 0, (
-        f"verify_payment must not be called for payments younger than the "
+        f"verify must not be called for payments younger than the "
         f"reconcile minimum age; got {mock_verify.call_count} call(s)."
     )
     young_payment.refresh_from_db()
@@ -485,7 +501,7 @@ def test_pending_below_reconcile_min_age_is_skipped(seed_owner, _clear_task_lock
 def test_pending_above_reconcile_min_age_triggers_verify(seed_owner, _clear_task_lock):
     """A 10-minute-old ``pending`` Payment is verified via Lenco.
 
-    Asserts ``PaymentService.verify_payment`` is called with the
+    Asserts ``PaymentService.verify`` is called with the
     Payment's id exactly once per sweep.
 
     Validates: Requirements R18.1
@@ -500,14 +516,14 @@ def test_pending_above_reconcile_min_age_triggers_verify(seed_owner, _clear_task
     ripe_payment = _seed_pending_payment(app, profile, age_hours=10 / 60)
 
     with patch.object(
-        PaymentService, "verify_payment"
+        PaymentService, "verify"
     ) as mock_verify, patch.object(
         PaymentService, "expire_stale", return_value=0
     ):
         documents_tasks.poll_pending_payments_task()
 
     assert mock_verify.call_count == 1, (
-        f"verify_payment must be called exactly once for a ripe pending "
+        f"verify must be called exactly once for a ripe pending "
         f"payment; got {mock_verify.call_count}."
     )
     called_payment_ids = {c.args[0] for c in mock_verify.call_args_list}
@@ -526,7 +542,7 @@ def test_pending_over_24h_expired_first(seed_owner, _clear_task_lock):
 
     The forward-only task calls ``expire_stale()`` first; the expired
     row then falls out of the pending-window query so
-    ``verify_payment`` is never invoked for it.
+    ``verify`` is never invoked for it.
 
     Validates: Requirements R18.2
     """
@@ -541,10 +557,10 @@ def test_pending_over_24h_expired_first(seed_owner, _clear_task_lock):
 
     # Use the real ``expire_stale`` so the row is actually transitioned
     # to ``expired`` and the subsequent pending-window query returns
-    # empty. Patch only ``verify_payment`` so we can assert it is not
+    # empty. Patch only ``verify`` so we can assert it is not
     # called.
     with patch.object(
-        PaymentService, "verify_payment"
+        PaymentService, "verify"
     ) as mock_verify:
         documents_tasks.poll_pending_payments_task()
 
@@ -555,12 +571,12 @@ def test_pending_over_24h_expired_first(seed_owner, _clear_task_lock):
     )
 
     # R18.2: expire precedes verify — the expired row never reaches
-    # verify_payment because it is out of the (5 min, 24 h) window.
+    # verify because it is out of the (5 min, 24 h) window.
     expired_ids = {
         c.args[0] for c in mock_verify.call_args_list
     }
     assert stale_payment.id not in expired_ids, (
-        "verify_payment must not be called for a Payment that expire_stale "
+        "verify must not be called for a Payment that expire_stale "
         "already transitioned to ``expired``."
     )
 
@@ -585,7 +601,7 @@ def test_pending_over_24h_expired_first(seed_owner, _clear_task_lock):
 def test_amount_mismatch_during_reconcile_triggers_risk_flag(seed_owner, _clear_task_lock):
     """Lenco returns ``amount=100.00`` for a snapshot of ``153.00``.
 
-    The reconciliation sweep calls ``verify_payment``, which issues a
+    The reconciliation sweep calls ``verify``, which issues a
     ``GET /collections/status/...`` call, reads the mismatched amount,
     routes through ``_transition`` — which writes a
     ``risk_flag`` of type ``amount_mismatch`` and leaves the Payment
@@ -619,7 +635,7 @@ def test_amount_mismatch_during_reconcile_triggers_risk_flag(seed_owner, _clear_
                 },
             }
 
-    # Patch the HTTP call and let ``verify_payment`` run through the
+    # Patch the HTTP call and let ``verify`` run through the
     # real integrity gate in ``_transition``.
     with patch(
         "apps.documents.payment_service.http_requests.get",

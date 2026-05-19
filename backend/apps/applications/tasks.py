@@ -432,6 +432,9 @@ def condition_expiry_task(self):
             status="pending",
             deadline__lt=today,
         ).select_related("application")
+        affected_app_ids = set(
+            expired_conditions.values_list("application_id", flat=True)
+        )
 
         expired_count = 0
         auto_rejected = 0
@@ -483,9 +486,6 @@ def condition_expiry_task(self):
 
         # After expiring conditions, check each affected application for
         # auto-rejection (Req 5.8): all conditions resolved + any expired → reject.
-        affected_app_ids = set(
-            expired_conditions.values_list("application_id", flat=True)
-        )
         for app_id in affected_app_ids:
             try:
                 promoted = ConditionManager.auto_promote_if_all_met(str(app_id))

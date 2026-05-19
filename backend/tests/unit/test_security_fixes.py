@@ -190,7 +190,7 @@ class TestIdempotencyTaskDiscoverability(SimpleTestCase):
         task_name = entry["task"]
         self.assertEqual(
             task_name,
-            "apps.common.tasks.cleanup_idempotency_keys",
+            "apps.common.tasks.cleanup_idempotency_keys_task",
             f"Expected full dotted path, got: {task_name}",
         )
 

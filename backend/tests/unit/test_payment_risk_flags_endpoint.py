@@ -754,7 +754,7 @@ def test_risk_flag_details_pii_is_redacted_in_response(db):
         )
         assert redacted_phone.get("phone_last4") == phone[-4:]
         assert isinstance(redacted_phone.get("phone_hash"), str)
-        assert len(redacted_phone["phone_hash"]) == 64  # sha256 hex digest
+        assert len(redacted_phone["phone_hash"]) == 16  # repo-wide short SHA-256 fingerprint
 
     # NRC / passport markers must be hashed to a 16-char lowercase hex
     # SHA-256 prefix (the _HASH_KEY_MARKERS rule in PaymentAuditService).

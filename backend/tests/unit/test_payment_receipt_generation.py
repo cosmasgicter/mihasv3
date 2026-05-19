@@ -151,6 +151,7 @@ def test_receipt_generated_once_on_successful():
         payment,
         "successful",
         source="verify",
+        actor=None,
         provider_data={
             "amount": "153.00",
             "currency": "ZMW",
