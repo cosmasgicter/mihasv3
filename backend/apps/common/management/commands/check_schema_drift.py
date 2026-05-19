@@ -84,6 +84,13 @@ def _declared_columns(model: type[Model]) -> list[str]:
 
 
 def _existing_columns(table: str) -> set[str]:
+    if connection.vendor != "postgresql":
+        with connection.cursor() as cursor:
+            return {
+                column.name
+                for column in connection.introspection.get_table_description(cursor, table)
+            }
+
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -98,6 +105,9 @@ def _existing_columns(table: str) -> set[str]:
 
 
 def _table_exists(table: str) -> bool:
+    if connection.vendor != "postgresql":
+        return table in connection.introspection.table_names()
+
     with connection.cursor() as cursor:
         cursor.execute(
             """

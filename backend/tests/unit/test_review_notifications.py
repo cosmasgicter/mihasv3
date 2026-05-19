@@ -22,12 +22,12 @@ from apps.applications.views import ApplicationReviewView
 # Patch targets
 # ---------------------------------------------------------------------------
 
-_APP = "apps.applications.views.Application.objects"
-_TRANSITION = "apps.applications.views.transition_application_status"
+_APP = "apps.applications.admin_review_views.Application.objects"
+_TRANSITION = "apps.applications.admin_review_views.transition_application_status"
 _INTAKE_ENFORCER = "apps.applications.intake_enforcer.IntakeEnforcer"
 _COMM_SEND = "apps.common.communication_service.CommunicationService.send"
-_PAYMENT = "apps.documents.models.Payment.objects"
-_HISTORY = "apps.applications.views.ApplicationStatusHistory.objects"
+_PAYMENT = "apps.applications.admin_review_views.Payment.objects"
+_HISTORY = "apps.applications.admin_review_views.ApplicationStatusHistory.objects"
 
 
 # ---------------------------------------------------------------------------
@@ -79,7 +79,7 @@ class TestApprovalCreatesNotificationAndEmail:
         self.view = ApplicationReviewView.as_view()
         self.admin = _make_user()
         # Mock transaction.atomic so select_for_update doesn't need a real DB
-        self._tx_patcher = patch("apps.applications.admin_views.transaction")
+        self._tx_patcher = patch("apps.applications.admin_review_views.transaction")
         mock_tx = self._tx_patcher.start()
         mock_tx.atomic.return_value.__enter__ = MagicMock()
         mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
@@ -197,7 +197,7 @@ class TestRejectionCreatesNotificationAndEmail:
         self.factory = APIRequestFactory()
         self.view = ApplicationReviewView.as_view()
         self.admin = _make_user()
-        self._tx_patcher = patch("apps.applications.admin_views.transaction")
+        self._tx_patcher = patch("apps.applications.admin_review_views.transaction")
         mock_tx = self._tx_patcher.start()
         mock_tx.atomic.return_value.__enter__ = MagicMock()
         mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)

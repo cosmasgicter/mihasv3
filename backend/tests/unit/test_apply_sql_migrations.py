@@ -41,6 +41,14 @@ def _write(path: Path, sql: str) -> None:
     path.write_text(sql)
 
 
+def _table_exists(name: str) -> bool:
+    if connection.vendor == "postgresql":
+        with connection.cursor() as cur:
+            cur.execute("SELECT to_regclass(%s)", [name])
+            return cur.fetchone()[0] is not None
+    return name in connection.introspection.table_names()
+
+
 @pytest.mark.django_db
 def test_empty_dir_is_a_no_op(fresh_tracking_table, migrations_dir):
     out = StringIO()
@@ -72,10 +80,8 @@ def test_applies_pending_and_creates_tracking_table(fresh_tracking_table, migrat
         rows = [r[0] for r in cur.fetchall()]
         assert rows == ["0001_add_aux_table.sql", "0002_add_another.sql"]
 
-        cur.execute("SELECT to_regclass('_aux_smoke_a'), to_regclass('_aux_smoke_b')")
-        reg_a, reg_b = cur.fetchone()
-        assert reg_a is not None
-        assert reg_b is not None
+        assert _table_exists("_aux_smoke_a")
+        assert _table_exists("_aux_smoke_b")
 
     # Cleanup
     with connection.cursor() as cur:
@@ -132,9 +138,7 @@ def test_dry_run_does_not_apply(fresh_tracking_table, migrations_dir):
     )
 
     assert "[dry-run]" in out.getvalue()
-    with connection.cursor() as cur:
-        cur.execute("SELECT to_regclass('_aux_smoke_dry')")
-        assert cur.fetchone()[0] is None
+    assert not _table_exists("_aux_smoke_dry")
 
 
 @pytest.mark.django_db

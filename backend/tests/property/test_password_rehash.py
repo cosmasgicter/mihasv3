@@ -147,23 +147,23 @@ class TestLegacyHashUpgradedOnLogin(SimpleTestCase):
         mock_attempt_qs.count.return_value = 0
 
         with patch(
-            "apps.accounts.views.Profile.objects.get",
+            "apps.accounts.auth_views.Profile.objects.get",
             return_value=mock_user,
         ), patch(
-            "apps.accounts.views.check_login_attempts",
+            "apps.accounts.auth_views.check_login_attempts",
             return_value=MagicMock(value="allowed"),
         ) as mock_check, patch(
-            "apps.accounts.views.record_login_attempt",
+            "apps.accounts.auth_views.record_login_attempt",
         ), patch(
-            "apps.accounts.views.generate_access_token",
+            "apps.accounts.auth_views.generate_access_token",
             return_value="mock_access_token",
         ), patch(
-            "apps.accounts.views.generate_refresh_token",
+            "apps.accounts.auth_views.generate_refresh_token",
             return_value="mock_refresh_token",
         ), patch(
-            "apps.accounts.views.DeviceSession.objects.create",
+            "apps.accounts.auth_views.DeviceSession.objects.create",
         ), patch(
-            "apps.accounts.views._generate_csrf_token",
+            "apps.accounts.auth_views._generate_csrf_token",
             return_value="mock_csrf_token",
         ):
             # Make check_login_attempts return ALLOWED

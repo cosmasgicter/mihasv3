@@ -1,4 +1,5 @@
 """Unit tests for application amendments (Requirement 14). Requirements: 14.1-14.10"""
+from contextlib import nullcontext
 import uuid
 from unittest.mock import MagicMock, patch
 
@@ -42,6 +43,11 @@ def _app(uid, status="submitted", aid=None):
     return a
 
 
+def _mock_locked_application(manager, app):
+    manager.get.return_value = app
+    manager.select_for_update.return_value.get.return_value = app
+
+
 class TestAmendableVsNonAmendableFields:
     """1. Amendable vs non-amendable fields (Req 14.4, 14.5)."""
 
@@ -53,8 +59,11 @@ class TestAmendableVsNonAmendableFields:
     def test_non_amendable_field_rejected(self):
         app = _app(uuid.uuid4())
 
-        with patch("apps.applications.amendment_service.Application.objects") as mq:
-            mq.get.return_value = app
+        with (
+            patch("apps.applications.amendment_service.Application.objects") as mq,
+            patch("apps.applications.amendment_service.transaction.atomic", side_effect=lambda: nullcontext()),
+        ):
+            _mock_locked_application(mq, app)
 
             try:
                 AmendmentService.request_amendment(
@@ -77,8 +86,9 @@ class TestAmendableVsNonAmendableFields:
             patch("apps.applications.amendment_service.Application.objects") as mq,
             patch("apps.applications.amendment_service.ApplicationAmendment.objects") as amq,
             patch("apps.applications.amendment_service._notify_admins_of_amendment"),
+            patch("apps.applications.amendment_service.transaction.atomic", side_effect=lambda: nullcontext()),
         ):
-            mq.get.return_value = app
+            _mock_locked_application(mq, app)
             amq.filter.return_value.count.return_value = 0
             amq.create.return_value = mock_amendment
 
@@ -101,8 +111,9 @@ class TestPendingAmendmentLimit:
         with (
             patch("apps.applications.amendment_service.Application.objects") as mq,
             patch("apps.applications.amendment_service.ApplicationAmendment.objects") as amq,
+            patch("apps.applications.amendment_service.transaction.atomic", side_effect=lambda: nullcontext()),
         ):
-            mq.get.return_value = app
+            _mock_locked_application(mq, app)
             amq.filter.return_value.count.return_value = 3
 
             try:
@@ -194,8 +205,11 @@ class TestOnlyValidStatusesAllowAmendments:
     def test_draft_not_amendable(self):
         app = _app(uuid.uuid4(), status="draft")
 
-        with patch("apps.applications.amendment_service.Application.objects") as mq:
-            mq.get.return_value = app
+        with (
+            patch("apps.applications.amendment_service.Application.objects") as mq,
+            patch("apps.applications.amendment_service.transaction.atomic", side_effect=lambda: nullcontext()),
+        ):
+            _mock_locked_application(mq, app)
 
             try:
                 AmendmentService.request_amendment(
@@ -212,8 +226,11 @@ class TestOnlyValidStatusesAllowAmendments:
     def test_approved_not_amendable(self):
         app = _app(uuid.uuid4(), status="approved")
 
-        with patch("apps.applications.amendment_service.Application.objects") as mq:
-            mq.get.return_value = app
+        with (
+            patch("apps.applications.amendment_service.Application.objects") as mq,
+            patch("apps.applications.amendment_service.transaction.atomic", side_effect=lambda: nullcontext()),
+        ):
+            _mock_locked_application(mq, app)
 
             try:
                 AmendmentService.request_amendment(

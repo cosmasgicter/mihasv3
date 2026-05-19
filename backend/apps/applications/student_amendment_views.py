@@ -171,5 +171,4 @@ class ApplicationAmendmentView(APIView):
                 "new_value": amendment.new_value,
                 "status": amendment.status,
             },
-        })
-
+        }, status=status.HTTP_201_CREATED)

@@ -51,6 +51,7 @@ import pytest
 from django.core.cache import cache
 from django.test import override_settings
 from rest_framework.test import APIClient
+from apps.accounts.authentication import JWTUser
 
 
 PAYMENT_INITIATE_PATH = "/api/v1/payments/initiate/"
@@ -80,6 +81,18 @@ def _seed_profile(role: str = "student"):
         is_active=True,
         created_at=now,
         updated_at=now,
+    )
+
+
+def _jwt_user(profile):
+    return JWTUser(
+        {
+            "user_id": str(profile.id),
+            "email": profile.email,
+            "role": profile.role,
+            "first_name": profile.first_name,
+            "last_name": profile.last_name,
+        }
     )
 
 
@@ -136,7 +149,7 @@ def test_429_envelope_audit_and_counter_fire_once_on_throttled_request():
 
     client = APIClient()
     profile = _seed_profile(role="student")
-    client.force_authenticate(user=profile)
+    client.force_authenticate(user=_jwt_user(profile))
 
     metrics_calls: list[dict] = []
     audit_calls: list[dict] = []

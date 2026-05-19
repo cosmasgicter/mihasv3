@@ -6,6 +6,7 @@ import pytest
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
+from apps.applications.services import SYSTEM_ACTOR_ID
 from apps.applications.waitlist_manager import WaitlistError, WaitlistManager
 from apps.applications.views import ApplicationWaitlistPositionView
 
@@ -120,7 +121,7 @@ class TestPromoteNext:
         mock_trans.assert_called_once_with(
             application=app,
             new_status="approved",
-            changed_by="system",
+            changed_by=SYSTEM_ACTOR_ID,
             notes="Auto-promoted from waitlist — spot opened.",
         )
         assert app.waitlist_position is None
@@ -395,7 +396,7 @@ class TestPromotionTriggeredByRejection:
     """Rejection triggers waitlist promotion (Req 3.7b)."""
 
     def setup_method(self):
-        self._tx_patcher = patch("apps.applications.admin_views.transaction")
+        self._tx_patcher = patch("apps.applications.admin_review_views.transaction")
         mock_tx = self._tx_patcher.start()
         mock_tx.atomic.return_value.__enter__ = MagicMock()
         mock_tx.atomic.return_value.__exit__ = MagicMock(return_value=False)
@@ -409,9 +410,9 @@ class TestPromotionTriggeredByRejection:
     @patch("apps.common.tasks.send_email_task")
     @patch(f"{_WM_BASE}.WaitlistManager.promote_next")
     @patch("apps.applications.intake_enforcer.IntakeEnforcer.sync_enrollment")
-    @patch("apps.applications.admin_views.ApplicationSerializer")
-    @patch("apps.applications.admin_views.transition_application_status", return_value="under_review")
-    @patch("apps.applications.admin_views.Application.objects")
+    @patch("apps.applications.admin_review_views.ApplicationSerializer")
+    @patch("apps.applications.admin_review_views.transition_application_status", return_value="under_review")
+    @patch("apps.applications.admin_review_views.Application.objects")
     def test_rejection_calls_promote_next(self, mock_qs, mock_trans, mock_ser,
                                           mock_sync, mock_promote,
                                           mock_email_task, mock_notif_qs,

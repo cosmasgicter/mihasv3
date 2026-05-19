@@ -176,7 +176,7 @@ _ALLOWED_CASES = [
     ("pending", "failed", "webhook"),
     ("pending", "expired", "reconciliation"),
     # deferred → {pending, terminal}
-    ("deferred", "pending", "admin_override"),
+    ("deferred", "pending", "initiate"),
     ("deferred", "successful", "verify"),
     ("deferred", "successful", "webhook"),
     ("deferred", "successful", "reconciliation"),

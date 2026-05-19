@@ -695,9 +695,9 @@ class TestLencoWebhookEnvelope(SimpleTestCase):
         ), patch.object(WebhookProcessor, "process", return_value=None):
             response = self.view(request)
 
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 200)
         # Legacy webhook envelope: flat ``error`` string. The view uses the
-        # bare-error shape to respond to Lenco, which must not be changed.
+        # bare-error shape to acknowledge Lenco without triggering retries.
         self.assertFalse(response.data.get("success"))
 
     @override_settings(LENCO_WEBHOOK_ALLOWED_IPS=[])

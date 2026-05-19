@@ -462,7 +462,7 @@ class TestEmailExistenceNeverRevealed(SimpleTestCase):
         request.META = {"REMOTE_ADDR": "127.0.0.1", "HTTP_USER_AGENT": "test"}
         request.COOKIES = {}
 
-        with patch("apps.accounts.views.LoginSerializer") as MockSerializer:
+        with patch("apps.accounts.auth_views.LoginSerializer") as MockSerializer:
             mock_instance = MagicMock()
             mock_instance.is_valid.return_value = True
             mock_instance.validated_data = {
@@ -472,13 +472,13 @@ class TestEmailExistenceNeverRevealed(SimpleTestCase):
             MockSerializer.return_value = mock_instance
 
             with patch(
-                "apps.accounts.views.check_login_attempts",
+                "apps.accounts.auth_views.check_login_attempts",
                 return_value=LoginStatus.ALLOWED,
             ):
-                with patch("apps.accounts.views.Profile") as MockProfile:
+                with patch("apps.accounts.auth_views.Profile") as MockProfile:
                     MockProfile.objects.get.side_effect = Profile.DoesNotExist()
                     MockProfile.DoesNotExist = Profile.DoesNotExist
-                    with patch("apps.accounts.views.record_login_attempt"):
+                    with patch("apps.accounts.auth_views.record_login_attempt"):
                         view = LoginView()
                         response = view.post(request)
 
@@ -496,13 +496,13 @@ class TestEmailExistenceNeverRevealed(SimpleTestCase):
         request.data = {"email": "nonexistent@example.com"}
         request.META = {}
 
-        with patch("apps.accounts.views.PasswordResetRequestSerializer") as MockSerializer:
+        with patch("apps.accounts.password_views.PasswordResetRequestSerializer") as MockSerializer:
             mock_instance = MagicMock()
             mock_instance.is_valid.return_value = True
             mock_instance.validated_data = {"email": "nonexistent@example.com"}
             MockSerializer.return_value = mock_instance
 
-            with patch("apps.accounts.views.Profile") as MockProfile:
+            with patch("apps.accounts.password_views.Profile") as MockProfile:
                 MockProfile.objects.get.side_effect = Profile.DoesNotExist()
                 MockProfile.DoesNotExist = Profile.DoesNotExist
                 view = PasswordResetRequestView()

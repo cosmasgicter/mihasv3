@@ -45,11 +45,19 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MIGRATIONS_DIR = Path(__file__).resolve().parents[4] / "scripts" / "migrations"
 
-_TRACKING_TABLE_DDL = """
+_POSTGRES_TRACKING_TABLE_DDL = """
 CREATE TABLE IF NOT EXISTS applied_sql_migrations (
     filename TEXT PRIMARY KEY,
     checksum TEXT NOT NULL,
     applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+)
+"""
+
+_SQLITE_TRACKING_TABLE_DDL = """
+CREATE TABLE IF NOT EXISTS applied_sql_migrations (
+    filename TEXT PRIMARY KEY,
+    checksum TEXT NOT NULL,
+    applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 )
 """
 
@@ -68,7 +76,11 @@ def _iter_migration_files(directory: Path) -> Iterable[Path]:
 
 def _ensure_tracking_table() -> None:
     with connection.cursor() as cursor:
-        cursor.execute(_TRACKING_TABLE_DDL)
+        cursor.execute(
+            _SQLITE_TRACKING_TABLE_DDL
+            if connection.vendor == "sqlite"
+            else _POSTGRES_TRACKING_TABLE_DDL
+        )
 
 
 def _applied_filenames() -> set[str]:
@@ -79,12 +91,20 @@ def _applied_filenames() -> set[str]:
 
 def _record_applied(filename: str, checksum: str) -> None:
     with connection.cursor() as cursor:
-        cursor.execute(
-            "INSERT INTO applied_sql_migrations (filename, checksum) VALUES (%s, %s) "
-            "ON CONFLICT (filename) DO UPDATE SET checksum = EXCLUDED.checksum, "
-            "applied_at = now()",
-            [filename, checksum],
-        )
+        if connection.vendor == "sqlite":
+            cursor.execute(
+                "INSERT INTO applied_sql_migrations (filename, checksum) VALUES (%s, %s) "
+                "ON CONFLICT(filename) DO UPDATE SET checksum = excluded.checksum, "
+                "applied_at = CURRENT_TIMESTAMP",
+                [filename, checksum],
+            )
+        else:
+            cursor.execute(
+                "INSERT INTO applied_sql_migrations (filename, checksum) VALUES (%s, %s) "
+                "ON CONFLICT (filename) DO UPDATE SET checksum = EXCLUDED.checksum, "
+                "applied_at = now()",
+                [filename, checksum],
+            )
 
 
 class Command(BaseCommand):

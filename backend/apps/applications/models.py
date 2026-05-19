@@ -57,7 +57,7 @@ class Application(models.Model):
         related_name='verified_applications',
         db_column='payment_verified_by',
     )
-    status = models.CharField(max_length=20, default='draft', db_index=True)
+    status = models.CharField(max_length=32, default='draft', db_index=True)
     eligibility_status = models.CharField(max_length=20, null=True, blank=True)
     eligibility_score = models.IntegerField(null=True, blank=True)
     eligibility_notes = models.TextField(null=True, blank=True)
@@ -115,7 +115,7 @@ class ApplicationStatusHistory(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(Application, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20)
+    status = models.CharField(max_length=32)
     changed_by = models.ForeignKey(
         'accounts.Profile', on_delete=models.SET_NULL, null=True, blank=True,
         db_column='changed_by',

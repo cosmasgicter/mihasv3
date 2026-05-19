@@ -193,15 +193,20 @@ def _payload_strategy() -> st.SearchStrategy[dict]:
     max-leaves budget so property runs stay under the 200ms Hypothesis
     default per example.
     """
-    leaf_dict = st.dictionaries(
-        keys=st.one_of(_phone_keys, _hash_keys, _strip_keys, _non_pii_keys),
-        values=st.one_of(
-            _pii_leaf_for_phone(),
-            _pii_leaf_for_hash(),
-            _strip_leaf(),
-            _safe_leaves,
-        ),
-        max_size=5,
+    # The redactor's contract is intentionally key-based: PII is identified
+    # by field names, not by trying to classify arbitrary free-text values.
+    # Keep the generator faithful to that contract by pairing sensitive values
+    # only with sensitive keys, while still guaranteeing every payload contains
+    # at least one redaction target.
+    required_pii_pair = st.one_of(
+        st.tuples(_phone_keys, _pii_leaf_for_phone()),
+        st.tuples(_hash_keys, _pii_leaf_for_hash()),
+        st.tuples(_strip_keys, _strip_leaf()),
+    )
+    leaf_dict = st.builds(
+        lambda required, extras: dict([required, *extras]),
+        required_pii_pair,
+        st.lists(_kv_pair(), max_size=4),
     )
 
     def extend(children: st.SearchStrategy) -> st.SearchStrategy:
@@ -318,7 +323,14 @@ class TestProperty17PiiRedaction(SimpleTestCase):
                 self._assert_phone_keys_properly_redacted(item)
 
     def _assert_hash_keys_properly_redacted(self, value: Any) -> None:
-        hash_markers = ("nrc", "passport", "pan", "cvv", "card_number")
+        hash_markers = (
+            "nrc",
+            "passport",
+            "pan",
+            "cvv",
+            "card_number",
+            "cardnumber",
+        )
         if isinstance(value, dict):
             for key, sub in value.items():
                 if isinstance(key, str) and any(
@@ -1147,10 +1159,13 @@ def test_property_9_receipt_number_uniqueness(receipt):
             )
 
     # ----- Exemption coverage: NULL receipt_number permits duplicates -----
+    null_seed_one = _p6_seed_applicant_row("p9null1")
+    null_seed_two = _p6_seed_applicant_row("p9null2")
+
     Payment.objects.create(
         id=uuid.uuid4(),
-        application_id=application.id,
-        user_id=profile.id,
+        application_id=null_seed_one["application"].id,
+        user_id=null_seed_one["profile"].id,
         amount=Decimal("153"),
         currency="ZMW",
         status="deferred",
@@ -1162,8 +1177,8 @@ def test_property_9_receipt_number_uniqueness(receipt):
     )
     Payment.objects.create(
         id=uuid.uuid4(),
-        application_id=application.id,
-        user_id=profile.id,
+        application_id=null_seed_two["application"].id,
+        user_id=null_seed_two["profile"].id,
         amount=Decimal("153"),
         currency="ZMW",
         status="pending",

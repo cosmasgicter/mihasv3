@@ -97,7 +97,7 @@ class TestCsrfTokenGenerationWithJWTUser(SimpleTestCase):
         mock_profile.id = user_id
         mock_profile.pk = user_id
 
-        with patch("apps.accounts.views.Profile.objects.get", return_value=mock_profile) as mock_get, \
+        with patch("apps.accounts.auth_views.Profile.objects.get", return_value=mock_profile) as mock_get, \
              patch.object(CSRFToken.objects, "create") as mock_create:
             raw_token = _generate_csrf_token(jwt_user)
 

@@ -14,6 +14,11 @@ from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase
 from django.utils import timezone
+
+ADMIN_1_ID = "11111111-1111-1111-1111-111111111111"
+ADMIN_2_ID = "22222222-2222-2222-2222-222222222222"
+ADMIN_3_ID = "33333333-3333-3333-3333-333333333333"
+USER_1_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 from rest_framework import status as http_status
 
 from apps.applications.views import _enqueue_document_task
@@ -200,7 +205,7 @@ class TestEnqueueDocumentTaskDispatch(SimpleTestCase):
 class TestTransitionApplicationStatus(SimpleTestCase):
     """Tests for the transition_application_status service helper."""
 
-    def _call(self, application, new_status, changed_by="user-1", **kwargs):
+    def _call(self, application, new_status, changed_by=USER_1_ID, **kwargs):
         """Import and call the helper (avoids top-level import issues)."""
         from apps.applications.services import transition_application_status
 
@@ -226,7 +231,7 @@ class TestTransitionApplicationStatus(SimpleTestCase):
         app.status = "under_review"
         app.review_started_at = timezone.now()
 
-        self._call(app, "approved", changed_by="admin-1", notes="Looks good")
+        self._call(app, "approved", changed_by=ADMIN_1_ID, notes="Looks good")
 
         assert app.status == "approved"
         app.save.assert_called_once()
@@ -241,7 +246,7 @@ class TestTransitionApplicationStatus(SimpleTestCase):
         self._call(
             app,
             "rejected",
-            changed_by="admin-2",
+            changed_by=ADMIN_2_ID,
             notes="Incomplete docs",
             ip_address="hashed-ip",
             user_agent="hashed-ua",
@@ -253,7 +258,7 @@ class TestTransitionApplicationStatus(SimpleTestCase):
         assert kw["status"] == "rejected"
         assert kw["old_status"] == "submitted"
         assert kw["new_status"] == "rejected"
-        assert kw["changed_by_id"] == "admin-2"
+        assert kw["changed_by_id"] == ADMIN_2_ID
         assert kw["notes"] == "Incomplete docs"
         assert kw["ip_address"] == "hashed-ip"
         assert kw["user_agent"] == "hashed-ua"
@@ -326,8 +331,8 @@ class TestTransitionApplicationStatus(SimpleTestCase):
         app.status = "under_review"
         app.review_started_at = timezone.now()
 
-        self._call(app, "approved", changed_by="admin-3", notes="Well done")
+        self._call(app, "approved", changed_by=ADMIN_3_ID, notes="Well done")
 
         assert app.admin_feedback == "Well done"
         assert app.admin_feedback_date is not None
-        assert app.admin_feedback_by_id == "admin-3"
+        assert app.admin_feedback_by_id == ADMIN_3_ID

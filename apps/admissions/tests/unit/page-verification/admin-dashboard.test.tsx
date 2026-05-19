@@ -377,7 +377,7 @@ describe('Admin Dashboard page verification', () => {
   })
 
   it('calls adminDashboardService.getOverviewWithDiagnostics', async () => {
-    await renderAndWait()
+    await renderAndWaitForText('Welcome back')
     expect(mockGetOverviewWithDiagnostics).toHaveBeenCalled()
   })
 

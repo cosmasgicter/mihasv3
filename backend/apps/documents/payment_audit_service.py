@@ -66,6 +66,7 @@ _HASH_KEY_MARKERS: tuple[str, ...] = (
     "pan",
     "cvv",
     "card_number",
+    "cardnumber",
 )
 
 #: Keys stripped from the payload entirely — never persisted or logged.
@@ -212,7 +213,8 @@ class PaymentAuditService:
           ``{"phone_hash": sha256(str(value))[:16], "phone_last4":
           str(value)[-4:]}``.
         * Keys containing ``nrc``, ``passport``, ``pan``, ``cvv``,
-          ``card_number`` → replaced with ``sha256(str(value))[:16]``
+          ``card_number`` or ``cardNumber`` → replaced with
+          ``sha256(str(value))[:16]``
           (lowercase hex, 16 chars).
         * Keys exactly named ``document_body``, ``file_content``,
           ``raw_payload`` → stripped from the output.

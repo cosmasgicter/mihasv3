@@ -410,7 +410,6 @@ class TestApplicationSubmissionBusinessMetric(SimpleTestCase):
                 submit_application(
                     application=fake_app,
                     changed_by="user-123",
-                    notes="test",
                     ip_address="127.0.0.1",
                     user_agent="test-agent",
                 )

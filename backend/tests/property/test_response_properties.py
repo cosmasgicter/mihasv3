@@ -180,9 +180,9 @@ class TestPaginationMetadata(SimpleTestCase):
         self.assertIn("totalCount", inner)
         self.assertIn("results", inner)
 
-        self.assertEqual(response.data["page"], page_number)
-        self.assertEqual(response.data["totalCount"], total_count)
-        self.assertEqual(response.data["results"], ["item1", "item2"])
+        self.assertEqual(inner["page"], page_number)
+        self.assertEqual(inner["totalCount"], total_count)
+        self.assertEqual(inner["results"], ["item1", "item2"])
 
     @given(
         page_size=st.integers(min_value=1, max_value=100),

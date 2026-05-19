@@ -779,6 +779,8 @@ def _make_mock_existing_application(app_id=None, status="draft"):
     app = MagicMock()
     app.id = app_id or uuid.uuid4()
     app.status = status
+    app.nrc_number = ""
+    app.passport_number = ""
     return app
 
 
@@ -820,7 +822,7 @@ class TestDuplicatePreventionAtCreateTime(SimpleTestCase):
         with patch(
             "apps.applications.duplicate_checker.Application.objects"
         ) as mock_qs:
-            mock_qs.filter.return_value.first.return_value = mock_existing
+            mock_qs.filter.return_value.__iter__.return_value = iter([mock_existing])
 
             result = DuplicateChecker.check_at_create(user_id, program, intake)
 
@@ -845,7 +847,7 @@ class TestDuplicatePreventionAtCreateTime(SimpleTestCase):
         with patch(
             "apps.applications.duplicate_checker.Application.objects"
         ) as mock_qs:
-            mock_qs.filter.return_value.first.return_value = None
+            mock_qs.filter.return_value.__iter__.return_value = iter([])
 
             result = DuplicateChecker.check_at_create(user_id, program, intake)
 
@@ -895,8 +897,11 @@ class TestDuplicatePreventionAtSubmitTime(SimpleTestCase):
         with patch(
             "apps.applications.duplicate_checker.Application.objects"
         ) as mock_qs:
-            mock_qs.filter.return_value.exclude.return_value.first.return_value = (
-                mock_existing
+            mock_qs.get.return_value = _make_mock_existing_application(
+                app_id=current_id, status="draft"
+            )
+            mock_qs.filter.return_value.exclude.return_value.__iter__.return_value = iter(
+                [mock_existing]
             )
 
             result = DuplicateChecker.check_at_submit(
@@ -925,8 +930,11 @@ class TestDuplicatePreventionAtSubmitTime(SimpleTestCase):
         with patch(
             "apps.applications.duplicate_checker.Application.objects"
         ) as mock_qs:
-            mock_qs.filter.return_value.exclude.return_value.first.return_value = (
-                None
+            mock_qs.get.return_value = _make_mock_existing_application(
+                app_id=current_id, status="draft"
+            )
+            mock_qs.filter.return_value.exclude.return_value.__iter__.return_value = iter(
+                []
             )
 
             result = DuplicateChecker.check_at_submit(
@@ -1381,6 +1389,11 @@ class TestIntakeDeadlineEnforcement(SimpleTestCase):
             "apps.applications.identifier_resolver.IdentifierResolver.resolve_intake",
             return_value=resolved,
         ), patch(
+            "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
+            return_value=ResolvedIdentifier(
+                id="", code="", name="Test Program", source="not_found"
+            ),
+        ), patch(
             "apps.applications.intake_enforcer.Intake.objects"
         ) as mock_intake_qs:
             mock_intake_qs.filter.return_value.first.return_value = mock_intake
@@ -1411,6 +1424,11 @@ class TestIntakeDeadlineEnforcement(SimpleTestCase):
         with patch(
             "apps.applications.identifier_resolver.IdentifierResolver.resolve_intake",
             return_value=resolved,
+        ), patch(
+            "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
+            return_value=ResolvedIdentifier(
+                id="", code="", name="Test Program", source="not_found"
+            ),
         ), patch(
             "apps.applications.intake_enforcer.Intake.objects"
         ) as mock_intake_qs, patch(
@@ -1467,6 +1485,11 @@ class TestIntakeCapacityEnforcement(SimpleTestCase):
             "apps.applications.identifier_resolver.IdentifierResolver.resolve_intake",
             return_value=resolved,
         ), patch(
+            "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
+            return_value=ResolvedIdentifier(
+                id="", code="", name="Test Program", source="not_found"
+            ),
+        ), patch(
             "apps.applications.intake_enforcer.Intake.objects"
         ) as mock_intake_qs, patch(
             "apps.applications.models.Application.objects"
@@ -1504,6 +1527,11 @@ class TestIntakeCapacityEnforcement(SimpleTestCase):
         with patch(
             "apps.applications.identifier_resolver.IdentifierResolver.resolve_intake",
             return_value=resolved,
+        ), patch(
+            "apps.applications.identifier_resolver.IdentifierResolver.resolve_program",
+            return_value=ResolvedIdentifier(
+                id="", code="", name="Test Program", source="not_found"
+            ),
         ), patch(
             "apps.applications.intake_enforcer.Intake.objects"
         ) as mock_intake_qs, patch(

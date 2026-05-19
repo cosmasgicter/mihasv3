@@ -38,7 +38,7 @@ interface ApplicationDetailModalProps {
  onSendNotification: (title: string, message: string) => Promise<void>
  onViewDocuments: () => void
  onViewHistory: () => void
- onUpdateStatus: (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<any>
+ onUpdateStatus: (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<unknown>
  onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => Promise<void>
  onGenerateAcceptanceLetter: () => Promise<void>
  onGenerateFinanceReceipt: () => Promise<void>
@@ -177,14 +177,17 @@ export function ApplicationDetailModal({
      include: ['grades', 'statusHistory', 'documents', 'interview']
    })
 
-   const payload: any = response || {}
-   const primaryApplication = payload?.application || application
+   const payload = response || {}
+   const primaryApplication = (payload.application as ApplicationWithDetails | undefined) || application
+   if (!primaryApplication) {
+     throw new Error('Application details are unavailable')
+   }
 
    return {
      application: primaryApplication,
-     grades: payload?.grades || [],
-     statusHistory: payload?.statusHistory || [],
-     documents: payload?.documents || [],
+     grades: (payload.grades as Grade[] | undefined) || [],
+     statusHistory: (payload.statusHistory as ApplicationDetailResponse['statusHistory']) || [],
+     documents: (payload.documents as ApplicationDetailResponse['documents']) || [],
      interview: payload?.interview || payload?.application?.interview || null
    }
  }, [application])

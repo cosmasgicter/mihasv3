@@ -325,7 +325,7 @@ class PaymentVerifyView(APIView):
             payment = Payment.objects.get(id=payment_id)
         except Payment.DoesNotExist:
             return Response(
-                {"success": False, "error": {"code": "NOT_FOUND", "message": "Payment not found"}},
+                {"success": False, "error": {"code": "NOT_FOUND", "message": "Payment not found"}, "code": "NOT_FOUND"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -334,7 +334,7 @@ class PaymentVerifyView(APIView):
 
         if role not in ("admin", "super_admin") and str(payment.user_id) != str(user.id):
             return Response(
-                {"success": False, "error": {"code": "NOT_OWNER", "message": "Not authorized"}},
+                {"success": False, "error": {"code": "NOT_OWNER", "message": "Not authorized"}, "code": "NOT_OWNER"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -347,7 +347,7 @@ class PaymentVerifyView(APIView):
             import sentry_sdk
             sentry_sdk.capture_exception()
             return Response(
-                {"success": False, "error": {"code": "VERIFICATION_ERROR", "message": "Payment verification failed. Please try again later."}},
+                {"success": False, "error": {"code": "VERIFICATION_ERROR", "message": "Payment verification failed. Please try again later."}, "code": "VERIFICATION_ERROR"},
                 status=status.HTTP_200_OK,
             )
 
@@ -380,13 +380,13 @@ class PaymentVerifyView(APIView):
         if err in ("AMOUNT_MISMATCH", "CURRENCY_MISMATCH", "MISSING_PROVIDER_REFERENCE"):
             data["code"] = err
             return Response(
-                {"success": False, "error": {"code": err, "message": err.replace("_", " ").capitalize()}, "data": data},
+                {"success": False, "error": {"code": err, "message": err.replace("_", " ").capitalize()}, "code": err, "data": data},
                 status=status.HTTP_200_OK,
             )
 
         data["code"] = "VERIFICATION_ERROR"
         return Response(
-            {"success": False, "error": {"code": "VERIFICATION_ERROR", "message": str(err)}, "data": data},
+            {"success": False, "error": {"code": "VERIFICATION_ERROR", "message": str(err)}, "code": "VERIFICATION_ERROR", "data": data},
             status=status.HTTP_200_OK,
         )
 
@@ -420,7 +420,7 @@ class FeeResolveView(APIView):
         program_code = request.query_params.get("program_code")
         if not program_code:
             return Response(
-                {"success": False, "error": {"code": "VALIDATION_ERROR", "message": "program_code query parameter is required"}},
+                {"success": False, "error": {"code": "VALIDATION_ERROR", "message": "program_code query parameter is required"}, "code": "VALIDATION_ERROR"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -440,13 +440,13 @@ class FeeResolveView(APIView):
             )
         except Program.DoesNotExist:
             return Response(
-                {"success": False, "error": {"code": "FEE_UNAVAILABLE", "message": "Program not found"}},
+                {"success": False, "error": {"code": "FEE_UNAVAILABLE", "message": "Program not found"}, "code": "FEE_UNAVAILABLE"},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except Exception:
             logger.exception("Fee resolution failed for program %s", program_code)
             return Response(
-                {"success": False, "error": {"code": "FEE_UNAVAILABLE", "message": "Unable to resolve fee."}},
+                {"success": False, "error": {"code": "FEE_UNAVAILABLE", "message": "Unable to resolve fee."}, "code": "FEE_UNAVAILABLE"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -548,4 +548,3 @@ class ProgramFeeViewSet(ModelViewSet):
         instance.updated_at = timezone.now()
         instance.save(update_fields=["is_active", "updated_at"])
         return Response(status=status.HTTP_204_NO_CONTENT)
-

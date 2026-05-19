@@ -53,10 +53,10 @@ class TestPasswordResetDispatchesEmailTask(SimpleTestCase):
 
     @patch("apps.common.outbox.transaction.on_commit", side_effect=lambda fn: fn())
     @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
-    @patch("apps.common.tasks.send_email_task.delay")
+    @patch("apps.common.outbox.dispatch_email")
     @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.EmailQueue.objects.create")
-    @patch("apps.accounts.views.generate_password_reset_token")
+    @patch("apps.accounts.password_views.generate_password_reset_token")
     @patch("apps.accounts.models.PasswordResetToken.objects")
     @patch("apps.accounts.models.Profile.objects")
     def test_dispatches_email_task_on_valid_reset(
@@ -119,7 +119,7 @@ class TestLockoutTriggersEmailTask(SimpleTestCase):
 
     @patch("apps.common.outbox.transaction.on_commit", side_effect=lambda fn: fn())
     @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
-    @patch("apps.common.tasks.send_email_task.delay")
+    @patch("apps.common.outbox.dispatch_email")
     @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.EmailQueue.objects.create")
     def test_lockout_dispatches_email_task(self, mock_eq_create, mock_outbox_create, mock_delay, _mock_atomic, _mock_on_commit):
@@ -156,7 +156,7 @@ class TestEmailQueueFailureDoesNotRaise(SimpleTestCase):
 
     @patch("apps.common.outbox.transaction.on_commit", side_effect=lambda fn: fn())
     @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
-    @patch("apps.common.tasks.send_email_task.delay")
+    @patch("apps.common.outbox.dispatch_email")
     @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.EmailQueue.objects.create")
     def test_lockout_email_swallows_create_failure(self, mock_eq_create, mock_outbox_create, mock_delay, _mock_atomic, _mock_on_commit):
@@ -175,10 +175,10 @@ class TestEmailQueueFailureDoesNotRaise(SimpleTestCase):
 
     @patch("apps.common.outbox.transaction.on_commit", side_effect=lambda fn: fn())
     @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
-    @patch("apps.common.tasks.send_email_task.delay")
+    @patch("apps.common.outbox.dispatch_email")
     @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.EmailQueue.objects.create")
-    @patch("apps.accounts.views.generate_password_reset_token")
+    @patch("apps.accounts.password_views.generate_password_reset_token")
     @patch("apps.accounts.models.PasswordResetToken.objects")
     @patch("apps.accounts.models.Profile.objects")
     def test_password_reset_swallows_create_failure(
@@ -230,7 +230,7 @@ class TestLockoutEmailBodyContainsLockoutMessage(SimpleTestCase):
 
     @patch("apps.common.outbox.transaction.on_commit", side_effect=lambda fn: fn())
     @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
-    @patch("apps.common.tasks.send_email_task.delay")
+    @patch("apps.common.outbox.dispatch_email")
     @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.EmailQueue.objects.create")
     def test_lockout_body_mentions_lockout(self, mock_eq_create, mock_outbox_create, mock_delay, _mock_atomic, _mock_on_commit):

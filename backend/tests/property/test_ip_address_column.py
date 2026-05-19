@@ -107,8 +107,12 @@ class TestIPAddressColumnWidth(SimpleTestCase):
 
         with cls._conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO profiles (id, email) VALUES (%s, %s)",
-                (str(cls._profile_id), f"p5-{uuid.uuid4().hex[:6]}@test.local"),
+                "INSERT INTO profiles (id, email, role) VALUES (%s, %s, %s)",
+                (
+                    str(cls._profile_id),
+                    f"p5-{uuid.uuid4().hex[:6]}@test.local",
+                    "student",
+                ),
             )
             cur.execute(
                 """

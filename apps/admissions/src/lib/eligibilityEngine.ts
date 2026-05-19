@@ -630,7 +630,7 @@ export class EligibilityEngine {
     _applicationId: string,
     _assessmentId: string,
     _appealReason: string,
-    _supportingDocuments: any[]
+    _supportingDocuments: unknown[]
   ): Promise<void> {
     throw new Error('Appeals require a live connection to the admissions database')
   }

@@ -35,6 +35,12 @@ interface SubmitStepProps {
   onNavigateToStep?: (stepKey: StepKey) => void
 }
 
+/** Exported for unit testing — determines if an AI/fallback summary is display-worthy. */
+export const summaryLooksComplete = (s: string | null | undefined): boolean => {
+  const trimmed = (s ?? '').trim()
+  return trimmed.length >= 50 && /[.!?]$/.test(trimmed)
+}
+
 const gradeLabelMap: Record<number, string> = {
   1: 'A+',
   2: 'A',
@@ -141,7 +147,7 @@ const SubmitStep = ({
         const data = await apiClient.request<{ summary: string | null; source?: string }>(`/applications/${applicationId}/preview-summary/`)
         const summary = data?.summary?.trim() || ''
         const looksComplete = summary.length >= 50 && /[.!?]$/.test(summary)
-        if (looksComplete && data?.source === 'ai') {
+        if (looksComplete) {
           setAiSummary(summary)
           setAiError(null)
           setAiLoading(false)

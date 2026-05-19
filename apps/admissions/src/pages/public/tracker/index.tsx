@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/Dialog'
 import { repairLegacyDocumentReference } from '@/lib/applicationSlipStorage'
 import { createApplicationSlip } from '@/lib/slipService'
+import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import { logger } from '@/lib/logger'
 import { animateClasses } from '@/lib/animations'
 import { onTrackerMount } from '@/lib/speculativePrefetch'
@@ -111,7 +112,14 @@ export default function PublicApplicationTracker() {
     setEmailPromptError('')
   }, [])
 
-  const buildSlipPayload = useCallback((email: string, userId?: string) => {
+  const slipToast = {
+    showSuccess: toast.success,
+    showError: toast.error,
+    showInfo: toast.info,
+    showWarning: toast.warning,
+  }
+
+  const buildSlipPayload = useCallback((email: string, userId?: string): ApplicationSlipData | null => {
     if (!application) return null
     return {
       public_tracking_code: application.public_tracking_code || application.application_number || '',
@@ -129,7 +137,7 @@ export default function PublicApplicationTracker() {
       admin_feedback: application.admin_feedback,
       admin_feedback_date: application.admin_feedback_date,
       userId
-    } as any
+    }
   }, [application])
 
   const handleDownloadSlip = useCallback(async () => {
@@ -173,7 +181,7 @@ export default function PublicApplicationTracker() {
         return
       }
 
-      const result = await createApplicationSlip(payload, { toast: toast as any })
+      const result = await createApplicationSlip(payload, { toast: slipToast })
 
       if (result.error) {
         toast.error('Download failed', result.error)
@@ -220,7 +228,7 @@ export default function PublicApplicationTracker() {
 
     try {
       setEmailLoading(true)
-      const result = await createApplicationSlip(payload, { toast: toast as any, sendEmail: true })
+      const result = await createApplicationSlip(payload, { toast: slipToast, sendEmail: true })
 
       if (result.error || result.emailError) {
         const message = result.error || result.emailError || 'We could not email the slip.'

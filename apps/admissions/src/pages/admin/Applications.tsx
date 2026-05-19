@@ -34,6 +34,7 @@ import { buildApplicationsOverview } from '@/pages/admin/lib/applicationsOvervie
 import { getPaymentStatusLabel } from '@/lib/paymentStatus'
 import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'
 import { BULK_ACTION_STATUS_MAP, type BulkApplicationAction } from '@/lib/applicationStatusUi'
+import type { Application } from '@/types/database'
 import {
   FileDown, 
   FileSpreadsheet, 
@@ -54,7 +55,31 @@ const sanitizeSearchTerm = (value: string) => {
     .replace(/,/g, '\\,')
 }
 
-const mapRecordToApplication = (record: any): ApplicationData => {
+type WarningResult = { warning: true; message?: string }
+
+const isWarningResult = (value: unknown): value is WarningResult =>
+  Boolean(
+    value &&
+      typeof value === 'object' &&
+      'warning' in value &&
+      (value as { warning?: unknown }).warning === true,
+  )
+
+const getErrorStatus = (error: unknown): number =>
+  error && typeof error === 'object' && 'status' in error && typeof error.status === 'number'
+    ? error.status
+    : 0
+
+type ExportApplicationRecord = Application & {
+  institution?: string
+  grades_summary?: string
+  total_subjects?: number
+  points?: number
+  age?: number
+  days_since_submission?: number
+}
+
+const mapRecordToApplication = (record: ExportApplicationRecord): ApplicationData => {
   const points = record.points && Number(record.points) > 0 
     ? Number(record.points) 
     : calculatePointsFromSummary(record.grades_summary)
@@ -355,7 +380,7 @@ export default function Applications() {
       const signedUrls = await Promise.all(
         realDocuments.map(async (doc) => {
           const result = await documentService.getSignedUrl(doc.id!)
-          return (result as any)?.url as string | undefined
+          return result?.url
         }),
       )
 
@@ -434,14 +459,14 @@ export default function Applications() {
       const result = await updateStatus(applicationId, newStatus, options)
       
       // If the API returned a payment warning, pass it through without showing success toast
-      if (result && typeof result === 'object' && 'warning' in result && (result as any).warning === true) {
+      if (isWarningResult(result)) {
         return result
       }
       
       showSuccess('Status updated', `Application status changed to ${formatApplicationStatus(newStatus)}.`)
       return result
-    } catch (error: any) {
-      const status = error?.status ?? 0
+    } catch (error: unknown) {
+      const status = getErrorStatus(error)
       const message = error instanceof Error ? error.message : String(error)
 
       // Handle 409 conflict — application was modified by another user
@@ -476,10 +501,10 @@ export default function Applications() {
       const result = await updatePaymentStatus(applicationId, newPaymentStatus, verificationNotes, force)
 
       // Handle advisory warning (no payment proof uploaded)
-      if (result && typeof result === 'object' && 'warning' in result && (result as any).warning === true) {
+      if (isWarningResult(result)) {
         const confirmed = await confirmDialog.confirm({
           title: 'Payment Warning',
-          message: (result as any).message || 'No payment proof uploaded. Proceed anyway?',
+          message: result.message || 'No payment proof uploaded. Proceed anyway?',
           confirmText: 'Proceed',
           cancelText: 'Cancel',
           variant: 'danger'
@@ -493,8 +518,8 @@ export default function Applications() {
       }
 
       showSuccess('Payment status updated', `Payment status changed to ${getPaymentStatusLabel(newPaymentStatus)}.`)
-    } catch (error: any) {
-      const status = error?.status ?? 0
+    } catch (error: unknown) {
+      const status = getErrorStatus(error)
       const message = error instanceof Error ? error.message : String(error)
 
       // Handle 409 conflict — application was modified by another user
@@ -533,8 +558,8 @@ export default function Applications() {
       showSuccess('Bulk action completed', `${ids.length} applications updated successfully.`)
       setSelectedIds([])
       await refreshCurrentPage()
-    } catch (error: any) {
-      const status = error?.status ?? 0
+    } catch (error: unknown) {
+      const status = getErrorStatus(error)
       const message = error instanceof Error ? error.message : String(error)
 
       if (status === 409 || message.includes('Conflict detected') || message.includes('modified')) {
@@ -855,7 +880,7 @@ export default function Applications() {
           onSendNotification={handleSendNotification}
           onViewDocuments={handleViewDocuments}
           onViewHistory={handleViewHistory}
-          onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<any>}
+          onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<unknown>}
           onPaymentStatusUpdate={handlePaymentStatusUpdate}
           onGenerateAcceptanceLetter={handleGenerateAcceptanceLetter}
           onGenerateFinanceReceipt={handleGenerateFinanceReceipt}

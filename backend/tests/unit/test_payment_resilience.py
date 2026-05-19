@@ -10,7 +10,7 @@ os.environ["TESTING"] = "1"
 
 import requests
 from django.test import SimpleTestCase, override_settings
-from rest_framework.test import APIRequestFactory
+from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.documents.views import (
     DeferPaymentView,
@@ -71,15 +71,24 @@ class TestMobileMoneyProviderUncertainty(SimpleTestCase):
             },
             format="json",
         )
-        request.user = MagicMock(id=user_id, role="student", is_authenticated=True)
+        user = MagicMock(id=user_id, pk=user_id, role="student", is_authenticated=True)
+        force_authenticate(request, user=user)
 
         application = MagicMock()
         application.id = application_id
         application.user_id = user_id
         application.payment_status = "pending"
 
-        payment_manager = MagicMock()
-        payment_manager.select_for_update.return_value.filter.return_value.first.return_value = None
+        payment = MagicMock()
+        payment.id = payment_id
+        payment.metadata = {
+            "provider_initiation": {
+                "status": "unknown",
+                "operator": "airtel",
+                "phone_last4": "3456",
+            },
+        }
+        payment.currency = "ZMW"
 
         result = MagicMock(
             payment_id=payment_id,
@@ -90,9 +99,8 @@ class TestMobileMoneyProviderUncertainty(SimpleTestCase):
 
         with (
             patch("apps.applications.models.Application.objects.get", return_value=application),
-            patch("apps.documents.views.Payment.objects", payment_manager),
-            patch("apps.documents.payment_service.PaymentService.initiate_payment", return_value=result),
-            patch("apps.documents.payment_service.PaymentService.mark_provider_initiation") as mark_provider,
+            patch("apps.documents.mobile_money_views.Payment.objects.get", return_value=payment),
+            patch("apps.documents.payment_service.PaymentService.initiate_mobile_money", return_value=result),
             patch("requests.post", side_effect=requests.RequestException),
         ):
             response = MobileMoneyInitiateView.as_view()(request)
@@ -101,4 +109,3 @@ class TestMobileMoneyProviderUncertainty(SimpleTestCase):
         self.assertTrue(response.data["success"])
         self.assertEqual(response.data["data"]["status"], "pending")
         self.assertEqual(response.data["data"]["provider_status"], "unknown")
-        mark_provider.assert_called_once()

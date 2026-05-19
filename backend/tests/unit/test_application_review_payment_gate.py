@@ -55,12 +55,12 @@ class TestApplicationReviewPaymentGate:
         self.view = ApplicationReviewView.as_view()
         self.admin = _make_user()
 
-    @patch("apps.applications.admin_views.ApplicationStatusHistory.objects")
-    @patch("apps.applications.admin_views.transaction.atomic")
-    @patch("apps.applications.admin_views.Payment.objects")
-    @patch("apps.applications.admin_views.CommunicationService.send")
-    @patch("apps.applications.admin_views.transition_application_status")
-    @patch("apps.applications.admin_views.Application.objects")
+    @patch("apps.applications.admin_review_views.ApplicationStatusHistory.objects")
+    @patch("apps.applications.admin_review_views.transaction.atomic")
+    @patch("apps.applications.admin_review_views.Payment.objects")
+    @patch("apps.applications.admin_review_views.CommunicationService.send")
+    @patch("apps.applications.admin_review_views.transition_application_status")
+    @patch("apps.applications.admin_review_views.Application.objects")
     def test_approval_accepts_legacy_paid_payment_row(
         self,
         mock_app_qs,
@@ -72,6 +72,7 @@ class TestApplicationReviewPaymentGate:
     ):
         app = _make_application()
         mock_app_qs.get.return_value = app
+        mock_app_qs.select_for_update.return_value.get.return_value = app
         mock_transition.return_value = "submitted"
         mock_payment_qs.filter.return_value.exists.return_value = True
         mock_atomic.return_value.__enter__.return_value = None

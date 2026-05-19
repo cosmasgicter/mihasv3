@@ -27,7 +27,6 @@ export {
   textStyles,
   __resetFontRegistration,
 } from './typography'
-import { logger } from '@/lib/logger'
 export type { TypeScaleKey, TextStyleKey } from './typography'
 
 /**
@@ -104,10 +103,12 @@ export function getInstitution(code: string | null | undefined): Institution {
   // Intentional surface — silent fallback for unknown codes caused real
   // bugs (e.g. a KATC acceptance letter rendering with the MIHAS header
   // when the code shape drifted). Log so it's visible in error monitoring.
-  logger.warn(
-    `[pdf/theme] Unknown institution code "${code}" — falling back to MIHAS. ` +
-      `Registered codes: ${Object.keys(institutions).join(', ')}. ` +
-      'This usually indicates a backend/frontend contract drift.',
-  )
+  if (typeof console !== 'undefined' && typeof console.warn === 'function') {
+    console.warn(
+      `[pdf/theme] Unknown institution code "${code}" — falling back to MIHAS. ` +
+        `Registered codes: ${Object.keys(institutions).join(', ')}. ` +
+        'This usually indicates a backend/frontend contract drift.',
+    )
+  }
   return institutions.MIHAS
 }

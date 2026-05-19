@@ -87,7 +87,6 @@ export function useApplicationSubmit() {
       const response = await applicationService.submit(cleanId, {
         headers: {
           'Idempotency-Key': idempotencyKeyRef.current,
-          'X-Idempotency-Key': idempotencyKeyRef.current,
         },
       })
       if (!response?.id) {

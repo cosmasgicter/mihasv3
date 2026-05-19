@@ -10,6 +10,7 @@ reference, raw payload, and signature validation result.
 """
 
 import os
+from contextlib import nullcontext
 from unittest.mock import MagicMock, patch
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
@@ -101,6 +102,9 @@ class TestWebhookEventLoggingCompleteness(SimpleTestCase):
             "apps.documents.webhook_processor.WebhookEventLog.objects"
         ) as mock_log_objects, patch.object(
             processor, "_payment_service"
+        ), patch(
+            "django.db.transaction.atomic",
+            side_effect=lambda: nullcontext(),
         ):
             mock_log_objects.create.return_value = mock_log_entry
 
@@ -126,10 +130,17 @@ class TestWebhookEventLoggingCompleteness(SimpleTestCase):
                 expected_reference,
                 "WebhookEventLog.reference must match the extracted reference",
             )
-            self.assertEqual(
-                call_kwargs["payload"],
-                payload,
-                "WebhookEventLog.payload must contain the full raw payload",
+            stored_payload = call_kwargs["payload"]
+            for key, value in payload.items():
+                self.assertEqual(
+                    stored_payload[key],
+                    value,
+                    "WebhookEventLog.payload must preserve the incoming payload",
+                )
+            self.assertIn(
+                "_webhook_identity",
+                stored_payload,
+                "WebhookEventLog.payload must include webhook identity metadata",
             )
             self.assertEqual(
                 call_kwargs["signature_valid"],

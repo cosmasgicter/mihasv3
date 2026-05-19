@@ -39,8 +39,8 @@ def test_mobile_money_initiate_rejects_missing_fields():
 
     s = MobileMoneyInitiateRequestSerializer(data={})
     assert not s.is_valid()
-    # All three fields must be flagged as required
-    assert set(s.errors.keys()) == {"application_id", "phone", "operator"}
+    # Operator is optional; the backend derives it from the phone number.
+    assert set(s.errors.keys()) == {"application_id", "phone"}
 
 
 def test_mobile_money_initiate_rejects_invalid_uuid():

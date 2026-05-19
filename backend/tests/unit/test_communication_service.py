@@ -25,6 +25,7 @@ def _mock_app(uid=None, aid=None):
     a = MagicMock()
     a.id = aid or uuid.uuid4()
     a.user_id = str(uid or uuid.uuid4())
+    a.first_name = "John"
     a.full_name = "John Doe"
     a.application_number = "APP-20250101-ABCD1234"
     a.program = "Computer Science"
@@ -130,7 +131,7 @@ class TestSendNotificationCreation:
 
         mock_notif_create.assert_called_once()
         mock_queue_email.assert_called_once()
-        assert mock_notif_create.call_args.kwargs["message"] == "Dear John Doe"
+        assert mock_notif_create.call_args.kwargs["message"] == "Dear John"
 
     @patch("apps.common.outbox.queue_email")
     @patch("apps.common.outbox.create_notification")

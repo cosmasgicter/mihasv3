@@ -16,7 +16,7 @@ interface UserImportProps {
 interface ImportResult {
   success: number
   failed: number
-  errors: Array<{ row: number; error: string; data?: any }>
+  errors: Array<{ row: number; error: string; data?: Partial<UserData> }>
   duplicates: number
 }
 
@@ -26,6 +26,10 @@ interface UserData {
   phone?: string
   role: string
   password?: string
+}
+
+function isCompleteUserData(userData: Partial<UserData>): userData is UserData {
+  return Boolean(userData.full_name && userData.email && userData.role)
 }
 
 const REQUIRED_FIELDS = ['full_name', 'email', 'role']
@@ -97,7 +101,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
 
       for (let i = 1; i < lines.length && i <= 6; i++) { // Preview first 5 rows
         const values = lines[i]!.split(',').map(v => v.trim().replace(/"/g, ''))
-        const userData: any = {}
+        const userData: Partial<UserData> = {}
         
         headers.forEach((header, index) => {
           if (header.includes('name') || header.includes('full_name')) {
@@ -113,7 +117,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
           }
         })
         
-        if (userData.full_name && userData.email && userData.role) {
+        if (isCompleteUserData(userData)) {
           data.push(userData)
         }
       }
@@ -124,7 +128,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
     reader.readAsText(file)
   }
 
-  const validateUserData = (userData: UserData, rowIndex: number): string | null => {
+  const validateUserData = (userData: Partial<UserData>, rowIndex: number): string | null => {
     if (!userData.full_name?.trim()) {
       return `Row ${rowIndex}: Full name is required`
     }
@@ -162,7 +166,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
 
       for (let i = 1; i < lines.length; i++) {
         const values = lines[i]!.split(',').map(v => v.trim().replace(/"/g, ''))
-        const userData: any = {}
+        const userData: Partial<UserData> = {}
 
         headers.forEach((header, index) => {
           if (header.includes('name') || header.includes('full_name')) {
@@ -181,6 +185,11 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
         const validationError = validateUserData(userData, i + 1)
         if (validationError) {
           clientErrors.push({ row: i + 1, error: validationError, data: userData })
+          continue
+        }
+
+        if (!isCompleteUserData(userData)) {
+          clientErrors.push({ row: i + 1, error: `Row ${i + 1}: Missing required user fields`, data: userData })
           continue
         }
 

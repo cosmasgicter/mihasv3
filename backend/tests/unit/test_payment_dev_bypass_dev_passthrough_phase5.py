@@ -598,6 +598,13 @@ class TestRiskFlagsListPassthroughAbsentBypassVector:
         """
 
         def _run(settings_overrides):
+            # Keep the two parity passes genuinely independent. Without
+            # clearing the first seeded flag, the second request quite
+            # correctly sees two rows and the test ends up measuring fixture
+            # accumulation rather than decorator transparency.
+            from apps.documents.models import Payment
+
+            Payment.objects.all().delete()
             _, jwt_user = _seed_super_admin()
             _seed_payment_with_risk_flag(owner_profile=jwt_user)
             with override_settings(**settings_overrides):

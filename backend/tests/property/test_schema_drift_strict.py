@@ -27,6 +27,15 @@ def _has_db_connection() -> bool:
 
 
 def _get_db_columns(table_name: str) -> set[str]:
+    if connection.vendor != "postgresql":
+        if table_name not in connection.introspection.table_names():
+            return set()
+        with connection.cursor() as cursor:
+            return {
+                column.name
+                for column in connection.introspection.get_table_description(cursor, table_name)
+            }
+
     with connection.cursor() as cursor:
         cursor.execute(
             "SELECT column_name FROM information_schema.columns WHERE table_name = %s",

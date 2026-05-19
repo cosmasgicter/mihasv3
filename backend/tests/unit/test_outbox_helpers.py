@@ -19,10 +19,10 @@ from apps.common.outbox import create_notification, queue_email
 class TestQueueEmail(SimpleTestCase):
     @patch("apps.common.outbox.transaction.on_commit", side_effect=lambda fn: fn())
     @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
-    @patch("apps.common.tasks.send_email_task.delay")
+    @patch("apps.common.outbox.dispatch_email")
     @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.EmailQueue.objects.create")
-    def test_queue_email_persists_and_dispatches(self, mock_create, mock_outbox_create, mock_delay, _mock_atomic, _mock_on_commit):
+    def test_queue_email_persists_and_dispatches(self, mock_create, mock_outbox_create, mock_dispatch, _mock_atomic, _mock_on_commit):
         email_record = MagicMock()
         email_record.id = "email-123"
         mock_create.return_value = email_record
@@ -36,14 +36,14 @@ class TestQueueEmail(SimpleTestCase):
         self.assertIs(result, email_record)
         mock_create.assert_called_once()
         mock_outbox_create.assert_called_once()
-        mock_delay.assert_called_once_with("email-123")
+        mock_dispatch.assert_called_once_with("email-123")
 
     @patch("apps.common.outbox.transaction.on_commit", side_effect=lambda fn: fn())
     @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
-    @patch("apps.common.tasks.send_email_task.delay")
+    @patch("apps.common.outbox.dispatch_email")
     @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.EmailQueue.objects.create")
-    def test_queue_email_can_skip_dispatch(self, mock_create, mock_outbox_create, mock_delay, _mock_atomic, _mock_on_commit):
+    def test_queue_email_can_skip_dispatch(self, mock_create, mock_outbox_create, mock_dispatch, _mock_atomic, _mock_on_commit):
         email_record = MagicMock()
         email_record.id = "email-456"
         mock_create.return_value = email_record
@@ -57,7 +57,7 @@ class TestQueueEmail(SimpleTestCase):
 
         mock_create.assert_called_once()
         mock_outbox_create.assert_called_once()
-        mock_delay.assert_not_called()
+        mock_dispatch.assert_not_called()
 
 
 class TestCreateNotification(SimpleTestCase):

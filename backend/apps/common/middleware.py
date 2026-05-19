@@ -9,6 +9,7 @@ stack but are preserved for backward-compatible tests.
 """
 
 import logging
+import os
 import re
 import time
 import uuid
@@ -245,17 +246,37 @@ class RateLimitMiddleware:
         ("/api/v1/payments/mobile-money/", "5/10m"),
         ("/api/v1/payments/defer/", "10/10m"),
         ("/api/v1/payments/resolve-fee/", "30/10m"),
-        ("/api/v1/payments/webhook/", "30/10m"),
+        # Provider webhooks are authenticated by signature and must accept
+        # legitimate retry bursts; do not let the coarse IP limiter reject
+        # them before HMAC processing.
+        ("/api/v1/payments/webhook/", None),
         ("/api/v1/payments/", "60/10m"),
         # Catch-all (must be last)
         ("/api/v1/", "120/10m"),
     ]
+
+    # These payment routes are governed at the DRF view layer. When hardening
+    # is enabled, the per-user payment throttles own the canonical 429 shape;
+    # when disabled, the compatibility contract intentionally keeps them
+    # unthrottled. In both modes the coarse IP middleware must stay out of the
+    # way or it changes endpoint semantics.
+    VIEW_MANAGED_PAYMENT_PREFIXES = (
+        "/api/v1/payments/initiate/",
+        "/api/v1/payments/mobile-money/",
+        "/api/v1/payments/resolve-fee/",
+    )
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
         from django_ratelimit.core import is_ratelimited
+
+        if any(
+            request.path.startswith(prefix)
+            for prefix in self.VIEW_MANAGED_PAYMENT_PREFIXES
+        ):
+            return self.get_response(request)
 
         for prefix, rate in self.SCOPE_LIMITS:
             if request.path.startswith(prefix):
@@ -393,6 +414,13 @@ class AuditMiddleware:
 
         if retention == "security":
             # Synchronous write for security-class audit (durable before response).
+            self._write_audit_entry_sync(payload)
+            return
+
+        # Test runs intentionally use no Redis broker. Avoid burning ~20s per
+        # request in Celery's reconnect loop before taking the already-safe
+        # synchronous fallback.
+        if os.environ.get("TESTING", "").lower() in {"1", "true", "yes"}:
             self._write_audit_entry_sync(payload)
             return
 

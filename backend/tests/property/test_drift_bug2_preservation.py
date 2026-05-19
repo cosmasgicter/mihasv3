@@ -77,9 +77,9 @@ class TestSettingsListPreservation(SimpleTestCase):
             response = view(request)
 
         self.assertEqual(response.status_code, 200)
-        # Paginated response has {page, pageSize, totalCount, results}
-        # (EnvelopeRenderer wraps it in {success, data} at render time)
-        self.assertIn("results", response.data)
+        # Paginated response is already wrapped by the view contract.
+        self.assertTrue(response.data["success"])
+        self.assertIn("results", response.data["data"])
 
 
 class TestSettingsDetailPreservation(SimpleTestCase):
@@ -224,7 +224,7 @@ class TestSettingsValidation(SimpleTestCase):
 
     def test_patch_validates_known_setting_against_existing_key(self):
         serializer = SettingUpdateSerializer(
-            data={"value": "1000"},
+            data={"value": "not-an-integer"},
             context={"setting_key": "max_applications_per_user"},
         )
 

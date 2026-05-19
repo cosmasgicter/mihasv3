@@ -1285,25 +1285,29 @@ class PaymentService:
 
             # ---- 5. Create the Payment; handle the active-row race ----
             try:
-                payment = Payment.objects.create(
-                    application_id=application_id,
-                    user_id=user_id,
-                    amount=effective_amount,
-                    currency=resolved.currency,
-                    status="pending",
-                    transaction_reference=reference,
-                    payment_method=None,
-                    metadata={
-                        "residency_category": resolved.residency_category,
-                        "fee_source": resolved.source,
-                        "original_amount": str(resolved.amount),
-                        "waiver_applied": str(effective_amount)
-                        != str(resolved.amount),
-                        "snapshot": snapshot_dict,
-                    },
-                    created_at=timezone.now(),
-                    updated_at=timezone.now(),
-                )
+                # Keep the unique-index race inside a savepoint. If another
+                # worker wins, PostgreSQL marks only this inner block dirty;
+                # the outer transaction can still query and return the winner.
+                with transaction.atomic():
+                    payment = Payment.objects.create(
+                        application_id=application_id,
+                        user_id=user_id,
+                        amount=effective_amount,
+                        currency=resolved.currency,
+                        status="pending",
+                        transaction_reference=reference,
+                        payment_method=None,
+                        metadata={
+                            "residency_category": resolved.residency_category,
+                            "fee_source": resolved.source,
+                            "original_amount": str(resolved.amount),
+                            "waiver_applied": str(effective_amount)
+                            != str(resolved.amount),
+                            "snapshot": snapshot_dict,
+                        },
+                        created_at=timezone.now(),
+                        updated_at=timezone.now(),
+                    )
             except IntegrityError as exc:
                 # Partial unique index ``uq_payments_one_active_per_application``
                 # fired — a concurrent initiation won the race. Fall back

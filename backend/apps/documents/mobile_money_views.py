@@ -334,10 +334,12 @@ class MobileMoneyInitiateView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except Exception:
+        except Exception as exc:
             logger.exception(
-                "Unexpected error during mobile money initiate for application %s",
+                "mobile_money_initiate failure for application=%s, user=%s, phone_last4=%s",
                 application_id,
+                user_id,
+                phone_raw[-4:] if phone_raw else None,
             )
             payment_metrics.increment(
                 "payment.initiation.failure",
@@ -517,5 +519,14 @@ class MobileMoneyInitiateView(APIView):
             )
         application_id = serializer.validated_data["application_id"]
         phone_raw = serializer.validated_data["phone"].strip()
+        logger.info(
+            "mobile_money_initiate received",
+            extra={
+                "application_id": str(serializer.validated_data.get("application_id", "")),
+                "user_id": str(getattr(request.user, "id", "")),
+                "phone_last4": (serializer.validated_data.get("phone", "") or "")[-4:],
+                "idempotency_key_present": bool(request.META.get("HTTP_IDEMPOTENCY_KEY")),
+            },
+        )
         return self._hardened_post(request, application_id, phone_raw)
 

@@ -52,13 +52,13 @@ class TestSHA256UserLoginAndUpgrade(SimpleTestCase):
     """A user with a legacy SHA-256 password hash should be able to log in
     successfully, and the stored hash should be upgraded to bcrypt."""
 
-    @patch("apps.accounts.views._generate_csrf_token", return_value="mock_csrf")
-    @patch("apps.accounts.views.DeviceSession.objects.create")
-    @patch("apps.accounts.views.generate_refresh_token", return_value="mock_refresh")
-    @patch("apps.accounts.views.generate_access_token", return_value="mock_access")
-    @patch("apps.accounts.views.record_login_attempt")
-    @patch("apps.accounts.views.check_login_attempts")
-    @patch("apps.accounts.views.Profile.objects.get")
+    @patch("apps.accounts.auth_views._generate_csrf_token", return_value="mock_csrf")
+    @patch("apps.accounts.auth_views.DeviceSession.objects.create")
+    @patch("apps.accounts.auth_views.generate_refresh_token", return_value="mock_refresh")
+    @patch("apps.accounts.auth_views.generate_access_token", return_value="mock_access")
+    @patch("apps.accounts.auth_views.record_login_attempt")
+    @patch("apps.accounts.auth_views.check_login_attempts")
+    @patch("apps.accounts.auth_views.Profile.objects.get")
     def test_sha256_user_logs_in_and_hash_upgraded(
         self,
         mock_profile_get,

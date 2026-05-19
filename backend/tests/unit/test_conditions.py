@@ -11,6 +11,7 @@ from apps.applications.condition_manager import (
     ConditionError,
     ConditionManager,
 )
+from apps.applications.services import SYSTEM_ACTOR_ID
 
 # Patch paths — condition_manager uses local imports
 _APP_MODEL = "apps.applications.condition_manager.Application"
@@ -280,7 +281,7 @@ class TestAutoPromotionAllMet:
         assert result is True
         mock_transition.assert_called_once()
         assert mock_transition.call_args[1]["new_status"] == "approved"
-        assert mock_transition.call_args[1]["changed_by"] == "system"
+        assert mock_transition.call_args[1]["changed_by"] == SYSTEM_ACTOR_ID
 
 
 class TestAutoRejectionExpiredCondition:

@@ -1,5 +1,6 @@
 import type { AuditLogEntry, AuditLogFilters, AuditLogSummary } from '@/services/admin/audit'
 import { formatTimestamp, toDateInputValue } from '@/lib/dateFormat'
+import { autoTable, type HookData } from 'jspdf-autotable'
 
 export type AuditExportFormat = 'csv' | 'json' | 'pdf'
 
@@ -129,7 +130,6 @@ export async function exportAuditEntriesToPdf({
   filenameBase,
 }: AuditExportOptions) {
   const { jsPDF } = await import('jspdf')
-  await import('jspdf-autotable')
 
   const doc = new jsPDF({ orientation: 'landscape' })
   const exportTime = formatTimestamp(new Date())
@@ -167,7 +167,7 @@ export async function exportAuditEntriesToPdf({
     }
   }
 
-  ;(doc as any).autoTable({
+  autoTable(doc, {
     startY,
     head: [['Time', 'Category', 'Action', 'Actor', 'Role', 'Entity', 'IP / Hash']],
     body: entries.map((entry) => [
@@ -190,15 +190,14 @@ export async function exportAuditEntriesToPdf({
       textColor: 255,
     },
     margin: { left: 10, right: 10, top: 12, bottom: 14 },
-    didDrawPage: (data: any) => {
-      const internal = doc.internal as any
-      const pageCount = internal.pages.length - 1
-      const currentPage = internal.getCurrentPageInfo().pageNumber
+    didDrawPage: (data: HookData) => {
+      const pageCount = doc.internal.pages.length - 1
+      const currentPage = doc.getCurrentPageInfo().pageNumber
       doc.setFontSize(8)
       doc.text(
         `Page ${currentPage} of ${pageCount}`,
         data.settings.margin.left,
-        internal.pageSize.height - 8
+        doc.internal.pageSize.height - 8
       )
     },
   })

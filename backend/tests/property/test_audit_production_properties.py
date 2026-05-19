@@ -208,7 +208,13 @@ class TestSessionsEnvelopeWrapping:
              patch("apps.accounts.session_views.active_session_filters") as mock_active_filters:
             from django.db.models import Q
             mock_active_filters.return_value = Q()
-            mock_qs.filter.return_value.filter.return_value.order_by.return_value = mock_sessions
+            ordered_qs = (
+                mock_qs.filter.return_value
+                .filter.return_value
+                .filter.return_value
+                .order_by.return_value
+            )
+            ordered_qs.__getitem__.return_value = mock_sessions
 
             request = self.factory.get("/api/v1/sessions/")
             from rest_framework.test import force_authenticate

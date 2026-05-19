@@ -87,9 +87,9 @@ class TestUploadEndpointPreservation(SimpleTestCase):
         mock_doc.updated_at = "2025-01-15T10:00:00Z"
 
         with patch("apps.applications.models.Application.objects") as mock_app_qs, \
-             patch("apps.documents.views.validate_file_magic_bytes"), \
+             patch("apps.documents.document_storage_views.validate_file_magic_bytes"), \
              patch("apps.common.storage.MediaStorage") as mock_storage_cls, \
-             patch("apps.documents.views.ApplicationDocument.objects") as mock_doc_qs:
+             patch("apps.documents.document_storage_views.ApplicationDocument.objects") as mock_doc_qs:
             mock_app_qs.get.return_value = mock_app
             mock_storage = MagicMock()
             mock_storage.save.return_value = "documents/saved.pdf"
@@ -148,9 +148,9 @@ class TestUploadEndpointPreservation(SimpleTestCase):
             mock_doc.updated_at = "2025-01-15T10:00:00Z"
 
             with patch("apps.applications.models.Application.objects") as mock_app_qs, \
-                 patch("apps.documents.views.validate_file_magic_bytes"), \
+                 patch("apps.documents.document_storage_views.validate_file_magic_bytes"), \
                  patch("apps.common.storage.MediaStorage") as mock_storage_cls, \
-                 patch("apps.documents.views.ApplicationDocument.objects") as mock_doc_qs:
+                 patch("apps.documents.document_storage_views.ApplicationDocument.objects") as mock_doc_qs:
                 mock_app_qs.filter.return_value.exists.return_value = True
                 mock_app_qs.get.return_value = mock_app
                 mock_storage = MagicMock()
@@ -223,7 +223,7 @@ class TestExtractEndpointPreservation(SimpleTestCase):
         mock_task = MagicMock()
         mock_task.id = "celery-task-id-123"
 
-        with patch("apps.documents.views.ApplicationDocument.objects") as mock_doc_qs, \
+        with patch("apps.documents.document_storage_views.ApplicationDocument.objects") as mock_doc_qs, \
              patch("apps.applications.models.Application.objects") as mock_app_qs, \
              patch("apps.documents.tasks.extract_document_text_task") as mock_extract:
             mock_doc_qs.select_related.return_value.get.return_value = mock_doc
@@ -234,7 +234,7 @@ class TestExtractEndpointPreservation(SimpleTestCase):
             response = view(request, document_id=doc_id)
 
         self.assertEqual(response.status_code, 202)
-        self.assertEqual(response.data["status"], "queued")
+        self.assertEqual(response.data["data"]["status"], "queued")
 
     def test_extract_returns_404_for_missing_document(self):
         """Extract endpoint still returns 404 for nonexistent document."""
@@ -246,7 +246,7 @@ class TestExtractEndpointPreservation(SimpleTestCase):
 
         from apps.documents.models import ApplicationDocument as RealModel
 
-        with patch("apps.documents.views.ApplicationDocument.objects") as mock_doc_qs:
+        with patch("apps.documents.document_storage_views.ApplicationDocument.objects") as mock_doc_qs:
             mock_doc_qs.select_related.return_value.get.side_effect = RealModel.DoesNotExist
             view = DocumentExtractView.as_view()
             response = view(request, document_id=doc_id)

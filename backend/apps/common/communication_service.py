@@ -20,6 +20,7 @@ _DEFAULT_BODY = (
     "<p>Please log in to your account for details.</p>"
     "<p>Best regards,<br>MIHAS Admissions</p>"
 )
+_DEFAULT_NOTIFICATION_TEXT = "You have a new notification from MIHAS Admissions. Open the dashboard for details."
 
 _FALLBACK_TEMPLATES = {
     "payment_expired": (
@@ -35,6 +36,19 @@ _FALLBACK_TEMPLATES = {
 
 # Regex for {{variable}} placeholders
 _PLACEHOLDER_RE = re.compile(r"\{\{(\w+)\}\}")
+
+# Regexes for stripping email-only chrome from notification bodies
+_LOG_IN_PARAGRAPH_RE = re.compile(r"<p[^>]*>[^<]*Please log in[^<]*</p>", re.IGNORECASE)
+_BEST_REGARDS_PARAGRAPH_RE = re.compile(r"<p[^>]*>\s*Best regards.*?</p>", re.IGNORECASE | re.DOTALL)
+
+
+def _strip_email_chrome_for_notification(html_body: str) -> str:
+    """Remove email-only chrome (sign-off, 'log in' instructions) from a body
+    that will be rendered as in-app notification text. Email body is unaffected.
+    """
+    stripped = _LOG_IN_PARAGRAPH_RE.sub("", html_body)
+    stripped = _BEST_REGARDS_PARAGRAPH_RE.sub("", stripped)
+    return stripped
 
 
 class _NotificationTextParser(HTMLParser):
@@ -94,11 +108,12 @@ class CommunicationService:
     """Template-based notification and email dispatch."""
 
     @staticmethod
-    def render_template(template_key: str, context: dict | None = None) -> tuple[str, str]:
+    def render_template(template_key: str, context: dict | None = None, for_notification: bool = False) -> tuple[str, str]:
         """Look up a CommunicationTemplate by key and substitute variables.
 
         Returns (subject, body). Falls back to defaults if template is
-        not found or inactive.
+        not found or inactive. When for_notification=True and template is
+        missing, uses notification-friendly default (no 'log in' copy).
         """
         from apps.common.models import CommunicationTemplate
 
@@ -119,6 +134,8 @@ class CommunicationService:
             if template_key in _FALLBACK_TEMPLATES:
                 subject_template, body_template = _FALLBACK_TEMPLATES[template_key]
                 return _substitute(subject_template, context), _substitute(body_template, context)
+            if for_notification:
+                return _DEFAULT_SUBJECT, "<p>" + _DEFAULT_NOTIFICATION_TEXT + "</p>"
             return _DEFAULT_SUBJECT, _DEFAULT_BODY
 
         subject = _substitute(template.subject_template, context)
@@ -148,15 +165,16 @@ class CommunicationService:
             template = None
 
         channel = template.channel if template else "both"
-        subject, body = CommunicationService.render_template(template_key, context)
 
         # Create Notification if channel includes notification
         if channel in ("notification", "both"):
+            notif_subject, notif_body = CommunicationService.render_template(template_key, context, for_notification=True)
+            notif_text = _html_to_notification_text(_strip_email_chrome_for_notification(notif_body))
             try:
                 create_notification(
                     user_id=application.user_id,
-                    title=subject,
-                    message=_html_to_notification_text(body),
+                    title=notif_subject,
+                    message=notif_text,
                     type="info",
                     priority="normal",
                     action_url=f"/student/application/{application.id}",
@@ -171,6 +189,7 @@ class CommunicationService:
 
         # Create EmailQueue and dispatch if channel includes email
         if channel in ("email", "both"):
+            subject, body = CommunicationService.render_template(template_key, context)
             try:
                 from apps.common.email_templates import get_base_email_html
 
