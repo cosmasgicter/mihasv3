@@ -524,7 +524,6 @@ class ApplicationReviewView(APIView):
                     locked_app, old_status = submit_application(
                         application=app,
                         changed_by=str(request.user.id),
-                        notes=bypass_notes,
                         ip_address=ip_hash,
                         user_agent=user_agent,
                         admin_force=True,
