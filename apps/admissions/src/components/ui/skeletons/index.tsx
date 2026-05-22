@@ -17,6 +17,14 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 
+// Registry mapping route patterns to their skeleton fallback components
+import { DashboardSkeleton } from './DashboardSkeleton'
+import { WizardSkeleton } from './WizardSkeleton'
+import { AdminTableSkeleton } from './AdminTableSkeleton'
+import { AuthSkeleton } from './AuthSkeleton'
+import { DetailSkeleton } from './DetailSkeleton'
+import { MarketingRouteSkeleton } from './MarketingRouteSkeleton'
+
 // Base Skeleton Component
 interface SkeletonBaseProps {
   className?: string
@@ -444,14 +452,6 @@ export { AdminTableSkeleton } from './AdminTableSkeleton'
 export { AuthSkeleton } from './AuthSkeleton'
 export { DetailSkeleton } from './DetailSkeleton'
 export { MarketingRouteSkeleton } from './MarketingRouteSkeleton'
-
-// Registry mapping route patterns to their skeleton fallback components
-import { DashboardSkeleton } from './DashboardSkeleton'
-import { WizardSkeleton } from './WizardSkeleton'
-import { AdminTableSkeleton } from './AdminTableSkeleton'
-import { AuthSkeleton } from './AuthSkeleton'
-import { DetailSkeleton } from './DetailSkeleton'
-import { MarketingRouteSkeleton } from './MarketingRouteSkeleton'
 
 export const skeletonRegistry: Record<string, React.ComponentType> = {
   dashboard: DashboardSkeleton,

@@ -1,14 +1,9 @@
 /**
- * Property-based tests for the current secureStorage utilities.
- *
- * The old encrypted storage abstraction was intentionally removed because it
- * was never initialized at runtime. The live contract is now narrower:
- *   - stripPiiFields removes sensitive fields without mutating input
- *   - clearSession removes only MIHAS-prefixed localStorage keys
+ * Property-based tests for the secureStorage utilities with AES-GCM and fallback.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import * as fc from 'fast-check'
-import { clearSession, stripPiiFields } from '@/lib/secureStorage'
+import { secureStorage, clearSession, stripPiiFields } from '@/lib/secureStorage'
 
 const STORAGE_PREFIX = 'mihas_secure_'
 const PII_FIELDS = [
@@ -104,6 +99,91 @@ describe('secureStorage utility contract', () => {
       }),
       { numRuns: 25 },
     )
+  })
+
+  it('correctly encrypts and decrypts values (round-trip)', async () => {
+    await secureStorage.init('dummy-session-key')
+    await fc.assert(
+      fc.asyncProperty(
+        fc.stringMatching(/^[a-zA-Z0-9_-]{3,15}$/),
+        fc.record({
+          id: fc.uuid(),
+          name: fc.string(),
+          age: fc.integer(),
+          tags: fc.array(fc.string())
+        }),
+        async (key, val) => {
+          await secureStorage.set(key, val)
+          const retrieved = await secureStorage.get(key)
+          expect(retrieved).toEqual(val)
+
+          // Verify the value in raw localStorage is encrypted (base64 and not raw JSON)
+          const raw = localStorage.getItem(`${STORAGE_PREFIX}${key}`)
+          expect(raw).not.toBeNull()
+          expect(raw).not.toContain(val.id) // It should be encrypted ciphertext
+        }
+      ),
+      { numRuns: 25 }
+    )
+  })
+
+  it('falls back to PII stripping when crypto is unavailable', async () => {
+    const originalSubtle = globalThis.crypto.subtle
+    Object.defineProperty(globalThis.crypto, 'subtle', {
+      value: undefined,
+      configurable: true,
+      writable: true
+    })
+
+    try {
+      const fallbackStorage = new (secureStorage.constructor as any)()
+      await fallbackStorage.init('session-fallback')
+      expect(fallbackStorage.isSecure).toBe(false)
+      expect(fallbackStorage.showInsecureBanner).toBe(true)
+
+      await fc.assert(
+        fc.asyncProperty(
+          fc.stringMatching(/^[a-zA-Z0-9_-]{3,15}$/),
+          objectWithPiiArb,
+          async (key, val) => {
+            await fallbackStorage.set(key, val)
+            const retrieved = await fallbackStorage.get(key)
+
+            // Non-PII fields should remain, PII fields should be stripped
+            for (const field of PII_FIELDS) {
+              expect(retrieved).not.toHaveProperty(field)
+            }
+            expect(retrieved).toHaveProperty('first_name', val.first_name)
+            expect(retrieved).toHaveProperty('program_id', val.program_id)
+
+            // The value in raw localStorage should be plain JSON (not encrypted)
+            const raw = localStorage.getItem(`${STORAGE_PREFIX}${key}`)
+            expect(raw).not.toBeNull()
+            expect(JSON.parse(raw!)).toEqual(stripPiiFields(val))
+          }
+        ),
+        { numRuns: 25 }
+      )
+    } finally {
+      Object.defineProperty(globalThis.crypto, 'subtle', {
+        value: originalSubtle,
+        configurable: true,
+        writable: true
+      })
+    }
+  })
+
+  it('clearSession clears the cryptographic state', async () => {
+    await secureStorage.init('dummy-session-key')
+    expect(secureStorage.isSecure).toBe(true)
+    expect(secureStorage.initialized).toBe(true)
+
+    await secureStorage.set('test-key', { secret: 'data' })
+    await secureStorage.clearSession()
+
+    expect(secureStorage.isSecure).toBe(false)
+    expect(secureStorage.initialized).toBe(false)
+    expect(localStorage.getItem(`${STORAGE_PREFIX}test-key`)).toBeNull()
   })
 
   it('clearSession removes only MIHAS-prefixed keys', async () => {

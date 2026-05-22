@@ -1,6 +1,10 @@
 import React from 'react'
 import LandingPage from '@/pages/LandingPage'
 
+// Special components that don't need lazy loading
+import { DashboardRedirect } from '@/components/DashboardRedirect'
+import { Navigate } from 'react-router-dom'
+
 // Lazy load secondary routes for optimal code splitting.
 // Keep the landing page in the entry build so the first visit can paint
 // meaningful content without waiting for a route-level chunk.
@@ -37,10 +41,6 @@ const AdminProgramFees = React.lazy(() => import('@/pages/admin/ProgramFees'))
 const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker/index'))
 const ContactPage = React.lazy(() => import('@/pages/ContactPage'))
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'))
-
-// Special components that don't need lazy loading
-import { DashboardRedirect } from '@/components/DashboardRedirect'
-import { Navigate } from 'react-router-dom'
 
 export type RouteGuard = 'public' | 'auth' | 'student' | 'admin'
 
