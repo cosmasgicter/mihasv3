@@ -200,9 +200,8 @@ run-*.sh
 run-*.js
 *.bat
 *.sql
-!backend/scripts/payment_hardening_preflight.sql
-!backend/scripts/payment_hardening_indexes.sql
-!backend/scripts/payment_hardening_indexes_rollback.sql
+!backend/scripts/*.sql
+!backend/scripts/**/*.sql
 supabase-helper.bat
 
 # Keep important documentation
@@ -222,3 +221,4 @@ katc/
 # Cost accounting assignment
 cost_report/
 Cost_Accounting_*.docx
+.antigravitycli/
