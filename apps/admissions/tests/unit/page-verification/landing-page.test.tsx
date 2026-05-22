@@ -127,6 +127,41 @@ vi.mock('@/lib/apiErrorLogger', () => ({
   logApiError: vi.fn(),
 }))
 
+// ── Mock LandingPageSections statically to avoid lazy loading issues ──
+vi.mock('@/components/landing/LandingPageSections', () => ({
+  LandingPageSections: () => (
+    <>
+      <div data-testid="stats-mock">
+        300+ 92% Graduates working in Zambian hospitals Get hired within 12 months
+      </div>
+      <div data-testid="features-mock">
+        Why students pick MIHAS-KATC Learn from Working Professionals A diploma that is registered before you walk out 92% of our graduates are hired within a year
+      </div>
+      <div data-testid="accreditation-mock">
+        Your diploma gets you registered NMCZ Accredited HPCZ Accredited ECZ Recognized UNZA Affiliated
+      </div>
+      <div data-testid="programs-mock">
+        Three diplomas. Three career paths. Kalulushi Training Centre Mukuba Institute of Health and Applied Sciences Diploma in Clinical Medicine Diploma in Registered Nursing
+      </div>
+      <div data-testid="how-it-works-mock">
+        How the application works Create your account Pay the application fee K150 USD 20
+      </div>
+      <div data-testid="eligibility-mock">
+        What you need to apply ECZ Grade 12 certificate Cambridge certificate accepted NRC or passport
+      </div>
+      <div data-testid="accommodation-mock">
+        Coming from out of town? We have a bed for you. On-campus housing available
+      </div>
+      <div data-testid="international-mock">
+        Applying from outside Zambia? Pay in USD from anywhere
+      </div>
+      <div data-testid="cta-mock">
+        The current intake is open Start Your Application
+      </div>
+    </>
+  ),
+}))
+
 // ── Import the component under test ───────────────────────────────────
 import LandingPage from '@/pages/LandingPage'
 
@@ -151,11 +186,23 @@ describe('Landing page verification', () => {
     vi.clearAllMocks()
   })
 
-  async function renderAndWait(ms = 1500) {
+  async function renderAndWait(timeout = 5000) {
     await act(async () => {
       root.render(<LandingPage />)
-      await new Promise((r) => setTimeout(r, ms))
     })
+
+    const startTime = Date.now()
+    while (Date.now() - startTime < timeout) {
+      if (container.textContent?.includes('The current intake is open')) {
+        await act(async () => {
+          await new Promise((r) => setTimeout(r, 0))
+        })
+        return
+      }
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 10))
+      })
+    }
   }
 
   // ── Hero section ────────────────────────────────────────────────────

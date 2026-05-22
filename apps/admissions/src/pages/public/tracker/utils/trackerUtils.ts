@@ -1,3 +1,5 @@
+import { formatDate } from '@/lib/dateFormat'
+
 export const INSTITUTION_NAMES: Record<string, string> = {
   'KATC': 'Kalulushi Training Centre',
   'katc': 'Kalulushi Training Centre',
@@ -82,8 +84,6 @@ export const getStatusMessage = (status: string) => {
       return 'Your application status is being updated. Please check back soon for the latest information.'
   }
 }
-
-import { formatDate } from '@/lib/dateFormat'
 
 export const formatDisplayDate = (value?: string | null) => {
   return formatDate(value)

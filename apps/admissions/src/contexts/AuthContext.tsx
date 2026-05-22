@@ -23,7 +23,8 @@ import type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult
 import { useSessionListener } from '@/hooks/auth/useSessionListener'
 import { configureApiClientAuthFailure } from '@/services/client'
 import { clearCsrfToken } from '@/lib/csrfToken'
-import { clearSession } from '@/lib/secureStorage'
+import { clearSession, secureStorage } from '@/lib/secureStorage'
+import { preloadSecureStorage, resetCache } from '@/lib/localStorageCache'
 import { useAuthBroadcast } from '@/lib/authBroadcast'
 import { resetPrefetchState } from '@/lib/speculativePrefetch'
 import { SESSION_MESSAGES } from '@/lib/sessionHardening'
@@ -73,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         clearCsrfToken()
         resetPrefetchState()
         clearSession().catch(() => {})
+        resetCache()
 
         const from = typeof window !== 'undefined'
           ? `${window.location.pathname}${window.location.search}`
@@ -98,6 +100,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })()
     })
   }, [queryClient])
+
+  // Synchronize secure storage and preload cache when auth.user changes
+  useEffect(() => {
+    const user = auth.user
+    if (user) {
+      void (async () => {
+        try {
+          await secureStorage.init(user.id)
+          await preloadSecureStorage()
+        } catch {
+          // best effort secure storage initialization
+        }
+      })()
+    } else {
+      void (async () => {
+        try {
+          await clearSession()
+        } catch {
+          // best effort session cleanup
+        } finally {
+          resetCache()
+        }
+      })()
+    }
+  }, [auth.user])
 
   // Re-validate session on tab refocus or bfcache restore.
   // Catches expired tokens after the user has been away.

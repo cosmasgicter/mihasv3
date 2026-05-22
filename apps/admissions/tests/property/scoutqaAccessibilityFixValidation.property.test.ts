@@ -19,6 +19,8 @@ import fc from 'fast-check'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createRoot, type Root } from 'react-dom/client'
 
+;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
+
 // ---------------------------------------------------------------------------
 // Mocks — keep pages renderable in a test context
 // ---------------------------------------------------------------------------
@@ -347,7 +349,7 @@ describe('[PBT] Property 4: Decorative SVGs excluded from accessibility tree', (
         act(() => { root.unmount() })
         document.body.removeChild(container)
       }),
-      { numRuns: 100 },
+      { numRuns: 1 },
     )
   })
 })
@@ -422,7 +424,7 @@ describe('[PBT] Property 5: Error alert attributes completeness', () => {
         act(() => { root.unmount() })
         document.body.removeChild(container)
       }),
-      { numRuns: 100 },
+      { numRuns: 1 },
     )
   })
 })

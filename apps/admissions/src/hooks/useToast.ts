@@ -5,10 +5,10 @@
  * This allows importing from @/hooks/useToast instead of @/components/ui/Toast
  */
 
-export { useToastStore, useToast } from '@/components/ui/Toast'
-
 // Also export a standalone toast function for use outside React components
 import { useToastStore } from '@/components/ui/Toast'
+
+export { useToastStore, useToast } from '@/components/ui/Toast'
 
 export const toast = {
   success: (title: string, message?: string) => useToastStore.getState().success(title, message),

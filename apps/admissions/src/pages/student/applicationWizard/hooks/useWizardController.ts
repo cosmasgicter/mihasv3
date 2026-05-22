@@ -32,6 +32,7 @@ import {
   clearStaleApplicationDraftReference,
   isApplicationMissingError,
 } from '@/lib/applicationSession'
+import { cachedGetItem, cachedSetItem, cachedRemoveItem } from '@/lib/localStorageCache'
 import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
 import { normalizeResidenceTown } from '@/lib/residenceTown'
 import {
@@ -538,7 +539,7 @@ const useWizardController = (): UseWizardControllerResult => {
     }
 
     try {
-      localStorage.setItem('applicationWizardDraft', JSON.stringify(draftSnapshot))
+      cachedSetItem('applicationWizardDraft', JSON.stringify(draftSnapshot))
       window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draftSnapshot }))
     } catch {
       // best effort local persistence
@@ -1052,8 +1053,8 @@ const useWizardController = (): UseWizardControllerResult => {
         if (draft && draft.formData && draft.version === 2) {
           localDraft = draft as unknown as LocalDraftShape
           localTimestamp = draft.savedAt ? new Date(draft.savedAt) : null
-        } else if (localStorage.getItem('applicationWizardDraft')) {
-          localStorage.removeItem('applicationWizardDraft')
+        } else if (cachedGetItem('applicationWizardDraft')) {
+          cachedRemoveItem('applicationWizardDraft')
         }
         
         // Clean up old sessionStorage drafts
@@ -1264,7 +1265,7 @@ const useWizardController = (): UseWizardControllerResult => {
             paymentStatus: app.payment_status ?? null,
           }
           try {
-            localStorage.setItem('applicationWizardDraft', JSON.stringify(syncDraft))
+            cachedSetItem('applicationWizardDraft', JSON.stringify(syncDraft))
           } catch { /* non-critical */ }
           
           // 3.4: Show restoration confirmation for database draft
@@ -1393,7 +1394,7 @@ const useWizardController = (): UseWizardControllerResult => {
       }
 
       try {
-        localStorage.setItem('applicationWizardDraft', JSON.stringify(syncDraft))
+        cachedSetItem('applicationWizardDraft', JSON.stringify(syncDraft))
         window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: syncDraft }))
       } catch {
         // Local recovery cache is best effort.
@@ -1453,7 +1454,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
       // Always save to localStorage first for reliability (works offline)
       try {
-        localStorage.setItem('applicationWizardDraft', JSON.stringify(draft))
+        cachedSetItem('applicationWizardDraft', JSON.stringify(draft))
         sessionStorage.removeItem('applicationWizardDraft')
         window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draft }))
       } catch (error) {
@@ -1495,7 +1496,7 @@ const useWizardController = (): UseWizardControllerResult => {
             }
 
             try {
-              localStorage.setItem('applicationWizardDraft', JSON.stringify(draftWithId))
+              cachedSetItem('applicationWizardDraft', JSON.stringify(draftWithId))
               window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draftWithId }))
             } catch {
               // Non-critical localStorage refresh

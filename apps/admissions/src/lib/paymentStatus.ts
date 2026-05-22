@@ -1,3 +1,13 @@
+// ---------------------------------------------------------------------------
+// UI state matrix (payment-hardening Phase 4, Task 34)
+// ---------------------------------------------------------------------------
+//
+// Pure mapping from backend payment signals to a UI state enum. Used by
+// PaymentStep when `VITE_PAYMENT_HARDENING_UI=true`. Deterministic and
+// side-effect-free so Property 18 (Task 35.1) can run it under fast-check.
+
+import type { PaymentStableCode } from './paymentErrorCodes'
+
 export type CanonicalPaymentStatus = 'not_paid' | 'pending_review' | 'verified' | 'rejected' | 'deferred'
 
 export function normalizePaymentStatus(paymentStatus?: string | null): CanonicalPaymentStatus {
@@ -45,16 +55,6 @@ export function getPaymentStatusLabel(paymentStatus?: string | null) {
       return 'Awaiting Payment'
   }
 }
-
-// ---------------------------------------------------------------------------
-// UI state matrix (payment-hardening Phase 4, Task 34)
-// ---------------------------------------------------------------------------
-//
-// Pure mapping from backend payment signals to a UI state enum. Used by
-// PaymentStep when `VITE_PAYMENT_HARDENING_UI=true`. Deterministic and
-// side-effect-free so Property 18 (Task 35.1) can run it under fast-check.
-
-import type { PaymentStableCode } from './paymentErrorCodes'
 
 /** Canonical backend payment status names (mirrors service state machine). */
 export type CanonicalPaymentServiceStatus =

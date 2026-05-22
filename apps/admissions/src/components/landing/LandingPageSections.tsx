@@ -5,12 +5,6 @@ import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import {
   AnimatedCounter,
 } from '@/components/smoothui'
-
-/** Passthrough wrappers for removed animation components */
-const ScrollReveal = ({ children, className }: { children: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
-const StaggerReveal = ({ children, className }: { children: React.ReactNode; className?: string; staggerDelay?: number }) => <div className={className}>{children}</div>
-const StaggerItem = ({ children }: { children: React.ReactNode }) => <>{children}</>
-const TextEffect = ({ children }: { children: React.ReactNode; effect?: string }) => <>{children}</>
 import { ArrowRight, CheckCircle } from '@/components/icons'
 import { preloadAuthRoutes } from '@/lib/routePreload'
 import {
@@ -24,6 +18,12 @@ import {
   programs,
   stats,
 } from '@/lib/constants/landing'
+
+/** Passthrough wrappers for removed animation components */
+const ScrollReveal = ({ children, className }: { children: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
+const StaggerReveal = ({ children, className }: { children: React.ReactNode; className?: string; staggerDelay?: number }) => <div className={className}>{children}</div>
+const StaggerItem = ({ children }: { children: React.ReactNode }) => <>{children}</>
+const TextEffect = ({ children }: { children: React.ReactNode; effect?: string }) => <>{children}</>
 
 const deferredSectionStyle = {
   contentVisibility: 'auto',

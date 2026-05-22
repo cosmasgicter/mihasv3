@@ -9,6 +9,7 @@ import { AdminRoute } from '@/components/AdminRoute'
 import { ErrorBoundary as RouteErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { routes, type RouteConfig } from '@/routes/config'
 import { LazyLoadErrorBoundary } from '@/components/LazyLoadErrorBoundary'
+import { AuthErrorBoundary } from '@/components/auth/AuthErrorBoundary'
 import {
   AdminTableSkeleton,
   AuthSkeleton,
@@ -74,6 +75,15 @@ function renderRoute(route: RouteConfig) {
         </Suspense>
       </LazyLoadErrorBoundary>
     )
+  }
+
+  // Wrap public auth-related routes in <AuthErrorBoundary> for enhanced resilience
+  const isAuthRoute =
+    route.path.startsWith('/auth/') ||
+    ['/signin', '/login', '/signup', '/forgot-password', '/reset-password'].includes(route.path)
+
+  if (isAuthRoute) {
+    routeElement = <AuthErrorBoundary>{routeElement}</AuthErrorBoundary>
   }
 
   switch (guard) {

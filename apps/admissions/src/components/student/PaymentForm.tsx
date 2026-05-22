@@ -12,6 +12,7 @@ import { normalizePaymentStatusValue } from '@/hooks/usePaymentStatus'
 import { generateIdempotencyKey } from '@/lib/paymentStatus'
 import { initiateMobileMoney, verifyPayment } from '@/services/payments'
 import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
+import { normalizeZambianPhone, phoneDigits } from '@/lib/phoneNormalization'
 
 type PaymentMethod = 'mobile-money' | 'card'
 type MomoOperator = 'airtel' | 'mtn' | null
@@ -50,7 +51,6 @@ function formatPhone(raw: string): string {
 }
 
 export { normalizeZambianPhone } from '@/lib/phoneNormalization'
-import { normalizeZambianPhone, phoneDigits } from '@/lib/phoneNormalization'
 
 interface MobileMoneyResponse {
   payment_id: string

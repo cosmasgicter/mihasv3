@@ -5,10 +5,11 @@
  */
 import { applicationService } from '@/services/applications'
 import { ApplicationFormData } from '@/forms/applicationSchema'
-import { removeDraftStorageEntries } from './draftStorageKeys'
+import { removeDraftStorageEntries, isDraftStorageKey } from './draftStorageKeys'
 import { sanitizeForLog, safeJsonParse } from './sanitize'
 import { generateSecureToken } from './security'
 import { logger } from '@/lib/logger'
+import { cachedGetItem, cachedSetItem, cachedRemoveItem } from './localStorageCache'
 
 export interface ApplicationDraft {
   id?: string
@@ -100,14 +101,18 @@ export function isProtectedDraftPaymentError(error: unknown): boolean {
 }
 
 function clearStorageDraftApplicationId(storage: Storage, key: string, staleApplicationId?: string | null) {
-  const raw = storage.getItem(key)
+  const raw = storage === localStorage ? cachedGetItem(key) : storage.getItem(key)
   if (!raw) {
     return
   }
 
   const draft = safeJsonParse<StoredDraftRecord | null>(raw, null)
   if (!draft) {
-    storage.removeItem(key)
+    if (storage === localStorage) {
+      cachedRemoveItem(key)
+    } else {
+      storage.removeItem(key)
+    }
     return
   }
 
@@ -131,7 +136,11 @@ function clearStorageDraftApplicationId(storage: Storage, key: string, staleAppl
   draft.savedAt = draft.savedAt || timestamp
   draft.last_saved_at = timestamp
 
-  storage.setItem(key, JSON.stringify(draft))
+  if (storage === localStorage) {
+    cachedSetItem(key, JSON.stringify(draft))
+  } else {
+    storage.setItem(key, JSON.stringify(draft))
+  }
 }
 
 export function clearStaleApplicationDraftReference(staleApplicationId?: string | null): void {
@@ -170,14 +179,14 @@ class ApplicationSessionManager {
   }
 
   private getStoredWizardDraft(): StoredDraftRecord | null {
-    const savedDraft = localStorage.getItem('applicationWizardDraft')
+    const savedDraft = cachedGetItem('applicationWizardDraft')
     if (!savedDraft) {
       return null
     }
 
     const draft = safeJsonParse<StoredDraftRecord | null>(savedDraft, null)
     if (!draft) {
-      localStorage.removeItem('applicationWizardDraft')
+      cachedRemoveItem('applicationWizardDraft')
       return null
     }
 
@@ -202,7 +211,7 @@ class ApplicationSessionManager {
     }
 
     const savedDraft = safeJsonParse<StoredDraftRecord | null>(
-      localStorage.getItem('applicationDraft') ?? '',
+      cachedGetItem('applicationDraft') ?? '',
       null,
     )
     const savedDraftId =
@@ -360,7 +369,7 @@ class ApplicationSessionManager {
 
       // Save to localStorage for immediate recovery
       try {
-        localStorage.setItem('applicationDraft', JSON.stringify(draft))
+        cachedSetItem('applicationDraft', JSON.stringify(draft))
       } catch (error) {
         return { success: false, error: 'Storage quota exceeded' }
       }
@@ -379,7 +388,7 @@ class ApplicationSessionManager {
             clearStaleApplicationDraftReference(draftApplicationId)
             draft.application_id = null
             try {
-              localStorage.setItem('applicationDraft', JSON.stringify(draft))
+              cachedSetItem('applicationDraft', JSON.stringify(draft))
             } catch {
               // best effort local cleanup
             }
@@ -400,13 +409,13 @@ class ApplicationSessionManager {
   // Auto-save current form state
   private async autoSaveDraft() {
     try {
-      const savedDraft = localStorage.getItem('applicationDraft')
+      const savedDraft = cachedGetItem('applicationDraft')
       if (savedDraft) {
         const draft = safeJsonParse<StoredDraftRecord | null>(savedDraft, null)
         if (!draft) return
         // Update last saved timestamp
         draft.last_saved_at = new Date().toISOString()
-        localStorage.setItem('applicationDraft', JSON.stringify(draft))
+        cachedSetItem('applicationDraft', JSON.stringify(draft))
         
         const draftApplicationId =
           typeof draft.application_id === 'string'
@@ -429,7 +438,7 @@ class ApplicationSessionManager {
             clearStaleApplicationDraftReference(draftApplicationId)
             delete draft.application_id
             delete draft.applicationId
-            localStorage.setItem('applicationDraft', JSON.stringify(draft))
+            cachedSetItem('applicationDraft', JSON.stringify(draft))
             return
           }
           throw error
@@ -476,7 +485,7 @@ class ApplicationSessionManager {
           return localDraft as unknown as ApplicationDraft
         }
 
-        localStorage.removeItem('applicationWizardDraft')
+        cachedRemoveItem('applicationWizardDraft')
       }
 
       return null
@@ -612,13 +621,21 @@ class ApplicationSessionManager {
     try {
       // Clear known draft keys
       [...DRAFT_STORAGE_KEYS, ...SESSION_STORAGE_KEYS].forEach(key => {
-        localStorage.removeItem(key)
+        cachedRemoveItem(key)
         sessionStorage.removeItem(key)
       })
       
       const storages = [localStorage, sessionStorage]
       storages.forEach(storage => {
-        removeDraftStorageEntries(storage)
+        if (storage === localStorage) {
+          Object.keys(localStorage).forEach((key) => {
+            if (isDraftStorageKey(key)) {
+              cachedRemoveItem(key)
+            }
+          })
+        } else {
+          removeDraftStorageEntries(storage)
+        }
       })
     } catch (error) {
     }
@@ -630,11 +647,11 @@ class ApplicationSessionManager {
       const newExpiryTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       
       // Update localStorage
-      const localDraft = localStorage.getItem('applicationDraft')
+      const localDraft = cachedGetItem('applicationDraft')
       if (localDraft) {
         const draft = JSON.parse(localDraft)
         draft.expires_at = newExpiryTime
-        localStorage.setItem('applicationDraft', JSON.stringify(draft))
+        cachedSetItem('applicationDraft', JSON.stringify(draft))
       }
 
       // Reset session timers
@@ -667,13 +684,13 @@ class ApplicationSessionManager {
   private handleSessionExpiry() {
     this.onExpiry?.()
     // Keep data but mark as expired
-    const localDraft = localStorage.getItem('applicationDraft')
+    const localDraft = cachedGetItem('applicationDraft')
     if (localDraft) {
       const draft = safeJsonParse<StoredDraftRecord | null>(localDraft, null)
       if (draft) {
         draft.expired = true
         try {
-          localStorage.setItem('applicationDraft', JSON.stringify(draft))
+          cachedSetItem('applicationDraft', JSON.stringify(draft))
         } catch (error) {
         }
       }

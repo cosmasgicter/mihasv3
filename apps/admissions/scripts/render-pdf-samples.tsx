@@ -13,6 +13,23 @@ import ReactPDF from '@react-pdf/renderer'
 import * as path from 'node:path'
 import * as url from 'node:url'
 
+// Disable the registerPdfFonts guard so our manual registrations aren't
+// overwritten by the fetch-based URLs inside typography.ts.
+import { __resetFontRegistration, registerPdfFonts } from '../src/lib/pdf/theme'
+
+// We also need to intercept image loads for the logo.
+// Skip the logos by turning off showLogo=false in samples below.
+
+import { generateApplicationSlip } from '../src/lib/pdf/documents/ApplicationSlip'
+import { generatePaymentReceipt } from '../src/lib/pdf/documents/PaymentReceipt'
+import { generateAcceptanceLetter } from '../src/lib/pdf/documents/AcceptanceLetter'
+
+import * as fs from 'node:fs/promises'
+
+// Patch the logos dictionary used by BrandHeader (via getInstitution) so the
+// sample PDFs actually show the institution logos, not the ENOENT fallback.
+import { institutions } from '../src/lib/pdf/theme'
+
 // Monkey-patch the font URLs so @react-pdf can load from the local file
 // system during Node rendering (normally served same-origin from /fonts/).
 const __filename = url.fileURLToPath(import.meta.url)
@@ -44,24 +61,11 @@ Font.register({
   fonts: [{ src: `${fontsBase}/pinyon-script-v24-latin-regular.ttf`, fontWeight: 400 }],
 })
 Font.registerHyphenationCallback((word) => [word])
-
-// Disable the registerPdfFonts guard so our manual registrations aren't
-// overwritten by the fetch-based URLs inside typography.ts.
-import { __resetFontRegistration, registerPdfFonts } from '../src/lib/pdf/theme'
 __resetFontRegistration()
 // Prevent the library's own registerPdfFonts from running (our registrations above
 // already set up the fonts with absolute file paths that Node can load).
 const noop = () => {}
 ;(registerPdfFonts as unknown as { _overridden?: boolean })._overridden = true
-
-// We also need to intercept image loads for the logo.
-// Skip the logos by turning off showLogo=false in samples below.
-
-import { generateApplicationSlip } from '../src/lib/pdf/documents/ApplicationSlip'
-import { generatePaymentReceipt } from '../src/lib/pdf/documents/PaymentReceipt'
-import { generateAcceptanceLetter } from '../src/lib/pdf/documents/AcceptanceLetter'
-
-import * as fs from 'node:fs/promises'
 
 // In production, @react-pdf fetches images from absolute URLs served by the
 // frontend (e.g. /images/signatures/solomon-musonda.png). Under Node there is
@@ -71,10 +75,6 @@ const publicDir = path.resolve(__dirname, '../public')
 function publicFilePath(publicPath: string): string {
   return path.resolve(publicDir, publicPath.replace(/^\//, ''))
 }
-
-// Patch the logos dictionary used by BrandHeader (via getInstitution) so the
-// sample PDFs actually show the institution logos, not the ENOENT fallback.
-import { institutions } from '../src/lib/pdf/theme'
 for (const inst of Object.values(institutions) as Array<{
   logoMark: string
   logoFull: string

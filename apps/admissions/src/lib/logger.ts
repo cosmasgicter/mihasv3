@@ -14,7 +14,6 @@ export const logger = {
    */
   error(message: string, errorOrContext?: unknown, context?: unknown): void {
     if (isDev) {
-      // eslint-disable-next-line no-console
       console.error(`[ERROR] ${message}`, errorOrContext, context)
       return
     }
@@ -35,7 +34,6 @@ export const logger = {
    */
   warn(message: string, context?: unknown): void {
     if (isDev) {
-      // eslint-disable-next-line no-console
       console.warn(message, context)
       return
     }
@@ -53,7 +51,6 @@ export const logger = {
    */
   info(message: string, context?: unknown): void {
     if (isDev) {
-      // eslint-disable-next-line no-console
       console.info(message, context)
       return
     }
@@ -70,7 +67,6 @@ export const logger = {
    */
   debug(...args: unknown[]): void {
     if (isDev) {
-      // eslint-disable-next-line no-console
       console.log(...args)
     }
   },
