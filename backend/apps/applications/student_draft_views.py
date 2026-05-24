@@ -7,6 +7,7 @@ enrollment confirmation, amendments, waitlist position, and conditions.
 
 import logging
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from drf_spectacular.utils import (
     OpenApiParameter,
@@ -81,6 +82,15 @@ from ._view_helpers import (
 logger = logging.getLogger(__name__)
 
 
+def _json_depth(obj, current=0, max_depth=11):
+    """Return nesting depth of a JSON-like structure. Stops early if exceeds max_depth."""
+    if current > max_depth:
+        return current
+    if isinstance(obj, dict):
+        return max((_json_depth(v, current + 1, max_depth) for v in obj.values()), default=current)
+    if isinstance(obj, list):
+        return max((_json_depth(item, current + 1, max_depth) for item in obj), default=current)
+    return current
 
 
 # ---------------------------------------------------------------------------
@@ -302,12 +312,53 @@ class ApplicationDraftView(APIView):
         return Response({"success": True, "data": ApplicationDraftSerializer(draft).data})
 
     def post(self, request):
+        import json as _json
         from apps.applications.serializers import ApplicationDraftSerializer
 
         user_id = str(request.user.id)
         draft_data = request.data.get("draft_data", {})
+
+        # --- Input validation: size and depth caps (DoS prevention) ---
+        MAX_DRAFT_DATA_BYTES = 512 * 1024  # 512KB
+        try:
+            serialized = _json.dumps(draft_data)
+        except (TypeError, ValueError):
+            return Response(
+                {"success": False, "error": {"code": "INVALID_DRAFT_DATA", "message": "draft_data must be JSON-serializable"}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if len(serialized.encode("utf-8")) > MAX_DRAFT_DATA_BYTES:
+            return Response(
+                {"success": False, "error": {"code": "DRAFT_TOO_LARGE", "message": f"draft_data exceeds {MAX_DRAFT_DATA_BYTES} bytes"}},
+                status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            )
+        if _json_depth(draft_data) > 10:
+            return Response(
+                {"success": False, "error": {"code": "DRAFT_TOO_NESTED", "message": "draft_data exceeds maximum nesting depth of 10"}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         application_id = request.data.get("application_id")
+        if application_id:
+            try:
+                application = Application.objects.only("id", "user_id").get(id=application_id)
+            except DjangoValidationError:
+                return Response(
+                    {"success": False, "error": "Invalid application id", "code": "VALIDATION_ERROR"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            except Application.DoesNotExist:
+                return Response(
+                    {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            role = getattr(request.user, "role", "student")
+            if role not in ("admin", "super_admin") and str(application.user_id) != user_id:
+                return Response(
+                    {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
         draft, created = ApplicationDraft.objects.update_or_create(user_id=user_id, application_id=application_id, defaults={"draft_data": draft_data})
         resp_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
         return Response({"success": True, "data": ApplicationDraftSerializer(draft).data}, status=resp_status)
-

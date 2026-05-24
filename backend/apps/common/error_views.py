@@ -12,6 +12,7 @@ import hashlib
 import logging
 
 import sentry_sdk
+from apps.common.request_utils import get_client_ip
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import AllowAny
@@ -24,10 +25,7 @@ logger = logging.getLogger(__name__)
 
 def _get_client_ip(request) -> str:
     """Extract client IP, respecting X-Forwarded-For behind a proxy."""
-    xff = request.META.get("HTTP_X_FORWARDED_FOR")
-    if xff:
-        return xff.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "")
+    return get_client_ip(request)
 
 
 class ErrorReportView(APIView):

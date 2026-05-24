@@ -55,11 +55,7 @@ from django.http import HttpResponseRedirect
 logger = logging.getLogger(__name__)
 
 
-def _client_ip(request) -> str:
-    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if forwarded_for:
-        return forwarded_for.split(",", 1)[0].strip()
-    return request.META.get("REMOTE_ADDR", "")
+from apps.common.request_utils import get_client_ip as _client_ip
 
 
 def _ip_allowed(ip_address: str, allowed_ranges: list[str]) -> bool:
@@ -181,18 +177,7 @@ class MobileMoneyInitiateView(APIView):
             return "****"
         return f"{'*' * (len(phone) - 4)}{phone[-4:]}"
 
-    @staticmethod
-    def _normalize_phone_e164(raw: str) -> str:
-        """Normalize any Zambian phone input to E.164 (+260XXXXXXXXX)."""
-        digits = "".join(c for c in raw if c.isdigit())
-        if digits.startswith("260") and len(digits) >= 12:
-            return f"+{digits[:12]}"
-        if digits.startswith("0") and len(digits) == 10:
-            return f"+260{digits[1:]}"
-        if len(digits) == 9:
-            return f"+260{digits}"
-        # Already has + prefix or unknown format — return cleaned
-        return f"+{digits}" if not raw.startswith("+") else raw.strip()
+
 
     def _hardened_post(self, request, application_id, phone_raw):
         """Forward-only path — delegate to ``PaymentService.initiate_mobile_money``.
@@ -338,7 +323,7 @@ class MobileMoneyInitiateView(APIView):
             logger.exception(
                 "mobile_money_initiate failure for application=%s, user=%s, phone_last4=%s",
                 application_id,
-                user_id,
+                getattr(request.user, "id", None),
                 phone_raw[-4:] if phone_raw else None,
             )
             payment_metrics.increment(

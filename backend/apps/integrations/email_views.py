@@ -51,7 +51,7 @@ class EmailMessageListView(APIView):
 
     def get(self, request):
         messages = sample_email_messages()
-        return Response({"page": 1, "pageSize": 20, "totalCount": len(messages), "results": messages})
+        return Response({"success": True, "data": {"page": 1, "pageSize": 20, "totalCount": len(messages), "results": messages}})
 
 
 @extend_schema_view(
@@ -63,7 +63,7 @@ class EmailThreadListView(APIView):
 
     def get(self, request):
         threads = sample_email_threads()
-        return Response({"page": 1, "pageSize": 20, "totalCount": len(threads), "results": threads})
+        return Response({"success": True, "data": {"page": 1, "pageSize": 20, "totalCount": len(threads), "results": threads}})
 
 
 class EmailDeliveryWebhookView(APIView):

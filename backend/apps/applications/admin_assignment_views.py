@@ -25,7 +25,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
+from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin, is_super_admin
 from apps.common.throttling import AIUserScopedRateThrottle
 from apps.applications.document_intelligence import DocumentIntelligence
 from apps.applications.filters import ApplicationFilter, annotate_activity_at
@@ -74,10 +74,6 @@ from ._view_helpers import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-def _is_super_admin(user) -> bool:
-    return getattr(user, "role", None) == "super_admin"
 
 
 def _redact_name(value: str | None) -> str:
@@ -255,61 +251,64 @@ class ApplicationAutoAssignView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        unassigned = Application.objects.filter(
-            status__in=["submitted", "under_review"],
-            assigned_reviewer_id__isnull=True,
-        ).order_by("created_at")
-
         assigned_count = 0
         assignments = []
         reviewer_idx = 0
 
-        for app in unassigned:
-            assigned = False
-            for _ in range(len(reviewers)):
-                reviewer = reviewers[reviewer_idx % len(reviewers)]
-                reviewer_idx += 1
+        with transaction.atomic():
+            unassigned = Application.objects.select_for_update(
+                skip_locked=True
+            ).filter(
+                status__in=["submitted", "under_review"],
+                assigned_reviewer_id__isnull=True,
+            ).order_by("created_at")
 
-                current_workload = Application.objects.filter(
-                    assigned_reviewer_id=reviewer.id,
-                    status__in=["submitted", "under_review", "waitlisted"],
-                ).count()
+            for app in unassigned:
+                assigned = False
+                for _ in range(len(reviewers)):
+                    reviewer = reviewers[reviewer_idx % len(reviewers)]
+                    reviewer_idx += 1
 
-                if current_workload < max_workload:
-                    app.assigned_reviewer_id = reviewer
-                    app.save(update_fields=["assigned_reviewer_id"])
+                    current_workload = Application.objects.filter(
+                        assigned_reviewer_id=reviewer.id,
+                        status__in=["submitted", "under_review", "waitlisted"],
+                    ).count()
 
-                    ApplicationStatusHistory.objects.create(
-                        application=app,
-                        status=app.status,
-                        old_status=app.status,
-                        new_status=app.status,
-                        changed_by_id=str(request.user.id),
-                        notes=f"Auto-assigned to reviewer: {reviewer.email}",
-                    )
+                    if current_workload < max_workload:
+                        app.assigned_reviewer_id = reviewer
+                        app.save(update_fields=["assigned_reviewer_id"])
 
-                    try:
-                        from apps.common.outbox import create_notification
-                        create_notification(
-                            user_id=reviewer.id,
-                            title="Application Assigned",
-                            message=f"Application {app.application_number} has been assigned to you for review.",
-                            type="assignment",
-                            action_url=f"/admin/applications/{app.id}",
+                        ApplicationStatusHistory.objects.create(
+                            application=app,
+                            status=app.status,
+                            old_status=app.status,
+                            new_status=app.status,
+                            changed_by_id=str(request.user.id),
+                            notes=f"Auto-assigned to reviewer: {reviewer.email}",
                         )
-                    except Exception:
-                        pass
 
-                    assignments.append({
-                        "application_id": str(app.id),
-                        "reviewer_id": str(reviewer.id),
-                    })
-                    assigned_count += 1
-                    assigned = True
+                        try:
+                            from apps.common.outbox import create_notification
+                            create_notification(
+                                user_id=reviewer.id,
+                                title="Application Assigned",
+                                message=f"Application {app.application_number} has been assigned to you for review.",
+                                type="assignment",
+                                action_url=f"/admin/applications/{app.id}",
+                            )
+                        except Exception:
+                            pass
+
+                        assignments.append({
+                            "application_id": str(app.id),
+                            "reviewer_id": str(reviewer.id),
+                        })
+                        assigned_count += 1
+                        assigned = True
+                        break
+
+                if not assigned:
                     break
-
-            if not assigned:
-                break
 
         return Response({
             "success": True,

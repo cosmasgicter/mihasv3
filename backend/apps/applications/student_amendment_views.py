@@ -148,6 +148,23 @@ class ApplicationAmendmentView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Length limits (input validation hardening)
+        if len(str(field_name)) > 100:
+            return Response(
+                {"success": False, "error": {"code": "FIELD_NAME_TOO_LONG", "message": "field_name exceeds 100 chars"}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if len(str(new_value)) > 500:
+            return Response(
+                {"success": False, "error": {"code": "VALUE_TOO_LONG", "message": "new_value exceeds 500 chars"}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if len(str(reason)) > 1000:
+            return Response(
+                {"success": False, "error": {"code": "REASON_TOO_LONG", "message": "reason exceeds 1000 chars"}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         try:
             amendment = AmendmentService.request_amendment(
                 application_id=str(application_id),

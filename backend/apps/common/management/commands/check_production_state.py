@@ -51,7 +51,7 @@ class Command(BaseCommand):
         if not os.environ.get("REDIS_URL"):
             failures.append("REDIS_URL is not set")
 
-        jwt_key = getattr(settings, "JWT_SIGNING_KEY", "")
+        jwt_key = getattr(settings, "SIMPLE_JWT", {}).get("SIGNING_KEY", "")
         if not jwt_key or jwt_key in ("test", ""):
             failures.append("JWT_SIGNING_KEY is not set or is a test value")
 
@@ -65,6 +65,15 @@ class Command(BaseCommand):
             if origin.startswith("http://"):
                 failures.append(f"CORS_ALLOWED_ORIGINS contains insecure origin: {origin}")
                 break
+        if getattr(settings, "CORS_ALLOW_CREDENTIALS", False):
+            broad_regex_markers = ("([A-Za-z0-9-]+\\.)*", "[A-Za-z0-9-]+\\.", ".*", ".+")
+            for pattern in getattr(settings, "CORS_ALLOWED_ORIGIN_REGEXES", []):
+                if any(marker in pattern for marker in broad_regex_markers):
+                    failures.append(
+                        "CORS_ALLOWED_ORIGIN_REGEXES contains broad wildcard pattern "
+                        f"while credentialed CORS is enabled: {pattern}"
+                    )
+                    break
 
         # --- Required keys ---
         if not getattr(settings, "LENCO_API_SECRET_KEY", ""):

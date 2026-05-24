@@ -23,6 +23,15 @@ ROLE_HIERARCHY = {
 }
 
 
+def is_super_admin(user) -> bool:
+    """Single source of truth for super-admin checks across views and services.
+
+    Use this for any imperative check (early returns, conditional branches, audit
+    decisions). For DRF permission classes use IsSuperAdmin instead.
+    """
+    return getattr(user, "role", None) == "super_admin"
+
+
 def _has_role_level(user, min_level: int) -> bool:
     """Check if user's role meets the minimum hierarchy level."""
     role = getattr(user, "role", None)

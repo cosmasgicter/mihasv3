@@ -160,12 +160,19 @@ class SessionRevokeAllView(APIView):
         deactivate_stale_sessions(user_id)
         current_refresh_hash = _hash_value(request.COOKIES["refresh_token"]) if request.COOKIES.get("refresh_token") else None
 
-        # Deactivate all active sessions
+        # Blacklist stored JTIs for all sessions being revoked
         queryset = DeviceSession.objects.filter(
             user_id=user_id, is_active=True
         ).filter(active_session_filters(timezone.now()))
         if current_refresh_hash:
             queryset = queryset.exclude(session_token=current_refresh_hash)
+
+        for session in queryset.filter(refresh_jti__isnull=False).only("refresh_jti"):
+            try:
+                blacklist_jti(session.refresh_jti)
+            except Exception:
+                logger.warning("Failed to blacklist JTI during revoke-all for session", exc_info=True)
+
         updated = queryset.update(is_active=False, updated_at=timezone.now())
 
         # Blacklist the current refresh token if present
@@ -181,11 +188,20 @@ class SessionRevokeAllView(APIView):
 
 
 def _try_blacklist_refresh_for_session(request, session):
-    """Best-effort blacklist of the refresh token associated with a session.
+    """Blacklist the refresh token associated with a session.
 
-    Since we only store the hash of the refresh token (not the jti),
-    we can only blacklist the current user's refresh token from cookies.
+    Uses the stored refresh_jti on the DeviceSession if available,
+    falling back to cookie-based matching for legacy sessions.
     """
+    # Prefer stored JTI — works for any session, not just the current one
+    if getattr(session, "refresh_jti", None):
+        try:
+            blacklist_jti(session.refresh_jti)
+            return
+        except Exception:
+            logger.warning("Failed to blacklist stored refresh_jti for session %s", session.id, exc_info=True)
+
+    # Fallback: cookie-based matching (only works for current session)
     refresh_token = request.COOKIES.get("refresh_token")
     if not refresh_token:
         return

@@ -879,7 +879,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (currentStepIndex > 0 && !success) {
+      if ((currentStepIndex > 0 || form.formState.isDirty) && !success) {
         persistLocalDraftSnapshot()
         event.preventDefault()
         event.returnValue = 'You have unsaved changes. Are you sure you want to leave?'
@@ -888,7 +888,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [currentStepIndex, persistLocalDraftSnapshot, success])
+  }, [currentStepIndex, form.formState.isDirty, persistLocalDraftSnapshot, success])
 
   useEffect(() => {
     const handleAuthRedirect = () => {

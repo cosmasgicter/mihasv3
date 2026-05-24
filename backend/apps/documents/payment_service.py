@@ -20,10 +20,7 @@ Requirements: 2.1, 2.2, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 4.3, 4.4, 4.9,
 
 from __future__ import annotations
 
-import base64
 import logging
-import secrets
-import time
 from dataclasses import dataclass
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
@@ -74,6 +71,31 @@ from apps.documents.payment_helpers import (  # noqa: F401
 )
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# PII sanitizer for Lenco API responses persisted in payment metadata
+# ---------------------------------------------------------------------------
+_PII_KEYS_IN_LENCO_RESPONSE = frozenset(k.lower() for k in {
+    "phone", "phoneNumber", "phone_number", "msisdn",
+    "email", "emailAddress",
+    "firstName", "lastName", "fullName", "name",
+    "address", "city", "country",
+    "nrc", "passport", "identityNumber", "idNumber",
+    "dateOfBirth", "dob",
+})
+
+
+def _sanitize_lenco_response(data):
+    """Recursively strip PII fields from Lenco API response before persisting."""
+    if isinstance(data, dict):
+        return {
+            k: "[REDACTED]" if k.lower() in _PII_KEYS_IN_LENCO_RESPONSE else _sanitize_lenco_response(v)
+            for k, v in data.items()
+        }
+    if isinstance(data, list):
+        return [_sanitize_lenco_response(item) for item in data]
+    return data
 
 
 # ---------------------------------------------------------------------------
@@ -180,19 +202,6 @@ class TransitionResult:
     payment_id: UUID
     status: CanonicalStatus
     risk_flag: Optional[str]
-
-
-# ---------------------------------------------------------------------------
-# Allowed forward-only transitions
-# ---------------------------------------------------------------------------
-
-# LEGACY: used by ``_update_payment_status`` prior to payment-hardening.
-# Kept as-is so the pre-hardening code paths continue to work when
-# ``PAYMENT_HARDENING_FORWARD_ONLY`` is disabled.
-_ALLOWED_TRANSITIONS: dict[str, set[str]] = {
-    'pending': {'successful', 'failed', 'expired'},
-    'deferred': {'pending', 'successful', 'failed', 'expired'},
-}
 
 
 # ---------------------------------------------------------------------------
@@ -992,7 +1001,7 @@ class PaymentService:
 
             # Merge any extra Lenco data into metadata.
             meta = locked.metadata or {}
-            meta['lenco_response'] = lenco_data
+            meta['lenco_response'] = _sanitize_lenco_response(lenco_data)
             locked.metadata = meta
             locked.updated_at = timezone.now()
 
@@ -2246,7 +2255,7 @@ class PaymentService:
             # (non-destructive to the snapshot).
             if provider_data:
                 meta = locked.metadata or {}
-                meta["lenco_response"] = provider_data
+                meta["lenco_response"] = _sanitize_lenco_response(provider_data)
                 if provider_data.get("lencoReference"):
                     locked.lenco_reference = provider_data["lencoReference"]
                 if provider_data.get("type"):
@@ -2593,126 +2602,3 @@ class PaymentService:
             logger.warning(
                 "Application %s not found when updating payment_status", application_id
             )
-
-
-# ---------------------------------------------------------------------------
-# Module-level helpers
-# ---------------------------------------------------------------------------
-
-
-def _generate_reference(application_number: str) -> str:
-    """Build a unique payment reference.
-
-    Format: ``MIHAS-{application_number}-{unix_timestamp_ms}``
-    Example: ``MIHAS-APP-2025-0001-1719849600000``
-    """
-    ts_ms = int(time.time() * 1000)
-    return f"MIHAS-{application_number}-{ts_ms}"
-
-
-def _generate_receipt_number() -> str:
-    """Allocate a 12-character base32 receipt identifier.
-
-    Uses ``secrets.token_bytes(8)`` (64 bits) as entropy source, then
-    base32-encodes and trims to 12 characters (~60 bits). The output
-    character set is ``[A-Z2-7]`` (standard base32 alphabet, padding
-    stripped) so receipts are safe to print, read aloud, and embed in
-    URLs without additional encoding.
-
-    Uniqueness is enforced downstream by ``uq_payments_receipt_number``.
-    """
-    raw = secrets.token_bytes(8)
-    return base64.b32encode(raw).decode("ascii").rstrip("=")[:12]
-
-
-def _parse_amount(value) -> Decimal | None:
-    """Safely coerce a Lenco amount value to ``Decimal``."""
-    if value is None:
-        return None
-    try:
-        return Decimal(str(value)).quantize(Decimal('0.01'))
-    except Exception:
-        return None
-
-
-# ---------------------------------------------------------------------------
-# MSISDN helpers — shared between ``initiate_mobile_money`` and validators
-# ---------------------------------------------------------------------------
-
-# Two-digit MSISDN prefixes (after +260) for each operator. Sourced from
-# Lenco's country documentation for Zambia. Kept deliberately narrow —
-# numbers outside these prefixes must be rejected with ``PROVIDER_UNAVAILABLE``
-# rather than guessed.
-_AIRTEL_PREFIXES: frozenset[str] = frozenset({"95", "96", "75", "77"})
-_MTN_PREFIXES: frozenset[str] = frozenset({"97", "76"})
-
-
-def _normalize_phone_e164(phone_raw: str) -> str:
-    """Normalise a Zambian MSISDN to E.164 (``+260XXXXXXXXX``).
-
-    Accepts these shapes, with whitespace / dashes stripped:
-
-    - ``+260XXXXXXXXX`` — already E.164, passed through.
-    - ``0XXXXXXXXX``    — national trunk prefix stripped, ``+260`` added.
-    - ``260XXXXXXXXX``  — country code without ``+``, ``+`` prepended.
-    - ``XXXXXXXXX``     — 9-digit bare subscriber number, ``+260`` prepended.
-
-    Anything else raises ``ValueError("INVALID_PHONE_FORMAT")``.
-
-    This is a pure module-level function so it can be imported by tests and
-    future validators without needing a ``PaymentService`` instance.
-    """
-    if phone_raw is None:
-        raise ValueError("INVALID_PHONE_FORMAT")
-
-    # Strip whitespace and separators commonly present in user input.
-    cleaned = phone_raw.strip()
-    for ch in (" ", "-", "(", ")", "\t"):
-        cleaned = cleaned.replace(ch, "")
-
-    if not cleaned:
-        raise ValueError("INVALID_PHONE_FORMAT")
-
-    if cleaned.startswith("+"):
-        digits = cleaned[1:]
-    else:
-        digits = cleaned
-
-    if not digits.isdigit():
-        raise ValueError("INVALID_PHONE_FORMAT")
-
-    # +260XXXXXXXXX → 260 + 9 digits
-    if digits.startswith("260") and len(digits) == 12:
-        return f"+{digits}"
-
-    # 0XXXXXXXXX → strip trunk, add +260
-    if digits.startswith("0") and len(digits) == 10:
-        return f"+260{digits[1:]}"
-
-    # Bare 9-digit subscriber number
-    if len(digits) == 9:
-        return f"+260{digits}"
-
-    raise ValueError("INVALID_PHONE_FORMAT")
-
-
-def _operator_for_msisdn(phone_e164: str) -> str:
-    """Derive the operator (``airtel`` / ``mtn``) from an E.164 MSISDN.
-
-    Expects the output shape of ``_normalize_phone_e164`` — i.e.
-    ``+260`` followed by 9 digits. The two digits immediately after
-    ``+260`` identify the operator.
-
-    Raises ``ValueError("PROVIDER_UNAVAILABLE")`` when the prefix is not
-    a recognised Airtel or MTN Zambia range. This preserves the design
-    rule that operator classification is a backend responsibility only
-    and unknown prefixes are refused rather than guessed.
-    """
-    if not phone_e164 or not phone_e164.startswith("+260") or len(phone_e164) != 13:
-        raise ValueError("PROVIDER_UNAVAILABLE")
-    prefix = phone_e164[4:6]
-    if prefix in _AIRTEL_PREFIXES:
-        return "airtel"
-    if prefix in _MTN_PREFIXES:
-        return "mtn"
-    raise ValueError("PROVIDER_UNAVAILABLE")

@@ -1,7 +1,7 @@
 /**
  * MIHAS-KATC PDF Typography System
  *
- * Three font families, registered once at module load. All TTF files live in
+ * Four font families, registered once at module load. All TTF files live in
  * /public/fonts/pdf/ and are served same-origin to avoid Google-Fonts-CDN
  * runtime dependency.
  *

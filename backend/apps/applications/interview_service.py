@@ -297,38 +297,43 @@ class InterviewService:
         Raises:
             InterviewSchedulingError: If validation fails.
         """
-        application = interview.application
+        with transaction.atomic():
+            # Lock the interview row to prevent concurrent reschedules
+            interview = ApplicationInterview.objects.select_for_update().get(
+                pk=interview.pk
+            )
+            application = interview.application
 
-        # Use new values or fall back to existing
-        effective_mode = mode if mode is not None else interview.mode
-        effective_location = location if location is not None else (interview.location or "")
-        effective_notes = notes if notes is not None else (interview.notes or "")
+            # Use new values or fall back to existing
+            effective_mode = mode if mode is not None else interview.mode
+            effective_location = location if location is not None else (interview.location or "")
+            effective_notes = notes if notes is not None else (interview.notes or "")
 
-        # --- 1. Validate scheduling constraints ---
-        # Exclude the current interview from conflict checks
-        validation = InterviewService.validate_scheduling(
-            application, new_scheduled_at, admin_id, exclude_id=interview.id
-        )
+            # --- 1. Validate scheduling constraints ---
+            # Exclude the current interview from conflict checks
+            validation = InterviewService.validate_scheduling(
+                application, new_scheduled_at, admin_id, exclude_id=interview.id
+            )
 
-        # --- 2. Validate mode ---
-        InterviewService._validate_mode(
-            effective_mode, effective_location, effective_notes
-        )
+            # --- 2. Validate mode ---
+            InterviewService._validate_mode(
+                effective_mode, effective_location, effective_notes
+            )
 
-        now = timezone.now()
+            now = timezone.now()
 
-        # --- 3. Update interview ---
-        interview.scheduled_at = new_scheduled_at
-        interview.mode = effective_mode
-        interview.location = effective_location
-        interview.notes = effective_notes
-        interview.status = "rescheduled"
-        interview.updated_by_id = admin_id
-        interview.updated_at = now
-        interview.save(update_fields=[
-            "scheduled_at", "mode", "location", "notes",
-            "status", "updated_by_id", "updated_at",
-        ])
+            # --- 3. Update interview ---
+            interview.scheduled_at = new_scheduled_at
+            interview.mode = effective_mode
+            interview.location = effective_location
+            interview.notes = effective_notes
+            interview.status = "rescheduled"
+            interview.updated_by_id = admin_id
+            interview.updated_at = now
+            interview.save(update_fields=[
+                "scheduled_at", "mode", "location", "notes",
+                "status", "updated_by_id", "updated_at",
+            ])
 
         # --- 4. Send rescheduled notification (Req 2.6) ---
         _send_interview_notification(

@@ -264,7 +264,9 @@ class TestRecordPaymentEventRequestHashing(SimpleTestCase):
 
     @patch(_AUDIT_LOG_PATCH_TARGET)
     def test_request_respects_x_forwarded_for(self, mock_audit_log):
-        """XFF-aware helper is reused — client IP is the first hop."""
+        """Trusted-proxy aware: with NUM_PROXIES=1 the rightmost XFF entry wins
+        (the real client per our trusted proxy chain), not the leftmost
+        (which is attacker-spoofable). See apps.common.request_utils."""
         request = SimpleNamespace(
             META={
                 "HTTP_X_FORWARDED_FOR": "203.0.113.5, 10.0.0.1",
@@ -284,7 +286,7 @@ class TestRecordPaymentEventRequestHashing(SimpleTestCase):
         )
 
         kwargs = mock_audit_log.objects.create.call_args.kwargs
-        self.assertEqual(kwargs["ip_address"], _sha256("203.0.113.5"))
+        self.assertEqual(kwargs["ip_address"], _sha256("10.0.0.1"))
 
     @patch(_AUDIT_LOG_PATCH_TARGET)
     def test_no_request_results_in_null_network_columns(self, mock_audit_log):

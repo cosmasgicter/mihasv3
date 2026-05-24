@@ -218,8 +218,6 @@ export async function generateApplicationSlip(
     app_no: data.application_number,
     tracking: data.public_tracking_code,
     institution: data.institution ?? null,
-    program: data.program_name ?? null,
-    student: data.full_name ?? null,
   })
 
   const generatedLabel = `Generated ${formatTimestamp(new Date().toISOString())}`

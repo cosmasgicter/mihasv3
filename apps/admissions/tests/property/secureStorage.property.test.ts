@@ -19,6 +19,7 @@ const PII_FIELDS = [
   'medical_conditions',
   'phone',
   'email',
+  'passport',
 ] as const
 
 function createLocalStorageMock() {
@@ -101,6 +102,57 @@ describe('secureStorage utility contract', () => {
     )
   })
 
+  it('recursively strips nested PII fields case-insensitively', () => {
+    const data = {
+      step: 'identity',
+      formData: {
+        Email: 'student@example.com',
+        phone: '+260955000000',
+        phone_number: '+260966000000',
+        nrc_number: '123456/78/9',
+        nrcNumber: '987654/32/1',
+        passport: 'PA123456',
+        passport_no: 'PX987654',
+        first_name: 'Grace',
+        documents: [
+          {
+            Passport_Number: 'PB123456',
+            label: 'passport scan',
+          },
+          {
+            type: 'transcript',
+            metadata: {
+              SECRET: 'do-not-store',
+              issued_by: 'ECZ',
+            },
+          },
+        ],
+      },
+    }
+
+    const stripped = stripPiiFields(data)
+
+    expect(stripped).toEqual({
+      step: 'identity',
+      formData: {
+        first_name: 'Grace',
+        documents: [
+          {
+            label: 'passport scan',
+          },
+          {
+            type: 'transcript',
+            metadata: {
+              issued_by: 'ECZ',
+            },
+          },
+        ],
+      },
+    })
+    expect(data.formData).toHaveProperty('Email')
+    expect(data.formData.documents[0]).toHaveProperty('Passport_Number')
+  })
+
   it('correctly encrypts and decrypts values (round-trip)', async () => {
     await secureStorage.init('dummy-session-key')
     await fc.assert(
@@ -164,6 +216,61 @@ describe('secureStorage utility contract', () => {
         ),
         { numRuns: 25 }
       )
+    } finally {
+      Object.defineProperty(globalThis.crypto, 'subtle', {
+        value: originalSubtle,
+        configurable: true,
+        writable: true
+      })
+    }
+  })
+
+  it('fallback storage strips nested draft PII before writing plain JSON', async () => {
+    const originalSubtle = globalThis.crypto.subtle
+    Object.defineProperty(globalThis.crypto, 'subtle', {
+      value: undefined,
+      configurable: true,
+      writable: true
+    })
+
+    try {
+      const fallbackStorage = new (secureStorage.constructor as any)()
+      await fallbackStorage.init('session-fallback')
+
+      await fallbackStorage.set('draft', {
+        applicationId: 'app_123',
+        formData: {
+          email: 'student@example.com',
+          guardian_email: 'guardian@example.com',
+          phone: '+260955000000',
+          phoneNumber: '+260966000000',
+          nrc_number: '123456/78/9',
+          nrcNo: '987654/32/1',
+          passport: 'PA123456',
+          passport_no: 'PX987654',
+          program_id: 'prog_123',
+          dependents: [
+            {
+              Email: 'guardian@example.com',
+              relationship: 'guardian',
+            },
+          ],
+        },
+      })
+
+      const raw = localStorage.getItem(`${STORAGE_PREFIX}draft`)
+      expect(raw).not.toBeNull()
+      expect(JSON.parse(raw!)).toEqual({
+        applicationId: 'app_123',
+        formData: {
+          program_id: 'prog_123',
+          dependents: [
+            {
+              relationship: 'guardian',
+            },
+          ],
+        },
+      })
     } finally {
       Object.defineProperty(globalThis.crypto, 'subtle', {
         value: originalSubtle,

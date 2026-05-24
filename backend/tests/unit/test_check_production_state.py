@@ -1,11 +1,17 @@
 """Tests for the check_production_state management command."""
 
 import pytest
+from django.conf import settings
 from django.core.management import call_command
 from django.test import override_settings
 
 
 # Good production-like settings baseline
+SIMPLE_JWT_SETTINGS = {
+    **settings.SIMPLE_JWT,
+    "SIGNING_KEY": "real-jwt-signing-key",
+}
+
 PROD_SETTINGS = {
     "PAYMENT_HARDENING_FORWARD_ONLY": True,
     "PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT": True,
@@ -16,7 +22,7 @@ PROD_SETTINGS = {
     "AI_HARDENING_CACHE": True,
     "AI_HARDENING_REDACTION": True,
     "SECRET_KEY": "real-production-secret-key-abc123",
-    "JWT_SIGNING_KEY": "real-jwt-signing-key",
+    "SIMPLE_JWT": SIMPLE_JWT_SETTINGS,
     "ALLOWED_HOSTS": ["api.mihas.edu.zm"],
     "CORS_ALLOWED_ORIGINS": ["https://apply.mihas.edu.zm"],
     "LENCO_API_SECRET_KEY": "sk_live_xxx",
@@ -76,8 +82,21 @@ class TestCheckProductionStateFailures:
         with pytest.raises(SystemExit):
             call_command("check_production_state", "--strict")
 
-    @override_settings(**{**PROD_SETTINGS, "JWT_SIGNING_KEY": ""})
-    def test_fails_on_empty_jwt_key(self, monkeypatch):
+    @override_settings(**{**PROD_SETTINGS, "SIMPLE_JWT": {**SIMPLE_JWT_SETTINGS, "SIGNING_KEY": ""}})
+    def test_fails_on_empty_simple_jwt_signing_key(self, monkeypatch):
+        monkeypatch.setenv("DATABASE_URL", "postgres://neon.tech/prod")
+        monkeypatch.setenv("REDIS_URL", "redis://prod-redis:6379")
+        with pytest.raises(SystemExit):
+            call_command("check_production_state", "--strict")
+
+    @override_settings(
+        **{
+            **PROD_SETTINGS,
+            "JWT_SIGNING_KEY": "legacy-key-should-not-be-read",
+            "SIMPLE_JWT": {**SIMPLE_JWT_SETTINGS, "SIGNING_KEY": ""},
+        }
+    )
+    def test_fails_on_empty_simple_jwt_key_even_with_legacy_setting(self, monkeypatch):
         monkeypatch.setenv("DATABASE_URL", "postgres://neon.tech/prod")
         monkeypatch.setenv("REDIS_URL", "redis://prod-redis:6379")
         with pytest.raises(SystemExit):
@@ -92,6 +111,19 @@ class TestCheckProductionStateFailures:
 
     @override_settings(**{**PROD_SETTINGS, "CORS_ALLOWED_ORIGINS": ["http://localhost:3000"]})
     def test_fails_on_http_cors_origin(self, monkeypatch):
+        monkeypatch.setenv("DATABASE_URL", "postgres://neon.tech/prod")
+        monkeypatch.setenv("REDIS_URL", "redis://prod-redis:6379")
+        with pytest.raises(SystemExit):
+            call_command("check_production_state", "--strict")
+
+    @override_settings(
+        **{
+            **PROD_SETTINGS,
+            "CORS_ALLOW_CREDENTIALS": True,
+            "CORS_ALLOWED_ORIGIN_REGEXES": [r"^https://([A-Za-z0-9-]+\.)*mihas\.edu\.zm$"],
+        }
+    )
+    def test_fails_on_broad_credentialed_cors_regex(self, monkeypatch):
         monkeypatch.setenv("DATABASE_URL", "postgres://neon.tech/prod")
         monkeypatch.setenv("REDIS_URL", "redis://prod-redis:6379")
         with pytest.raises(SystemExit):

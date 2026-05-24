@@ -116,6 +116,14 @@ export const BACKEND_ERROR_CODES: Record<string, { http_status: number; message:
   // Common operational
   DASHBOARD_ERROR: { http_status: 500, message: 'Dashboard data could not be loaded', category: 'common' },
   SERVICE_UNAVAILABLE: { http_status: 503, message: 'Service temporarily unavailable', category: 'common' },
+  // Security hardening
+  BLACKLIST_UNAVAILABLE: { http_status: 503, message: 'Token blacklist service unavailable', category: 'auth' },
+  DRAFT_TOO_LARGE: { http_status: 413, message: 'Draft data exceeds maximum size', category: 'application' },
+  DRAFT_TOO_NESTED: { http_status: 400, message: 'Draft data exceeds maximum nesting depth', category: 'application' },
+  INVALID_DRAFT_DATA: { http_status: 400, message: 'Draft data is not valid JSON', category: 'application' },
+  FIELD_NAME_TOO_LONG: { http_status: 400, message: 'Field name exceeds maximum length', category: 'application' },
+  VALUE_TOO_LONG: { http_status: 400, message: 'Value exceeds maximum length', category: 'application' },
+  REASON_TOO_LONG: { http_status: 400, message: 'Reason exceeds maximum length', category: 'application' },
 }
 
 /** Sorted list of all canonical error code keys */

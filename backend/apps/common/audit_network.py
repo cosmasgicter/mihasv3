@@ -8,15 +8,14 @@ import logging
 from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
 
+from apps.common.request_utils import get_client_ip
+
 logger = logging.getLogger(__name__)
 
 
 def extract_client_ip(request) -> str:
     """Return the client IP, respecting X-Forwarded-For behind a proxy."""
-    xff = request.META.get("HTTP_X_FORWARDED_FOR")
-    if xff:
-        return xff.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "")
+    return get_client_ip(request)
 
 
 def hash_network_value(value: str) -> str:

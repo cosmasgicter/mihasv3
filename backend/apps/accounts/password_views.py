@@ -292,7 +292,19 @@ class PasswordResetConfirmView(APIView):
 
         # Update password
         user.password_hash = hash_password(new_password)
-        user.save(update_fields=["password_hash"])
+        user.password_changed_at = timezone.now()
+        user.save(update_fields=["password_hash", "password_changed_at"])
+
+        # Invalidate all active sessions and blacklist stored JTIs
+        active_sessions = DeviceSession.objects.filter(user=user, is_active=True)
+        for session in active_sessions:
+            if session.refresh_jti:
+                try:
+                    from apps.accounts.tokens import blacklist_jti
+                    blacklist_jti(session.refresh_jti)
+                except Exception:
+                    logger.warning("Failed to blacklist JTI during password reset for session %s", session.id)
+        active_sessions.update(is_active=False, updated_at=timezone.now())
 
         return Response(
             {"success": True, "data": {"message": "Password reset successful. You can now sign in with your new password."}},

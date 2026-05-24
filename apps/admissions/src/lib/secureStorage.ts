@@ -105,17 +105,55 @@ export const PII_FIELDS = [
   'password', 'token', 'secret', 'nrc', 'passport_number',
   'date_of_birth', 'bank_account', 'credit_card',
   'nrc_number', 'medical_conditions', 'phone', 'email',
+  'passport',
 ]
+
+const PII_FIELD_SET = new Set(PII_FIELDS.map((field) => field.toLowerCase()))
+const PII_NORMALIZED_FIELDS = new Set(
+  PII_FIELDS.map((field) => field.replace(/[^a-z0-9]/gi, '').toLowerCase()),
+)
+const PII_KEY_SUFFIXES = ['email', 'phone', 'nrc', 'passport', 'dateofbirth']
+const PII_KEY_CONTAINS = ['password', 'token', 'secret', 'bankaccount', 'creditcard', 'medicalconditions']
+
+function isPiiField(field: string): boolean {
+  const lowered = field.toLowerCase()
+  const normalized = field.replace(/[^a-z0-9]/gi, '').toLowerCase()
+
+  return (
+    PII_FIELD_SET.has(lowered) ||
+    PII_NORMALIZED_FIELDS.has(normalized) ||
+    PII_KEY_SUFFIXES.some((suffix) => (
+      normalized === suffix ||
+      normalized.startsWith(suffix) ||
+      normalized.endsWith(suffix)
+    )) ||
+    PII_KEY_CONTAINS.some((needle) => normalized.includes(needle))
+  )
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Object.prototype.toString.call(value) === '[object Object]'
+}
+
+function stripPiiValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(stripPiiValue)
+  }
+
+  if (!isPlainObject(value)) {
+    return value
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => !isPiiField(key))
+      .map(([key, entryValue]) => [key, stripPiiValue(entryValue)]),
+  )
+}
 
 /** Strip PII fields from an object before persisting */
 export function stripPiiFields<T extends Record<string, unknown>>(obj: T): Partial<T> {
-  const result = { ...obj }
-  for (const field of PII_FIELDS) {
-    if (field in result) {
-      delete result[field]
-    }
-  }
-  return result
+  return stripPiiValue(obj) as Partial<T>
 }
 
 // ── SecureStorage class ─────────────────────────────────────────────────
@@ -185,8 +223,8 @@ class SecureStorage {
       } else {
         // Fallback: strip PII before storing in plain text
         const safe =
-          value && typeof value === 'object' && !Array.isArray(value)
-            ? stripPiiFields(value as Record<string, unknown>)
+          value && typeof value === 'object'
+            ? stripPiiValue(value)
             : value
         localStorage.setItem(storageKey, JSON.stringify(safe))
       }

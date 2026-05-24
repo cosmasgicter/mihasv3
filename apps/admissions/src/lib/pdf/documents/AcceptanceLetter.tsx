@@ -42,7 +42,7 @@
 
 import { Document, StyleSheet, Text, View } from '@react-pdf/renderer'
 
-import { formatDate } from '../../utils'
+import { formatDate } from '../../dateFormat'
 
 import { FieldGrid } from '../components/FieldGrid'
 import { LabeledField } from '../components/LabeledField'

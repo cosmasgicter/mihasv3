@@ -5,6 +5,7 @@ Requirements: 2.1, 2.3, 18.4
 """
 
 import logging
+import os
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -41,7 +42,14 @@ def _get_redis() -> redis.Redis:
 
 
 def _get_signing_key() -> str:
-    return settings.SIMPLE_JWT.get("SIGNING_KEY", "")
+    from django.core.exceptions import ImproperlyConfigured as _IC
+    key = settings.SIMPLE_JWT.get("SIGNING_KEY", "")
+    if not key:
+        _settings_module = os.environ.get("DJANGO_SETTINGS_MODULE", "")
+        if "dev" in _settings_module or "test" in _settings_module or os.environ.get("TESTING"):
+            return "insecure-dev-signing-key"
+        raise _IC("JWT_SIGNING_KEY is empty — cannot sign or verify tokens")
+    return key
 
 
 def _get_algorithm() -> str:
@@ -124,6 +132,33 @@ def verify_token(token: str, token_type: str = "access") -> dict:
         if is_jti_blacklisted(jti):
             raise ValueError("Token has been revoked")
 
+        # Defense-in-depth: reject if DeviceSession with this JTI is deactivated
+        try:
+            from apps.accounts.models import DeviceSession
+            if jti and DeviceSession.objects.filter(refresh_jti=jti, is_active=False).exists():
+                raise ValueError("Token has been revoked")
+        except ValueError:
+            raise
+        except Exception:
+            pass  # DB unavailable — primary blacklist check (Redis) already passed
+
+        # Reject tokens issued before password_changed_at
+        try:
+            user_id = payload.get("user_id")
+            iat = payload.get("iat")
+            if user_id and iat:
+                from apps.accounts.models import Profile
+                user = Profile.objects.get(id=user_id)
+                if user.password_changed_at:
+                    from datetime import datetime, timezone as dt_tz
+                    iat_dt = datetime.fromtimestamp(iat, tz=dt_tz.utc) if isinstance(iat, (int, float)) else iat
+                    if iat_dt < user.password_changed_at:
+                        raise ValueError("Token issued before password change")
+        except ValueError:
+            raise
+        except Exception:
+            pass  # DB unavailable — degrade gracefully
+
     return payload
 
 
@@ -156,7 +191,7 @@ def rotate_tokens(refresh_token: str, user=None) -> tuple[str, str]:
         # Redis unavailable — proceed without lock (better than logging user out)
         logger.warning("Redis unavailable for rotation lock — proceeding without dedup")
 
-    # Blacklist the old refresh token's jti
+    # Blacklist the old refresh token's jti — if this fails, do NOT issue new tokens
     blacklist_jti(old_jti)
 
     # Build a minimal user-like object from the payload if not provided
@@ -169,13 +204,24 @@ def rotate_tokens(refresh_token: str, user=None) -> tuple[str, str]:
     return new_access, new_refresh
 
 
+class JTIBlacklistError(Exception):
+    """Raised when JTI blacklisting fails after retry — old token may remain valid."""
+    pass
+
+
 def blacklist_jti(jti: str, ttl_seconds: int | None = None) -> None:
-    """Store jti in Redis with TTL. Logs errors but does not raise to avoid blocking auth."""
+    """Store jti in Redis with TTL. Retries once, then raises JTIBlacklistError."""
     ttl_seconds = _get_refresh_ttl_seconds() if ttl_seconds is None else ttl_seconds
-    try:
-        _get_redis().setex(f"{JTI_PREFIX}{jti}", ttl_seconds, "1")
-    except redis.RedisError:
-        logger.error("CRITICAL: Redis write failed for JTI blacklist — old token may remain valid", exc_info=True)
+    for attempt in range(2):
+        try:
+            _get_redis().setex(f"{JTI_PREFIX}{jti}", ttl_seconds, "1")
+            return
+        except redis.RedisError:
+            if attempt == 0:
+                logger.warning("Redis write failed for JTI blacklist — retrying once")
+                continue
+            logger.error("CRITICAL: Redis write failed for JTI blacklist after retry", exc_info=True)
+            raise JTIBlacklistError(f"Failed to blacklist JTI {jti} after 2 attempts")
 
 
 def is_jti_blacklisted(jti: str) -> bool:

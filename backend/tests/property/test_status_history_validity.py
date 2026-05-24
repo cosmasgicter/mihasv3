@@ -31,20 +31,16 @@ from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
 # ---------------------------------------------------------------------------
-# Allowed transitions (mirroring backend/apps/applications/services.py)
+# Allowed transitions — imported from canonical sources
 # ---------------------------------------------------------------------------
 
-ALLOWED_TRANSITIONS: dict[str, set[str]] = {
-    "draft": {"submitted"},
-    "submitted": {"under_review", "approved", "rejected"},
-    "under_review": {"approved", "rejected", "waitlisted"},
-    "waitlisted": {"approved", "rejected"},
-}
+from apps.applications.services import ALLOWED_TRANSITIONS  # noqa: E402
+from apps.applications.duplicate_checker import TERMINAL_STATUSES  # noqa: E402
 
-ALL_STATUSES = ["draft", "submitted", "under_review", "approved", "rejected", "waitlisted"]
-
-# Terminal statuses — no outgoing transitions
-TERMINAL_STATUSES = {"approved", "rejected"}
+ALL_STATUSES = sorted(
+    set(ALLOWED_TRANSITIONS.keys())
+    | {s for targets in ALLOWED_TRANSITIONS.values() for s in targets}
+)
 
 # Flatten allowed transitions into a set of (old, new) tuples for fast lookup
 ALLOWED_TRANSITION_SET: set[tuple[str, str]] = set()
@@ -260,19 +256,12 @@ class TestStatusHistoryValidity(SimpleTestCase):
             )
 
     def test_all_allowed_transitions_are_enumerated(self):
-        """Verify the expected set of allowed transitions matches the
-        backend definition."""
-        expected = {
-            ("draft", "submitted"),
-            ("submitted", "under_review"),
-            ("submitted", "approved"),
-            ("submitted", "rejected"),
-            ("under_review", "approved"),
-            ("under_review", "rejected"),
-            ("under_review", "waitlisted"),
-            ("waitlisted", "approved"),
-            ("waitlisted", "rejected"),
-        }
+        """Verify the ALLOWED_TRANSITION_SET matches the canonical
+        backend definition (imported from apps.applications.services)."""
+        expected = set()
+        for old, new_set in ALLOWED_TRANSITIONS.items():
+            for new in new_set:
+                expected.add((old, new))
         self.assertEqual(
             ALLOWED_TRANSITION_SET,
             expected,

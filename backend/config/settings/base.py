@@ -21,7 +21,16 @@ def split_csv_env(name: str, default: str = "") -> list[str]:
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", "insecure-dev-key-change-me")
+_secret_key = os.environ.get("SECRET_KEY")
+if not _secret_key:
+    _settings_module = os.environ.get("DJANGO_SETTINGS_MODULE", "")
+    if "dev" in _settings_module or "test" in _settings_module:
+        import warnings
+        warnings.warn("SECRET_KEY not set — using insecure default (dev/test only)", stacklevel=1)
+        _secret_key = "insecure-dev-key-change-me-do-not-use-in-prod"
+    else:
+        raise ImproperlyConfigured("SECRET_KEY environment variable must be set in production")
+SECRET_KEY = _secret_key
 
 DEBUG = False
 
@@ -251,9 +260,9 @@ CACHES = {
 # django-ratelimit only whitelists django-redis's backend string, but Django's
 # built-in Redis cache is sufficient for the shared atomic operations we use.
 SILENCED_SYSTEM_CHECKS = ["django_ratelimit.W001"]
-# Fail open if the shared cache is unavailable so Redis outages do not
-# block legitimate requests on rate-limited endpoints.
-RATELIMIT_FAIL_OPEN = True
+# Fail closed if the shared cache is unavailable — the in-memory fallback in
+# RateLimitMiddleware provides a safety net during Redis outages.
+RATELIMIT_FAIL_OPEN = False
 
 # ---------------------------------------------------------------------------
 # JWT — SimpleJWT with shared signing key for dual-run compatibility
@@ -267,6 +276,13 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,  # Declarative only — actual rotation/blacklisting logic is in backend/apps/accounts/tokens.py
     "BLACKLIST_AFTER_ROTATION": True,  # Declarative only — actual rotation/blacklisting logic is in backend/apps/accounts/tokens.py
 }
+
+# Validate JWT signing key is set in non-dev/test environments
+_jwt_settings_module = os.environ.get("DJANGO_SETTINGS_MODULE", "")
+if not SIMPLE_JWT["SIGNING_KEY"] and "test" not in _jwt_settings_module and "dev" not in _jwt_settings_module:
+    raise ImproperlyConfigured(
+        "JWT_SIGNING_KEY environment variable must be set (non-empty) outside of dev/test environments"
+    )
 
 # ---------------------------------------------------------------------------
 # CORS — allowed origins and regexes from env vars (comma-separated)
@@ -290,6 +306,9 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Number of trusted reverse proxies (count from right of X-Forwarded-For)
+NUM_PROXIES = int(os.environ.get("NUM_PROXIES", "1"))
 
 # Request body size limits (prevent memory exhaustion attacks)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB for JSON/form data
@@ -363,6 +382,7 @@ REST_FRAMEWORK = {
         "user": "1000/min",
         "error_report": "5/min",
         "payment_initiate": "6/min",
+        "payment_defer": "6/min",
         "payment_verify": "30/min",
         "mobile_money_initiate": "5/min",
         "payment_mobile_money": "6/min",

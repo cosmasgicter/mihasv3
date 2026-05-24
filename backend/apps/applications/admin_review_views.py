@@ -23,9 +23,11 @@ from drf_spectacular.utils import (
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from apps.common.request_utils import get_client_ip
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
+from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin, is_super_admin
 from apps.common.throttling import AIUserScopedRateThrottle
 from apps.applications.document_intelligence import DocumentIntelligence
 from apps.applications.filters import ApplicationFilter, annotate_activity_at
@@ -74,10 +76,6 @@ from ._view_helpers import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-def _is_super_admin(user) -> bool:
-    return getattr(user, "role", None) == "super_admin"
 
 
 def _redact_name(value: str | None) -> str:
@@ -329,11 +327,7 @@ class ApplicationReviewView(APIView):
     @staticmethod
     def _get_client_ip(request) -> str:
         """Extract client IP, respecting X-Forwarded-For behind a proxy."""
-        xff = request.META.get("HTTP_X_FORWARDED_FOR")
-        if xff and isinstance(xff, str):
-            return xff.split(",")[0].strip()
-        addr = request.META.get("REMOTE_ADDR", "")
-        return addr if isinstance(addr, str) else ""
+        return get_client_ip(request)
 
     def patch(self, request, application_id):
         return self.post(request, application_id)

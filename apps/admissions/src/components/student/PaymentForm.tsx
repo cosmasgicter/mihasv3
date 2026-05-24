@@ -12,7 +12,7 @@ import { normalizePaymentStatusValue } from '@/hooks/usePaymentStatus'
 import { generateIdempotencyKey } from '@/lib/paymentStatus'
 import { initiateMobileMoney, verifyPayment } from '@/services/payments'
 import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
-import { normalizeZambianPhone, phoneDigits } from '@/lib/phoneNormalization'
+import { normalizeZambianMsisdn } from '@/lib/zambianMsisdn'
 
 type PaymentMethod = 'mobile-money' | 'card'
 type MomoOperator = 'airtel' | 'mtn' | null
@@ -22,6 +22,11 @@ const TRANSACTION_FEE_RATE = 0.01
 const PAYMENT_VERIFY_INTERVAL_MS = 10000
 const PAYMENT_VERIFY_MAX_ATTEMPTS = 12
 const PAYMENT_VERIFY_MAX_ERRORS = 2
+
+/** Extract only digits from a phone string */
+function phoneDigits(raw: string): string {
+  return raw.replace(/\D/g, '')
+}
 
 function detectOperator(phone: string): MomoOperator {
   const digits = phone.replace(/[\s\-+]/g, '')
@@ -50,7 +55,7 @@ function formatPhone(raw: string): string {
   return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`
 }
 
-export { normalizeZambianPhone } from '@/lib/phoneNormalization'
+export { normalizeZambianMsisdn } from '@/lib/zambianMsisdn'
 
 interface MobileMoneyResponse {
   payment_id: string
@@ -115,7 +120,7 @@ export function PaymentForm({
   inflight = false,
   pendingPaymentId = null,
 }: PaymentFormProps) {
-  const normalizedPhone = normalizeZambianPhone(initialPhone)
+  const normalizedPhone = normalizeZambianMsisdn(initialPhone)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('mobile-money')
   const [momoPhone, setMomoPhone] = useState(() => formatPhone(initialPhone))
   const [momoOperator, setMomoOperator] = useState<MomoOperator>(() => detectOperator(initialPhone))
@@ -258,7 +263,7 @@ export function PaymentForm({
   }, [polledStatus, momoStatus, updateCardPaymentStatus])
 
   const phoneValidationError = (() => {
-    const digits = phoneDigits(momoPhone)
+    const digits = momoPhone.replace(/\D/g, '')
     if (!digits) return null
     if (digits.length > 0 && digits.length < 9) return 'Enter a valid phone number (e.g. 0977 123 456)'
     if (digits.length > 12) return 'Phone number is too long'
@@ -266,8 +271,8 @@ export function PaymentForm({
   })()
 
   const handleMomoPayment = useCallback(async () => {
-    const normalized = normalizeZambianPhone(momoPhone)
-    if (!normalized || normalized.length < 12) {
+    const normalized = normalizeZambianMsisdn(momoPhone)
+    if (!normalized) {
       setMomoError('Please enter a valid phone number.')
       return
     }

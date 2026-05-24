@@ -55,11 +55,7 @@ from django.http import HttpResponseRedirect
 logger = logging.getLogger(__name__)
 
 
-def _client_ip(request) -> str:
-    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if forwarded_for:
-        return forwarded_for.split(",", 1)[0].strip()
-    return request.META.get("REMOTE_ADDR", "")
+from apps.common.request_utils import get_client_ip as _client_ip
 
 
 def _ip_allowed(ip_address: str, allowed_ranges: list[str]) -> bool:
