@@ -23,14 +23,12 @@ from rest_framework.response import Response
 
 from apps.accounts.models import CSRFToken, Profile
 from apps.accounts.session_lifecycle import get_refresh_token_lifetime
+from apps.common.request_utils import get_client_ip
 
 
 def _get_client_ip(request) -> str:
     """Extract the client IP address, respecting X-Forwarded-For."""
-    xff = request.META.get("HTTP_X_FORWARDED_FOR")
-    if xff:
-        return xff.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "")
+    return get_client_ip(request)
 
 
 def _hash_value(value: str) -> str:

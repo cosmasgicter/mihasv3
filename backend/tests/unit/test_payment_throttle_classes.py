@@ -27,6 +27,7 @@ from apps.documents.throttles import (
     PaymentVerifyThrottle,
 )
 from apps.documents.views import (
+    DeferPaymentView,
     MobileMoneyInitiateView,
     PaymentInitiateView,
     PaymentVerifyView,
@@ -106,6 +107,10 @@ class TestViewThrottleAssignment(SimpleTestCase):
 
     def test_mobile_money_view_has_throttle(self):
         self.assertIn(PaymentUserScopedRateThrottle, MobileMoneyInitiateView.throttle_classes)
+
+    def test_defer_payment_view_has_hardened_scoped_throttle(self):
+        self.assertIn(PaymentUserScopedRateThrottle, DeferPaymentView.throttle_classes)
+        self.assertEqual(DeferPaymentView.throttle_scope, "payment_defer")
 
 
 # ---------------------------------------------------------------------------

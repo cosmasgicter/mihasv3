@@ -39,7 +39,7 @@ _PLACEHOLDER_RE = re.compile(r"\{\{(\w+)\}\}")
 
 # Regexes for stripping email-only chrome from notification bodies
 _LOG_IN_PARAGRAPH_RE = re.compile(r"<p[^>]*>[^<]*Please log in[^<]*</p>", re.IGNORECASE)
-_BEST_REGARDS_PARAGRAPH_RE = re.compile(r"<p[^>]*>\s*Best regards.*?</p>", re.IGNORECASE | re.DOTALL)
+_BEST_REGARDS_PARAGRAPH_RE = re.compile(r"<p[^>]*>\s*Best regards(?:(?!</p>).){0,2000}</p>", re.IGNORECASE | re.DOTALL)
 
 
 def _strip_email_chrome_for_notification(html_body: str) -> str:

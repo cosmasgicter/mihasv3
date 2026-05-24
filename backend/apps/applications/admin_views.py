@@ -26,12 +26,15 @@ from apps.applications.admin_assignment_views import (  # noqa: F401
 from apps.applications.admin_export_views import (  # noqa: F401
     ApplicationExportView,
     ApplicationFilter,
-    _is_super_admin,
     _redact_email,
     _redact_name,
     _redact_phone,
     _with_payment_summary,
 )
+from apps.accounts.permissions import is_super_admin  # noqa: F401
+
+# Backward-compat alias for tests that patch "apps.applications.admin_views._is_super_admin"
+_is_super_admin = is_super_admin
 from apps.applications.admin_bulk_views import ApplicationBulkStatusView  # noqa: F401
 from apps.applications.admin_amendment_views import (  # noqa: F401
     ApplicationAdminSummaryView,

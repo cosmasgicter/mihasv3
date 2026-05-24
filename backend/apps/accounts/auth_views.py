@@ -47,6 +47,7 @@ from apps.accounts.services import (
     verify_password_reset_token,
 )
 from apps.accounts.tokens import (
+    JTIBlacklistError,
     generate_access_token,
     generate_refresh_token,
     rotate_tokens,
@@ -233,6 +234,13 @@ class LoginView(APIView):
         refresh_hash = _hash_value(refresh_token)
         user_agent = request.META.get("HTTP_USER_AGENT", "unknown")
 
+        # Extract JTI from the refresh token for revocation support
+        try:
+            refresh_payload = jwt.decode(refresh_token, options={"verify_signature": False})
+            refresh_jti = refresh_payload.get("jti", "")
+        except Exception:
+            refresh_jti = ""
+
         from django.utils import timezone as tz
 
         DeviceSession.objects.create(
@@ -246,6 +254,7 @@ class LoginView(APIView):
             is_active=True,
             expires_at=get_refresh_token_expiry(tz.now()),
             updated_at=tz.now(),
+            refresh_jti=refresh_jti,
         )
 
         # Generate CSRF token
@@ -514,6 +523,11 @@ class RefreshView(APIView):
                 {"success": False, "error": "Refresh token has been revoked", "code": "TOKEN_EXPIRED"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+        except JTIBlacklistError:
+            return Response(
+                {"success": False, "error": "Token service temporarily unavailable", "code": "BLACKLIST_UNAVAILABLE"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         except jwt.InvalidTokenError:
             return Response(
                 {"success": False, "error": "Invalid refresh token", "code": "TOKEN_EXPIRED"},
@@ -530,6 +544,13 @@ class RefreshView(APIView):
         old_refresh_hash = _hash_value(refresh_token)
         new_refresh_hash = _hash_value(new_refresh)
 
+        # Extract new JTI for revocation support
+        try:
+            new_refresh_payload = jwt.decode(new_refresh, options={"verify_signature": False})
+            new_refresh_jti = new_refresh_payload.get("jti", "")
+        except Exception:
+            new_refresh_jti = ""
+
         from django.utils import timezone as tz
 
         refreshed = DeviceSession.objects.filter(
@@ -540,6 +561,7 @@ class RefreshView(APIView):
             last_activity=tz.now(),
             expires_at=get_refresh_token_expiry(tz.now()),
             updated_at=tz.now(),
+            refresh_jti=new_refresh_jti,
         )
         if not refreshed:
             user_agent = request.META.get("HTTP_USER_AGENT", "unknown")
@@ -555,6 +577,7 @@ class RefreshView(APIView):
                 is_active=True,
                 expires_at=get_refresh_token_expiry(tz.now()),
                 updated_at=tz.now(),
+                refresh_jti=new_refresh_jti,
             )
 
         response = Response(

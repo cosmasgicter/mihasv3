@@ -55,11 +55,7 @@ from django.http import HttpResponseRedirect
 logger = logging.getLogger(__name__)
 
 
-def _client_ip(request) -> str:
-    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if forwarded_for:
-        return forwarded_for.split(",", 1)[0].strip()
-    return request.META.get("REMOTE_ADDR", "")
+from apps.common.request_utils import get_client_ip as _client_ip
 
 
 def _ip_allowed(ip_address: str, allowed_ranges: list[str]) -> bool:
@@ -229,13 +225,16 @@ class DocumentUploadView(APIView):
                 {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        if role not in ("admin", "super_admin") and document_type == "application_slip":
+            return Response(
+                {"success": False, "error": "Application slips are system-generated", "code": "INSUFFICIENT_PERMISSIONS"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if role not in ("admin", "super_admin") and application.status != "draft":
-            # Allow application_slip uploads for any status (slips are system-generated)
-            if document_type != "application_slip":
-                return Response(
-                    {"success": False, "error": "Application is not editable", "code": "APPLICATION_NOT_EDITABLE"},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+            return Response(
+                {"success": False, "error": "Application is not editable", "code": "APPLICATION_NOT_EDITABLE"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         # Magic byte validation.
         declared_mime = file_obj.content_type or ""
@@ -539,4 +538,3 @@ class DocumentDeleteView(APIView):
             {"success": True, "message": "Document deleted"},
             status=status.HTTP_200_OK,
         )
-

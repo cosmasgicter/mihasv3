@@ -454,5 +454,44 @@ ERROR_CODES.update({
 # --- Document ---
 # (Document-specific codes beyond payment are added here as needed)
 
+# --- Security hardening (May 2026) ---
+ERROR_CODES.update({
+    "BLACKLIST_UNAVAILABLE": {
+        "http_status": status.HTTP_503_SERVICE_UNAVAILABLE,
+        "message": "Token blacklist service unavailable",
+        "category": "auth",
+    },
+    "DRAFT_TOO_LARGE": {
+        "http_status": status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+        "message": "Draft data exceeds maximum size",
+        "category": "application",
+    },
+    "DRAFT_TOO_NESTED": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Draft data exceeds maximum nesting depth",
+        "category": "application",
+    },
+    "INVALID_DRAFT_DATA": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Draft data is not valid JSON",
+        "category": "application",
+    },
+    "FIELD_NAME_TOO_LONG": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Field name exceeds maximum length",
+        "category": "application",
+    },
+    "VALUE_TOO_LONG": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Value exceeds maximum length",
+        "category": "application",
+    },
+    "REASON_TOO_LONG": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Reason exceeds maximum length",
+        "category": "application",
+    },
+})
+
 
 __all__ = ["ERROR_CODES"]

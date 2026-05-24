@@ -236,7 +236,8 @@ class TestNotificationCreation:
 
     @patch("apps.applications.interview_service._send_interview_notification")
     @patch(f"{_AI}.objects")
-    def test_reschedule_sends_notification(self, mock_qs, mock_notify):
+    @patch(_TRANSACTION, side_effect=lambda: nullcontext())
+    def test_reschedule_sends_notification(self, mock_atomic, mock_qs, mock_notify):
         interview = MagicMock()
         interview.application = _app("under_review")
         interview.mode = "phone"
@@ -245,6 +246,8 @@ class TestNotificationCreation:
         interview.save = MagicMock()
         new_time = _future(96)
 
+        # select_for_update().get() must return the same interview mock
+        mock_qs.select_for_update.return_value.get.return_value = interview
         mock_qs.filter.return_value.first.return_value = None
         mock_qs.filter.return_value.exclude.return_value.first.return_value = None
 

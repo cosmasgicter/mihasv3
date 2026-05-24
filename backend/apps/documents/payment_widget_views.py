@@ -55,11 +55,7 @@ from django.http import HttpResponseRedirect
 logger = logging.getLogger(__name__)
 
 
-def _client_ip(request) -> str:
-    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if forwarded_for:
-        return forwarded_for.split(",", 1)[0].strip()
-    return request.META.get("REMOTE_ADDR", "")
+from apps.common.request_utils import get_client_ip as _client_ip
 
 
 def _ip_allowed(ip_address: str, allowed_ranges: list[str]) -> bool:
@@ -305,6 +301,8 @@ class DeferPaymentView(APIView):
     """POST /api/v1/payments/defer/ — create a deferred payment record."""
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [PaymentUserScopedRateThrottle]
+    throttle_scope = "payment_defer"
     serializer_class = DeferPaymentRequestSerializer
 
     @extend_schema(
@@ -445,7 +443,7 @@ class PaymentDevBypassView(APIView):
                 user_id=user.id,
                 amount=amount,
                 currency="ZMW",
-                status="successful",
+                status="pending",
                 payment_method="development_bypass",
                 transaction_reference=f"DEV-{application.application_number}-{uuid.uuid4().hex[:8]}",
                 lenco_reference=f"DEV-{uuid.uuid4().hex[:12]}",
@@ -459,7 +457,9 @@ class PaymentDevBypassView(APIView):
         else:
             merged_metadata = payment.metadata or {}
             merged_metadata.update(metadata)
-            payment.status = "successful"
+            # Do NOT mutate payment.status here — PaymentService._transition()
+            # below is the sole authority for status writes. The admin_override
+            # source allows transition from any state to force_approved.
             payment.payment_method = payment.payment_method or "development_bypass"
             payment.lenco_reference = payment.lenco_reference or f"DEV-{uuid.uuid4().hex[:12]}"
             payment.verified_by_id = user.id
@@ -468,7 +468,6 @@ class PaymentDevBypassView(APIView):
             payment.metadata = merged_metadata
             payment.updated_at = now
             payment.save(update_fields=[
-                "status",
                 "payment_method",
                 "lenco_reference",
                 "verified_by",
@@ -478,22 +477,39 @@ class PaymentDevBypassView(APIView):
                 "updated_at",
             ])
 
-        application.payment_status = "successful"
-        application.payment_verified_by_id = user.id
-        application.payment_verified_at = now
-        application.updated_at = now
-        application.save(update_fields=[
-            "payment_status",
-            "payment_verified_by",
-            "payment_verified_at",
-            "updated_at",
-        ])
+        # Route through PaymentService._transition() for audit trail and
+        # correct application status derivation (PAYMENT_TO_APP_MAP).
+        from apps.documents.payment_service import PaymentService
+
+        svc = PaymentService()
+        result = svc._transition(
+            payment,
+            target_status="force_approved",
+            source="admin_override",
+            actor=user.id,
+            reason="dev_bypass",
+        )
+
+        # Fallback: if _transition didn't sync app status (e.g. flag off
+        # and legacy path skipped force_approved), ensure correctness.
+        application.refresh_from_db(fields=["payment_status"])
+        if application.payment_status != "verified":
+            application.payment_status = "verified"
+            application.payment_verified_by_id = user.id
+            application.payment_verified_at = now
+            application.updated_at = now
+            application.save(update_fields=[
+                "payment_status",
+                "payment_verified_by",
+                "payment_verified_at",
+                "updated_at",
+            ])
 
         return Response({
             "success": True,
             "data": {
                 "payment_id": str(payment.id),
-                "status": "successful",
-                "payment_status": "successful",
+                "status": result.status,
+                "payment_status": "verified",
             },
         })

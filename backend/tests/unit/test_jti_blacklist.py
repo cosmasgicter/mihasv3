@@ -24,22 +24,23 @@ from django.test import SimpleTestCase, override_settings  # noqa: E402
 
 from apps.accounts.tokens import (  # noqa: E402
     JTI_PREFIX,
+    JTIBlacklistError,
     blacklist_jti,
     is_jti_blacklisted,
 )
 
 
 class TestJTIBlacklistFailOnWrite(SimpleTestCase):
-    """Test that blacklist_jti logs but does not raise when Redis write fails."""
+    """Test that blacklist_jti raises JTIBlacklistError when Redis write fails (fail-closed)."""
 
-    def test_blacklist_jti_does_not_raise_on_redis_error(self):
-        """When Redis raises RedisError on setex, blacklist_jti must log but not propagate."""
+    def test_blacklist_jti_raises_on_redis_error(self):
+        """When Redis raises RedisError on setex after retry, blacklist_jti must raise JTIBlacklistError."""
         mock_redis = MagicMock()
         mock_redis.setex.side_effect = redis.RedisError("connection refused")
 
         with patch("apps.accounts.tokens._get_redis", return_value=mock_redis):
-            # Should NOT raise — fail-open to avoid blocking auth
-            blacklist_jti(str(uuid.uuid4()))
+            with self.assertRaises(JTIBlacklistError):
+                blacklist_jti(str(uuid.uuid4()))
 
 
 class TestJTIBlacklistFailOpenRead(SimpleTestCase):

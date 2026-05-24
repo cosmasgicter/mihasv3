@@ -52,7 +52,12 @@ class Profile(models.Model):
 
 
 class DeviceSession(models.Model):
-    """Maps to 'device_sessions' table."""
+    """Maps to 'device_sessions' table.
+
+    Schema note (managed=False):
+        ALTER TABLE device_sessions ADD COLUMN refresh_jti VARCHAR(64) NULL;
+        CREATE INDEX idx_device_sessions_refresh_jti ON device_sessions(refresh_jti) WHERE refresh_jti IS NOT NULL;
+    """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
@@ -66,6 +71,7 @@ class DeviceSession(models.Model):
     expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(null=True, blank=True)
+    refresh_jti = models.CharField(max_length=64, null=True, blank=True)
 
     class Meta:
         managed = False

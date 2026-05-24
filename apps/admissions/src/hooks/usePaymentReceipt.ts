@@ -72,6 +72,7 @@ export function usePaymentReceipt() {
         program: receipt.program || 'Not specified',
         institution: 'MIHAS',
         amount: Number(receipt.amount) || 0,
+        currency: receipt.currency === 'USD' ? 'USD' as const : 'ZMW' as const,
         paymentMethod: 'Online Payment',
         paymentDate: receipt.created_at || new Date().toISOString(),
         verifiedDate: receipt.created_at || new Date().toISOString(),

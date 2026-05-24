@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight, CheckCircle, Send } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useEffect, useState, useRef, useCallback, useSyncExternalStore } from 'react'
 import { Seo } from '@/components/seo/Seo'
 
@@ -129,6 +129,8 @@ const ApplicationWizardContent = () => {
     refetchPaymentStatus,
     setPaymentStatus
   } = useWizardController()
+
+  const navigate = useNavigate()
 
   const stepValidation = useStepValidation(form, currentStepIndex, {
     paymentStatus,
@@ -582,13 +584,19 @@ const ApplicationWizardContent = () => {
       <div className="w-full">
         <Container size="md" className="py-4 sm:py-8">
           <div className="mb-8 space-y-4">
-            <Link
-              to="/student/dashboard"
+            <button
+              type="button"
+              onClick={() => {
+                if (form.formState.isDirty && !success) {
+                  if (!window.confirm('You have unsaved changes. Are you sure you want to leave?')) return
+                }
+                navigate('/student/dashboard')
+              }}
               className="inline-flex min-h-touch items-center gap-2 rounded-lg px-2 text-sm font-medium text-primary hover:bg-primary/5"
             >
               <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
               Back to Dashboard
-            </Link>
+            </button>
 
             <div>
               <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">

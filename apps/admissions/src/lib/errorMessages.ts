@@ -147,6 +147,15 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   // Common operational
   DASHBOARD_ERROR: 'Dashboard data could not be loaded. Please try again.',
   SERVICE_UNAVAILABLE: 'Service temporarily unavailable. Please try again later.',
+
+  // Security hardening
+  BLACKLIST_UNAVAILABLE: 'Token service temporarily unavailable. Please try again.',
+  DRAFT_TOO_LARGE: 'Draft data exceeds maximum size. Please reduce the content.',
+  DRAFT_TOO_NESTED: 'Draft data is too complex. Please simplify the structure.',
+  INVALID_DRAFT_DATA: 'Draft data is invalid. Please try again.',
+  FIELD_NAME_TOO_LONG: 'Field name exceeds maximum length.',
+  VALUE_TOO_LONG: 'Value exceeds maximum length.',
+  REASON_TOO_LONG: 'Reason exceeds maximum length.',
 }
 
 /** Default message for network errors (no server response) */

@@ -13,6 +13,9 @@ from apps.common.audit_network import build_audit_network_fields, decrypt_networ
 class TestAuditNetworkContext(SimpleTestCase):
     @override_settings(AUDIT_LOG_ENCRYPTION_KEY=Fernet.generate_key().decode())
     def test_build_audit_network_fields_stores_hashes_and_encrypted_values(self):
+        # XFF format: "<spoofable>, <real-client-from-trusted-proxy>".
+        # With NUM_PROXIES=1 the canonical extractor takes the rightmost
+        # trusted hop ("10.0.0.1"), ignoring the leftmost (spoofable) entry.
         request = RequestFactory().post(
             "/api/v1/applications/",
             HTTP_X_FORWARDED_FOR="203.0.113.10, 10.0.0.1",
@@ -23,11 +26,11 @@ class TestAuditNetworkContext(SimpleTestCase):
 
         self.assertEqual(len(fields["ip_address"]), 64)
         self.assertEqual(len(fields["user_agent"]), 64)
-        self.assertNotEqual(fields["ip_address"], "203.0.113.10")
+        self.assertNotEqual(fields["ip_address"], "10.0.0.1")
         self.assertNotEqual(fields["user_agent"], "Mozilla/5.0 test")
         self.assertTrue(fields["ip_address_encrypted"])
         self.assertTrue(fields["user_agent_encrypted"])
-        self.assertEqual(decrypt_network_value(fields["ip_address_encrypted"]), "203.0.113.10")
+        self.assertEqual(decrypt_network_value(fields["ip_address_encrypted"]), "10.0.0.1")
         self.assertEqual(decrypt_network_value(fields["user_agent_encrypted"]), "Mozilla/5.0 test")
 
     @override_settings(AUDIT_LOG_ENCRYPTION_KEY=Fernet.generate_key().decode())

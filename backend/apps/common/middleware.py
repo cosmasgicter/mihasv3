@@ -8,14 +8,18 @@ moved to ``middleware_compat.py`` — they are no longer in the MIDDLEWARE
 stack but are preserved for backward-compatible tests.
 """
 
+import collections
 import logging
 import os
 import re
+import threading
 import time
 import uuid
 
 from django.conf import settings
 from django.http import JsonResponse
+
+from apps.common.request_utils import get_client_ip as _canonical_get_client_ip
 
 from apps.common.audit_network import build_audit_network_fields
 from apps.common.logging import bind_request_context, clear_request_context
@@ -53,12 +57,12 @@ class SecurityHeadersMiddleware:
         response["X-XSS-Protection"] = "0"
         response["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://pay.lenco.co https://pay.sandbox.lenco.co; "
+            "script-src 'self' https://pay.lenco.co https://pay.sandbox.lenco.co; "
             "worker-src 'self' blob:; "
             "child-src 'self' blob:; "
             "style-src 'self' 'unsafe-inline'; "
             "style-src-elem 'self' 'unsafe-inline'; "
-            "img-src 'self' data: blob: https:; "
+            "img-src 'self' data: blob: https://pay.lenco.co https://pay.sandbox.lenco.co https://*.r2.cloudflarestorage.com; "
             "connect-src 'self' ***REMOVED*** https://api.lenco.co https://api.sandbox.lenco.co https://cdn.jsdelivr.net; "
             "frame-src 'self' https://pay.lenco.co https://pay.sandbox.lenco.co; "
             "font-src 'self'; "
@@ -217,6 +221,7 @@ class RateLimitMiddleware:
       /api/v1/integrations/        → 20/10m
       /api/v1/payments/            → 60/10m
       /api/v1/                     → 120/10m  (catch-all)
+      /mihas-admin-panel/          → 10/1m    (Django admin brute-force protection)
     """
 
     # (prefix, rate string | None)
@@ -251,8 +256,10 @@ class RateLimitMiddleware:
         # them before HMAC processing.
         ("/api/v1/payments/webhook/", None),
         ("/api/v1/payments/", "60/10m"),
-        # Catch-all (must be last)
+        # Catch-all API (must be last API scope)
         ("/api/v1/", "120/10m"),
+        # Django admin panel — strict brute-force protection
+        ("/mihas-admin-panel/", "10/1m"),
     ]
 
     # These payment routes are governed at the DRF view layer. When hardening
@@ -266,8 +273,29 @@ class RateLimitMiddleware:
         "/api/v1/payments/resolve-fee/",
     )
 
+    # In-memory fallback rate limiter for Redis outages.
+    # 30 requests per 60 seconds per IP.
+    _FALLBACK_MAX_REQUESTS = 30
+    _FALLBACK_WINDOW_SECONDS = 60
+    _fallback_store: collections.defaultdict = collections.defaultdict(collections.deque)
+    _fallback_lock = threading.Lock()
+
     def __init__(self, get_response):
         self.get_response = get_response
+
+    def _fallback_is_limited(self, ip: str) -> bool:
+        """In-memory token-bucket fallback when Redis is unavailable."""
+        now = time.monotonic()
+        window = self._FALLBACK_WINDOW_SECONDS
+        with self._fallback_lock:
+            timestamps = self._fallback_store[ip]
+            # Evict old entries
+            while timestamps and timestamps[0] < now - window:
+                timestamps.popleft()
+            if len(timestamps) >= self._FALLBACK_MAX_REQUESTS:
+                return True
+            timestamps.append(now)
+            return False
 
     def __call__(self, request):
         from django_ratelimit.core import is_ratelimited
@@ -294,12 +322,14 @@ class RateLimitMiddleware:
                         increment=True,
                     )
                 except Exception:
-                    logger.warning(
-                        "Rate limiter unavailable for scope %s; failing open",
-                        prefix,
-                        exc_info=True,
-                    )
-                    limited = False
+                    # Redis unavailable — use in-memory fallback instead of failing open
+                    ip = self._get_client_ip(request)
+                    limited = self._fallback_is_limited(ip)
+                    if limited:
+                        logger.warning(
+                            "Rate limiter Redis unavailable; in-memory fallback triggered for %s",
+                            prefix,
+                        )
                 if limited:
                     response = JsonResponse(
                         {
@@ -317,6 +347,11 @@ class RateLimitMiddleware:
                 break
 
         return self.get_response(request)
+
+    @staticmethod
+    def _get_client_ip(request) -> str:
+        """Extract client IP from X-Forwarded-For or REMOTE_ADDR."""
+        return _canonical_get_client_ip(request) or "unknown"
 
     @staticmethod
     def _retry_after_seconds(rate: str) -> int:

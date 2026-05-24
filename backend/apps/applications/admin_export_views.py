@@ -25,7 +25,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
+from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin, is_super_admin
 from apps.common.throttling import AIUserScopedRateThrottle
 from apps.applications.document_intelligence import DocumentIntelligence
 from apps.applications.filters import ApplicationFilter, annotate_activity_at
@@ -74,10 +74,6 @@ from ._view_helpers import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-def _is_super_admin(user) -> bool:
-    return getattr(user, "role", None) == "super_admin"
 
 
 def _redact_name(value: str | None) -> str:
@@ -134,7 +130,7 @@ class ApplicationExportView(APIView):
     def get(self, request):
         from django.http import HttpResponse
 
-        full_export = _is_super_admin(request.user)
+        full_export = is_super_admin(request.user)
         queryset = _with_payment_summary(Application.objects.all()).order_by("-created_at")
         filterset = ApplicationFilter(request.query_params, queryset=queryset)
         queryset = filterset.qs

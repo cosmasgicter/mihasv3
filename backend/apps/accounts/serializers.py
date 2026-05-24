@@ -13,15 +13,15 @@ from apps.common.validators import normalize_nationality, validate_zambian_phone
 class LoginSerializer(serializers.Serializer):
     """Validates login credentials."""
 
-    email = serializers.EmailField(required=True)
-    password = serializers.CharField(required=True, write_only=True)
+    email = serializers.EmailField(required=True, max_length=320)
+    password = serializers.CharField(required=True, write_only=True, max_length=128)
 
 
 class RegisterSerializer(serializers.Serializer):
     """Validates registration data."""
 
-    email = serializers.EmailField(required=True)
-    password = serializers.CharField(required=True, min_length=8, write_only=True)
+    email = serializers.EmailField(required=True, max_length=320)
+    password = serializers.CharField(required=True, min_length=8, max_length=128, write_only=True)
     first_name = serializers.CharField(required=True, max_length=255)
     last_name = serializers.CharField(required=True, max_length=255)
     phone = serializers.CharField(required=False, allow_blank=True, default="")
@@ -52,14 +52,14 @@ class RegisterSerializer(serializers.Serializer):
 class PasswordResetRequestSerializer(serializers.Serializer):
     """Validates password reset request."""
 
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(required=True, max_length=320)
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     """Validates password reset confirmation."""
 
-    token = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True, min_length=8, write_only=True)
+    token = serializers.CharField(required=True, max_length=256)
+    new_password = serializers.CharField(required=True, min_length=8, max_length=128, write_only=True)
 
     def validate_new_password(self, value):
         """Enforce same password strength as registration."""

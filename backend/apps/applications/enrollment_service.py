@@ -87,6 +87,10 @@ class EnrollmentService:
                     f"Cannot confirm enrollment from status '{locked_app.status}'.",
                 )
 
+            # Re-check deadline under lock (concurrent extension could have changed it)
+            if locked_app.enrollment_confirmation_deadline and timezone.now() > locked_app.enrollment_confirmation_deadline:
+                raise EnrollmentError('DEADLINE_PASSED', 'Enrollment confirmation deadline has passed.')
+
             transition_application_status(
                 application=locked_app,
                 new_status="enrolled",

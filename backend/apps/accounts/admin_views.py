@@ -17,10 +17,13 @@ from apps.accounts.admin_user_views import (  # noqa: F401
     AdminUserDetailView,
     AdminUserExportView,
     AdminUserListView,
-    _is_super_admin,
     _redact_email,
     _redact_name,
 )
+from apps.accounts.permissions import is_super_admin  # noqa: F401
+
+# Backward-compat alias for tests that patch "apps.accounts.admin_views._is_super_admin"
+_is_super_admin = is_super_admin
 from apps.accounts.admin_settings_views import (  # noqa: F401
     AdminSettingDetailView,
     AdminSettingsImportView,

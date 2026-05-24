@@ -27,7 +27,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import Profile
-from apps.accounts.permissions import IsAdmin, ROLE_HIERARCHY
+from apps.accounts.permissions import IsAdmin, ROLE_HIERARCHY, is_super_admin
 from apps.accounts.services import hash_password
 from apps.common.audit_network import build_audit_network_fields, decrypt_network_value
 from apps.common.models import AuditLog, Setting
@@ -60,10 +60,6 @@ logger = logging.getLogger(__name__)
 
 def _role_level(role: str | None) -> int:
     return ROLE_HIERARCHY.get(role or "", 0)
-
-
-def _is_super_admin(user) -> bool:
-    return getattr(user, "role", None) == "super_admin"
 
 
 def _redact_name(value: str | None) -> str:
@@ -658,7 +654,7 @@ class AdminUserExportView(APIView):
     serializer_class = AdminUserSerializer
 
     def get(self, request):
-        full_export = _is_super_admin(request.user)
+        full_export = is_super_admin(request.user)
         queryset = Profile.objects.all().order_by("-created_at")
 
         # Apply same filters as list view

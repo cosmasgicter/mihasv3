@@ -13,3 +13,6 @@ DATABASES = {
         "NAME": BASE_DIR / "test.sqlite3",  # noqa: F405
     }
 }
+
+# Ensure SIMPLE_JWT signing key matches the dev fallback used by tokens.py
+SIMPLE_JWT["SIGNING_KEY"] = "insecure-dev-signing-key"  # noqa: F405
