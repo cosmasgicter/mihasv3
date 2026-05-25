@@ -457,6 +457,19 @@ const useWizardController = (): UseWizardControllerResult => {
     setIntakes([])
   }, [intakesData])
 
+  const selectedIntake = watch('intake')
+
+  // Reconcile draft-restored intake (display name) → canonical UUID. Re-runs
+  // whenever either the catalog list arrives OR the form value changes,
+  // closing the Order-A race where catalog cache resolved before draft restore.
+  useEffect(() => {
+    if (intakes.length === 0 || !selectedIntake) return
+    const resolved = resolveWizardIntakeIdentity(intakes, selectedIntake)
+    if (resolved && resolved.id !== selectedIntake) {
+      setValue('intake', resolved.id, { shouldValidate: true })
+    }
+  }, [intakes, selectedIntake, setValue])
+
   const selectedProgram = watch('program')
   const selectedProgramDetails = useMemo(
     () => programs.find(program => program.id === selectedProgram),
@@ -465,21 +478,23 @@ const useWizardController = (): UseWizardControllerResult => {
 
   useEffect(() => {
     if (programsData?.programs) {
-      const fetchedPrograms = programsData.programs as WizardProgram[]
-      setPrograms(fetchedPrograms)
-
-      const currentValue = getValues('program')
-      if (currentValue) {
-        const resolvedId = findProgramId(currentValue, undefined, fetchedPrograms)
-        if (resolvedId && resolvedId !== currentValue) {
-          setValue('program', resolvedId, { shouldValidate: true })
-        }
-      }
+      setPrograms(programsData.programs as WizardProgram[])
       return
     }
 
     setPrograms([])
-  }, [programsData, getValues, setValue, findProgramId])
+  }, [programsData])
+
+  // Reconcile draft-restored program (display name) → canonical UUID. Re-runs
+  // whenever the catalog list arrives OR the form value changes, closing the
+  // Order-A race where catalog cache resolved before draft restore.
+  useEffect(() => {
+    if (programs.length === 0 || !selectedProgram) return
+    const resolvedId = findProgramId(selectedProgram, undefined, programs)
+    if (resolvedId && resolvedId !== selectedProgram) {
+      setValue('program', resolvedId, { shouldValidate: true })
+    }
+  }, [programs, selectedProgram, findProgramId, setValue])
   const clearValidationError = useCallback(() => setError(''), [])
 
   const {
