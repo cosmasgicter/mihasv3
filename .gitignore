@@ -222,3 +222,6 @@ katc/
 cost_report/
 Cost_Accounting_*.docx
 .antigravitycli/
+
+# Local design tooling (kiro / antigravity / gemini) — not part of the app build
+/open-design/
