@@ -72,12 +72,14 @@ before merging. If it has a frontend mirror, a drift-guard test is required.
 | Concept | Source of truth | Consumers |
 |---------|-----------------|-----------|
 | Canonical schema | `backend/scripts/00_full_schema.sql` (TODO: pg_dump from prod) | new-environment bootstrap |
+| Schema migration tracking | `migration_history` table on production Neon project `wild-bar-37055823` | `backend/scripts/MIGRATION_HISTORY.md` (manual mirror, regenerated after reconciliation) |
 | Applied migrations | `backend/scripts/applied/` | historical record |
 | Legacy column inventory | `backend/apps/common/legacy_columns.py:LEGACY_DEPRECATED_COLUMNS` | drift test, drop migration |
 | Drop migration (Day 90) | `backend/scripts/legacy_columns_drop_2026_08_15.sql` | scheduled execution |
-| Drift guard | `backend/tests/property/test_schema_drift_strict.py` |
+| Drift guard | `backend/tests/property/test_schema_drift_strict.py` + `check_schema_drift --check-fk-indexes --check-migration-history-coverage` (Component 6 of `.kiro/specs/production-schema-reconciliation/`) |
 | No-writes guard | `backend/tests/unit/test_legacy_columns_no_writes.py` |
 | Deprecation runbook | `docs/runbooks/legacy-column-deprecation.md` |
+| Reconciliation runbook | `docs/runbooks/schema-reconciliation-runbook.md` |
 
 ## Feature Flags
 

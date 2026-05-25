@@ -45,11 +45,12 @@ Usage
 -----
     python backend/scripts/payment_snapshot_backfill.py              # apply
     python backend/scripts/payment_snapshot_backfill.py --dry-run    # preview
+    python backend/scripts/payment_snapshot_backfill.py --verify     # post-condition check
 
 Exit codes
 ----------
-    0 — success (including dry-run with no writes required)
-    1 — unhandled error during iteration
+    0 — success (apply complete, dry-run finished, or verify with count=0)
+    1 — unhandled error during iteration, or verify with count>0
     2 — Django/environment configuration error
 
 Operational notes
@@ -116,6 +117,16 @@ logger = logging.getLogger("payment_snapshot_backfill")
 
 BATCH_SIZE = 200
 CHUNK_SIZE = 200
+
+# Eligibility predicate for "Payment row is missing metadata.snapshot".
+#
+# Lifted to a module-level constant per the spec audit recommendation
+# (Task 3.3, Component 8 of design.md): both ``run_backfill`` and the new
+# ``run_verify`` path must apply the same filter so the verification
+# count reflects exactly the rows the apply path would touch. The
+# Postgres jsonb ``?`` (has_key) operator is unsupported on SQLite, so
+# any test exercising this filter must skip on non-Postgres backends.
+ELIGIBILITY_FILTER = Q(metadata__isnull=True) | ~Q(metadata__has_key="snapshot")
 
 
 # ---------------------------------------------------------------------------
@@ -241,7 +252,7 @@ def run_backfill(dry_run: bool) -> dict[str, int]:
     # 'snapshot' key. The jsonb ``?`` operator (``has_key``) is the natural fit.
     eligible = (
         Payment.objects
-        .filter(Q(metadata__isnull=True) | ~Q(metadata__has_key="snapshot"))
+        .filter(ELIGIBILITY_FILTER)
         .order_by("created_at", "id")
         .values_list("id", flat=True)
     )
@@ -348,6 +359,31 @@ def _process_one(
 
 
 # ---------------------------------------------------------------------------
+# Verify mode (Task 3.3 of production-schema-reconciliation spec)
+# ---------------------------------------------------------------------------
+
+
+def run_verify() -> int:
+    """Count Payment rows that still lack ``metadata.snapshot`` and report.
+
+    Used as the production post-condition check after the apply path has
+    run (see Task 6.5 of ``.kiro/specs/production-schema-reconciliation``).
+
+    Always prints a single line of the form
+    ``verify: count_without_snapshot=<n>`` to stdout — regardless of
+    whether the count is zero — so the operator gets the same shape of
+    output every time.
+
+    Returns:
+        ``0`` when the count is exactly ``0`` (Snapshot_Invariant holds),
+        ``1`` otherwise.
+    """
+    count = Payment.objects.filter(ELIGIBILITY_FILTER).count()
+    print(f"verify: count_without_snapshot={count}")
+    return 0 if count == 0 else 1
+
+
+# ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
 
@@ -375,9 +411,27 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Print the planned writes without mutating any rows.",
     )
+    parser.add_argument(
+        "--verify",
+        action="store_true",
+        help=(
+            "Read-only mode: count Payment rows still missing "
+            "metadata.snapshot, print 'verify: count_without_snapshot=<n>', "
+            "and exit 0 only when the count is zero. Ignores --dry-run."
+        ),
+    )
     args = parser.parse_args(argv)
 
     _configure_logging()
+
+    # --verify is read-only; it ignores --dry-run and short-circuits the
+    # apply path entirely.
+    if args.verify:
+        try:
+            return run_verify()
+        except Exception as exc:  # noqa: BLE001
+            print(f"ERROR: verify failed: {exc}", file=sys.stderr)
+            return 1
 
     try:
         counters = run_backfill(dry_run=args.dry_run)

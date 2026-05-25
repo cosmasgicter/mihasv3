@@ -11,6 +11,7 @@ on:
   pull_request:
     paths:
       - "backend/**"
+      - "backend/scripts/**"
       - "docs/schema-ownership.md"
       - "docs/redis-dependency-tiers.md"
       - "docs/decision/**"
@@ -43,3 +44,70 @@ jobs:
           DJANGO_SETTINGS_MODULE: config.settings.dev
           TESTING: "1"
         run: pytest tests/unit/test_outbox_helpers.py tests/unit/test_email_outbox_hardening.py tests/unit/test_communication_service.py -q
+
+  drift-guard:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      NEON_PROJECT_ID: wild-bar-37055823
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Required for `git log` timestamps used by --check-migration-history-coverage
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        run: pip install -r requirements.txt
+
+      - name: Create Neon branch fork
+        id: fork
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH_NAME="ci-drift-guard-${GITHUB_RUN_ID}"
+          response=$(curl -fsS -X POST \
+            "https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches" \
+            -H "Authorization: Bearer ${NEON_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"branch\":{\"name\":\"${BRANCH_NAME}\"},\"endpoints\":[{\"type\":\"read_write\"}]}") || {
+              echo "NEON_BRANCH_FORK_UNAVAILABLE: API request failed"
+              exit 1
+            }
+          branch_id=$(echo "$response" | jq -r '.branch.id')
+          conn=$(echo "$response" | jq -r '.connection_uris[0].connection_uri')
+          if [ -z "$branch_id" ] || [ "$branch_id" = "null" ]; then
+            echo "NEON_BRANCH_FORK_UNAVAILABLE: branch id missing in response"
+            exit 1
+          fi
+          if [ -z "$conn" ] || [ "$conn" = "null" ]; then
+            echo "NEON_BRANCH_FORK_UNAVAILABLE: connection_uri missing in response"
+            exit 1
+          fi
+          echo "branch_id=${branch_id}" >> "$GITHUB_OUTPUT"
+          echo "DATABASE_URL=${conn}" >> "$GITHUB_ENV"
+
+      - name: Run drift-guard against fork
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.dev
+        run: |
+          python3 manage.py check_schema_drift \
+            --check-fk-indexes \
+            --check-migration-history-coverage
+
+      - name: Delete Neon branch fork
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [ -n "${{ steps.fork.outputs.branch_id }}" ]; then
+            curl -fsS -X DELETE \
+              "https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches/${{ steps.fork.outputs.branch_id }}" \
+              -H "Authorization: Bearer ${NEON_API_KEY}" \
+              || echo "NEON_BRANCH_FORK_CLEANUP_FAILED: $(date -Iseconds)"
+          fi
