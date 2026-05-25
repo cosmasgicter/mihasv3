@@ -5,23 +5,28 @@
  *   200ms — route transitions, content reveals
  *   300ms — modal/drawer open/close
  * Easing:
- *   ease-out (0, 0, 0.2, 1) — entrances
- *   ease-in (0.4, 0, 1, 1) — exits
- *   ease (0.4, 0, 0.2, 1) — hover / symmetric
+ *   (0.4, 0, 0.2, 1) — default entrance + symmetric (matches Tailwind / Material `ease`)
+ *   (0, 0, 0.2, 1) — strict ease-out, used for confident reveals
+ *   (0.4, 0, 1, 1) — ease-in, used for exits
+ *   (0.22, 1, 0.36, 1) — easeOutQuint, used for hero reveals (`easings.easeOutQuint`)
  */
 
 /* Hardware acceleration for animated elements only */
+.animate-spin,
 .animate-pulse,
 .animate-ping,
-[class*="animate-"],
+.animate-bounce,
+.animate-shake,
 [class*="smooth-"] {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
 
+.animate-spin,
 .animate-pulse,
 .animate-ping,
-[class*="animate-"] {
+.animate-bounce,
+.animate-shake {
   will-change: transform, opacity;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
@@ -192,4 +197,50 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ─── Shimmer skeleton loading ──────────────────────────────────────── */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--card)) 50%, hsl(var(--muted)) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Form micro-interactions
+ *
+ * .animate-shake     — 300ms horizontal jitter for invalid form fields. Apply
+ *                       on submit-with-errors, then remove after onAnimationEnd.
+ *                       Always pair with an aria-live error message so users
+ *                       who don't perceive the motion still receive the cue.
+ * .input-focus-glow  — Soft 3px primary-tinted ring on :focus. Bound to the
+ *                       --color-primary-rgb design token so it tracks brand
+ *                       changes. Apply alongside (not instead of) the
+ *                       browser's default focus outline for keyboard users.
+ */
+
+/* ─── Form micro-interactions ───────────────────────────────────────── */
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+/* Input focus glow */
+.input-focus-glow {
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.input-focus-glow:focus {
+  /* Bound to --color-primary-rgb in design-tokens.css; falls back to primary blue */
+  box-shadow: 0 0 0 3px rgb(var(--color-primary-rgb, 37 99 235) / 0.1);
 }

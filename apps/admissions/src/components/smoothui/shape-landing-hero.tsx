@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { preloadAuthRoutes } from '@/lib/routePreload';
 import { CheckCircle } from '@/components/icons';
+import { motion } from 'framer-motion';
+import { useReducedMotion } from '@/lib/animation-config';
 
 interface ShapeLandingHeroProps {
   headline: string;
@@ -32,36 +34,57 @@ export function ShapeLandingHero({
     ? () => { void preloadAuthRoutes('hero-cta') }
     : undefined;
   const visiblePrograms = rotatingPhrases.slice(0, 3);
+  const reduced = useReducedMotion();
+
+  const container = {
+    hidden: { opacity: 1 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
+  };
+  const item = {
+    hidden: { opacity: 0, y: 24 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
+  };
+  const M = reduced ? 'div' : motion.div;
+  const mProps = reduced ? {} : { variants: item };
+  const cProps = reduced ? {} : { variants: container, initial: 'hidden', animate: 'visible' };
 
   return (
     <section id="hero" className="relative isolate overflow-hidden border-b border-border bg-muted">
       <div className="container-responsive px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-18">
         <div className="grid min-h-[calc(100svh-8rem)] items-center gap-8 lg:grid-cols-[minmax(0,1fr)_29rem] xl:grid-cols-[minmax(0,1fr)_32rem]">
-          <div className="max-w-3xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold uppercase text-muted-foreground shadow-sm">
+          <M className="max-w-3xl" {...cProps as any}>
+            <M className="mb-5 inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold uppercase text-muted-foreground shadow-sm" {...mProps as any}>
               <CheckCircle className="h-4 w-4 text-primary" aria-hidden="true" />
               Government accredited admissions
-            </div>
+            </M>
 
-            <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl lg:leading-[1.02]">
-              {headline}
-            </h1>
+            <M {...mProps as any}>
+              <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl lg:leading-[1.02]">
+                {headline}
+              </h1>
+            </M>
 
-            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+            <M className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg" {...mProps as any}>
               {description}
-            </p>
+            </M>
 
             {visiblePrograms.length > 0 && (
-              <div className="mt-5 flex flex-wrap gap-2" aria-label="Available program areas">
-                {visiblePrograms.map((phrase) => (
-                  <span key={phrase} className="rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary">
+              <M className="mt-5 flex flex-wrap gap-2" aria-label="Available program areas" {...mProps as any}>
+                {visiblePrograms.map((phrase, i) => (
+                  <motion.span
+                    key={phrase}
+                    className="rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary"
+                    animate={reduced ? undefined : { y: [0, -3, 0] }}
+                    transition={reduced ? undefined : { repeat: Infinity, duration: 3, delay: i * 0.4, ease: 'easeInOut' }}
+                  >
                     {phrase}
-                  </span>
+                  </motion.span>
                 ))}
-              </div>
+              </M>
             )}
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <M className="mt-8 flex flex-col gap-3 sm:flex-row" {...mProps as any}>
+            <motion.div whileHover={reduced ? undefined : { scale: 1.03 }} whileTap={reduced ? undefined : { scale: 0.97 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}>
             <Link
               to={primaryCta.href}
               onPointerEnter={warmPrimaryRoute}
@@ -78,6 +101,7 @@ export function ShapeLandingHero({
               <span>{primaryCta.label}</span>
               {primaryCta.icon && <span aria-hidden="true">{primaryCta.icon}</span>}
             </Link>
+            </motion.div>
 
             {secondaryCta.href.startsWith('#') ? (
               <a
@@ -110,19 +134,19 @@ export function ShapeLandingHero({
                 {secondaryCta.icon && <span aria-hidden="true">{secondaryCta.icon}</span>}
               </Link>
             )}
-            </div>
+            </M>
 
-            <div className="mt-8 grid grid-cols-3 gap-3 border-t border-border pt-6">
+            <M className="mt-8 grid grid-cols-3 gap-3 border-t border-border pt-6" {...mProps as any}>
               {proofPanel.highlights.map((stat) => (
                 <div key={stat.label}>
                   <p className="text-2xl font-semibold tracking-tight text-primary sm:text-3xl">{stat.value}</p>
                   <p className="mt-1 text-xs font-medium uppercase text-muted-foreground">{stat.label}</p>
                 </div>
               ))}
-            </div>
-          </div>
+            </M>
+          </M>
 
-          <aside className="rounded-lg border border-border bg-card p-3 shadow-md">
+          <M className="rounded-lg border border-border bg-card p-3 shadow-md" {...(reduced ? {} : { variants: item, initial: 'hidden', animate: 'visible', transition: { duration: 0.5, delay: 0.4, ease: [0.22, 1, 0.36, 1] } }) as any}>
             <div className="relative overflow-hidden rounded-lg bg-primary/5">
               <div className="aspect-[4/3] grid grid-cols-2 gap-3 p-4 sm:p-6">
                 <figure className="flex flex-col items-center justify-center gap-3 rounded-md border border-border bg-card p-3 shadow-sm">
@@ -192,7 +216,7 @@ export function ShapeLandingHero({
                 </div>
               </div>
             </div>
-          </aside>
+          </M>
         </div>
       </div>
     </section>

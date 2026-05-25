@@ -195,3 +195,16 @@ export type Duration = keyof typeof durations;
 export type Easing = keyof typeof easings;
 export type Spring = keyof typeof springs;
 export type ScrollDirection = 'up' | 'down' | 'left' | 'right';
+
+/**
+ * Returns Framer Motion props for a standard entrance animation.
+ * Returns empty object when reduced motion is preferred.
+ */
+export function motionEntrance(delay = 0) {
+  if (prefersReducedMotion()) return {};
+  return {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: durations.normal, ease: easings.default, delay },
+  };
+}

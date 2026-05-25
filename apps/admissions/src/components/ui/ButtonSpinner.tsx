@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 const spinnerSize = {
   sm: 'h-4 w-4',
@@ -13,7 +14,10 @@ export interface ButtonSpinnerProps {
 
 function SpinnerIcon({ size = 'md', className }: ButtonSpinnerProps) {
   return (
-    <svg
+    <motion.svg
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      transition={{ duration: 0.15, ease: 'easeOut' }}
       className={cn(spinnerSize[size!], 'animate-spin text-primary motion-reduce:hidden', className)}
       viewBox="0 0 24 24"
       fill="none"
@@ -25,7 +29,7 @@ function SpinnerIcon({ size = 'md', className }: ButtonSpinnerProps) {
         fill="currentColor"
         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
       />
-    </svg>
+    </motion.svg>
   )
 }
 

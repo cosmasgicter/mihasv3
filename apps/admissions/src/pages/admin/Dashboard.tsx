@@ -21,6 +21,7 @@ import { reportError } from '@/lib/errorReporter'
 
 import { DashboardActivityFeed } from '@/components/admin/dashboard/DashboardActivityFeed'
 import { DashboardQuickActions } from '@/components/admin/dashboard/DashboardQuickActions'
+import { StaggerContainer, StaggerItem, Crossfade } from '@/components/motion'
 
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { onAdminDashboardMount } from '@/lib/speculativePrefetch'
@@ -269,7 +270,9 @@ export default function AdminDashboard() {
           path="/admin/dashboard"
           noindex
         />
-        <DashboardSkeleton />
+        <Crossfade isLoading={true} skeleton={<DashboardSkeleton />}>
+          <DashboardSkeleton />
+        </Crossfade>
       </>
     )
   }
@@ -394,7 +397,8 @@ export default function AdminDashboard() {
         <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.NeedsAttention', ...errorInfo })}>
         <div className="mb-6 sm:mb-8">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Needs attention</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <StaggerItem>
             <Link to="/admin/applications?overdueReviewFilter=true" className="group rounded-lg border border-red-500/30 bg-red-500/5 p-4 transition-colors hover:bg-red-500/10">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="shrink-0 rounded-lg bg-red-500/10 p-2"><TimerReset className="h-5 w-5 text-red-600" /></div>
@@ -405,6 +409,8 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-red-600">Clear overdue work <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
+            </StaggerItem>
+            <StaggerItem>
             <Link to="/admin/applications?reviewQueueFilter=true" className="group rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 transition-colors hover:bg-amber-500/10">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="shrink-0 rounded-lg bg-amber-500/10 p-2"><ClipboardList className="h-5 w-5 text-amber-600" /></div>
@@ -415,6 +421,8 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-600">Review now <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
+            </StaggerItem>
+            <StaggerItem>
             <Link to="/admin/applications?pendingDocumentsFilter=true" className="group rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 transition-colors hover:bg-blue-500/10">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="shrink-0 rounded-lg bg-blue-500/10 p-2"><FileCheck className="h-5 w-5 text-blue-600" /></div>
@@ -425,6 +433,8 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600">Verify documents <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
+            </StaggerItem>
+            <StaggerItem>
             <Link to="/admin/applications?paymentFilter=pending_review" className="group rounded-lg border border-rose-500/30 bg-rose-500/5 p-4 transition-colors hover:bg-rose-500/10">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="shrink-0 rounded-lg bg-rose-500/10 p-2"><CreditCard className="h-5 w-5 text-rose-600" /></div>
@@ -435,6 +445,8 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-rose-600">Review payments <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
+            </StaggerItem>
+            <StaggerItem>
             <Link to="/admin/applications?upcomingInterviewsFilter=true" className="group rounded-lg border border-sky-500/30 bg-sky-500/5 p-4 transition-colors hover:bg-sky-500/10">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="shrink-0 rounded-lg bg-sky-500/10 p-2"><Video className="h-5 w-5 text-sky-600" /></div>
@@ -445,6 +457,8 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-sky-600">View schedule <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
+            </StaggerItem>
+            <StaggerItem>
             <Link to="/admin/applications?statusFilter=conditionally_approved" className="group rounded-lg border border-orange-500/30 bg-orange-500/5 p-4 transition-colors hover:bg-orange-500/10">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="shrink-0 rounded-lg bg-orange-500/10 p-2"><CircleAlert className="h-5 w-5 text-orange-600" /></div>
@@ -455,6 +469,8 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-orange-600">Review conditions <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
+            </StaggerItem>
+            <StaggerItem>
             <Link to="/admin/applications?statusFilter=approved" className="group rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 transition-colors hover:bg-emerald-500/10">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="shrink-0 rounded-lg bg-emerald-500/10 p-2"><CircleAlert className="h-5 w-5 text-emerald-600" /></div>
@@ -465,7 +481,8 @@ export default function AdminDashboard() {
               </div>
               <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-emerald-600">Follow up now <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
             </Link>
-          </div>
+            </StaggerItem>
+          </StaggerContainer>
         </div>
         </ErrorBoundary>
 

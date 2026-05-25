@@ -1,4 +1,5 @@
 import { formatTimestamp } from '@/lib/dateFormat'
+import { FadeIn } from '@/components/motion'
 
 export interface DashboardActivityItem {
   id: string
@@ -28,8 +29,9 @@ export function DashboardActivityFeed({ items }: DashboardActivityFeedProps) {
             <p className="text-sm text-muted-foreground">No recent activity</p>
           </div>
         ) : (
-          items.slice(0, 10).map((activity) => (
-            <div key={activity.id} className="flex gap-3 border-b border-border/40 pb-3 last:border-b-0 last:pb-0">
+          items.slice(0, 10).map((activity, index) => (
+            <FadeIn key={activity.id} delay={index * 0.05}>
+            <div className="flex gap-3 border-b border-border/40 pb-3 last:border-b-0 last:pb-0">
               <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted/50 text-xs font-medium text-muted-foreground">
                 {(activity.actor_name || activity.user || '?').charAt(0).toUpperCase()}
               </div>
@@ -46,6 +48,7 @@ export function DashboardActivityFeed({ items }: DashboardActivityFeedProps) {
                 </div>
               </div>
             </div>
+            </FadeIn>
           ))
         )}
       </div>
