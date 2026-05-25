@@ -19,10 +19,12 @@ import {
   stats,
 } from '@/lib/constants/landing'
 
-/** Passthrough wrappers for removed animation components */
-const ScrollReveal = ({ children, className }: { children: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
-const StaggerReveal = ({ children, className }: { children: React.ReactNode; className?: string; staggerDelay?: number }) => <div className={className}>{children}</div>
-const StaggerItem = ({ children }: { children: React.ReactNode }) => <>{children}</>
+import { FadeInView, StaggerContainer, StaggerItem as MStaggerItem } from '@/components/motion'
+
+/** Motion-enabled wrappers replacing the old passthrough stubs */
+const ScrollReveal = ({ children, className }: { children: React.ReactNode; className?: string }) => <FadeInView className={className}>{children}</FadeInView>
+const StaggerReveal = ({ children, className }: { children: React.ReactNode; className?: string; staggerDelay?: number }) => <StaggerContainer className={className}>{children}</StaggerContainer>
+const StaggerItem = ({ children }: { children: React.ReactNode }) => <MStaggerItem>{children}</MStaggerItem>
 const TextEffect = ({ children }: { children: React.ReactNode; effect?: string }) => <>{children}</>
 
 const deferredSectionStyle = {

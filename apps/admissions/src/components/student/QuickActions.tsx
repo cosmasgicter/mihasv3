@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { animateClasses, staggerChild } from '@/lib/animations';
+import { ScaleOnHover } from '@/components/motion';
 
 interface QuickActionsProps {
   hasDrafts: boolean;
@@ -146,6 +147,7 @@ export function QuickActions({
           {/* Pending payment action */}
           {hasPendingPayment && (
             <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
+              <ScaleOnHover>
               <ActionCard
                 icon={<CreditCard className="h-5 w-5" />}
                 title="Complete Payment"
@@ -153,12 +155,14 @@ export function QuickActions({
                 href="/student/payment"
                 variant="warning"
               />
+              </ScaleOnHover>
             </div>
           )}
 
           {/* Interview action */}
           {hasScheduledInterview && (
             <div className={`${animateClasses.fadeIn} opacity-0`} style={staggerChild(itemIndex++)}>
+              <ScaleOnHover>
               <ActionCard
                 icon={<Calendar className="h-5 w-5" />}
                 title="View Interview Details"
@@ -166,6 +170,7 @@ export function QuickActions({
                 href="/student/interview"
                 variant="success"
               />
+              </ScaleOnHover>
             </div>
           )}
 

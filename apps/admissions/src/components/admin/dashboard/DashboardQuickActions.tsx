@@ -1,5 +1,6 @@
 import { FileText, GraduationCap, ScrollText, Settings, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { ScaleOnHover } from '@/components/motion'
 
 interface DashboardQuickActionsProps {
   pendingApplications: number
@@ -29,8 +30,8 @@ export function DashboardQuickActions({
         {quickActions.map((action) => {
           const Icon = action.icon
           return (
+            <ScaleOnHover key={action.label}>
             <Link
-              key={action.label}
               to={action.to}
               className="flex items-center justify-between rounded-lg border border-border/40 p-3 hover:bg-muted/30 transition-colors min-h-touch"
             >
@@ -40,6 +41,7 @@ export function DashboardQuickActions({
               </div>
               <span className="text-xs text-muted-foreground">{action.description}</span>
             </Link>
+            </ScaleOnHover>
           )
         })}
       </div>

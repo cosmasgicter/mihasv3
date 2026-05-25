@@ -2,6 +2,8 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { validateHeadingHierarchy, extractHeadingLevels } from '@/lib/accessibility-utils'
 import { logger } from '@/lib/logger'
+import { motion } from '@/components/motion'
+import { useReducedMotion } from '@/lib/animation-config'
 
 interface PageShellProps {
   title: string
@@ -42,6 +44,7 @@ export function PageShell({
 }: PageShellProps) {
   const containerClass = maxWidthClasses[maxWidth]
   const shellRef = React.useRef<HTMLDivElement>(null)
+  const reduced = useReducedMotion()
   const accentClass = {
     default: 'border-primary/25',
     admin: 'border-primary/25',
@@ -64,10 +67,22 @@ export function PageShell({
     }
   })
 
+  const motionProps = React.useMemo(
+    () => ({
+      initial: reduced ? (false as const) : { opacity: 0, y: 8 },
+      animate: { opacity: 1, y: 0 },
+      transition: reduced
+        ? { duration: 0 }
+        : { duration: 0.2, ease: [0.4, 0, 0.2, 1] as const },
+    }),
+    [reduced]
+  )
+
   return (
-    <div
+    <motion.div
       ref={shellRef}
       className={cn('bottom-nav-content-padding relative min-h-screen overflow-x-hidden scroll-smooth bg-muted md:pb-0', className)}
+      {...motionProps}
     >
       <div className={cn('mx-auto px-4 sm:px-6 lg:px-8', containerClass)}>
         <header className="py-3 sm:py-6">
@@ -122,7 +137,7 @@ export function PageShell({
           {children}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 

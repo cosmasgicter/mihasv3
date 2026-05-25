@@ -33,6 +33,7 @@ import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useStudentDashboardPolling, type StudentDashboardData } from '@/hooks/useStudentDashboardPolling'
 
 import { staggerChild, animateClasses } from '@/lib/animations'
+import { StaggerContainer, StaggerItem } from '@/components/motion'
 import { getDisplayName } from '@/lib/userDisplayName'
 import { Seo } from '@/components/seo/Seo'
 import { applicationSessionManager } from '@/lib/applicationSession'
@@ -641,7 +642,7 @@ export default function StudentDashboard() {
         {isInitialLoading ? (
           <DashboardSkeleton />
         ) : (
-          <div className="space-y-6 sm:space-y-8">
+          <StaggerContainer className="space-y-6 sm:space-y-8">
             {isRefreshing && (
               <div className="overflow-hidden rounded-full" role="status" aria-live="polite">
                 <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10">
@@ -657,6 +658,7 @@ export default function StudentDashboard() {
               </Banner>
             )}
 
+            <StaggerItem>
             <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.NextActionCards', ...errorInfo })}>
             <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
               <div className="flex items-center gap-2">
@@ -732,12 +734,16 @@ export default function StudentDashboard() {
               </div>
             </div>
             </ErrorBoundary>
+            </StaggerItem>
 
             {/* Applications first — most important on mobile */}
+            <StaggerItem>
             <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.ContinueApplication', ...errorInfo })}>
             <ContinueApplication />
             </ErrorBoundary>
+            </StaggerItem>
 
+            <StaggerItem>
             <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.ApplicationsGrid', ...errorInfo })}>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
               <SectionCard
@@ -886,15 +892,18 @@ export default function StudentDashboard() {
               </div>
             </div>
             </ErrorBoundary>
+            </StaggerItem>
 
             {/* Status overview and action cards after the main content */}
+            <StaggerItem>
             <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'StudentDashboard.StatusOverview', ...errorInfo })}>
             <DashboardStatusOverview
               applications={applications}
             />
             </ErrorBoundary>
+            </StaggerItem>
 
-          </div>
+          </StaggerContainer>
         )}
       <ConfirmAlertDialog
         isOpen={confirmDialog.isOpen}

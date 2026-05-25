@@ -591,3 +591,16 @@ nav button[class*="text-red-"],
 .success-bounce {
   /* intentionally empty — see note above */
 }
+
+/* Touch feedback for mobile cards */
+.touch-feedback {
+  transition: transform 100ms ease;
+}
+.touch-feedback:active {
+  transform: scale(0.97);
+}
+
+/* GPU acceleration hint for animated elements */
+.will-animate {
+  will-change: transform, opacity;
+}
