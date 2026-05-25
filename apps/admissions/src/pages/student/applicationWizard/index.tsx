@@ -597,32 +597,6 @@ const ApplicationWizardContent = () => {
               <ArrowLeft style={{ width: 'var(--icon-size-sm)', height: 'var(--icon-size-sm)', marginRight: '0.5rem' }} />
               Back to Dashboard
             </button>
-
-            <div>
-              <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-                {currentStepConfig.title}
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground/80">
-                Step {currentStepIndex + 1} of {totalSteps}
-                {smartAutoSave.saveStatus === 'saved' && smartAutoSave.timeSinceLastSave
-                  ? ` · Auto-saved ${smartAutoSave.timeSinceLastSave}`
-                  : smartAutoSave.saveStatus === 'saving'
-                    ? ' · Saving…'
-                    : smartAutoSave.hasUnsavedChanges
-                      ? ' · Unsaved changes'
-                      : ''}
-              </p>
-              {/* Thin step progress bar */}
-              <div className="mt-3 h-1.5 w-full rounded-full bg-muted" aria-hidden="true">
-                <div
-                  className="h-1.5 rounded-full bg-primary transition-[width] duration-300 ease-out"
-                  style={{ width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }}
-                />
-              </div>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground/70">
-                {currentStepConfig.description}
-              </p>
-            </div>
           </div>
         </Container>
 
@@ -782,7 +756,16 @@ const ApplicationWizardContent = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           <div className="lg:col-span-2">
-            <form onSubmit={form.handleSubmit(handleSubmitApplication)} className="space-y-6 lg:space-y-8" style={{ scrollPaddingBottom: '5rem' }}>
+            <form onSubmit={form.handleSubmit(handleSubmitApplication, (validationErrors) => {
+              // Surface silent Zod failures to the user. Without this callback
+              // form.handleSubmit swallows validation errors and the submit
+              // button appears to do nothing.
+              const firstError = Object.values(validationErrors)[0]
+              const message = (firstError && typeof firstError === 'object' && 'message' in firstError && typeof firstError.message === 'string')
+                ? firstError.message
+                : 'Please fix the highlighted errors before submitting.'
+              setError(message)
+            })} className="space-y-6 lg:space-y-8" style={{ scrollPaddingBottom: '5rem' }}>
             <div key={stepKey} ref={stepContentRef} tabIndex={-1} className={`outline-none ${stepDirection === 'forward' ? 'wizard-step-forward' : 'wizard-step-backward'}`}>
             {/* Background upload indicator — visible on any step */}
             {uploading && currentStepConfig.key !== 'education' && (
@@ -909,11 +892,13 @@ const ApplicationWizardContent = () => {
 
           <aside className="hidden lg:col-span-1 lg:block" aria-labelledby="wizard-support-heading">
             <div className="sticky top-6 space-y-4">
-              <ApplicationPreview
-                form={form}
-                programName={selectedProgramDetails?.name}
-                intakeName={form.watch('intake')}
-              />
+              {currentStepConfig.key !== 'submit' && (
+                <ApplicationPreview
+                  form={form}
+                  programName={selectedProgramDetails?.name}
+                  intakeName={form.watch('intake')}
+                />
+              )}
               
               <StepChecklist items={getChecklistItems()} />
               
