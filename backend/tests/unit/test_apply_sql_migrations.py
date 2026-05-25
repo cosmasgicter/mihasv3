@@ -583,3 +583,149 @@ def test_concurrently_phase_error_skips_history_and_exits_nonzero(
             ["0001_concurrently_bad.sql"],
         )
         assert cur.fetchone()[0] == 0
+
+
+# ---------------------------------------------------------------------------
+# Top-level filename exclusion (rollback siblings + design-deferred files)
+# ---------------------------------------------------------------------------
+#
+# Container startup (Koyeb) runs ``python manage.py apply_sql_migrations``
+# before serving traffic. Without these exclusions the lexical sweep
+# would try to apply every ``*_rollback.sql`` sibling and the
+# documented-deferred files (``00_full_schema.sql``,
+# ``legacy_columns_drop_2026_08_15.sql``), and the additive-only lint
+# from Task 1.5 would reject them — crashlooping the container.
+#
+# These tests pin the exclusion list so a future refactor cannot
+# regress that boot path.
+
+
+@pytest.mark.django_db
+def test_rollback_sibling_files_are_skipped(
+    fresh_migration_history, migrations_dir
+):
+    """``*_rollback.sql`` files must not be picked up by the lexical sweep.
+
+    Per Requirement 9.5 of the production-schema-reconciliation spec,
+    rollback files are applied manually by the operator — never by
+    ``apply_sql_migrations``. Without this exclusion a forward script
+    paired with its sibling rollback would crash the container at
+    startup because the additive lint flags the rollback's
+    ``DROP COLUMN`` / ``DROP INDEX`` statements as non-additive.
+    """
+    _write(
+        migrations_dir / "0001_forward.sql",
+        "CREATE TABLE IF NOT EXISTS _aux_smoke_rb (id INT PRIMARY KEY);",
+    )
+    _write(
+        migrations_dir / "0001_forward_rollback.sql",
+        "DROP TABLE IF EXISTS _aux_smoke_rb;",
+    )
+
+    out = StringIO()
+    call_command(
+        "apply_sql_migrations",
+        "--migrations-dir",
+        str(migrations_dir),
+        stdout=out,
+    )
+
+    text = out.getvalue()
+    # Forward must apply.
+    assert "0001_forward.sql" in text
+    # Rollback must NOT be mentioned in the apply output.
+    assert "0001_forward_rollback.sql" not in text
+
+    with connection.cursor() as cur:
+        cur.execute(
+            "SELECT migration_name FROM migration_history "
+            "WHERE migration_name IN (%s, %s)",
+            ["0001_forward.sql", "0001_forward_rollback.sql"],
+        )
+        rows = {row[0] for row in cur.fetchall()}
+        assert "0001_forward.sql" in rows
+        assert "0001_forward_rollback.sql" not in rows
+        cur.execute("DROP TABLE IF EXISTS _aux_smoke_rb")
+
+
+@pytest.mark.django_db
+def test_excluded_top_level_filenames_are_skipped(
+    fresh_migration_history, migrations_dir
+):
+    """``00_full_schema.sql`` and ``legacy_columns_drop_2026_08_15.sql``
+    must be skipped per design.md Component 3.
+
+    These two filenames are documented exclusions: the first is a
+    generated documentation snapshot, the second is a deliberately
+    deferred future cleanup. Auto-applying either at container
+    startup would either re-execute the entire schema or attempt a
+    non-additive cleanup ahead of schedule.
+    """
+    # Both excluded files would crash the lint (or the connection)
+    # if they ever ran. Their bodies are intentionally syntactically
+    # valid additive SQL so the only thing keeping the test green is
+    # the filename-based exclusion.
+    _write(
+        migrations_dir / "00_full_schema.sql",
+        "CREATE TABLE IF NOT EXISTS _aux_smoke_skip_a (id INT PRIMARY KEY);",
+    )
+    _write(
+        migrations_dir / "legacy_columns_drop_2026_08_15.sql",
+        "CREATE TABLE IF NOT EXISTS _aux_smoke_skip_b (id INT PRIMARY KEY);",
+    )
+    _write(
+        migrations_dir / "0001_real_target.sql",
+        "CREATE TABLE IF NOT EXISTS _aux_smoke_real (id INT PRIMARY KEY);",
+    )
+
+    call_command(
+        "apply_sql_migrations",
+        "--migrations-dir",
+        str(migrations_dir),
+        stdout=StringIO(),
+    )
+
+    with connection.cursor() as cur:
+        cur.execute("SELECT migration_name FROM migration_history")
+        rows = {row[0] for row in cur.fetchall()}
+        assert "0001_real_target.sql" in rows
+        assert "00_full_schema.sql" not in rows
+        assert "legacy_columns_drop_2026_08_15.sql" not in rows
+        cur.execute("DROP TABLE IF EXISTS _aux_smoke_skip_a")
+        cur.execute("DROP TABLE IF EXISTS _aux_smoke_skip_b")
+        cur.execute("DROP TABLE IF EXISTS _aux_smoke_real")
+
+
+@pytest.mark.django_db
+def test_legacy_payment_hardening_rollback_is_skipped(
+    fresh_migration_history, migrations_dir
+):
+    """The pre-existing ``payment_hardening_indexes_rollback.sql`` shipped
+    in the checkout must also be skipped — it predates this spec and
+    has no forward sibling at top level, but matches the
+    ``*_rollback.sql`` convention so the suffix-based exclusion still
+    catches it. This test pins that behaviour because the file is
+    actually present in production checkouts.
+    """
+    _write(
+        migrations_dir / "payment_hardening_indexes_rollback.sql",
+        "DROP INDEX IF EXISTS uq_payments_receipt_number;",
+    )
+    _write(
+        migrations_dir / "0001_unrelated_forward.sql",
+        "CREATE TABLE IF NOT EXISTS _aux_smoke_unrel (id INT PRIMARY KEY);",
+    )
+
+    call_command(
+        "apply_sql_migrations",
+        "--migrations-dir",
+        str(migrations_dir),
+        stdout=StringIO(),
+    )
+
+    with connection.cursor() as cur:
+        cur.execute("SELECT migration_name FROM migration_history")
+        rows = {row[0] for row in cur.fetchall()}
+        assert "0001_unrelated_forward.sql" in rows
+        assert "payment_hardening_indexes_rollback.sql" not in rows
+        cur.execute("DROP TABLE IF EXISTS _aux_smoke_unrel")
