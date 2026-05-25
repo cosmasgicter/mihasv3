@@ -91,6 +91,28 @@ DEFAULT_MIGRATIONS_DIR = Path(__file__).resolve().parents[4] / "scripts"
 EXCLUDED_SUBDIRS: frozenset[str] = frozenset({"applied", "archive", "migrations"})
 
 
+# Top-level filenames that must NEVER be auto-applied even when present
+# alongside the forward Migration_Scripts. Documented in design.md
+# Component 3 of ``.kiro/specs/production-schema-reconciliation/``.
+#
+# * ``00_full_schema.sql`` is a generated full-schema documentation
+#   snapshot (regenerated via ``generate_full_schema.py``) — never an
+#   apply target.
+# * ``legacy_columns_drop_2026_08_15.sql`` is a future, deliberately
+#   deferred non-additive cleanup; it must not be picked up by the
+#   container-startup sweep.
+#
+# Sibling ``*_rollback.sql`` files are excluded by the suffix filter in
+# ``_iter_migration_files`` rather than this set, so a future operator
+# adding a new rollback does not have to remember to update this list.
+EXCLUDED_TOP_LEVEL_FILES: frozenset[str] = frozenset(
+    {
+        "00_full_schema.sql",
+        "legacy_columns_drop_2026_08_15.sql",
+    }
+)
+
+
 # Detects ``CREATE INDEX CONCURRENTLY`` (any whitespace, any case).
 # ``\b`` boundaries prevent matching inside identifiers like
 # ``CREATE_INDEX_CONCURRENTLY_NOTES``.
@@ -156,10 +178,27 @@ def _iter_migration_files(directory: Path) -> Iterable[Path]:
     Subdirectories are deliberately not recursed into — files under
     ``applied/``, ``archive/``, and ``migrations/`` (and any other
     subdirectory) are excluded by virtue of this non-recursive scan.
+
+    Top-level filenames in ``EXCLUDED_TOP_LEVEL_FILES`` are also
+    skipped — that set covers the rollback-sibling convention
+    (``*_rollback.sql``) per Requirement 9.5 plus two specifically
+    named files documented in design.md Component 3 of
+    ``.kiro/specs/production-schema-reconciliation/``:
+
+    * ``00_full_schema.sql`` — generated documentation snapshot of the
+      live schema, never applied as a migration.
+    * ``legacy_columns_drop_2026_08_15.sql`` — a future, deliberately
+      deferred non-additive cleanup script.
     """
     if not directory.exists():
         return []
-    return sorted(p for p in directory.iterdir() if p.is_file() and p.suffix == ".sql")
+    return sorted(
+        p for p in directory.iterdir()
+        if p.is_file()
+        and p.suffix == ".sql"
+        and not p.name.endswith("_rollback.sql")
+        and p.name not in EXCLUDED_TOP_LEVEL_FILES
+    )
 
 
 def _strip_sql_line_comments(sql: str) -> str:
