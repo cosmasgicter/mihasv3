@@ -168,7 +168,7 @@ Staging settings are available at `backend/config/settings/staging.py` for pre-p
 
 | Feature | Endpoint / Location | Model | Notes |
 |---------|---------------------|-------|-------|
-| OCR grade extraction | `backend/apps/documents/ocr_service.py` | Tesseract via Celery | Extracts grades from result slips; never overwrites manual entries; 30s timeout |
+| OCR grade extraction | `backend/apps/documents/tasks.py::extract_document_text_task` | Tesseract via Celery | Extracts grades from result slips; never overwrites manual entries; 120s soft / 180s hard task limit |
 | AI admin review summary | `GET /api/v1/applications/{id}/admin-summary/` | `gpt-4o-mini` | Cached, rate-limited, graceful fallback when API key missing |
 | AI preview summary | Review step in wizard | `gpt-4o-mini` | Personalized application summary for students |
 

@@ -17,6 +17,10 @@ from apps.applications.services import transition_application_status
 
 logger = logging.getLogger(__name__)
 
+# Default enrollment-confirmation deadline when no academic-calendar event
+# is configured: approval date + this many days.
+DEFAULT_ENROLLMENT_DEADLINE_DAYS = 14
+
 
 class EnrollmentError(Exception):
     """Raised when an enrollment operation fails validation."""
@@ -130,9 +134,9 @@ class EnrollmentService:
                 naive = datetime.combine(event.event_date, time(23, 59, 59))
                 return timezone.make_aware(naive)
 
-        # Fallback: approval_date + 14 days
+        # Fallback: approval_date + default deadline window
         approval_date = application.decision_date or timezone.now()
-        return approval_date + timedelta(days=14)
+        return approval_date + timedelta(days=DEFAULT_ENROLLMENT_DEADLINE_DAYS)
 
 
 def _send_enrollment_notification(application: Application) -> None:

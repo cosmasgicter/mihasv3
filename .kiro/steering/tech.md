@@ -380,13 +380,13 @@ A runbook for rotating production secrets lives at `docs/runbooks/secrets-rotati
 
 | Feature | Backend | Frontend | Model |
 |---------|---------|----------|-------|
-| OCR grade extraction | `backend/apps/documents/ocr_service.py` | Education step in wizard | Tesseract via Celery task |
+| OCR grade extraction | `backend/apps/documents/tasks.py::extract_document_text_task` | Education step in wizard | Tesseract via Celery task |
 | AI admin review summary | `GET /api/v1/applications/{id}/admin-summary/` | Admin review panel | `gpt-4o-mini` via `AI_GATEWAY_API_KEY` |
 | AI preview summary | Review step in wizard | Personalized application summary | `gpt-4o-mini` |
 
 - AI features use `AI_GATEWAY_API_KEY` (not `OPENAI_API_KEY`) for the Vercel AI Gateway.
 - The gateway supports multiple model tiers configured in `base.py`: `AI_MODEL_FAST` (gemini-2.5-flash), `AI_MODEL_VISION` (gemini-2.5-flash), `AI_MODEL_ANALYSIS` (gpt-4o-mini), `AI_MODEL_SMART` (deepseek-v3).
-- OCR never overwrites manually entered grades. Timeout is 30 seconds.
+- OCR never overwrites manually entered grades. The `extract_document_text_task` Celery task runs with a 120s soft / 180s hard time limit; the frontend `useOcrGradeExtraction` hook polls for up to 90 seconds before giving up gracefully.
 - AI admin summary and student preview summary each have a 24-hour Redis cache keyed by application fingerprint (see `backend/apps/common/ai_cache.py`). Super-admins can force-refresh the admin summary with `?refresh=1`.
 - AI-touching endpoints are individually throttled per user when `AI_HARDENING_RATE_LIMITS=True`: admin summary 60/hour, student preview 10/hour, document OCR re-extract 5/hour (see `backend/apps/common/throttling.py` — `AIUserScopedRateThrottle`).
 - Every AI call runs through `apps.common.ai_circuit_breaker.with_circuit_breaker`, which short-circuits for 5 minutes after 3 consecutive failures when `AI_HARDENING_CIRCUIT_BREAKER=True`. Callers already treat `None` as "AI unavailable, degrade gracefully".

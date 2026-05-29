@@ -74,6 +74,9 @@ import {
 import { useWizardSessionRecovery } from './wizard/useWizardSessionRecovery'
 import { useWizardProfileAutoPopulate } from './wizard/useWizardProfileAutoPopulate'
 import { useWizardDraftLoader } from './wizard/useWizardDraftLoader'
+import { useWizardGrades } from './wizard/useWizardGrades'
+import { useWizardFileUploads } from './wizard/useWizardFileUploads'
+import { useWizardDraftPersistence } from './wizard/useWizardDraftPersistence'
 
 // Re-export pure helpers so existing test imports keep working
 export {
@@ -192,9 +195,6 @@ const useWizardController = (): UseWizardControllerResult => {
   const [gradesHydrating, setGradesHydrating] = useState(false)
   const [programs, setPrograms] = useState<WizardProgram[]>([])
   const [intakes, setIntakes] = useState<WizardIntake[]>([])
-  const isSavingRef = useRef(false)
-  const pendingSaveRef = useRef(false)
-  const createBlockedRef = useRef(false)
   const isSubmittingRef = useRef(false)
 
   const findProgramId = useCallback(
@@ -418,15 +418,6 @@ const useWizardController = (): UseWizardControllerResult => {
     onValidationClear: clearValidationError
   })
 
-  const normalizeSelectedGrades = useCallback((grades: SubjectGrade[]): SubjectGrade[] => {
-    return normalizeDraftResumeGrades(
-      grades.map(grade => ({
-        ...grade,
-        subject_id: resolveWizardSubjectId(grade.subject_id, subjects),
-      }))
-    )
-  }, [subjects])
-
   const clearStaleApplicationReference = useCallback((staleApplicationId: string, message?: string) => {
     clearStaleApplicationDraftReference(staleApplicationId)
     setApplicationId(current => (current === staleApplicationId ? null : current))
@@ -440,53 +431,23 @@ const useWizardController = (): UseWizardControllerResult => {
     }
   }, [queryClient, showWarning])
 
-  const persistLocalDraftSnapshot = useCallback(() => {
-    const draftSnapshot = {
-      formData: getValues(),
-      selectedGrades: selectedGradesRef.current,
-      uploadedFiles,
-      currentStep: currentStepConfig.id,
-      currentStepKey: currentStepConfig.key,
-      applicationId,
-      savedAt: new Date().toISOString(),
-      userId: user?.id,
-      version: 2,
-      paymentStatus,
-    }
-
-    try {
-      cachedSetItem('applicationWizardDraft', JSON.stringify(draftSnapshot))
-      useDraftStore.getState().markSaved(draftSnapshot)
-      window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draftSnapshot }))
-    } catch {
-      // best effort local persistence
-    }
-
-    return draftSnapshot
-  }, [applicationId, currentStepConfig.id, currentStepConfig.key, getValues, paymentStatus, uploadedFiles, user?.id])
-
-  const hydrateServerGrades = useCallback(async (draftApplicationId: string): Promise<SubjectGrade[]> => {
-    try {
-      const response = await applicationService.getGrades(draftApplicationId)
-      const normalized = normalizeSelectedGrades(
-        (Array.isArray(response) ? response : []).map((grade) => {
-          const record = grade as { subject_id?: unknown; grade?: unknown }
-          return {
-            subject_id: typeof record.subject_id === 'string' ? record.subject_id : '',
-            grade: Number(record.grade) || 0,
-          }
-        })
-      )
-      setSelectedGrades(normalized)
-      return normalized
-    } catch (gradeError) {
-      logApiError('application-wizard', `/applications/${draftApplicationId}/grades/`, gradeError)
-      if (isApplicationMissingError(gradeError)) {
-        clearStaleApplicationReference(draftApplicationId)
-      }
-      return []
-    }
-  }, [clearStaleApplicationReference, normalizeSelectedGrades])
+  const {
+    normalizeSelectedGrades,
+    hydrateServerGrades,
+    addGrade,
+    removeGrade,
+    updateGrade,
+    getUsedSubjects,
+    handleOcrGrades,
+  } = useWizardGrades({
+    subjects,
+    selectedGradesRef,
+    setSelectedGrades,
+    applicationId,
+    syncGrades,
+    showSuccess,
+    clearStaleApplicationReference,
+  })
 
   const hydrateServerDocuments = useCallback(async (draftApplicationId: string): Promise<Record<string, boolean>> => {
     try {
@@ -517,110 +478,65 @@ const useWizardController = (): UseWizardControllerResult => {
     }
   }, [clearStaleApplicationReference, markUploadedFile])
 
-  const handleResultSlipUpload = useCallback((file: File | null) => {
-    if (!file) {
-      baseHandleResultSlipFile(null)
-      return
-    }
+  const {
+    persistLocalDraftSnapshot,
+    handleLoadDraft,
+    saveDraft,
+  } = useWizardDraftPersistence({
+    user,
+    profile,
+    restoringDraft,
+    success,
+    applicationId,
+    uploadedFiles,
+    currentStepConfig,
+    paymentStatus,
+    selectedGradesRef,
+    selectedProgramDetails,
+    programsData,
+    totalSteps,
+    form: { getValues, setValue },
+    setApplicationId,
+    setRestoringDraft,
+    setDraftLoaded,
+    setGradesHydrating,
+    setError,
+    setIsDraftSaving,
+    setDraftSaved,
+    setSubmittedApplication,
+    markUploadedFile,
+    restorePaymentStatus,
+    showSuccess,
+    showWarning,
+    findProgramId,
+    deriveInstitutionLabel,
+    resolveProgramIdentity,
+    resolveIntakeIdentity,
+    createApplication,
+    goToStep,
+    clearStaleApplicationReference,
+    hydrateServerGrades,
+    hydrateServerDocuments,
+  })
 
-    baseHandleResultSlipUpload({ target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>, async (_uploadedFile, url, uploadedDocumentId) => {
-      if (!applicationId) return
-      
-      showInfo('Processing document...', 'Extracting grades from your result slip')
-      persistLocalDraftSnapshot()
-
-      const persistResultSlipUrl = async () => {
-        try {
-          await updateApplication.mutateAsync({ id: applicationId, data: { result_slip_url: url } })
-          queryClient.invalidateQueries({ queryKey: ['applications'] })
-          return true
-        } catch (error) {
-          if (isApplicationMissingError(error)) {
-            clearStaleApplicationReference(
-              applicationId,
-              'Your online draft was no longer available. The selected file is still on this device; continue from Basic Information to refresh the draft.'
-            )
-            return false
-          }
-          throw error
-        }
-      }
-      
-      try {
-        // Result slip uploaded — persist URL and trigger OCR extraction
-        const persisted = await persistResultSlipUrl()
-        if (!persisted) return
-
-        // Trigger backend OCR extraction (async Celery task)
-        // The document ID is available from the upload response stored in uploadedFiles
-        try {
-          let resultSlipDocId = uploadedDocumentId
-          if (!resultSlipDocId) {
-            const docs = await apiClient.request<{ results?: UploadedApplicationDocument[] } | UploadedApplicationDocument[]>(
-              `/applications/${applicationId}/documents/`
-            )
-            const docList = Array.isArray(docs) ? docs : (docs?.results ?? [])
-            resultSlipDocId = selectLatestDocumentByType(docList, 'result_slip')?.id
-          }
-
-          if (resultSlipDocId) {
-            // Fire OCR extraction — this is async (Celery task), don't await completion
-            apiClient.request(`/documents/${resultSlipDocId}/extract/`, { method: 'POST' }).catch((err) => logger.warn('OCR extraction request failed', toError(err)))
-            // Start polling for AI grade extraction results
-            setOcrDocumentId(resultSlipDocId)
-            startOcrPollingRef.current?.(resultSlipDocId)
-            showInfo('Analyzing your result slip...', 'AI is extracting grades — they will auto-populate shortly.')
-          }
-        } catch {
-          // Non-critical — OCR is a convenience, not a requirement
-          showSuccess('Result slip uploaded successfully.')
-        }
-      } catch (e) {
-        if (isApplicationMissingError(e)) {
-          clearStaleApplicationReference(
-            applicationId,
-            'Your online draft was no longer available. The selected file is still on this device; continue from Basic Information to refresh the draft.'
-          )
-          return
-        }
-        logger.error('Auto-fill error:', e)
-        showWarning('Auto-fill failed. Please enter grades manually.')
-        await persistResultSlipUrl()
-      }
-    })
-  }, [applicationId, baseHandleResultSlipFile, baseHandleResultSlipUpload, clearStaleApplicationReference, normalizeSelectedGrades, persistLocalDraftSnapshot, queryClient, showInfo, showSuccess, showWarning, subjects, syncGrades, updateApplication])
-
-  const handleExtraKycUpload = useCallback((file: File | null) => {
-    if (!file) {
-      baseHandleExtraKycFile(null)
-      return
-    }
-
-    baseHandleExtraKycUpload(
-      { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>,
-      async (_uploadedFile, url) => {
-        if (!applicationId) return
-
-        persistLocalDraftSnapshot()
-
-        try {
-          await updateApplication.mutateAsync({ id: applicationId, data: { extra_kyc_url: url } })
-          queryClient.invalidateQueries({ queryKey: ['applications'] })
-        } catch (error) {
-          if (isApplicationMissingError(error)) {
-            clearStaleApplicationReference(
-              applicationId,
-              'Your online draft was no longer available. The selected file is still on this device; continue from Basic Information to refresh the draft.'
-            )
-            return
-          }
-
-          logApiError('application-wizard', `PATCH /applications/${applicationId}/`, error)
-          showWarning('Identity document uploaded. Refresh the application if it does not appear immediately.')
-        }
-      }
-    )
-  }, [applicationId, baseHandleExtraKycFile, baseHandleExtraKycUpload, clearStaleApplicationReference, persistLocalDraftSnapshot, queryClient, showWarning, updateApplication])
+  const {
+    handleResultSlipUpload,
+    handleExtraKycUpload,
+  } = useWizardFileUploads({
+    applicationId,
+    baseHandleResultSlipUpload,
+    baseHandleExtraKycUpload,
+    baseHandleResultSlipFile,
+    baseHandleExtraKycFile,
+    updateApplication,
+    persistLocalDraftSnapshot,
+    clearStaleApplicationReference,
+    showInfo,
+    showSuccess,
+    showWarning,
+    setOcrDocumentId,
+    startOcrPollingRef,
+  })
 
   const preserveDraftBeforeAuthRedirect = useCallback(() => {
     persistLocalDraftSnapshot()
@@ -760,325 +676,8 @@ const useWizardController = (): UseWizardControllerResult => {
     hydrateServerDocuments,
   })
 
-  const handleLoadDraft = useCallback(async (draftData: unknown, draftId?: string) => {
-    const app = (
-      draftData &&
-      typeof draftData === 'object' &&
-      'application' in (draftData as Record<string, unknown>)
-    )
-      ? (draftData as { application?: unknown }).application
-      : draftData
-
-    if (!app || typeof app !== 'object') {
-      setError('This draft could not be loaded. Please refresh and try again.')
-      return
-    }
-
-    const draft = app as Record<string, unknown>
-    const resolvedDraftId = String(draft.id || draftId || '')
-    if (!resolvedDraftId) {
-      setError('This draft is missing its application ID. Please choose another draft.')
-      return
-    }
-
-    setRestoringDraft(true)
-    try {
-      setApplicationId(resolvedDraftId)
-      restorePaymentStatus(typeof draft.payment_status === 'string' ? draft.payment_status : null)
-
-      setValue('full_name', String(draft.full_name || ''), { shouldValidate: false })
-      setValue('nrc_number', String(draft.nrc_number || ''), { shouldValidate: false })
-      setValue('passport_number', String(draft.passport_number || ''), { shouldValidate: false })
-      setValue('date_of_birth', normalizeDateInputValue(draft.date_of_birth || ''), { shouldValidate: false })
-      setValue('sex', normalizeSexForWizard(draft.sex) as WizardFormData['sex'], { shouldValidate: false })
-      setValue('phone', String(draft.phone || ''), { shouldValidate: false })
-      setValue('email', String(draft.email || user?.email || ''), { shouldValidate: false })
-      setValue('residence_town', normalizeResidenceTown(String(draft.residence_town || '')), { shouldValidate: false })
-      setValue('country', String(draft.country || DEFAULT_RESIDENCE_COUNTRY), { shouldValidate: false })
-      setValue('nationality', String(draft.nationality || 'Zambian'), { shouldValidate: false })
-      setValue('next_of_kin_name', String(draft.next_of_kin_name || ''), { shouldValidate: false })
-      setValue('next_of_kin_phone', String(draft.next_of_kin_phone || ''), { shouldValidate: false })
-
-      const programValue = typeof draft.program === 'string' ? draft.program : ''
-      if (programValue) {
-        const resolvedProgramId = findProgramId(
-          programValue,
-          typeof draft.institution === 'string' ? draft.institution : undefined,
-          programsData?.programs as WizardProgram[] | undefined
-        )
-        setValue('program', resolvedProgramId || programValue, { shouldValidate: false })
-      } else {
-        setValue('program', '', { shouldValidate: false })
-      }
-      setValue('intake', String(draft.intake || ''), { shouldValidate: false })
-
-      const hydratedServerUploads = await hydrateServerDocuments(resolvedDraftId)
-      const restoredUploads = mergeDraftResumeUploads(draft, hydratedServerUploads)
-      markUploadedFile('result_slip', restoredUploads.result_slip)
-      markUploadedFile('extra_kyc', restoredUploads.extra_kyc)
-
-      setGradesHydrating(true)
-      let restoredGrades: SubjectGrade[] = []
-      try {
-        restoredGrades = await hydrateServerGrades(resolvedDraftId)
-      } finally {
-        setGradesHydrating(false)
-      }
-
-      const stepId = resolveDraftResumeStepId(draft, restoredGrades, restoredUploads)
-      const index = getStepIndexById(stepId)
-      goToStep(index >= 0 ? index : Math.min(Math.max(stepId - 1, 0), totalSteps - 1))
-
-      const syncDraft = {
-        formData: getValues(),
-        selectedGrades: restoredGrades,
-        uploadedFiles: restoredUploads,
-        currentStep: stepId,
-        currentStepKey: wizardSteps[Math.min(stepId - 1, wizardSteps.length - 1)]?.key,
-        applicationId: resolvedDraftId,
-        savedAt: String(draft.updated_at || draft.created_at || new Date().toISOString()),
-        userId: user?.id,
-        version: 2,
-        paymentStatus: typeof draft.payment_status === 'string' ? draft.payment_status : null,
-      }
-
-      try {
-        cachedSetItem('applicationWizardDraft', JSON.stringify(syncDraft))
-        useDraftStore.getState().markSaved(syncDraft)
-        window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: syncDraft }))
-      } catch {
-        // Local recovery cache is best effort.
-      }
-
-      setDraftLoaded(true)
-      setError('')
-      showSuccess('Draft loaded successfully')
-    } catch (error) {
-      logApiError('application-wizard', `load draft ${resolvedDraftId}`, error)
-      setError(toError(error).message || 'Failed to load draft')
-    } finally {
-      setRestoringDraft(false)
-    }
-  }, [
-    findProgramId,
-    getValues,
-    hydrateServerGrades,
-    markUploadedFile,
-    programsData?.programs,
-    restorePaymentStatus,
-    setValue,
-    showSuccess,
-    totalSteps,
-    user?.email,
-    user?.id,
-  ])
-
-  const saveDraft = useCallback(async (options: SaveDraftOptions = {}) => {
-    if (!user || restoringDraft || success) return
-    const syncServer = options.syncServer ?? true
-    
-    // Prevent concurrent saves — queue a follow-up instead of dropping
-    if (isSavingRef.current) {
-      pendingSaveRef.current = true
-      return
-    }
-    
-    try {
-      isSavingRef.current = true
-      setIsDraftSaving(true)
-      
-      const formData = getValues()
-      const now = new Date().toISOString()
-      const draft = {
-        formData,
-        selectedGrades: selectedGradesRef.current,
-        uploadedFiles,
-        currentStep: currentStepConfig.id,
-        currentStepKey: currentStepConfig.key,
-        applicationId,
-        savedAt: now,
-        userId: user.id,
-        version: 2,
-        paymentStatus,
-      }
-
-      // Always save to localStorage first for reliability (works offline)
-      try {
-        cachedSetItem('applicationWizardDraft', JSON.stringify(draft))
-        sessionStorage.removeItem('applicationWizardDraft')
-        useDraftStore.getState().markSaved(draft)
-        window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draft }))
-      } catch (error) {
-        logger.error('Error saving draft:', { error: sanitizeForLog(toError(error).message) })
-      }
-
-      if (syncServer && !applicationId && !createBlockedRef.current && navigator.onLine && canCreateServerDraft(formData)) {
-        try {
-          const metadata = getUserMetadata(user)
-          const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
-          const resolvedProgram = resolveProgramIdentity(formData.program)
-          if (!resolvedProgram) {
-            throw new Error('Please select a valid program before saving your draft online.')
-          }
-          const resolvedIntake = resolveIntakeIdentity(formData.intake)
-          if (!resolvedIntake) {
-            throw new Error('Please select a valid intake before saving your draft online.')
-          }
-          const institutionLabel =
-            resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
-          const app = await createApplication.mutateAsync(
-            buildServerDraftPayload({
-              formData: {
-                ...formData,
-                program: resolvedProgram.label,
-                intake: resolvedIntake.name
-              },
-              selectedProgramDetails,
-              institutionCode: institutionLabel,
-              nationality,
-            })
-          )
-
-          if (app?.id) {
-            setApplicationId(app.id)
-            const draftWithId = {
-              ...draft,
-              applicationId: app.id,
-            }
-
-            try {
-              cachedSetItem('applicationWizardDraft', JSON.stringify(draftWithId))
-              useDraftStore.getState().markSaved(draftWithId)
-              window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draftWithId }))
-            } catch {
-              // Non-critical localStorage refresh
-            }
-
-            setSubmittedApplication(prev => ({
-              applicationNumber: app.application_number || prev?.applicationNumber || '',
-              trackingCode: String(app.public_tracking_code || prev?.trackingCode || ''),
-              program: resolvedProgram.label,
-              institution: institutionLabel,
-              intake: resolvedIntake.label,
-              fullName: formData.full_name,
-              email: formData.email,
-              phone: sanitizePhoneInput(formData.phone),
-              status: app.status || 'draft',
-              paymentStatus: app.payment_status ?? prev?.paymentStatus ?? null,
-            }))
-
-            queryClient.invalidateQueries({ queryKey: ['applications'] })
-            window.dispatchEvent(new CustomEvent('applicationCreated', { detail: { applicationId: app.id, source: 'autosave' } }))
-          }
-        } catch (serverError) {
-          if (isAuthSaveError(serverError)) {
-            throw serverError
-          }
-          // 409 = duplicate application exists for this program+intake.
-          // Adopt the existing ID so auto-save stops retrying create.
-          const errStatus = (serverError as { status?: number })?.status
-          if (errStatus === 409) {
-            // Duplicate application exists — adopt the existing draft ID
-            const errBody = (serverError as { data?: { existing_id?: string } })?.data
-            const existingId = errBody?.existing_id
-            if (existingId) {
-              setApplicationId(existingId)
-              logger.info('[saveDraft] Adopted existing application %s from 409', existingId)
-            } else {
-              createBlockedRef.current = true
-              logger.info('[saveDraft] Duplicate application exists, skipping server create')
-            }
-          } else {
-            logApiError('application-wizard', 'POST /applications/', serverError)
-            logger.warn('Server draft create failed, local draft retained:', sanitizeForLog(toError(serverError).message))
-          }
-        }
-      }
-
-      // Persist to server via API if we have an applicationId and are online
-      // This is non-blocking — local draft is retained on failure and retried next interval
-      if (syncServer && applicationId && navigator.onLine) {
-        try {
-          await applicationService.update(applicationId, {
-            full_name: formData.full_name || undefined,
-            nrc_number: formData.nrc_number || undefined,
-            passport_number: formData.passport_number || undefined,
-            date_of_birth: formData.date_of_birth || undefined,
-            sex: formData.sex?.toLowerCase() || undefined,
-            phone: sanitizePhoneInput(formData.phone) || undefined,
-            email: formData.email || undefined,
-            residence_town: normalizeResidenceTown(formData.residence_town) || undefined,
-            country: formData.country || DEFAULT_RESIDENCE_COUNTRY,
-            nationality: formData.nationality || undefined,
-            next_of_kin_name: formData.next_of_kin_name || undefined,
-            next_of_kin_phone: sanitizePhoneInput(formData.next_of_kin_phone) || undefined,
-          } as Partial<Application>)
-        } catch (serverError) {
-          if (isAuthSaveError(serverError)) {
-            throw serverError
-          }
-          if (isApplicationMissingError(serverError)) {
-            clearStaleApplicationReference(applicationId)
-            return
-          }
-          // Non-blocking: local draft is retained, will retry on next 8-second interval
-          logApiError('application-wizard', `PATCH /applications/${applicationId}/`, serverError)
-        }
-      }
-
-      // Update UI indicators
-      setDraftSaved(true)
-      setTimeout(() => setDraftSaved(false), 2000)
-    } finally {
-      setIsDraftSaving(false)
-      isSavingRef.current = false
-      // Process queued save if one was requested while we were saving
-      if (pendingSaveRef.current) {
-        pendingSaveRef.current = false
-        void saveDraft(options)
-      }
-    }
-  }, [
-    user,
-    restoringDraft,
-    success,
-    selectedGrades,
-    uploadedFiles,
-    currentStepConfig,
-    applicationId,
-    getValues,
-    paymentStatus,
-    profile?.nationality,
-    deriveInstitutionLabel,
-    selectedProgramDetails,
-    resolveInstitutionCode,
-    resolveIntakeIdentity,
-    resolveProgramIdentity,
-    createApplication,
-    queryClient,
-    clearStaleApplicationReference,
-  ])
-
   // Auto-save is handled by useSmartAutoSave (via useAutoSave) in the wizard component.
   // No redundant setInterval needed here — useSmartAutoSave calls saveDraft every 8 seconds.
-
-  const addGrade = useCallback(() => {
-    setSelectedGrades(prev => (prev.length < 10 ? [...prev, { row_id: createGradeRowId(), subject_id: '', grade: 1 }] : prev))
-  }, [])
-
-  const removeGrade = useCallback((index: number) => {
-    setSelectedGrades(prev => prev.filter((_, i) => i !== index))
-  }, [])
-
-  const updateGrade = useCallback((index: number, field: keyof SubjectGrade, value: string | number) => {
-    setSelectedGrades(prev => {
-      const next = [...prev]
-      next[index] = { ...next[index]!, [field]: field === 'grade' ? Number(value) : value }
-      return next
-    })
-  }, [])
-
-  const getUsedSubjects = useCallback(() => selectedGrades.map(grade => grade.subject_id).filter(Boolean), [selectedGrades])
 
   // Use the fixed eligibility checker
   const { assessment: eligibilityAssessment } = useEligibilityChecker({
@@ -1102,38 +701,6 @@ const useWizardController = (): UseWizardControllerResult => {
     () => (selectedProgramDetails?.name ? getRecommendedSubjects(selectedProgramDetails.name) : []),
     [selectedProgramDetails]
   )
-
-  // OCR grade auto-population: poll for AI analysis after result slip upload
-  const handleOcrGrades = useCallback((grades: Array<{ subject_id: string; grade: number }>) => {
-    if (grades.length === 0) return
-
-    // Read from ref to get the absolute latest grades (avoids stale closure)
-    const currentGrades = selectedGradesRef.current
-    const hadManualGrades = currentGrades.length > 0
-
-    // Merge: OCR fills empty slots, never overwrites manually entered grades
-    const manualSubjectIds = new Set(currentGrades.map(g => g.subject_id))
-    const newGrades = grades
-      .filter(g => !manualSubjectIds.has(g.subject_id))
-      .map(g => ({ ...g, row_id: createGradeRowId() }))
-    const merged = [...currentGrades, ...newGrades]
-    setSelectedGrades(merged)
-
-    if (hadManualGrades && newGrades.length > 0) {
-      showSuccess(`✨ AI detected ${grades.length} subjects — added ${newGrades.length} new subjects (your ${currentGrades.length} existing entries were kept). Please verify.`)
-    } else if (hadManualGrades && newGrades.length === 0) {
-      showSuccess(`✨ AI detected ${grades.length} subjects, but all were already entered. Please verify your grades.`)
-    } else {
-      showSuccess(`✨ AI detected ${grades.length} subjects from your result slip! Please verify the grades are correct.`)
-    }
-
-    if (applicationId) {
-      const syncable = merged.filter(g => !g.subject_id.startsWith('fallback-'))
-      if (syncable.length > 0) {
-        syncGrades.mutateAsync({ id: applicationId, grades: syncable }).catch((err) => logger.warn('Grade sync failed', toError(err)))
-      }
-    }
-  }, [applicationId, syncGrades, showSuccess])
 
   const { status: ocrStatus, extractedCount: ocrExtractedCount, failureReason: ocrFailureReason, extractionMeta: ocrExtractionMeta, startPolling: startOcrPolling } = useOcrGradeExtraction(
     ocrDocumentId,

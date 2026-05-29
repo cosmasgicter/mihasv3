@@ -225,3 +225,6 @@ Cost_Accounting_*.docx
 
 # Local design tooling (kiro / antigravity / gemini) — not part of the app build
 /open-design/
+
+# Personal — Benard Besa campaign manifesto (not part of the platform)
+besa/

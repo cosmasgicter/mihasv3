@@ -159,7 +159,7 @@ export function JobsOpsShell() {
       <div className="mx-auto grid min-h-screen max-w-[1720px] grid-cols-1 gap-4 px-4 py-4 lg:grid-cols-[auto_minmax(0,1fr)_340px]">
         <nav
           aria-label="Main navigation"
-          className={`panel animate-rise flex min-h-[calc(100vh-2rem)] flex-col gap-6 overflow-hidden px-4 py-5 transition-all duration-200 ${
+          className={`panel animate-rise flex flex-col gap-6 overflow-hidden px-4 py-5 transition-all duration-200 lg:min-h-[calc(100vh-2rem)] ${
             sidebarCollapsed ? 'lg:w-[104px]' : 'lg:w-[308px]'
           }`}
         >

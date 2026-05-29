@@ -78,6 +78,10 @@ function readPageWithExtractedComponents(relativePath: string): string {
 const STUDENT_PAGES = [
   'pages/student/Dashboard.tsx',
   'pages/student/Payment.tsx',
+  'pages/student/Interview.tsx',
+  'pages/student/Settings.tsx',
+  'pages/student/NotificationSettings.tsx',
+  'pages/student/ApplicationStatus.tsx',
   'pages/student/applicationWizard/index.tsx',
   'pages/public/tracker/index.tsx',
 ]
@@ -89,6 +93,8 @@ const ADMIN_PAGES = [
   'pages/admin/Applications.tsx',
   'pages/admin/Programs.tsx',
   'pages/admin/Intakes.tsx',
+  'pages/admin/ProgramFees.tsx',
+  'pages/admin/Settings.tsx',
   'pages/admin/AuditTrail.tsx',
 ]
 

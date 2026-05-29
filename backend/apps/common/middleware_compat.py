@@ -65,7 +65,7 @@ class JWTAuthenticationMiddleware:
                     if body.get("code") == "CSRF_INVALID":
                         return response
                 except (json.JSONDecodeError, AttributeError):
-                    pass
+                    logger.debug("CSRF response body not JSON-parseable; skipping rewrite")
             response = JsonResponse(
                 {
                     "success": False,
@@ -122,7 +122,7 @@ class JWTAuthenticationMiddleware:
         except pyjwt.ExpiredSignatureError:
             request._jwt_expired = True
         except Exception:
-            pass
+            logger.debug("JWT decode for expiry flag failed; treating as not-expired")
 
     def _get_jwt_config(self) -> tuple[str, str]:
         if self._signing_key is None:

@@ -26,6 +26,10 @@ for _table, _cols in LEGACY_DEPRECATED_COLUMNS.items():
 _KNOWN_DAY0_VIOLATIONS: set[tuple[str, str]] = {
     # payment_service.py syncs payment_method to applications during transition
     ("apps/documents/payment_service.py", "payment_method"),
+    # payment_service_mixins/ — verbatim code moved from payment_service.py
+    ("apps/documents/payment_service_mixins/_core.py", "payment_method"),
+    ("apps/documents/payment_service_mixins/_verification.py", "payment_method"),
+    ("apps/documents/payment_service_mixins/_initiation.py", "payment_method"),
     # Stream 9 decomposition moved admin override writes from views.py to payment_widget_views.py.
     # Both locations are allow-listed in case the original views.py shim is consulted.
     ("apps/documents/views.py", "payment_method"),

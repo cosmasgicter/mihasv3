@@ -17,6 +17,13 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
+# Failed-login lockout window: failures within this window count toward
+# the lockout threshold.
+LOGIN_FAILURE_WINDOW = timedelta(minutes=15)
+
+# Password-reset token lifetime.
+PASSWORD_RESET_TOKEN_TTL = timedelta(hours=1)
+
 
 # ---------------------------------------------------------------------------
 # Password hashing
@@ -78,7 +85,7 @@ def check_login_attempts(email_hash: str) -> LoginStatus:
     """
     from apps.accounts.models import LoginAttempt
 
-    window_start = timezone.now() - timedelta(minutes=15)
+    window_start = timezone.now() - LOGIN_FAILURE_WINDOW
 
     # Count failures in the 15-minute window
     recent_failures = LoginAttempt.objects.filter(
@@ -142,7 +149,7 @@ def generate_password_reset_token(user) -> str:
     PasswordResetToken.objects.create(
         user=user,
         token_hash=token_hash,
-        expires_at=timezone.now() + timedelta(hours=1),
+        expires_at=timezone.now() + PASSWORD_RESET_TOKEN_TTL,
     )
 
     return raw_token
