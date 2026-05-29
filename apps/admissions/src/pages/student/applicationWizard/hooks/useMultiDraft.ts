@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { applicationService } from '@/services/applications'
+import { useDraftRevision } from '@/stores/draftStore'
 
 interface Draft {
   id: string
@@ -111,6 +112,14 @@ export const useMultiDraft = (userId: string | undefined) => {
   useEffect(() => {
     fetchDrafts()
   }, [userId])
+
+  // Refetch automatically whenever any consumer of the unified draft
+  // store reports a save / clear / stale event.
+  const draftRevision = useDraftRevision()
+  useEffect(() => {
+    if (draftRevision === 0) return
+    fetchDrafts()
+  }, [draftRevision])
 
   return {
     drafts,

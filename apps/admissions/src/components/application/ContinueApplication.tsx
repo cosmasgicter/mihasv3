@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
@@ -13,6 +13,7 @@ import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { toast } from '@/hooks/useToast'
 import { useApplicationDrafts } from '@/hooks/queries/useApplicationQueries'
+import { useDraftRevision } from '@/stores/draftStore'
 
 interface DraftInfo {
   exists: boolean
@@ -39,29 +40,30 @@ export function ContinueApplication() {
   const latestServerDraft = serverDrafts[0]
   const serverDraftCount = serverDrafts.length
 
+  const draftRevision = useDraftRevision()
+  const draftRevisionMountRef = useRef(draftRevision)
+
   useEffect(() => {
     if (user) {
       loadDraftInfo()
     }
   }, [user])
 
+  // React to Zustand draft store changes (replaces window 'applicationDraftSaved' / 'draftCleared' listeners)
   useEffect(() => {
-    const handleDraftChanged = () => {
-      loadDraftInfo()
-    }
+    if (draftRevision === draftRevisionMountRef.current) return
+    loadDraftInfo()
+  }, [draftRevision])
 
+  useEffect(() => {
     const handleApplicationSubmitted = () => {
       setDraftInfo({ exists: false })
       loadDraftInfo()
     }
 
-    window.addEventListener('applicationDraftSaved', handleDraftChanged)
-    window.addEventListener('draftCleared', handleDraftChanged)
     window.addEventListener('applicationSubmitted', handleApplicationSubmitted)
 
     return () => {
-      window.removeEventListener('applicationDraftSaved', handleDraftChanged)
-      window.removeEventListener('draftCleared', handleDraftChanged)
       window.removeEventListener('applicationSubmitted', handleApplicationSubmitted)
     }
   }, [user, profile?.user_id])

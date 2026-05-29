@@ -1,7 +1,7 @@
 """
 Pure functions for computing intake dates and ensuring minimum open intakes.
 
-No database access — the Celery task orchestrates DB reads/writes around these
+No database access - the Celery task orchestrates DB reads/writes around these
 pure computations, making the date logic independently testable.
 """
 
@@ -92,7 +92,7 @@ def _is_intake_open(intake_dates: ComputedIntakeDates, today: date) -> bool:
 def _existing_intake_is_open(intake: Any, today: date) -> bool:
     """Check whether an existing DB-style intake object is open on *today*.
 
-    Handles ``None`` date fields gracefully — an intake with missing dates is
+    Handles ``None`` date fields gracefully - an intake with missing dates is
     never considered open.
     """
     app_start = getattr(intake, "application_start_date", None)

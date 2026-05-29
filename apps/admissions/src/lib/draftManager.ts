@@ -163,6 +163,18 @@ export const clearAllDraftData = (): boolean => {
     });
 
     try { localStorage.setItem('draftDeleted', 'true'); } catch {}
+    // Clear payment recovery store entries so stale recovery data does
+    // not survive draft deletion (P0 audit finding).
+    try { localStorage.removeItem('mihas-payment-recovery'); } catch {}
+    // Notify both legacy listeners and the Zustand store so the
+    // dashboard, ContinueApplication card, and multi-draft list refresh.
+    try {
+      // Lazy import to avoid a circular dependency between
+      // ``lib/draftManager.ts`` and ``stores/draftStore.ts``.
+      void import('@/stores/draftStore').then(({ useDraftStore }) => {
+        useDraftStore.getState().markCleared();
+      });
+    } catch {}
     try { window.dispatchEvent(new CustomEvent('draftCleared')); } catch {}
 
     return true;

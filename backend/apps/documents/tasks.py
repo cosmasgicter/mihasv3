@@ -1,4 +1,4 @@
-"""Document Celery tasks — OCR text extraction and payment polling.
+"""Document Celery tasks - OCR text extraction and payment polling.
 
 Implements task 17.3 (OCR) and task 7.1 (Lenco payment polling).
 Requirements: 6.3, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6
@@ -124,15 +124,23 @@ def poll_pending_payments_task(self):
                 expired_count += 1
                 logger.info("Payment %s expired (pending > 24h)", payment.id)
 
-                # Sync application payment_status if still pending
-                try:
-                    from apps.applications.models import Application
-                    Application.objects.filter(
-                        id=payment.application_id,
-                        payment_status='pending',
-                    ).update(payment_status='expired', updated_at=now)
-                except Exception:
-                    logger.exception("Failed to sync application payment_status for payment %s", payment.id)
+                # Sync application payment_status
+                service._update_application_payment_status(
+                    payment.application_id, 'not_paid'
+                )
+
+                # Emit audit via service (ADR-007 compliance)
+                service._emit_audit(
+                    "payment.transitioned",
+                    payment,
+                    None,
+                    {
+                        "source": "reconciliation",
+                        "from_status": "pending",
+                        "target_status": "expired",
+                        "reason": "pending > 24h",
+                    },
+                )
 
                 # Notify student via CommunicationService
                 try:
@@ -194,7 +202,7 @@ def poll_pending_payments_task(self):
                 )
 
         if failures > 0 and failures == count:
-            # All verifications failed — likely Lenco API outage
+            # All verifications failed - likely Lenco API outage
             import sentry_sdk
             msg = f"Payment polling: all {failures} verifications failed. Possible Lenco API outage."
             logger.error(msg)
@@ -212,7 +220,7 @@ def extract_document_text_task(self, document_id, force=False):
     """
     import json as _json
     from apps.documents.models import ApplicationDocument
-    from apps.documents.views import _get_document_storage_key
+    from apps.common.storage import get_document_storage_key
 
     try:
         document = ApplicationDocument.objects.get(id=document_id)
@@ -230,7 +238,7 @@ def extract_document_text_task(self, document_id, force=False):
         document.verification_status = None
         document.save(update_fields=["extracted_text", "verification_notes", "verification_status"])
 
-    file_key = _get_document_storage_key(document)
+    file_key = get_document_storage_key(document)
     if not file_key:
         logger.error("Document %s has no file URL", document_id)
         return

@@ -9,7 +9,11 @@ import { normalizePaymentStatus } from '@/lib/paymentStatus'
 import { PAYMENT_TO_APP_MAP, CANONICAL_PAYMENT_STATUSES } from '@/lib/__fixtures__/paymentStatusBackendMirror'
 
 function parseBackendMap(): Record<string, string> {
-  const filePath = resolve(__dirname, '../../../../backend/apps/documents/payment_service.py')
+  // PAYMENT_TO_APP_MAP lives in payment_constants.py since the
+  // payment_service.py extraction. The constants module is the canonical
+  // source of truth; payment_service.py imports and re-exports the symbol
+  // so external imports keep working.
+  const filePath = resolve(__dirname, '../../../../backend/apps/documents/payment_constants.py')
   const content = readFileSync(filePath, 'utf-8')
 
   // Extract PAYMENT_TO_APP_MAP block

@@ -1,16 +1,16 @@
-"""Document and payment views — re-export shim.
+"""Document and payment views - re-export shim.
 
 This module was decomposed during Stream 9 backend module decomposition.
 All view classes are re-exported here so that existing URL configurations
 and test imports continue to work unchanged.
 
 Split files:
-  - mobile_money_views.py      — MobileMoneyInitiateView
-  - payment_widget_views.py    — PaymentInitiateView, DeferPaymentView, PaymentDevBypassView
-  - payment_admin_views.py     — SuperAdminPaymentCorrectionView
-  - payment_query_views.py     — PaymentVerifyView, PaymentListView, PaymentReceiptView, FeeResolveView, ProgramFeeViewSet
-  - lenco_webhook_views.py     — LencoWebhookView
-  - document_storage_views.py  — DocumentUploadView, DocumentDownloadView, DocumentSignedUrlView, DocumentDeleteView, DocumentInfoView, DocumentExtractView
+  - mobile_money_views.py      - MobileMoneyInitiateView
+  - payment_widget_views.py    - PaymentInitiateView, DeferPaymentView, PaymentDevBypassView
+  - payment_admin_views.py     - SuperAdminPaymentCorrectionView
+  - payment_query_views.py     - PaymentVerifyView, PaymentListView, PaymentReceiptView, FeeResolveView, ProgramFeeViewSet
+  - lenco_webhook_views.py     - LencoWebhookView
+  - document_storage_views.py  - DocumentUploadView, DocumentDownloadView, DocumentSignedUrlView, DocumentDeleteView, DocumentInfoView, DocumentExtractView
 """
 
 from apps.documents.mobile_money_views import MobileMoneyInitiateView  # noqa: F401
@@ -40,6 +40,7 @@ from apps.documents.document_storage_views import (  # noqa: F401
     DocumentInfoView,
     DocumentSignedUrlView,
     DocumentUploadView,
+    _get_document_storage_key,
 )
 
 # Test patch backward-compat: existing tests use
@@ -73,5 +74,6 @@ __all__ = [
     "SuperAdminPaymentCorrectionRequestSerializer",
     "SuperAdminPaymentCorrectionView",
     "StandardPagination",
+    "_get_document_storage_key",
     "_ip_allowed",
 ]

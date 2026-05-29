@@ -1,4 +1,4 @@
-"""Payment audit service — centralized audit-row shape and PII redaction.
+"""Payment audit service - centralized audit-row shape and PII redaction.
 
 Every payment audit event (initiation, transition, risk flag, admin override,
 super-admin correction, webhook processing, dev-bypass usage, rate-limit
@@ -69,7 +69,7 @@ _HASH_KEY_MARKERS: tuple[str, ...] = (
     "cardnumber",
 )
 
-#: Keys stripped from the payload entirely — never persisted or logged.
+#: Keys stripped from the payload entirely - never persisted or logged.
 _STRIP_KEYS: frozenset[str] = frozenset(
     {"document_body", "file_content", "raw_payload"}
 )
@@ -81,7 +81,7 @@ def _sha256_hex(value: str) -> str:
 
 
 def _sha256_hex_short(value: str) -> str:
-    """First 16 chars of :func:`_sha256_hex` — deterministic fingerprint."""
+    """First 16 chars of :func:`_sha256_hex` - deterministic fingerprint."""
     return _sha256_hex(value)[:16]
 
 
@@ -108,7 +108,7 @@ def _redact_phone(value: Any) -> dict[str, str]:
 class PaymentAuditService:
     """Thin wrapper over the existing ``audit_logs`` table.
 
-    The class is a namespace — every method is a ``@staticmethod`` so callers
+    The class is a namespace - every method is a ``@staticmethod`` so callers
     do not need to instantiate it. See module docstring for responsibilities.
     """
 
@@ -190,7 +190,7 @@ class PaymentAuditService:
                 retention_category=effective_retention,
             )
         except Exception:
-            # Never raise from the audit writer — a financial transition
+            # Never raise from the audit writer - a financial transition
             # must not be rolled back because of a transient audit issue.
             logger.warning(
                 "Failed to emit payment audit event %s for payment %s",
@@ -200,7 +200,7 @@ class PaymentAuditService:
             )
 
     # ------------------------------------------------------------------
-    # Internal helpers — exposed for unit + property tests
+    # Internal helpers - exposed for unit + property tests
     # ------------------------------------------------------------------
 
     @staticmethod
@@ -235,7 +235,7 @@ class PaymentAuditService:
                             "" if sub_value is None else str(sub_value)
                         )
                         continue
-                # Non-PII key (or non-string key) — recurse into the value.
+                # Non-PII key (or non-string key) - recurse into the value.
                 result[key] = PaymentAuditService._redact_pii(sub_value)
             return result
 
@@ -266,7 +266,7 @@ class PaymentAuditService:
         try:
             # Prefer the shared helper which respects ``X-Forwarded-For``.
             from apps.common.audit_network import extract_client_ip
-        except Exception:  # pragma: no cover — defensive fallback
+        except Exception:  # pragma: no cover - defensive fallback
             extract_client_ip = None  # type: ignore[assignment]
 
         try:

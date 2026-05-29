@@ -17,7 +17,7 @@ class ReadOnlyMiddleware:
 
     The env var ``READ_ONLY_MODE`` is checked once at init time.
     When the env var is not set (the common case), the middleware is a
-    no-op — no database query, no per-request overhead.
+    no-op - no database query, no per-request overhead.
 
     When the env var *is* set to a truthy value, write requests
     (POST/PUT/PATCH/DELETE) are rejected with 503 Service Unavailable.

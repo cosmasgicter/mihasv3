@@ -1,4 +1,4 @@
-"""check_schema_drift — fail fast when Django models reference DB columns
+"""check_schema_drift - fail fast when Django models reference DB columns
 that do not exist on a ``managed = False`` table.
 
 Motivation
@@ -14,7 +14,7 @@ FROM <table>`` on every query and Postgres will error with
 This command is designed to run at container startup BEFORE
 ``uvicorn``. If drift is detected the command exits non-zero, the
 container crashloops, and the operator sees the mismatch in logs
-immediately — instead of shipping a broken deployment to users.
+immediately - instead of shipping a broken deployment to users.
 
 What it checks
 --------------
@@ -26,13 +26,13 @@ For every ``Model`` with ``Meta.managed = False``:
     Postgres.
 
 Optional flags (production-schema-reconciliation spec, Component 6):
-  * ``--check-fk-indexes`` — assert every foreign-key column on the
+  * ``--check-fk-indexes`` - assert every foreign-key column on the
     configured database is covered by a btree index whose first column
     matches the FK column. Postgres-only (skipped with a clear message
     on other backends). Emits ``MISSING_FK_INDEX: <table>.<column> ->
     <ref_table>.<ref_column>`` per gap and contributes to the non-zero
     exit when any gap is found. Implements R5.1 / R5.4.
-  * ``--check-migration-history-coverage`` — assert every top-level
+  * ``--check-migration-history-coverage`` - assert every top-level
     ``backend/scripts/*.sql`` Migration_Script committed strictly more
     than ``--commit-window-days`` ago (default 7) has a row in
     ``migration_history``. Files inside ``applied/``, ``archive/`` and
@@ -43,7 +43,7 @@ Optional flags (production-schema-reconciliation spec, Component 6):
     fails (shallow CI clones, missing ``git`` binary) and emits
     ``UNTRACKED_MIGRATION_SCRIPT: <filename> source=mtime`` instead.
     Implements R5.2 / R5.3.
-  * ``--commit-window-days`` — integer window (default ``7``) used by
+  * ``--commit-window-days`` - integer window (default ``7``) used by
     ``--check-migration-history-coverage`` to distinguish in-flight
     Migration_Scripts from stale ones. Files committed exactly at the
     boundary are tolerated per R8.4 ("strictly more than").
@@ -51,7 +51,7 @@ Optional flags (production-schema-reconciliation spec, Component 6):
 What it does NOT check (intentionally)
 --------------------------------------
   * Type compatibility (``VARCHAR`` vs ``TEXT`` etc.): not a 500 risk
-    in practice — Postgres auto-coerces most compatible types.
+    in practice - Postgres auto-coerces most compatible types.
   * Nullability: Django's default vs DB nullability drift usually
     surfaces as a validation error, not a 500.
   * Extra DB columns not on the model: these do not break the app.
@@ -68,8 +68,8 @@ Usage
         --check-migration-history-coverage
 
 Exit status:
-  0 — no drift
-  1 — drift detected (list of missing columns / FK indexes / stale
+  0 - no drift
+  1 - drift detected (list of missing columns / FK indexes / stale
       migrations printed)
 
 Success line shape (Requirement 5.6):
@@ -183,7 +183,7 @@ def _enumerate_foreign_keys() -> list[tuple[str, str, str, str]]:
     ``constraint_type = 'FOREIGN KEY'`` and ``table_schema =
     current_schema()`` so only the active schema is checked.
 
-    Postgres-only — the caller is expected to guard with a vendor
+    Postgres-only - the caller is expected to guard with a vendor
     check before invoking this helper.
     """
     with connection.cursor() as cursor:
@@ -219,7 +219,7 @@ def _has_first_attribute_btree_index(table: str, column: str) -> bool:
     The check joins ``pg_index``, ``pg_class`` (table + index relation),
     ``pg_attribute`` (resolves the first indexed attribute name from
     ``i.indkey[0]``), and ``pg_am`` to filter to btree access methods.
-    Only indexes with ``indisvalid = true`` count — partially built or
+    Only indexes with ``indisvalid = true`` count - partially built or
     invalid indexes do not satisfy the FK_Index_Invariant.
 
     Postgres-only.
@@ -267,7 +267,7 @@ def _find_missing_fk_indexes() -> list[tuple[str, str, str, str]]:
 # ---------------------------------------------------------------------------
 
 
-# Default migrations directory — same path used by ``apply_sql_migrations``
+# Default migrations directory - same path used by ``apply_sql_migrations``
 # (``backend/scripts/``). Resolved at import time so test fixtures and
 # production share a single source of truth and so the sweep cost stays
 # at directory-listing speed even when called many times.
@@ -276,9 +276,9 @@ MIGRATION_SCRIPTS_DIR: Path = (
 )
 
 # Subdirectories that hold scripts we must NOT include in the coverage
-# sweep — see Task 4.2: ``applied/`` (out-of-band scripts already in
+# sweep - see Task 4.2: ``applied/`` (out-of-band scripts already in
 # ``migration_history``), ``archive/`` (historical), ``migrations/``
-# (legacy directory — its top-level peer is the canonical home).
+# (legacy directory - its top-level peer is the canonical home).
 # Listed here for documentation; runtime exclusion is automatic because
 # ``_enumerate_migration_scripts`` does not recurse.
 _EXCLUDED_MIGRATION_SUBDIRS: frozenset[str] = frozenset(
@@ -293,10 +293,10 @@ def _enumerate_migration_scripts(
 
     Filters applied:
 
-    * ``directory.iterdir()`` is non-recursive — files inside
+    * ``directory.iterdir()`` is non-recursive - files inside
       ``applied/``, ``archive/`` and ``migrations/`` subdirectories are
       excluded by virtue of not descending into them.
-    * Filenames ending in ``_rollback.sql`` are dropped — every forward
+    * Filenames ending in ``_rollback.sql`` are dropped - every forward
       Migration_Script ships with a rollback sibling and the coverage
       rule applies to forward scripts only.
     * Non-existent directories return ``[]`` so the helper is safe to
@@ -337,7 +337,7 @@ def _git_commit_timestamp(path: Path) -> Optional[datetime]:
     (e.g., ``2026-05-22T12:39:21+02:00``) which Python's
     ``datetime.fromisoformat`` accepts directly on 3.11+.
 
-    Returns ``None`` on any failure — the binary is missing, the file
+    Returns ``None`` on any failure - the binary is missing, the file
     is outside any git tree, the repository is a shallow clone with
     insufficient history, or the timestamp string fails to parse. The
     caller treats ``None`` as the signal to fall back to filesystem
@@ -361,7 +361,7 @@ def _git_commit_timestamp(path: Path) -> Optional[datetime]:
     raw = (result.stdout or "").strip()
     if not raw:
         # File is tracked-but-uncommitted, or untracked entirely. Either
-        # way ``git`` returned 0 with empty output — fall back to mtime.
+        # way ``git`` returned 0 with empty output - fall back to mtime.
         return None
 
     try:
@@ -417,7 +417,7 @@ def _migration_history_table_exists() -> bool:
 def _recorded_migration_names() -> set[str]:
     """Return the set of ``migration_history.migration_name`` values.
 
-    Returns an empty set when the table does not exist — the caller
+    Returns an empty set when the table does not exist - the caller
     short-circuits the coverage sweep in that case so a missing
     bootstrap (e.g., on a SQLite test DB) does not produce a flood of
     false positives. Uses the configured connection so Postgres or
@@ -446,7 +446,7 @@ def _find_stale_unrecorded_migrations(
        ``now``.
 
     Files committed exactly at the window boundary are tolerated per
-    R8.4 ("strictly older than 7 days" — boundary cases are in-flight).
+    R8.4 ("strictly older than 7 days" - boundary cases are in-flight).
 
     The ``source`` element of each tuple is either ``"git"`` (commit
     timestamp available) or ``"mtime"`` (git lookup failed and the
@@ -556,7 +556,7 @@ class Command(BaseCommand):
                 "No managed=False models found — nothing to check."
             ))
             # Still run the FK-index and migration-history checks if
-            # requested — neither depends on managed=False models.
+            # requested - neither depends on managed=False models.
             fk_failed, fk_count = False, "disabled"
             if check_fk_indexes:
                 fk_failed, fk_count = self._run_fk_index_check()
@@ -660,7 +660,7 @@ class Command(BaseCommand):
         #   managed=False models verified above. ``<m>``/``<k>`` are the
         #   counts of items checked by each optional helper, or the
         #   literal ``disabled`` when the corresponding flag was omitted
-        #   (or when the helper short-circuited — e.g., FK-index skip on
+        #   (or when the helper short-circuited - e.g., FK-index skip on
         #   non-Postgres backends, or migration-history coverage skip
         #   when the bootstrap table is absent).
         if check_fk_indexes or check_migration_history:
@@ -695,7 +695,7 @@ class Command(BaseCommand):
         caller does not need to know which short-circuit path the
         helper followed.
 
-        Skips with a clear message on non-Postgres backends — keeping a
+        Skips with a clear message on non-Postgres backends - keeping a
         SQLite-backed test run green when the flag is set is part of
         Task 4.1's contract.
         """
@@ -721,7 +721,7 @@ class Command(BaseCommand):
             f"lack a covering btree index:"
         ))
         for table, column, ref_table, ref_column in gaps:
-            # Canonical line shape per R5.4 — kept stable so CI log
+            # Canonical line shape per R5.4 - kept stable so CI log
             # parsers and runbooks can grep for it without escaping.
             self.stdout.write(
                 f"MISSING_FK_INDEX: {table}.{column} -> {ref_table}.{ref_column}"
@@ -772,7 +772,7 @@ class Command(BaseCommand):
         so we are flagging it conservatively from filesystem mtime".
         Both conditions fail the check.
         """
-        # Skip cleanly when the bootstrap is missing — the canonical
+        # Skip cleanly when the bootstrap is missing - the canonical
         # use-case is a SQLite test DB without the
         # ``2026_05_22_migration_history_extend.sql`` table. Surfacing
         # this as a warning rather than a hard failure mirrors the
@@ -791,7 +791,7 @@ class Command(BaseCommand):
         # Computed up-front so the success-line count reflects the
         # full sweep, not just gaps. ``_find_stale_unrecorded_migrations``
         # also enumerates internally, but the cost is a directory
-        # listing — negligible compared to the per-file ``git log``
+        # listing - negligible compared to the per-file ``git log``
         # invocations. Keeping the two reads separate is clearer than
         # plumbing the count back through the gap helper.
         scripts = _enumerate_migration_scripts()
@@ -806,14 +806,14 @@ class Command(BaseCommand):
         ))
         for filename, iso_timestamp, source in gaps:
             if source == "git":
-                # Canonical R5.3 line — stable shape for CI log
+                # Canonical R5.3 line - stable shape for CI log
                 # parsers. ``committed=`` keyword anchors the iso8601.
                 self.stdout.write(
                     f"STALE_UNRECORDED_MIGRATION: {filename} "
                     f"committed={iso_timestamp}"
                 )
             else:
-                # Canonical R5.3 fallback line — emitted when
+                # Canonical R5.3 fallback line - emitted when
                 # ``git log`` fails (shallow clone, missing binary,
                 # untracked file). The ``source=mtime`` tag is stable
                 # so the CI log parser can branch on the prefix.

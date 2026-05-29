@@ -1,4 +1,4 @@
-"""File upload validators — magic byte verification + MIME type validation.
+"""File upload validators - magic byte verification + MIME type validation.
 
 Implements task 16.1.
 Requirements: 6.1, 11.7

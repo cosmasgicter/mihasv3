@@ -1,4 +1,4 @@
-"""Account models — maps to existing Neon Postgres tables."""
+"""Account models - maps to existing Neon Postgres tables."""
 
 import uuid
 
@@ -82,7 +82,7 @@ class DeviceSession(models.Model):
 
 
 class LoginAttempt(models.Model):
-    """Maps to 'login_attempts' table. No PII — email/IP stored as SHA-256 hashes."""
+    """Maps to 'login_attempts' table. No PII - email/IP stored as SHA-256 hashes."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email_hash = models.CharField(max_length=64)

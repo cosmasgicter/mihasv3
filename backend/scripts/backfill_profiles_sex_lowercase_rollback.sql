@@ -1,0 +1,3 @@
+-- Rollback for backfill_profiles_sex_lowercase.sql
+-- No rollback needed — lowercase is the canonical form.
+-- The new SexField writes lowercase; reverting to mixed case would reintroduce the inconsistency.

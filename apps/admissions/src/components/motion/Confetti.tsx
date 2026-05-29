@@ -11,7 +11,6 @@ function randomBetween(min: number, max: number) {
 
 function ConfettiOverlay({ active }: { active: boolean }) {
   const reduced = useReducedMotion();
-  if (reduced || !active) return null;
 
   const particles = useMemo(
     () =>
@@ -25,6 +24,8 @@ function ConfettiOverlay({ active }: { active: boolean }) {
       })),
     []
   );
+
+  if (reduced || !active) return null;
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[9999] overflow-hidden">

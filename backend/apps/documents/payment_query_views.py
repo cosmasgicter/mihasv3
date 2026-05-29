@@ -10,7 +10,6 @@ import json
 import logging
 import uuid
 from decimal import Decimal
-from urllib.parse import unquote, urlparse
 
 from django.conf import settings
 from django.db.models import Q
@@ -25,6 +24,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
 from apps.common.pagination import StandardPagination
 from apps.documents.models import ApplicationDocument, Payment, ProgramFee
+from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
 from apps.documents.serializers import (
     DocumentSerializer,
     DocumentUploadSerializer,
@@ -117,28 +117,6 @@ def _get_authorized_document(request, view, document_id):
     return document, None
 
 
-def _get_document_storage_key(document):
-    """Convert persisted file URLs/keys into a MediaStorage-relative file name."""
-    raw_file_url = (getattr(document, "file_url", None) or "").strip()
-    if not raw_file_url:
-        return ""
-
-    if raw_file_url.startswith(("http://", "https://")):
-        key = unquote(urlparse(raw_file_url).path.lstrip("/"))
-    else:
-        key = raw_file_url.lstrip("/")
-
-    bucket_name = getattr(settings, "AWS_STORAGE_BUCKET_NAME", "")
-    if bucket_name and key.startswith(f"{bucket_name}/"):
-        key = key[len(bucket_name) + 1:]
-
-    # MediaStorage uses location='media', so strip the prefix to avoid media/media/...
-    if key.startswith("media/"):
-        key = key[len("media/"):]
-
-    return key
-
-
 DocumentResponseSerializer = envelope_serializer(
     "DocumentResponse",
     DocumentSerializer(),
@@ -172,7 +150,7 @@ PaymentResponseSerializer = envelope_serializer(
     )
 )
 class PaymentListView(APIView):
-    """GET /api/v1/payments/ — list payments for the authenticated user.
+    """GET /api/v1/payments/ - list payments for the authenticated user.
 
     Students see their own payments. Admins see all payments.
     Supports optional ?application_id= filter.
@@ -221,7 +199,7 @@ class PaymentListView(APIView):
     )
 )
 class PaymentReceiptView(APIView):
-    """GET /api/v1/payments/{id}/receipt/ — generate receipt data.
+    """GET /api/v1/payments/{id}/receipt/ - generate receipt data.
 
     Auth required. Ownership check: student sees own, admin sees all.
     """
@@ -247,7 +225,7 @@ class PaymentReceiptView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if payment.status not in ("successful", "force_approved"):
+        if payment.status not in RECEIPT_ELIGIBLE_STATUSES:
             return Response(
                 {
                     "success": False,
@@ -304,7 +282,7 @@ class PaymentReceiptView(APIView):
     )
 )
 class PaymentVerifyView(APIView):
-    """POST /api/v1/payments/{id}/verify/ — verify payment via Lenco API.
+    """POST /api/v1/payments/{id}/verify/ - verify payment via Lenco API.
 
     Authenticated. Students can only verify their own payments.
     Admins can verify any payment.
@@ -316,6 +294,7 @@ class PaymentVerifyView(APIView):
     throttle_scope = "payment_verify"
 
     @require_not_dev_bypass_in_production
+    @idempotent
     def post(self, request, payment_id):
         try:
             payment = Payment.objects.get(id=payment_id)
@@ -388,7 +367,7 @@ class PaymentVerifyView(APIView):
 
 
 class FeeResolveView(APIView):
-    """GET /api/v1/payments/resolve-fee/ — resolve application fee.
+    """GET /api/v1/payments/resolve-fee/ - resolve application fee.
 
     Authenticated. Returns the resolved fee amount and currency for a
     given program code and student residency.
@@ -465,7 +444,7 @@ class FeeResolveView(APIView):
 
 
 class ProgramFeeViewSet(ModelViewSet):
-    """CRUD for /api/v1/programs/:id/fees/ — admin only.
+    """CRUD for /api/v1/programs/:id/fees/ - admin only.
 
     - GET: list active fees for a program
     - POST: create a new fee

@@ -74,7 +74,7 @@ class ErrorReportView(APIView):
         # Cap batch to first 10 items.
         reports = reports[:10]
 
-        # Hash client IP with SHA-256 — never store raw IP.
+        # Hash client IP with SHA-256 - never store raw IP.
         raw_ip = _get_client_ip(request)
         ip_hash = hashlib.sha256(raw_ip.encode("utf-8")).hexdigest()
 

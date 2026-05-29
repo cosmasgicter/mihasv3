@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { format, formatDistanceToNow } from 'date-fns'
+import { formatDateTimeLong, formatDistanceFromNow } from '@/lib/dateFormat'
 import { RefreshCw, ShieldCheck } from 'lucide-react'
 
 import { useAuth } from '@/contexts/AuthContext'
@@ -195,7 +195,7 @@ export function ActiveSessions() {
 
   const currentSession = sortedSessions.find(session => session.is_current)
   const otherSessionsCount = sortedSessions.filter(session => session.is_current === false).length
-  const lastSyncedLabel = lastSyncedAt ? format(new Date(lastSyncedAt), 'PPP p') : null
+  const lastSyncedLabel = lastSyncedAt ? formatDateTimeLong(new Date(lastSyncedAt)) : null
 
   if (loading) {
     return (
@@ -288,8 +288,8 @@ export function ActiveSessions() {
                     </div>
                     <p className="text-xs text-foreground">
                       {meta ? `${meta} • ` : ''}
-                      Signed in {formatDistanceToNow(new Date(session.created_at), { addSuffix: true })} •{' '}
-                      Last active {formatDistanceToNow(new Date(session.last_activity), { addSuffix: true })}
+                      Signed in {formatDistanceFromNow(new Date(session.created_at))} •{' '}
+                      Last active {formatDistanceFromNow(new Date(session.last_activity))}
                     </p>
                   </div>
                 </div>

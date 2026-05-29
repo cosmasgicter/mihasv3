@@ -54,7 +54,7 @@ export function IntegrationsPage() {
       <PageHeader
         eyebrow="Integrations"
         title="Providers, identity, and platform metadata"
-        description="This page now carries the platform identity contract, creator/developer attribution, and the provider matrix another AI will need for the next integration slice."
+        description="Platform identity, creator/developer attribution, and provider connection status."
         actions={
           <>
             <StatusBadge tone="insight">{platform?.apiVersion ?? 'v1'}</StatusBadge>

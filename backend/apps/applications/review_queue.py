@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from datetime import date
 from django.utils import timezone
 
+from apps.documents.payment_constants import RESOLVED_PAYMENT_STATUSES
+
 
 @dataclass(frozen=True)
 class ReviewPriority:
@@ -14,7 +16,7 @@ class ReviewPriority:
 class ReviewQueueScorer:
     """Computes deterministic priority scores for review queue ordering."""
 
-    PAYMENT_READY_STATUSES = {"verified", "paid", "force_approved", "deferred"}
+    PAYMENT_READY_STATUSES = set(RESOLVED_PAYMENT_STATUSES)
 
     def score(self, application, completeness_score: int, has_doc_warnings: bool) -> ReviewPriority:
         # Completeness (30%)

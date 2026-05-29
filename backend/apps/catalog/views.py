@@ -116,8 +116,8 @@ def _set_public_cache(response):
     ),
 )
 class ProgramListCreateView(APIView):
-    """GET /api/v1/catalog/programs/ — list programs (public + admin)
-    POST /api/v1/catalog/programs/ — create program (admin only)
+    """GET /api/v1/catalog/programs/ - list programs (public + admin)
+    POST /api/v1/catalog/programs/ - create program (admin only)
     """
 
     permission_classes = [AllowAny]
@@ -155,7 +155,7 @@ class ProgramListCreateView(APIView):
             try:
                 resolved_intake_id = str(_uuid.UUID(intake_id))
             except (ValueError, AttributeError):
-                # Not a UUID — try to resolve by name
+                # Not a UUID - try to resolve by name
                 intake_obj = Intake.objects.filter(name=intake_id, is_active=True).first()
                 if intake_obj:
                     resolved_intake_id = str(intake_obj.id)
@@ -166,7 +166,7 @@ class ProgramListCreateView(APIView):
                 ).values_list("program_id", flat=True)
                 queryset = queryset.filter(id__in=program_ids)
             else:
-                # No matching intake found — return empty set
+                # No matching intake found - return empty set
                 queryset = queryset.none()
 
         queryset = queryset.order_by("name")
@@ -313,8 +313,8 @@ class ProgramDetailView(APIView):
     ),
 )
 class IntakeListCreateView(APIView):
-    """GET /api/v1/catalog/intakes/ — list intakes
-    POST /api/v1/catalog/intakes/ — create intake (admin)
+    """GET /api/v1/catalog/intakes/ - list intakes
+    POST /api/v1/catalog/intakes/ - create intake (admin)
     """
 
     permission_classes = [AllowAny]
@@ -479,7 +479,7 @@ class IntakeDetailView(APIView):
     )
 )
 class SubjectListView(APIView):
-    """GET /api/v1/catalog/subjects/ — list subjects (public)"""
+    """GET /api/v1/catalog/subjects/ - list subjects (public)"""
 
     permission_classes = [AllowAny]
     authentication_classes = [OptionalJWTCookieAuthentication]
@@ -511,8 +511,8 @@ class SubjectListView(APIView):
     ),
 )
 class InstitutionListCreateView(APIView):
-    """GET /api/v1/catalog/institutions/ — list institutions
-    POST /api/v1/catalog/institutions/ — create institution (admin)
+    """GET /api/v1/catalog/institutions/ - list institutions
+    POST /api/v1/catalog/institutions/ - create institution (admin)
     """
 
     permission_classes = [AllowAny]

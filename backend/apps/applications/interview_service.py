@@ -117,7 +117,7 @@ class InterviewService:
                 f"time (existing: {app_conflict.scheduled_at.isoformat()}).",
             )
 
-        # --- 4. Interviewer conflict — warning only (Req 2.4) ---
+        # --- 4. Interviewer conflict - warning only (Req 2.4) ---
         interviewer_start = scheduled_at - timedelta(hours=INTERVIEWER_CONFLICT_HOURS)
         interviewer_end = scheduled_at + timedelta(hours=INTERVIEWER_CONFLICT_HOURS)
         interviewer_conflict = ApplicationInterview.objects.filter(
@@ -256,7 +256,7 @@ class InterviewService:
                         application.id,
                     )
 
-        # --- 5. Send notification (Req 2.5) — outside the transaction so
+        # --- 5. Send notification (Req 2.5) - outside the transaction so
         # the email/SMS dispatch failure can't roll back the interview record.
         _send_interview_notification(
             application, interview, template="interview_scheduled"

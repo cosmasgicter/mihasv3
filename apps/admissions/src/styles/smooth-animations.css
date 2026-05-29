@@ -15,7 +15,6 @@
 .animate-spin,
 .animate-pulse,
 .animate-ping,
-.animate-bounce,
 .animate-shake,
 [class*="smooth-"] {
   -webkit-backface-visibility: hidden;
@@ -25,7 +24,6 @@
 .animate-spin,
 .animate-pulse,
 .animate-ping,
-.animate-bounce,
 .animate-shake {
   will-change: transform, opacity;
   transform: translateZ(0);

@@ -246,13 +246,25 @@
   --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
   --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
   
-  /* Z-Index Scale */
+  /* Z-Index Scale
+   *  0–50  : in-flow content, sticky headers, dropdowns
+   *  40    : sticky/fixed sidebar + sticky/fixed header (use 40 for chrome
+   *          on the sidebar, 50 for the header so the header always stacks
+   *          above the sidebar)
+   *  50    : header, popovers, sticky banners
+   *  60    : modal overlay (single)
+   *  70    : modal-stacked (e.g. confirmation inside a modal)
+   *  80    : toast / global notifications
+   */
   --z-0: 0;
   --z-10: 10;
   --z-20: 20;
   --z-30: 30;
   --z-40: 40;
   --z-50: 50;
+  --z-modal: 60;
+  --z-modal-stacked: 70;
+  --z-toast: 80;
   --z-auto: auto;
   
   /* ===== ANIMATION TOKENS ===== */

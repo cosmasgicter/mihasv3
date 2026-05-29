@@ -186,7 +186,7 @@ class LoginView(APIView):
                 headers={"Retry-After": "900"},
             )
 
-        # Look up user — generic error if not found (never reveal email existence)
+        # Look up user - generic error if not found (never reveal email existence)
         try:
             user = Profile.objects.get(email__iexact=email, is_active=True)
         except Profile.DoesNotExist:
@@ -396,7 +396,7 @@ class RegisterView(APIView):
 
         data = serializer.validated_data
 
-        # Check if email already exists — return generic success to not reveal existence
+        # Check if email already exists - return generic success to not reveal existence
         if Profile.objects.filter(email__iexact=data["email"]).exists():
             try:
                 from django.core.mail import send_mail
@@ -481,7 +481,7 @@ class RefreshView(APIView):
     """
 
     permission_classes = [AllowAny]
-    authentication_classes = []  # Skip JWT auth — we use the refresh cookie
+    authentication_classes = []  # Skip JWT auth - we use the refresh cookie
     throttle_classes = [AnonRateThrottle]
     serializer_class = MessageSerializer
 
@@ -518,7 +518,7 @@ class RefreshView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         except ValueError as e:
-            # "Token has been revoked" or "Token already consumed" — blacklisted/reused
+            # "Token has been revoked" or "Token already consumed" - blacklisted/reused
             return Response(
                 {"success": False, "error": "Refresh token has been revoked", "code": "TOKEN_EXPIRED"},
                 status=status.HTTP_401_UNAUTHORIZED,

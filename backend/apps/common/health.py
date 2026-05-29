@@ -1,8 +1,8 @@
 """Health check endpoints for liveness, readiness, and Redis-specific probes.
 
-Liveness: /health/live/ — returns HTTP 200 without any database access.
-Readiness: /health/ready/ — verifies Neon Postgres and Redis connectivity.
-Redis: /health/redis/ — verifies Redis only for dedicated paging/monitoring.
+Liveness: /health/live/ - returns HTTP 200 without any database access.
+Readiness: /health/ready/ - verifies Neon Postgres and Redis connectivity.
+Redis: /health/redis/ - verifies Redis only for dedicated paging/monitoring.
 """
 
 import time
@@ -25,7 +25,7 @@ from apps.common.openapi_helpers import HealthStatusSerializer
     )
 )
 class LivenessView(APIView):
-    """Liveness probe — returns HTTP 200 with no external dependencies."""
+    """Liveness probe - returns HTTP 200 with no external dependencies."""
 
     permission_classes = [AllowAny]
     authentication_classes = []
@@ -47,7 +47,7 @@ class LivenessView(APIView):
     )
 )
 class ReadinessView(APIView):
-    """Readiness probe — verifies Neon Postgres and Redis connectivity."""
+    """Readiness probe - verifies Neon Postgres and Redis connectivity."""
 
     permission_classes = [AllowAny]
     authentication_classes = []
@@ -58,7 +58,7 @@ class ReadinessView(APIView):
         redis_status, _redis_latency = self._check_redis_with_latency()
 
         # Return 200 as long as the database is healthy.
-        # Redis is non-critical — auth and API work without it (JTI blacklist
+        # Redis is non-critical - auth and API work without it (JTI blacklist
         # and rate limiting fail-open). Returning 503 for Redis failures causes
         # Koyeb to restart the instance, which makes the outage worse.
         if db_ok:

@@ -124,7 +124,7 @@ class ProgramFeeSerializer(serializers.ModelSerializer):
 
 
 # ---------------------------------------------------------------------------
-# Payment serializers (T14 — API remediation Phase 3)
+# Payment serializers (T14 - API remediation Phase 3)
 # ---------------------------------------------------------------------------
 
 

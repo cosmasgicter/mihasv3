@@ -31,7 +31,7 @@ def on_task_prerun(sender=None, task_id=None, task=None, **kwargs):
             },
         )
     except Exception:
-        pass
+        logger.exception("task_prerun signal handler failed")
 
 
 @task_postrun.connect
@@ -53,7 +53,7 @@ def on_task_postrun(sender=None, task_id=None, task=None, **kwargs):
         from django.core.cache import cache
         cache.set(f"task_last_run:{task.name}", time.time(), timeout=86400)
     except Exception:
-        pass
+        logger.exception("task_postrun signal handler failed")
 
 
 @task_failure.connect
@@ -73,4 +73,4 @@ def on_task_failure(sender=None, task_id=None, exception=None, **kwargs):
             },
         )
     except Exception:
-        pass
+        logger.exception("task_failure signal handler failed")

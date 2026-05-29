@@ -13,6 +13,7 @@ import { generateIdempotencyKey } from '@/lib/paymentStatus'
 import { initiateMobileMoney, verifyPayment } from '@/services/payments'
 import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
 import { normalizeZambianMsisdn } from '@/lib/zambianMsisdn'
+import { toError } from '@/lib/toError'
 
 type PaymentMethod = 'mobile-money' | 'card'
 type MomoOperator = 'airtel' | 'mtn' | null
@@ -328,7 +329,7 @@ export function PaymentForm({
         void syncPendingPayment(data.payment_id)
       }, 1500)
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Failed to initiate payment'
+      const msg = toError(error).message || 'Failed to initiate payment'
       setMomoError(msg)
       setMomoStatus('failed')
       setActivePendingMethod(null)

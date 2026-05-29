@@ -1,4 +1,4 @@
-"""Admin-facing application views — re-export shim.
+"""Admin-facing application views - re-export shim.
 
 Decomposed during Stream 9 backend module decomposition.
 All view classes AND their commonly-patched module-level imports are re-exported
@@ -6,11 +6,11 @@ here so existing tests that use ``patch("apps.applications.admin_views.X")``
 continue to work without modification.
 
 Split files:
-  - admin_review_views.py      — ApplicationListCreateView, ApplicationReviewView
-  - admin_assignment_views.py  — ApplicationAssignView, ApplicationAutoAssignView, ApplicationFeeWaiverView
-  - admin_export_views.py      — ApplicationExportView
-  - admin_bulk_views.py        — ApplicationBulkStatusView
-  - admin_amendment_views.py   — ApplicationAmendmentReviewView, ApplicationConditionVerifyView, ApplicationAdminSummaryView
+  - admin_review_views.py      - ApplicationListCreateView, ApplicationReviewView
+  - admin_assignment_views.py  - ApplicationAssignView, ApplicationAutoAssignView, ApplicationFeeWaiverView
+  - admin_export_views.py      - ApplicationExportView
+  - admin_bulk_views.py        - ApplicationBulkStatusView
+  - admin_amendment_views.py   - ApplicationAmendmentReviewView, ApplicationConditionVerifyView, ApplicationAdminSummaryView
 """
 
 # View classes

@@ -15,7 +15,7 @@ import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { formatPercentage, labelize } from '@/lib/format'
+import { formatPercentage, labelize, recommendationTone } from '@/lib/format'
 import {
   getDailyDigest,
   getFunnelAnalytics,
@@ -26,13 +26,6 @@ import { listAutomationRuns } from '@/services/api/automation'
 import { listJobApplications } from '@/services/api/job-applications'
 import { listJobs } from '@/services/api/jobs'
 import { listOutreachCampaigns } from '@/services/api/outreach'
-
-function recommendationTone(recommendation: string) {
-  if (recommendation === 'apply_now') return 'success' as const
-  if (recommendation === 'review') return 'warning' as const
-  if (recommendation === 'watch') return 'insight' as const
-  return 'danger' as const
-}
 
 export function OverviewPage() {
   const jobsQuery = useQuery({ queryKey: ['jobs'], queryFn: listJobs })
@@ -111,7 +104,7 @@ export function OverviewPage() {
             </h2>
             <p className="mt-4 max-w-3xl text-base leading-7 text-muted">
               {digest?.summary ??
-                'The dashboard is seeded with production-shaped data so another AI can continue implementation without rethinking the operating model.'}
+                'Seeded with production-shaped data. Replace with live digest output once the reporting pipeline is connected.'}
             </p>
 
             <div className="mt-6 grid gap-3 md:grid-cols-3">
@@ -141,7 +134,7 @@ export function OverviewPage() {
             </div>
           </div>
 
-          <SectionCard title="Operating cadence" description="The front-end now reads like a working command center rather than a handoff placeholder.">
+          <SectionCard title="Operating cadence" description="Conversion rates between pipeline stages.">
             <div className="grid gap-4">
               <div className="rounded-[24px] border border-line/70 bg-canvas/60 p-4">
                 <div className="flex items-center justify-between gap-3">

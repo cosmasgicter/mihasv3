@@ -5,6 +5,7 @@ import { Calendar, Clock, Users, CheckCircle, XCircle } from 'lucide-react'
 import { applicationService } from '@/services/applications'
 import type { ApplicationInterview } from '@/types/database'
 import type { ApplicationWithDetails, ApplicationDetailResponse } from './applicationDetailTypes'
+import { toError } from '@/lib/toError'
 
 interface ApplicationDetailInterviewProps {
   application: ApplicationWithDetails
@@ -87,7 +88,7 @@ export function ApplicationDetailInterview({ application, applicationData, onApp
       updateState(result)
       setNotice({ type: 'success', message: shouldSchedule ? 'Interview scheduled successfully.' : 'Interview updated successfully.' })
     } catch (error) {
-      setNotice({ type: 'error', message: error instanceof Error ? error.message : 'Unable to save interview details.' })
+      setNotice({ type: 'error', message: toError(error).message || 'Unable to save interview details.' })
     } finally { setIsSaving(false) }
   }
 
@@ -100,7 +101,7 @@ export function ApplicationDetailInterview({ application, applicationData, onApp
       updateState(result)
       setNotice({ type: 'success', message: 'Interview cancelled successfully.' })
     } catch (error) {
-      setNotice({ type: 'error', message: error instanceof Error ? error.message : 'Failed to cancel interview.' })
+      setNotice({ type: 'error', message: toError(error).message || 'Failed to cancel interview.' })
     } finally { setIsCancelling(false) }
   }
 

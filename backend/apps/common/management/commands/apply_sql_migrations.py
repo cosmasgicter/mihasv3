@@ -1,10 +1,10 @@
-"""apply_sql_migrations — idempotent auto-runner for hand-written SQL migrations.
+"""apply_sql_migrations - idempotent auto-runner for hand-written SQL migrations.
 
 Runs every ``.sql`` file at the top level of ``backend/scripts/`` in
 filename order, tracking applied migrations in ``migration_history``
 (the single source of truth for what is on production) so each file
 runs exactly once per database. Each file is expected to be idempotent
-as a second layer of safety — so re-running the command after a
+as a second layer of safety - so re-running the command after a
 tracking-table wipe still converges.
 
 This command is intended to be invoked at container startup, BEFORE
@@ -13,7 +13,7 @@ Django serves any request against a ``managed = False`` model.
 
 Design notes
 ------------
-* Tracking table: ``migration_history`` — the canonical source of truth
+* Tracking table: ``migration_history`` - the canonical source of truth
   for what schema is on production. The Component 1 migration script
   ``2026_05_22_migration_history_extend.sql`` adds the ``checksum`` and
   ``notes`` columns plus the unique index on ``migration_name`` that this
@@ -32,8 +32,8 @@ Design notes
   production, historical scripts kept for audit only, and the legacy
   directory whose contents have been moved up one level.
 * Rollback siblings (``*_rollback.sql``) live next to the forward
-  scripts. They are not filtered out here — that lint lands in a later
-  task in the same spec — but the additive-only contract means any
+  scripts. They are not filtered out here - that lint lands in a later
+  task in the same spec - but the additive-only contract means any
   rollback file accidentally placed here would be caught by a future
   pre-execution lint.
 * Atomicity: each migration runs inside its own transaction. If one
@@ -49,10 +49,10 @@ Design notes
   then the ``migration_history`` row is written in a follow-up
   transaction (Phase 2). On any error during Phase 1 the
   ``migration_history`` row is NOT written and the command exits
-  non-zero — the operator's retry is safe because every
+  non-zero - the operator's retry is safe because every
   ``CREATE INDEX CONCURRENTLY`` in production scripts uses
   ``IF NOT EXISTS``.
-* No-op when the directory is missing or empty — useful during tests.
+* No-op when the directory is missing or empty - useful during tests.
 
 Usage:
     python manage.py apply_sql_migrations
@@ -80,13 +80,13 @@ logger = logging.getLogger(__name__)
 # package root from this file (``backend/apps/common/management/commands/
 # apply_sql_migrations.py``); appending ``scripts`` lands on the canonical
 # location ``backend/scripts/``. The legacy ``backend/scripts/migrations/``
-# directory is intentionally excluded — see ``EXCLUDED_SUBDIRS`` below.
+# directory is intentionally excluded - see ``EXCLUDED_SUBDIRS`` below.
 DEFAULT_MIGRATIONS_DIR = Path(__file__).resolve().parents[4] / "scripts"
 
 # Subdirectories under the migrations directory whose contents are
 # deliberately excluded from the lexical migration sweep. The current
 # implementation iterates only the top level (no recursion), so listing
-# these here is documentation rather than runtime filtering — but the
+# these here is documentation rather than runtime filtering - but the
 # names are exposed so future recursive variants can consume them.
 EXCLUDED_SUBDIRS: frozenset[str] = frozenset({"applied", "archive", "migrations"})
 
@@ -96,7 +96,7 @@ EXCLUDED_SUBDIRS: frozenset[str] = frozenset({"applied", "archive", "migrations"
 # Component 3 of ``.kiro/specs/production-schema-reconciliation/``.
 #
 # * ``00_full_schema.sql`` is a generated full-schema documentation
-#   snapshot (regenerated via ``generate_full_schema.py``) — never an
+#   snapshot (regenerated via ``generate_full_schema.py``) - never an
 #   apply target.
 # * ``legacy_columns_drop_2026_08_15.sql`` is a future, deliberately
 #   deferred non-additive cleanup; it must not be picked up by the
@@ -146,7 +146,7 @@ _DROP_TABLE_RE = re.compile(r"\bDROP\s+TABLE\b", re.IGNORECASE)
 _TRUNCATE_RE = re.compile(r"\bTRUNCATE\b", re.IGNORECASE)
 _DELETE_FROM_RE = re.compile(r"\bDELETE\s+FROM\b", re.IGNORECASE)
 _WHERE_RE = re.compile(r"\bWHERE\b", re.IGNORECASE)
-# ``ALTER TABLE ... ALTER COLUMN ... TYPE ... USING`` — the ``USING``
+# ``ALTER TABLE ... ALTER COLUMN ... TYPE ... USING`` - the ``USING``
 # clause is what distinguishes a narrowing conversion (e.g. text →
 # integer with an explicit cast expression) from a widening
 # conversion (e.g. int → bigint, which Postgres accepts without
@@ -160,7 +160,7 @@ _ALTER_NARROWING_RE = re.compile(
 # Block comment matcher. Naive single-pass; does not handle nested
 # ``/* /* */ */`` (Postgres allows nested block comments but they are
 # vanishingly rare in migration files). Adding nested-comment handling
-# would only weaken the lint — the current behaviour at worst leaves
+# would only weaken the lint - the current behaviour at worst leaves
 # some commented SQL visible to the lint, which would emit a false
 # positive that the operator can resolve by re-formatting the comment.
 _BLOCK_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
@@ -175,19 +175,19 @@ def _checksum(path: Path) -> str:
 def _iter_migration_files(directory: Path) -> Iterable[Path]:
     """Yield top-level ``*.sql`` files in lexical order.
 
-    Subdirectories are deliberately not recursed into — files under
+    Subdirectories are deliberately not recursed into - files under
     ``applied/``, ``archive/``, and ``migrations/`` (and any other
     subdirectory) are excluded by virtue of this non-recursive scan.
 
     Top-level filenames in ``EXCLUDED_TOP_LEVEL_FILES`` are also
-    skipped — that set covers the rollback-sibling convention
+    skipped - that set covers the rollback-sibling convention
     (``*_rollback.sql``) per Requirement 9.5 plus two specifically
     named files documented in design.md Component 3 of
     ``.kiro/specs/production-schema-reconciliation/``:
 
-    * ``00_full_schema.sql`` — generated documentation snapshot of the
+    * ``00_full_schema.sql`` - generated documentation snapshot of the
       live schema, never applied as a migration.
-    * ``legacy_columns_drop_2026_08_15.sql`` — a future, deliberately
+    * ``legacy_columns_drop_2026_08_15.sql`` - a future, deliberately
       deferred non-additive cleanup script.
     """
     if not directory.exists():
@@ -325,7 +325,7 @@ def _has_extended_migration_history() -> bool:
     On Postgres (production), queries ``information_schema.columns``. On
     SQLite (used only by the local test suite), falls back to
     ``PRAGMA table_info``. Returns False when either the column or the
-    table itself is missing — the caller treats both as equivalent
+    table itself is missing - the caller treats both as equivalent
     "extend migration not applied yet" signals.
     """
     with connection.cursor() as cursor:
@@ -417,7 +417,7 @@ class Command(BaseCommand):
 
         # Refuse to run unless the prerequisite extend migration is in place.
         # This is the signal that ``2026_05_22_migration_history_extend.sql``
-        # has not been applied yet on the configured database — without it,
+        # has not been applied yet on the configured database - without it,
         # the ON CONFLICT (migration_name) DO NOTHING insert below would fail
         # because the supporting unique index does not exist.
         if not _has_extended_migration_history():
@@ -456,7 +456,7 @@ class Command(BaseCommand):
             sql = path.read_text()
 
             # Pre-execution additive-only lint (Task 1.5 / R1.2).
-            # Runs before dry-run reporting too — the operator wants
+            # Runs before dry-run reporting too - the operator wants
             # to see rejections during a planning pass, not only when
             # they actually try to apply.
             if not allow_non_additive:
@@ -538,13 +538,13 @@ class Command(BaseCommand):
         Between phases: query ``pg_index`` for any index named in the
         file body whose ``indisvalid`` is false. If any are found, drop
         them via ``DROP INDEX CONCURRENTLY IF EXISTS`` and exit
-        non-zero — the ``migration_history`` row is NOT written so the
+        non-zero - the ``migration_history`` row is NOT written so the
         operator's re-run will retry the file.
 
         Phase 2: write the ``migration_history`` row in normal
         transaction mode. If the recording itself fails the index has
         already been built (and is valid), but ``migration_history``
-        will not include the row — the next run re-attempts the
+        will not include the row - the next run re-attempts the
         recording, and the ``IF NOT EXISTS`` clauses make the index
         re-creation a no-op.
         """
@@ -613,7 +613,7 @@ class Command(BaseCommand):
         if dropped:
             # Phase 1 returned without raising but produced invalid
             # indexes. Treat this as a hard failure so the run is
-            # retried — Migration_History stays unchanged.
+            # retried - Migration_History stays unchanged.
             self.stdout.write(self.style.ERROR("FAIL"))
             raise CommandError(
                 f"Migration {label} produced invalid indexes "

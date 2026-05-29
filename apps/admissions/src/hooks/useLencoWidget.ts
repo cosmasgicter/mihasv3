@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { logger } from '@/lib/logger'
+import { toError } from '@/lib/toError'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -145,7 +146,7 @@ export function useLencoWidget() {
       .catch((error) => {
         if (!mountedRef.current || loadAttemptRef.current !== attempt) return
         setIsScriptLoaded(false)
-        setLoadError(error instanceof Error ? error.message : 'Payment widget could not be loaded.')
+        setLoadError(toError(error).message || 'Payment widget could not be loaded.')
       })
       .finally(() => {
         if (!mountedRef.current || loadAttemptRef.current !== attempt) return
@@ -224,7 +225,7 @@ export function useLencoWidget() {
         })
       } catch (err) {
         logger.error('[useLencoWidget] Error opening widget:', err)
-        setLoadError(err instanceof Error ? err.message : 'Payment widget could not be opened.')
+        setLoadError(toError(err).message || 'Payment widget could not be opened.')
         setIsLoading(false)
         config.onClose()
       }

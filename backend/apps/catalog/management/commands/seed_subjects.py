@@ -1,14 +1,14 @@
 """Seed ECZ Grade 12 and A-Level subjects into the subjects table.
 
 Run: python manage.py seed_subjects
-Idempotent — uses ON CONFLICT DO NOTHING on the code unique constraint.
+Idempotent - uses ON CONFLICT DO NOTHING on the code unique constraint.
 """
 
 from django.core.management.base import BaseCommand
 from django.db import connection
 
 
-# ECZ Grade 12 (Senior Secondary Certificate) — complete per ECZ syllabus
+# ECZ Grade 12 (Senior Secondary Certificate) - complete per ECZ syllabus
 GRADE_12_SUBJECTS = [
     # Core
     ("English Language", "ENG", "core", True, "ecz"),
@@ -23,7 +23,7 @@ GRADE_12_SUBJECTS = [
     ("Agricultural Science", "AGR", "sciences", False, "ecz"),
     ("Additional Mathematics", "ADDMATH", "sciences", False, "ecz"),
     # "Ordinary Mathematics" (OMATH) and "Ordinary Science" (OSCI) removed
-    # May 2026 — not real ECZ syllabus entries. Canonical names are
+    # May 2026 - not real ECZ syllabus entries. Canonical names are
     # "Mathematics" (core) and "Science" (combined elective).
     # scripts/migrations/0002_remove_phantom_subjects.sql handles the
     # data migration for existing rows.

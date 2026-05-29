@@ -1,4 +1,4 @@
-"""Common Celery tasks — email delivery, bulk notifications, uptime monitoring, and audit cleanup.
+"""Common Celery tasks - email delivery, bulk notifications, uptime monitoring, and audit cleanup.
 
 Implements task 17.2.
 Requirements: 8.3, 8.4, 12.2, 12.3, 5.2, 5.3, 5.4, 5.5, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6
@@ -28,7 +28,7 @@ EMAIL_PROCESSING_RECLAIM_AGE = timedelta(minutes=10)
 
 
 # ---------------------------------------------------------------------------
-# Outbox-safe dispatch — persist intent first, best-effort broker push
+# Outbox-safe dispatch - persist intent first, best-effort broker push
 # ---------------------------------------------------------------------------
 
 
@@ -57,46 +57,53 @@ def process_pending_emails_task(self):
     was down when the request handler tried .delay()). Limits to 50 per
     run to avoid long-running transactions.
     """
-    from apps.common.models import EmailQueue
+    if not cache.add("celery_lock:process_pending_emails_task", "1", timeout=180):
+        logger.info("process_pending_emails_task: skipped (already running)")
+        return
+    try:
+        from apps.common.models import EmailQueue
 
-    now = timezone.now()
-    dispatched = 0
+        logger.info("process_pending_emails_task: starting sweep")
+        now = timezone.now()
+        dispatched = 0
 
-    reclaim_cutoff = now - EMAIL_PROCESSING_RECLAIM_AGE
-    reclaimed = (
-        EmailQueue.objects.filter(
-            status=EMAIL_STATUS_PROCESSING,
-            created_at__lt=reclaim_cutoff,
+        reclaim_cutoff = now - EMAIL_PROCESSING_RECLAIM_AGE
+        reclaimed = (
+            EmailQueue.objects.filter(
+                status=EMAIL_STATUS_PROCESSING,
+                created_at__lt=reclaim_cutoff,
+            )
+            .update(
+                status=EMAIL_STATUS_RETRYING,
+                error_message="Recovered stale processing email for re-dispatch",
+            )
         )
-        .update(
+
+        pending_cutoff = now - EMAIL_PENDING_SWEEP_AGE
+        stale = EmailQueue.objects.filter(
+            status=EMAIL_STATUS_PENDING,
+            created_at__lt=pending_cutoff,
+        ).values_list("id", flat=True)[:EMAIL_SWEEP_BATCH_SIZE]
+
+        retrying = EmailQueue.objects.filter(
             status=EMAIL_STATUS_RETRYING,
-            error_message="Recovered stale processing email for re-dispatch",
-        )
-    )
+            created_at__lt=reclaim_cutoff,
+        ).values_list("id", flat=True)[:EMAIL_SWEEP_BATCH_SIZE]
 
-    pending_cutoff = now - EMAIL_PENDING_SWEEP_AGE
-    stale = EmailQueue.objects.filter(
-        status=EMAIL_STATUS_PENDING,
-        created_at__lt=pending_cutoff,
-    ).values_list("id", flat=True)[:EMAIL_SWEEP_BATCH_SIZE]
+        for eid in list(stale) + list(retrying):
+            try:
+                send_email_task.delay(str(eid))
+                dispatched += 1
+            except Exception:
+                logger.warning("Sweep: broker still unavailable for email %s", eid)
+                break  # broker down, stop trying
 
-    retrying = EmailQueue.objects.filter(
-        status=EMAIL_STATUS_RETRYING,
-        created_at__lt=reclaim_cutoff,
-    ).values_list("id", flat=True)[:EMAIL_SWEEP_BATCH_SIZE]
-
-    for eid in list(stale) + list(retrying):
-        try:
-            send_email_task.delay(str(eid))
-            dispatched += 1
-        except Exception:
-            logger.warning("Sweep: broker still unavailable for email %s", eid)
-            break  # broker down, stop trying
-
-    if reclaimed:
-        logger.warning("Email sweep: reclaimed %d stale processing emails", reclaimed)
-    if dispatched:
-        logger.info("Email sweep: dispatched %d stale email tasks", dispatched)
+        if reclaimed:
+            logger.warning("Email sweep: reclaimed %d stale processing emails", reclaimed)
+        if dispatched:
+            logger.info("Email sweep: dispatched %d stale email tasks", dispatched)
+    finally:
+        cache.delete("celery_lock:process_pending_emails_task")
 
 
 def _claim_email_for_delivery(email_queue_id):
@@ -306,7 +313,7 @@ def send_bulk_notifications_task(self, notification_ids):
 
 
 # ---------------------------------------------------------------------------
-# Keep-alive ping — prevents Koyeb cold starts
+# Keep-alive ping - prevents Koyeb cold starts
 # ---------------------------------------------------------------------------
 
 @shared_task(bind=True, max_retries=0, soft_time_limit=30, time_limit=45)
@@ -335,7 +342,7 @@ UPTIME_STATUS_DOWN = "down"
 
 @shared_task(bind=True, max_retries=0, soft_time_limit=30, time_limit=45)
 def check_uptime_task(self):
-    """Internal health check — pings /health/ready/ and alerts on failure.
+    """Internal health check - pings /health/ready/ and alerts on failure.
 
     Sends HTTP GET to the configured HEALTH_CHECK_URL with a 10-second
     timeout.  Tracks previous status in Redis key 'uptime:last_status'.
@@ -361,7 +368,7 @@ def check_uptime_task(self):
         if resp.status_code == 200:
             current_status = UPTIME_STATUS_OK
     except Exception:
-        # Timeout, connection error, etc. — treat as down.
+        # Timeout, connection error, etc. - treat as down.
         current_status = UPTIME_STATUS_DOWN
 
     # Read previous status from Redis (default to 'ok' on first run).
@@ -380,7 +387,7 @@ def check_uptime_task(self):
     # Detect transitions and dispatch emails.
     if previous_status == UPTIME_STATUS_OK and current_status == UPTIME_STATUS_DOWN:
         # Healthy → unhealthy transition: send alert.
-        logger.warning("Health check FAILED for %s — dispatching alert", health_url)
+        logger.warning("Health check FAILED for %s -- dispatching alert", health_url)
         try:
             queue_email(
                 recipient_email=alert_email,
@@ -396,7 +403,7 @@ def check_uptime_task(self):
 
     elif previous_status == UPTIME_STATUS_DOWN and current_status == UPTIME_STATUS_OK:
         # Unhealthy → healthy transition: send recovery notification.
-        logger.info("Health check RECOVERED for %s — dispatching recovery notice", health_url)
+        logger.info("Health check RECOVERED for %s -- dispatching recovery notice", health_url)
         try:
             queue_email(
                 recipient_email=alert_email,
@@ -411,8 +418,8 @@ def check_uptime_task(self):
             logger.exception("Failed to dispatch uptime recovery email")
 
     elif current_status == UPTIME_STATUS_DOWN:
-        # Still down — no duplicate alert.
-        logger.warning("Health check still failing for %s — no duplicate alert", health_url)
+        # Still down - no duplicate alert.
+        logger.warning("Health check still failing for %s -- no duplicate alert", health_url)
     else:
         logger.debug("Health check OK for %s", health_url)
 
@@ -434,25 +441,29 @@ def cleanup_audit_logs_task(self):
 
     Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6
     """
-    from apps.accounts.models import CSRFToken
-    from apps.common.models import AuditLog
-
-    now = timezone.now()
-
-    # Clean up expired CSRF tokens
+    if not cache.add("celery_lock:cleanup_audit_logs_task", "1", timeout=600):
+        logger.info("cleanup_audit_logs_task: skipped (already running)")
+        return
     try:
-        expired_csrf_count, _ = CSRFToken.objects.filter(expires_at__lt=now).delete()
-        if expired_csrf_count:
-            logger.info("CSRF token cleanup: deleted %d expired tokens", expired_csrf_count)
-    except Exception:
-        logger.exception("CSRF token cleanup failed")
+        from apps.accounts.models import CSRFToken
+        from apps.common.models import AuditLog
 
-    retention_rules = [
-        ("standard", now - timedelta(days=STANDARD_RETENTION_DAYS)),
-        ("security", now - timedelta(days=SECURITY_RETENTION_DAYS)),
-    ]
+        logger.info("cleanup_audit_logs_task: starting")
+        now = timezone.now()
 
-    try:
+        # Clean up expired CSRF tokens
+        try:
+            expired_csrf_count, _ = CSRFToken.objects.filter(expires_at__lt=now).delete()
+            if expired_csrf_count:
+                logger.info("CSRF token cleanup: deleted %d expired tokens", expired_csrf_count)
+        except Exception:
+            logger.exception("CSRF token cleanup failed")
+
+        retention_rules = [
+            ("standard", now - timedelta(days=STANDARD_RETENTION_DAYS)),
+            ("security", now - timedelta(days=SECURITY_RETENTION_DAYS)),
+        ]
+
         for category, cutoff in retention_rules:
             total_deleted = 0
             while True:
@@ -479,17 +490,35 @@ def cleanup_audit_logs_task(self):
     except Exception as exc:
         logger.error("Audit log cleanup failed: %s", exc)
         raise self.retry(exc=exc)
+    finally:
+        cache.delete("celery_lock:cleanup_audit_logs_task")
 
 
-@shared_task
-def cleanup_idempotency_keys_task():
-    """Delete idempotency keys older than 24 hours."""
-    from apps.common.models import IdempotencyKey
+@shared_task(bind=True, max_retries=1, default_retry_delay=300, soft_time_limit=120, time_limit=150)
+def cleanup_idempotency_keys_task(self):
+    """Delete idempotency keys older than 24 hours. Bounded to 5000 per run."""
+    if not cache.add("celery_lock:cleanup_idempotency_keys_task", "1", timeout=300):
+        logger.info("cleanup_idempotency_keys_task: skipped (already running)")
+        return
+    try:
+        from apps.common.models import IdempotencyKey
 
-    cutoff = timezone.now() - timedelta(hours=24)
-    deleted, _ = IdempotencyKey.objects.filter(created_at__lt=cutoff).delete()
-    if deleted:
-        logger.info("Cleaned up %d expired idempotency keys", deleted)
+        logger.info("cleanup_idempotency_keys_task: starting")
+        cutoff = timezone.now() - timedelta(hours=24)
+        batch_ids = list(
+            IdempotencyKey.objects.filter(created_at__lt=cutoff)
+            .values_list("id", flat=True)[:5000]
+        )
+        if batch_ids:
+            deleted, _ = IdempotencyKey.objects.filter(id__in=batch_ids).delete()
+            logger.info("cleanup_idempotency_keys_task: deleted %d expired keys", deleted)
+        else:
+            logger.info("cleanup_idempotency_keys_task: no expired keys found")
+    except Exception as exc:
+        logger.exception("cleanup_idempotency_keys_task failed")
+        raise self.retry(exc=exc)
+    finally:
+        cache.delete("celery_lock:cleanup_idempotency_keys_task")
 
 
 # ---------------------------------------------------------------------------
@@ -507,7 +536,7 @@ def write_audit_log_task(self, payload: dict):
 
     Retries up to 3 times with a 10s delay on transient DB failures so a
     Postgres blip doesn't lose audit records. After max retries the failure
-    is logged and dropped — audit reliability is best-effort, never blocking.
+    is logged and dropped - audit reliability is best-effort, never blocking.
     """
     from apps.common.models import AuditLog
 

@@ -44,7 +44,7 @@ const fallbackOutreach: OutreachAnalytics = {
 const fallbackDigest: DailyDigest = {
   headline: '3 high-value roles surfaced today',
   summary:
-    'The scaffold digest shows how discovery, approvals, outreach, and source health should be summarized in a single daily operating report.',
+    'Replace with live daily digest output once the reporting pipeline is connected.',
   generatedAt: new Date().toISOString(),
 }
 

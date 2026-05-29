@@ -230,7 +230,7 @@ class ApiClient {
           throw error;
         }
 
-        // Log retry attempt (dev only — terser strips console.log in prod)
+        // Log retry attempt (dev only -- terser strips logger.warn in prod)
         logger.warn(
           `[API Client] Retrying ${method} ${apiEndpoint} (attempt ${attempt + 1}/${maxRetries})`
         );
@@ -381,7 +381,7 @@ class ApiClient {
         // 401 intercept-refresh-retry: attempt a single token refresh and retry
         // Exclude auth endpoints that would cause infinite loops
         if (response.status === 401 && !isAuthExcludedEndpoint(normalizedEndpoint)) {
-          console.debug('[API Client] 401 Unauthorized - attempting token refresh');
+          logger.debug('[API Client] 401 Unauthorized - attempting token refresh');
           const refreshed = await attemptRefresh();
 
           if (refreshed) {
@@ -476,7 +476,7 @@ class ApiClient {
 
         // Handle 401 on excluded auth endpoints (no refresh attempt)
         if (response.status === 401) {
-          console.debug('[API Client] 401 on auth endpoint - no refresh attempt');
+          logger.debug('[API Client] 401 on auth endpoint - no refresh attempt');
         }
 
         // 403 CSRF intercept-retry: re-fetch CSRF token and retry once
@@ -616,7 +616,7 @@ class ApiClient {
         method === 'GET' &&
         !isAuthExcludedEndpoint(normalizedEndpoint)
       ) {
-        console.debug('[API Client] auth error on GET (via cache layer) - attempting token refresh');
+        logger.debug('[API Client] auth error on GET (via cache layer) - attempting token refresh');
         const refreshed = await attemptRefresh();
 
         if (refreshed) {

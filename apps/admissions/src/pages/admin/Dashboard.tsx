@@ -1,22 +1,23 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { logger } from '@/lib/logger'
 import { useAuth } from '@/contexts/AuthContext'
-import { adminDashboardService } from '@/services/admin/dashboard'
-import type { AdminDashboardActivity, AdminDashboardStats } from '@/services/admin/dashboard'
 import { DashboardSkeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useAdminDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useToastStore } from '@/hooks/useToast'
-import { AlertTriangle, BarChart3, Activity, RefreshCw, ClipboardList, FileCheck, CreditCard, Video, ArrowRight, TimerReset, CircleAlert } from 'lucide-react'
+import { AlertTriangle, BarChart3, Activity, RefreshCw, ClipboardList, FileCheck, CreditCard, Video, TimerReset, CalendarClock, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import { Seo } from '@/components/seo/Seo'
 import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
+import { useAdminDashboardLoader } from '@/hooks/admin'
 import { RealtimeMetricsDisplay } from '@/components/admin/RealtimeMetricsDisplay'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import { getAdminDisplayName, shouldLoadAdminDashboard } from '@/pages/admin/lib/dashboardBootstrap'
 import { PageShell } from '@/components/ui/PageShell'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+import { SectionCard } from '@/components/ui/SectionCard'
+import { MetricTile, NeedsAttentionGrid } from '@/components/ui/MetricTile'
 import { reportError } from '@/lib/errorReporter'
 
 import { DashboardActivityFeed } from '@/components/admin/dashboard/DashboardActivityFeed'
@@ -26,101 +27,41 @@ import { StaggerContainer, StaggerItem, Crossfade } from '@/components/motion'
 import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { onAdminDashboardMount } from '@/lib/speculativePrefetch'
 
-type DashboardFetchMode = 'initial' | 'manual'
-
-type DashboardApiStatus = {
-  endpoint: '/admin/dashboard/'
-  phase: 'idle' | 'loading' | 'success' | 'error'
-  responseShape: 'unknown' | 'valid' | 'empty' | 'invalid'
-  authState: 'authenticated-admin' | 'authenticated-non-admin' | 'unauthenticated'
-  isAdmin: boolean
-  userId: string | null
-  hasProfile: boolean
-  lastAttemptAt: string | null
-  lastSuccessAt: string | null
-  lastErrorAt: string | null
-  lastErrorMessage: string | null
-  lastErrorStatus: number | null
-}
-
 export default function AdminDashboard() {
-  const { user, isAdmin, profileLoading } = useAuth()
+  const { user, profileLoading: _profileLoading } = useAuth()
   const { profile } = useProfileQuery()
 
   useEffect(() => { onAdminDashboardMount() }, [])
 
-  const [stats, setStats] = useState<AdminDashboardStats>({
-    totalApplications: 0,
-    pendingApplications: 0,
-    approvedApplications: 0,
-    conditionallyApprovedApplications: 0,
-    enrolledApplications: 0,
-    acceptedApplications: 0,
-    rejectedApplications: 0,
-    totalPrograms: 0,
-    activeIntakes: 0,
-    totalStudents: 0,
-    todayApplications: 0,
-    weekApplications: 0,
-    monthApplications: 0,
-    avgProcessingTime: 0,
-    avgProcessingTimeHours: 0,
-    medianProcessingTimeHours: 0,
-    p95ProcessingTimeHours: 0,
-    decisionVelocity24h: 0,
-    activeUsers: 0,
-    activeUsersLast7d: 0,
-    systemHealth: 'good',
-    pendingPayments: 0,
-    pendingDocuments: 0,
-    upcomingInterviews: 0,
-    overdueReviews: 0,
-    conditionsExpiringSoon: 0,
-    enrollmentsExpiringSoon: 0
-  })
-  const [isInitialLoading, setIsInitialLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [recentActivity, setRecentActivity] = useState<AdminDashboardActivity[]>([])
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const [networkError, setNetworkError] = useState(false)
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
-  const [initialLoadFailed, setInitialLoadFailed] = useState(false)
-  const [hasLoadedSuccessfully, setHasLoadedSuccessfully] = useState(false)
+  const loader = useAdminDashboardLoader(shouldLoadAdminDashboard(user) ? user : null)
+  const {
+    stats,
+    recentActivity,
+    error,
+    errorIsNetwork,
+    lastUpdated,
+    hasLoadedOnce,
+    isInitialLoading,
+    isRefreshing,
+    load: loadDashboardStats,
+    patchStats,
+  } = loader
+
   const [authRecoveryFailed, setAuthRecoveryFailed] = useState(false)
-  const [apiStatus, setApiStatus] = useState<DashboardApiStatus>({
-    endpoint: '/admin/dashboard/',
-    phase: 'idle',
-    responseShape: 'unknown',
-    authState: user ? (isAdmin ? 'authenticated-admin' : 'authenticated-non-admin') : 'unauthenticated',
-    isAdmin,
-    userId: user?.id ?? null,
-    hasProfile: Boolean(profile),
-    lastAttemptAt: null,
-    lastSuccessAt: null,
-    lastErrorAt: null,
-    lastErrorMessage: null,
-    lastErrorStatus: null
-  })
-  const dashboardRequestIdRef = useRef(0)
-  const initialLoadUserIdRef = useRef<string | null>(null)
-
   useEffect(() => {
-    setApiStatus(prev => ({
-      ...prev,
-      authState: user ? (isAdmin ? 'authenticated-admin' : 'authenticated-non-admin') : 'unauthenticated',
-      isAdmin,
-      userId: user?.id ?? null,
-      hasProfile: Boolean(profile)
-    }))
-  }, [isAdmin, profile, user])
+    if (user) {
+      setAuthRecoveryFailed(false)
+      return
+    }
+    const timer = setTimeout(() => setAuthRecoveryFailed(true), 5000)
+    return () => clearTimeout(timer)
+  }, [user])
 
-  // Poll for dashboard data updates
   const { isPolling, error: pollingError, refresh: refreshPolling } = useAdminDashboardPolling({
-    enabled: Boolean(user?.id) && hasLoadedSuccessfully && !initialLoadFailed,
-    pollingInterval: 30000, // 30 seconds
+    enabled: Boolean(user?.id) && hasLoadedOnce,
+    pollingInterval: 30000,
     onDataChange: (newStats) => {
-      setStats(prev => ({
-        ...prev,
+      patchStats({
         totalApplications: newStats.totalApplications,
         pendingApplications: newStats.pendingApplications,
         approvedApplications: newStats.approvedApplications,
@@ -130,83 +71,9 @@ export default function AdminDashboard() {
         rejectedApplications: newStats.rejectedApplications,
         todayApplications: newStats.todayApplications,
         weekApplications: newStats.weekApplications,
-      }))
-      setLastUpdated(new Date())
-    }
+      })
+    },
   })
-
-  const loadDashboardStats = useCallback(async (mode: DashboardFetchMode = 'initial') => {
-    const isRefresh = mode !== 'initial'
-    const requestId = dashboardRequestIdRef.current + 1
-    dashboardRequestIdRef.current = requestId
-    const isLatestRequest = () => dashboardRequestIdRef.current === requestId
-
-    if (isRefresh) {
-      setIsRefreshing(true)
-    } else {
-      setIsInitialLoading(true)
-    }
-
-    const attemptAt = new Date().toISOString()
-    setApiStatus(prev => ({
-      ...prev,
-      phase: 'loading',
-      lastAttemptAt: attemptAt,
-      lastErrorMessage: null,
-      lastErrorStatus: null,
-      responseShape: prev.responseShape === 'unknown' ? 'unknown' : prev.responseShape
-    }))
-
-    const result = await adminDashboardService.getOverviewWithDiagnostics()
-
-    if (!isLatestRequest()) {
-      return
-    }
-
-    const isNetworkFailure =
-      (result.diagnostics.errorMessage || '').includes('Network') ||
-      (result.diagnostics.errorMessage || '').includes('fetch') ||
-      result.diagnostics.status === 503
-
-    if (!result.diagnostics.ok) {
-      const errorMessage = `Failed to load dashboard data: ${result.diagnostics.errorMessage ?? 'Unknown dashboard API error'}`
-      setError(errorMessage)
-      setNetworkError(isNetworkFailure)
-      setInitialLoadFailed(!hasLoadedSuccessfully)
-      setApiStatus(prev => ({
-        ...prev,
-        phase: 'error',
-        responseShape: result.diagnostics.responseShape,
-        lastErrorAt: result.diagnostics.requestedAt,
-        lastErrorMessage: result.diagnostics.errorMessage,
-        lastErrorStatus: result.diagnostics.status
-      }))
-    } else {
-      setStats(result.data.stats)
-      setRecentActivity(result.data.recentActivity || [])
-      setLastUpdated(new Date())
-      setError('')
-      setNetworkError(false)
-      setInitialLoadFailed(false)
-      setHasLoadedSuccessfully(true)
-      setApiStatus(prev => ({
-        ...prev,
-        phase: 'success',
-        responseShape: result.diagnostics.responseShape,
-        lastSuccessAt: result.diagnostics.requestedAt
-      }))
-
-      if (result.diagnostics.responseShape === 'empty') {
-        setError('Dashboard API returned an empty payload. Data is available but currently empty, not crashed.')
-      }
-    }
-
-    if (isRefresh) {
-      setIsRefreshing(false)
-    } else {
-      setIsInitialLoading(false)
-    }
-  }, [hasLoadedSuccessfully])
 
   const { forceRefresh, isRefreshing: isManualRefreshing } = useAdminDashboardRefresh({
     onSuccess: () => {
@@ -215,51 +82,24 @@ export default function AdminDashboard() {
     onError: (err) => {
       logger.error('Manual refresh failed:', err)
       useToastStore.getState().addToast('error', 'Failed to refresh data')
-    }
+    },
   })
 
   const handleManualRefresh = useCallback(async () => {
     await forceRefresh()
   }, [forceRefresh])
 
-  useEffect(() => {
-    logger.debug('[Dashboard] useEffect triggered', { hasUser: !!user, userId: user?.id })
-
-    if (!shouldLoadAdminDashboard(user)) {
-      logger.debug('[Dashboard] Skipping load - missing authenticated user')
-      initialLoadUserIdRef.current = null
-      return
-    }
-
-    const currentUserId = user?.id ?? null
-    if (!currentUserId) {
-      return
-    }
-
-    if (initialLoadUserIdRef.current === currentUserId) {
-      return
-    }
-
-    initialLoadUserIdRef.current = currentUserId
-    void loadDashboardStats('initial')
-  }, [loadDashboardStats, user])
-
   const approvalRate = useMemo(() => {
     const total = stats.acceptedApplications + stats.rejectedApplications
     return total > 0 ? Math.round((stats.acceptedApplications / total) * 100) : 0
   }, [stats.acceptedApplications, stats.rejectedApplications])
 
-  const { adminFirstName } = useMemo(() => {
+  const adminFirstName = useMemo(() => {
     const name = sanitizeForDisplay(getAdminDisplayName(profile, user))
-    return { adminFirstName: name.split(' ')[0] || 'Admin' }
+    return name.split(' ')[0] || 'Admin'
   }, [profile, user])
 
-  useEffect(() => {
-    if (!user) {
-      const timer = setTimeout(() => setAuthRecoveryFailed(true), 5000)
-      return () => clearTimeout(timer)
-    }
-  }, [user])
+  const refreshing = isRefreshing || isManualRefreshing
 
   if (isInitialLoading) {
     return (
@@ -277,7 +117,7 @@ export default function AdminDashboard() {
     )
   }
 
-  if (networkError && !hasLoadedSuccessfully) {
+  if (errorIsNetwork && !hasLoadedOnce) {
     return (
       <>
         <Seo
@@ -313,16 +153,22 @@ export default function AdminDashboard() {
           path="/admin/dashboard"
           noindex
         />
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-foreground mb-2">Authentication Required</h2>
-          <p className="text-muted-foreground mb-4">Please sign in to access the admin dashboard.</p>
-          <Button onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-foreground mb-2">Authentication Required</h2>
+            <p className="text-muted-foreground mb-4">Please sign in to access the admin dashboard.</p>
+            <Button onClick={() => { window.location.href = '/auth/signin' }}>Sign In</Button>
+          </div>
         </div>
-      </div>
       </>
     )
   }
+
+  const healthIcon = stats.systemHealth === 'excellent' || stats.systemHealth === 'good'
+    ? <CheckCircle2 className="h-4 w-4 text-success" aria-hidden="true" />
+    : stats.systemHealth === 'warning'
+      ? <AlertTriangle className="h-4 w-4 text-warning" aria-hidden="true" />
+      : <XCircle className="h-4 w-4 text-destructive" aria-hidden="true" />
 
   return (
     <>
@@ -332,262 +178,232 @@ export default function AdminDashboard() {
         path="/admin/dashboard"
         noindex
       />
-    <PageShell
-      title={`Welcome back, ${adminFirstName}`}
-      eyebrow="Operations Overview"
-      subtitle="Admissions volume, queue pressure, and live operational health in one control surface."
-      maxWidth="7xl"
-      tone="admin"
-      metrics={[
-        { label: 'Applications', value: stats.totalApplications, helper: `${stats.todayApplications} active today` },
-        { label: 'Decision queue', value: stats.pendingApplications, helper: 'Applications currently awaiting admin action' },
-        {
-          label: 'Accepted path',
-          value: stats.acceptedApplications,
-          helper: `${stats.conditionallyApprovedApplications} conditional + ${stats.approvedApplications} approved + ${stats.enrolledApplications} enrolled`,
-        },
-        { label: 'System health', value: stats.systemHealth, helper: `${stats.activeUsers} active users online` },
-      ]}
-      actions={
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleManualRefresh}
-          disabled={isRefreshing || isManualRefreshing}
-          className="flex items-center gap-2"
-          loading={isRefreshing || isManualRefreshing}
-        >
-          {!(isRefreshing || isManualRefreshing) && <RefreshCw className="h-4 w-4" />}
-          {(isRefreshing || isManualRefreshing) ? 'Refreshing...' : 'Refresh'}
-        </Button>
-      }
-    >
+      <PageShell
+        title={`Welcome back, ${adminFirstName}`}
+        eyebrow="Operations Overview"
+        subtitle="Admissions volume, queue pressure, and live operational health in one control surface."
+        maxWidth="7xl"
+        tone="admin"
+        metrics={[
+          { label: 'Applications', value: stats.totalApplications, helper: `${stats.todayApplications} active today` },
+          { label: 'Decision queue', value: stats.pendingApplications, helper: 'Applications currently awaiting admin action' },
+          {
+            label: 'Accepted path',
+            value: stats.acceptedApplications,
+            helper: `${stats.conditionallyApprovedApplications} conditional + ${stats.approvedApplications} approved + ${stats.enrolledApplications} enrolled`,
+          },
+          { label: 'System health', value: stats.systemHealth, helper: `${stats.activeUsers} active users online` },
+        ]}
+        actions={(
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-2 min-h-[44px]"
+            loading={refreshing}
+          >
+            {!refreshing && <RefreshCw className="h-4 w-4" />}
+            {refreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
+        )}
+      >
         {/* System Status Bar */}
-        <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.SystemStatus', ...errorInfo })}>
-        <div className="mb-6 sm:mb-8">
-          <div className="rounded-lg border border-border/60 bg-card p-4 sm:p-6 shadow-sm">
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
-              <div className="flex items-center space-x-2">
-                <div className={`w-3 h-3 rounded-full ${
-                  stats.systemHealth === 'excellent' ? 'bg-success/80' :
-                  stats.systemHealth === 'good' ? 'bg-primary/80' :
-                  stats.systemHealth === 'warning' ? 'bg-warning/80' : 'bg-error/80'
-                }`}></div>
-                <span className="text-foreground">System {stats.systemHealth}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Activity className="h-4 w-4 text-muted-foreground" />
-                <span className="text-foreground">{stats.activeUsers} active users</span>
-              </div>
-              {/* Polling status indicator */}
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${isPolling ? 'bg-success animate-pulse' : 'bg-muted-foreground/50'}`} aria-hidden="true"></div>
-                <span className="text-xs text-muted-foreground">{isPolling ? 'Live' : 'Paused'}</span>
-              </div>
-              <div className="ml-auto text-foreground">
-                <span className="text-3xl font-bold tracking-tight">{stats.totalApplications}</span>
-                <span className="text-sm ml-2 text-muted-foreground">Total Applications</span>
+        <ErrorBoundary level="section" onError={(err, info) => reportError(err, { component: 'AdminDashboard.SystemStatus', ...info })}>
+          <div className="mb-6 sm:mb-8">
+            <div className="rounded-lg border border-border/60 bg-card p-4 sm:p-6 shadow-sm">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm">
+                <div className="flex items-center gap-2">
+                  {healthIcon}
+                  <span className="text-foreground">System {stats.systemHealth}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                  <span className="text-foreground">{stats.activeUsers} active users</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${isPolling ? 'bg-success animate-pulse' : 'bg-muted-foreground/50'}`} aria-hidden="true" />
+                  <span className="text-xs text-muted-foreground">{isPolling ? 'Live' : 'Paused'}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
         </ErrorBoundary>
 
         {/* Needs Attention */}
-        <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.NeedsAttention', ...errorInfo })}>
-        <div className="mb-6 sm:mb-8">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Needs attention</h3>
-          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            <StaggerItem>
-            <Link to="/admin/applications?overdueReviewFilter=true" className="group rounded-lg border border-red-500/30 bg-red-500/5 p-4 transition-colors hover:bg-red-500/10">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="shrink-0 rounded-lg bg-red-500/10 p-2"><TimerReset className="h-5 w-5 text-red-600" /></div>
-                <div className="min-w-0">
-                  <p className="break-words text-2xl font-bold text-foreground">{stats.overdueReviews}</p>
-                  <p className="break-words text-xs text-muted-foreground">Reviews past SLA</p>
-                </div>
-              </div>
-              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-red-600">Clear overdue work <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
-            </Link>
-            </StaggerItem>
-            <StaggerItem>
-            <Link to="/admin/applications?reviewQueueFilter=true" className="group rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 transition-colors hover:bg-amber-500/10">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="shrink-0 rounded-lg bg-amber-500/10 p-2"><ClipboardList className="h-5 w-5 text-amber-600" /></div>
-                <div className="min-w-0">
-                  <p className="break-words text-2xl font-bold text-foreground">{stats.pendingApplications}</p>
-                  <p className="break-words text-xs text-muted-foreground">Pending review</p>
-                </div>
-              </div>
-              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-600">Review now <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
-            </Link>
-            </StaggerItem>
-            <StaggerItem>
-            <Link to="/admin/applications?pendingDocumentsFilter=true" className="group rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 transition-colors hover:bg-blue-500/10">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="shrink-0 rounded-lg bg-blue-500/10 p-2"><FileCheck className="h-5 w-5 text-blue-600" /></div>
-                <div className="min-w-0">
-                  <p className="break-words text-2xl font-bold text-foreground">{stats.pendingDocuments}</p>
-                  <p className="break-words text-xs text-muted-foreground">Documents to verify</p>
-                </div>
-              </div>
-              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600">Verify documents <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
-            </Link>
-            </StaggerItem>
-            <StaggerItem>
-            <Link to="/admin/applications?paymentFilter=pending_review" className="group rounded-lg border border-rose-500/30 bg-rose-500/5 p-4 transition-colors hover:bg-rose-500/10">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="shrink-0 rounded-lg bg-rose-500/10 p-2"><CreditCard className="h-5 w-5 text-rose-600" /></div>
-                <div className="min-w-0">
-                  <p className="break-words text-2xl font-bold text-foreground">{stats.pendingPayments}</p>
-                  <p className="break-words text-xs text-muted-foreground">Payments pending</p>
-                </div>
-              </div>
-              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-rose-600">Review payments <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
-            </Link>
-            </StaggerItem>
-            <StaggerItem>
-            <Link to="/admin/applications?upcomingInterviewsFilter=true" className="group rounded-lg border border-sky-500/30 bg-sky-500/5 p-4 transition-colors hover:bg-sky-500/10">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="shrink-0 rounded-lg bg-sky-500/10 p-2"><Video className="h-5 w-5 text-sky-600" /></div>
-                <div className="min-w-0">
-                  <p className="break-words text-2xl font-bold text-foreground">{stats.upcomingInterviews}</p>
-                  <p className="break-words text-xs text-muted-foreground">Upcoming interviews</p>
-                </div>
-              </div>
-              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-sky-600">View schedule <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
-            </Link>
-            </StaggerItem>
-            <StaggerItem>
-            <Link to="/admin/applications?statusFilter=conditionally_approved" className="group rounded-lg border border-orange-500/30 bg-orange-500/5 p-4 transition-colors hover:bg-orange-500/10">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="shrink-0 rounded-lg bg-orange-500/10 p-2"><CircleAlert className="h-5 w-5 text-orange-600" /></div>
-                <div className="min-w-0">
-                  <p className="break-words text-2xl font-bold text-foreground">{stats.conditionsExpiringSoon}</p>
-                  <p className="break-words text-xs text-muted-foreground">Conditions due in 48h</p>
-                </div>
-              </div>
-              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-orange-600">Review conditions <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
-            </Link>
-            </StaggerItem>
-            <StaggerItem>
-            <Link to="/admin/applications?statusFilter=approved" className="group rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 transition-colors hover:bg-emerald-500/10">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="shrink-0 rounded-lg bg-emerald-500/10 p-2"><CircleAlert className="h-5 w-5 text-emerald-600" /></div>
-                <div className="min-w-0">
-                  <p className="break-words text-2xl font-bold text-foreground">{stats.enrollmentsExpiringSoon}</p>
-                  <p className="break-words text-xs text-muted-foreground">Enrollments due in 48h</p>
-                </div>
-              </div>
-              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-emerald-600">Follow up now <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></p>
-            </Link>
-            </StaggerItem>
-          </StaggerContainer>
-        </div>
+        <ErrorBoundary level="section" onError={(err, info) => reportError(err, { component: 'AdminDashboard.NeedsAttention', ...info })}>
+          <div className="mb-6 sm:mb-8">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Needs attention</h3>
+            <StaggerContainer>
+              <NeedsAttentionGrid>
+                <StaggerItem>
+                  <MetricTile
+                    as={Link}
+                    to="/admin/applications?overdueReviewFilter=true"
+                    tone="destructive"
+                    icon={TimerReset}
+                    value={stats.overdueReviews}
+                    label="Reviews past SLA"
+                    cta="Clear overdue work"
+                    ariaLabel={`${stats.overdueReviews} reviews past SLA — clear overdue work`}
+                  />
+                </StaggerItem>
+                <StaggerItem>
+                  <MetricTile
+                    as={Link}
+                    to="/admin/applications?reviewQueueFilter=true"
+                    tone="warning"
+                    icon={ClipboardList}
+                    value={stats.pendingApplications}
+                    label="Pending review"
+                    cta="Review now"
+                    ariaLabel={`${stats.pendingApplications} applications pending review`}
+                  />
+                </StaggerItem>
+                <StaggerItem>
+                  <MetricTile
+                    as={Link}
+                    to="/admin/applications?pendingDocumentsFilter=true"
+                    tone="info"
+                    icon={FileCheck}
+                    value={stats.pendingDocuments}
+                    label="Documents to verify"
+                    cta="Verify documents"
+                    ariaLabel={`${stats.pendingDocuments} documents to verify`}
+                  />
+                </StaggerItem>
+                <StaggerItem>
+                  <MetricTile
+                    as={Link}
+                    to="/admin/applications?paymentFilter=pending_review"
+                    tone="destructive"
+                    icon={CreditCard}
+                    value={stats.pendingPayments}
+                    label="Payments pending"
+                    cta="Review payments"
+                    ariaLabel={`${stats.pendingPayments} payments pending review`}
+                  />
+                </StaggerItem>
+                <StaggerItem>
+                  <MetricTile
+                    as={Link}
+                    to="/admin/applications?upcomingInterviewsFilter=true"
+                    tone="info"
+                    icon={Video}
+                    value={stats.upcomingInterviews}
+                    label="Upcoming interviews"
+                    cta="View schedule"
+                    ariaLabel={`${stats.upcomingInterviews} upcoming interviews`}
+                  />
+                </StaggerItem>
+                <StaggerItem>
+                  <MetricTile
+                    as={Link}
+                    to="/admin/applications?deadlinePressureFilter=true"
+                    tone="warning"
+                    icon={CalendarClock}
+                    value={stats.conditionsExpiringSoon + stats.enrollmentsExpiringSoon}
+                    label="Deadlines in 48h"
+                    helper={`${stats.conditionsExpiringSoon} conditions · ${stats.enrollmentsExpiringSoon} enrollments`}
+                    cta="Follow up now"
+                    ariaLabel={`${stats.conditionsExpiringSoon + stats.enrollmentsExpiringSoon} deadlines in next 48 hours`}
+                  />
+                </StaggerItem>
+              </NeedsAttentionGrid>
+            </StaggerContainer>
+          </div>
         </ErrorBoundary>
 
-        {/* Error Display */}
-          {error && (
-            <div 
-              className="mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 sm:p-5"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center space-x-3">
-                  <AlertTriangle className="h-6 w-6 text-error flex-shrink-0" />
-                  <div className="text-sm sm:text-base text-error font-medium">
-                    <strong>Error:</strong> {error}
-                  </div>
+        {/* Error banner */}
+        {error && (
+          <div
+            className="mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 sm:p-5"
+            role="alert"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-6 w-6 text-destructive flex-shrink-0" aria-hidden="true" />
+                <div className="text-sm sm:text-base text-destructive font-medium">
+                  <strong>Error:</strong> {error}
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (hasLoadedSuccessfully) {
-                      refreshPolling()
-                      return
-                    }
-                    void loadDashboardStats('manual')
-                  }}
-                  disabled={isRefreshing || isManualRefreshing}
-                >
-                  Retry now
-                </Button>
               </div>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Last error detail: {apiStatus.lastErrorMessage ?? pollingError?.message ?? 'No additional details available.'}
-              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (hasLoadedOnce) {
+                    refreshPolling()
+                    return
+                  }
+                  void loadDashboardStats('manual')
+                }}
+                disabled={refreshing}
+                className="min-h-[44px]"
+              >
+                Retry now
+              </Button>
             </div>
-          )}
+            {pollingError?.message && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Last error detail: {pollingError.message}
+              </p>
+            )}
+          </div>
+        )}
 
-        {(isRefreshing || isManualRefreshing) && (
+        {refreshing && (
           <div className="mb-6">
             <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 shadow-sm">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2 text-sm font-medium text-info-strong">
-                  <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
-                  <span>Refreshing dashboard metrics…</span>
-                </div>
-                <div className="h-1 w-full overflow-hidden rounded-full bg-primary/10 sm:w-56">
-                  <div className="h-full w-1/2 animate-pulse bg-primary/80" />
-                </div>
+              <div className="flex items-center gap-2 text-sm font-medium text-info-strong">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden="true" />
+                <span>Refreshing dashboard metrics…</span>
               </div>
             </div>
           </div>
         )}
 
-
-
         {/* Real-time Metrics Display with Animated Counters */}
-        {/* Requirements: 6.2, 6.4 - Real-time metrics display with animated counters and visual indicators */}
-        <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.RealtimeMetrics', ...errorInfo })}>
-        <div 
-          className="mb-6 sm:mb-8"
-        >
-          <RealtimeMetricsDisplay
-            todayApplications={stats.todayApplications}
-            pendingApplications={stats.pendingApplications}
-            approvedApplications={stats.approvedApplications}
-            acceptedApplications={stats.acceptedApplications}
-            rejectedApplications={stats.rejectedApplications}
-            totalApplications={stats.totalApplications}
-            avgProcessingTime={stats.avgProcessingTime}
-            activeUsers={stats.activeUsers}
-            isConnected={isPolling}
-            lastUpdated={lastUpdated}
-            onRefresh={handleManualRefresh}
-            isRefreshing={isRefreshing || isManualRefreshing}
-          />
-        </div>
-        </ErrorBoundary>
-
-        <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.ActivityAndActions', ...errorInfo })}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          <div className="lg:col-span-2">
-            <DashboardActivityFeed items={recentActivity} />
-          </div>
-
-          <div>
-            <DashboardQuickActions
+        <ErrorBoundary level="section" onError={(err, info) => reportError(err, { component: 'AdminDashboard.RealtimeMetrics', ...info })}>
+          <div className="mb-6 sm:mb-8">
+            <RealtimeMetricsDisplay
+              todayApplications={stats.todayApplications}
               pendingApplications={stats.pendingApplications}
-              totalPrograms={stats.totalPrograms}
-              totalStudents={stats.totalStudents}
+              approvedApplications={stats.approvedApplications}
+              acceptedApplications={stats.acceptedApplications}
+              rejectedApplications={stats.rejectedApplications}
+              totalApplications={stats.totalApplications}
+              avgProcessingTime={stats.avgProcessingTime}
+              activeUsers={stats.activeUsers}
+              isConnected={isPolling}
+              lastUpdated={lastUpdated}
+              onRefresh={handleManualRefresh}
+              isRefreshing={refreshing}
             />
           </div>
-        </div>
         </ErrorBoundary>
-        {/* Weekly Overview */}
-        <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'AdminDashboard.WeeklyOverview', ...errorInfo })}>
-        <div 
-          className="mt-8 rounded-lg border border-border/60 bg-card shadow-sm"
-        >
-          <div className="px-6 py-4 border-b border-border/40">
-            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              Weekly Overview
-            </h3>
+
+        <ErrorBoundary level="section" onError={(err, info) => reportError(err, { component: 'AdminDashboard.ActivityAndActions', ...info })}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="lg:col-span-2">
+              <DashboardActivityFeed items={recentActivity} />
+            </div>
+            <div>
+              <DashboardQuickActions
+                pendingApplications={stats.pendingApplications}
+                totalPrograms={stats.totalPrograms}
+                totalStudents={stats.totalStudents}
+              />
+            </div>
           </div>
-          
-          <div className="p-6">
+        </ErrorBoundary>
+
+        {/* Weekly Overview */}
+        <ErrorBoundary level="section" onError={(err, info) => reportError(err, { component: 'AdminDashboard.WeeklyOverview', ...info })}>
+          <SectionCard
+            className="mt-8"
+            title="Weekly Overview"
+            icon={<BarChart3 className="h-5 w-5" />}
+          >
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="text-3xl font-bold tracking-tight text-primary">{stats.weekApplications}</div>
@@ -604,11 +420,9 @@ export default function AdminDashboard() {
                 <div className="text-sm font-medium text-muted-foreground mt-1">Success Rate</div>
               </div>
             </div>
-          </div>
-        </div>
+          </SectionCard>
         </ErrorBoundary>
-
-    </PageShell>
+      </PageShell>
     </>
-  );
+  )
 }

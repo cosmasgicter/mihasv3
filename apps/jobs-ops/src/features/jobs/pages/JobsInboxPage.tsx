@@ -10,16 +10,9 @@ import { PageSkeleton } from '@/components/ui/PageSkeleton'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { labelize } from '@/lib/format'
+import { labelize, recommendationTone } from '@/lib/format'
 import type { Recommendation } from '@/services/api/contracts'
 import { listJobs } from '@/services/api/jobs'
-
-function recommendationTone(recommendation: string) {
-  if (recommendation === 'apply_now') return 'success' as const
-  if (recommendation === 'review') return 'warning' as const
-  if (recommendation === 'watch') return 'insight' as const
-  return 'danger' as const
-}
 
 export function JobsInboxPage() {
   const [searchValue, setSearchValue] = useState('')

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useForm, type UseFormReturn, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
@@ -17,27 +17,23 @@ import { createApplicationSlip } from '@/lib/slipService'
 import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import { sanitizeForLog, sanitizeInput } from '@/lib/security'
 import { logApiError } from '@/lib/apiErrorLogger'
-import { extractAuthUser } from '@/lib/authSession'
 import { toError } from '@/lib/toError'
-import { findBestSubjectId } from '@/lib/subjectMatcher'
-import { apiClient, AuthenticationError } from '@/services/client'
-import { authService } from '@/services/auth'
+import { apiClient } from '@/services/client'
 import { applicationService } from '@/services/applications'
 import type { Application, Intake } from '@/types/database'
 import { logger } from '@/lib/logger'
-import { safeJsonParse } from '@/lib/utils'
-import { clearAllDraftData, isDraftDeleted, clearDraftDeletedFlag } from '@/lib/draftManager'
+import { clearAllDraftData } from '@/lib/draftManager'
+import { generateIdempotencyKey } from '@/lib/paymentStatus'
+import { useDraftStore } from '@/stores/draftStore'
 import {
-  applicationSessionManager,
   clearStaleApplicationDraftReference,
   isApplicationMissingError,
 } from '@/lib/applicationSession'
-import { cachedGetItem, cachedSetItem, cachedRemoveItem } from '@/lib/localStorageCache'
+import { cachedSetItem } from '@/lib/localStorageCache'
 import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
 import { normalizeResidenceTown } from '@/lib/residenceTown'
 import {
   getCanonicalResidenceCountry,
-  getCanonicalResidenceTown,
   normalizeDateInputValue,
 } from '@/lib/profileFieldMapping'
 import { mergeWizardSubjects, resolveWizardSubjectId } from '../lib/educationCatalog'
@@ -60,20 +56,33 @@ import { selectLatestDocumentByType, type UploadedApplicationDocument } from '..
 import { useWizardNavigation } from './wizard/useWizardNavigation'
 import {
   createWizardSchema,
-  normalizePhoneNumberInput,
   type SubjectGrade,
   type WizardFormData,
   type WizardProgram,
   type WizardIntake
 } from '../types'
 import { getStepIndexById, wizardSteps } from '../steps/config'
+import {
+  createGradeRowId,
+  normalizeServerUploadedFiles,
+  sanitizePhoneInput,
+  isAuthSaveError,
+  buildWizardIntakeDisplayName,
+  resolveWizardIntakeIdentity,
+  type SaveDraftOptions,
+} from './wizard/wizardControllerUtils'
+import { useWizardSessionRecovery } from './wizard/useWizardSessionRecovery'
+import { useWizardProfileAutoPopulate } from './wizard/useWizardProfileAutoPopulate'
+import { useWizardDraftLoader } from './wizard/useWizardDraftLoader'
 
-function createGradeRowId() {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID()
-  }
-  return `grade-${Date.now()}-${Math.random().toString(36).slice(2)}`
-}
+// Re-export pure helpers so existing test imports keep working
+export {
+  getCachedAuthUser,
+  shouldRedirectToSignIn,
+  hasRecentWizardRedirectGuard,
+  buildWizardIntakeDisplayName,
+  resolveWizardIntakeIdentity,
+} from './wizard/wizardControllerUtils'
 
 interface UseWizardControllerResult {
   authLoading: boolean
@@ -150,117 +159,9 @@ export interface PaymentValidationContext {
   showError: (title: string, message?: string) => void
 }
 
-const WIZARD_AUTH_REDIRECT_GUARD_KEY = 'mihas:wizard-auth-redirect-guard'
-const WIZARD_SESSION_GRACE_MS = 5000
-const IDENTITY_DOCUMENT_TYPES = new Set(['extra_kyc', 'nrc', 'passport'])
 
-function normalizeServerUploadedFiles(documents: unknown[]): Record<string, boolean> {
-  return documents.reduce<Record<string, boolean>>(
-    (acc, document) => {
-      if (!document || typeof document !== 'object') {
-        return acc
-      }
-
-      const record = document as { document_type?: unknown; verification_status?: unknown }
-      const documentType = typeof record.document_type === 'string' ? record.document_type : ''
-      const verificationStatus = typeof record.verification_status === 'string' ? record.verification_status : ''
-      if (verificationStatus === 'deleted') {
-        return acc
-      }
-
-      if (documentType === 'result_slip') {
-        acc.result_slip = true
-      }
-      if (IDENTITY_DOCUMENT_TYPES.has(documentType)) {
-        acc.extra_kyc = true
-      }
-
-      return acc
-    },
-    { result_slip: false, extra_kyc: false }
-  )
-}
-const SESSION_EXPIRED_BANNER = 'Your session expired. We saved your progress. Please sign in again to continue.'
-
-type SessionCacheShape = { user?: { id?: string } | null } | null | undefined
-
-export const getCachedAuthUser = (sessionCache: SessionCacheShape) => sessionCache?.user ?? null
-
-export const shouldRedirectToSignIn = ({
-  sessionRecheckFailed,
-  tokenRefreshFailed,
-  cachedUser,
-}: {
-  sessionRecheckFailed: boolean
-  tokenRefreshFailed: boolean
-  cachedUser: { id?: string } | null
-}) => sessionRecheckFailed && tokenRefreshFailed && !cachedUser
-
-export const hasRecentWizardRedirectGuard = (rawGuardValue: string | null, now: number): boolean => {
-  if (!rawGuardValue) return false
-  const guard = safeJsonParse<{ createdAt?: number } | null>(rawGuardValue, null)
-  if (!guard?.createdAt || typeof guard.createdAt !== 'number') return false
-  return now - guard.createdAt < 15_000
-}
-
-type ResolvedIntakeIdentity = {
-  id: string
-  name: string
-  label: string
-}
-
-type SaveDraftOptions = {
-  syncServer?: boolean
-}
-
-export const buildWizardIntakeDisplayName = (intake: Intake & { year?: number }) => {
-  const normalizedName = intake.name?.trim() || ''
-  const yearString = Number.isFinite(intake.year) ? String(intake.year) : ''
-  const includesYear = yearString && normalizedName.includes(yearString)
-  const nameWithYear = includesYear ? normalizedName : `${normalizedName} ${yearString}`.trim()
-  return (nameWithYear || normalizedName || yearString || 'Upcoming Intake').trim()
-}
-
-export const resolveWizardIntakeIdentity = (
-  availableIntakes: WizardIntake[],
-  value?: string | null
-): ResolvedIntakeIdentity | null => {
-  const trimmed = value?.trim() || ''
-  if (!trimmed) return null
-
-  const toResolvedIdentity = (intake: WizardIntake): ResolvedIntakeIdentity => {
-    const canonicalName = intake.name?.trim() || intake.displayName?.trim() || ''
-    const displayLabel = intake.displayName?.trim() || canonicalName
-    return {
-      id: intake.id,
-      name: canonicalName,
-      label: displayLabel,
-    }
-  }
-
-  const byId = availableIntakes.find(intake => intake.id === trimmed)
-  if (byId) return toResolvedIdentity(byId)
-
-  const byDisplayName = availableIntakes.find(intake => intake.displayName?.trim() === trimmed)
-  if (byDisplayName) return toResolvedIdentity(byDisplayName)
-
-  const byName = availableIntakes.find(intake => intake.name?.trim() === trimmed)
-  if (byName) return toResolvedIdentity(byName)
-
-  return null
-}
-
-function sanitizePhoneInput(value: string | undefined | null): string {
-  return sanitizeInput(normalizePhoneNumberInput(value || ''))
-}
-
-function isAuthSaveError(error: unknown): error is AuthenticationError {
-  return error instanceof AuthenticationError ||
-    (error instanceof Error && error.name === 'AuthenticationError')
-}
 
 const useWizardController = (): UseWizardControllerResult => {
-  const navigate = useNavigate()
   const location = useLocation()
   const queryClient = useQueryClient()
   const { user, loading: authLoading } = useAuth()
@@ -295,7 +196,6 @@ const useWizardController = (): UseWizardControllerResult => {
   const pendingSaveRef = useRef(false)
   const createBlockedRef = useRef(false)
   const isSubmittingRef = useRef(false)
-  const authRecoveryInFlightRef = useRef(false)
 
   const findProgramId = useCallback(
     (
@@ -533,6 +433,7 @@ const useWizardController = (): UseWizardControllerResult => {
     queryClient.removeQueries({ queryKey: ['application-detail', staleApplicationId] })
     queryClient.removeQueries({ queryKey: ['applications', 'detail', staleApplicationId] })
     queryClient.invalidateQueries({ queryKey: ['applications'] })
+    useDraftStore.getState().markStale(staleApplicationId)
     window.dispatchEvent(new CustomEvent('applicationDraftStale', { detail: { applicationId: staleApplicationId } }))
     if (message) {
       showWarning(message)
@@ -555,6 +456,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
     try {
       cachedSetItem('applicationWizardDraft', JSON.stringify(draftSnapshot))
+      useDraftStore.getState().markSaved(draftSnapshot)
       window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draftSnapshot }))
     } catch {
       // best effort local persistence
@@ -663,7 +565,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
           if (resultSlipDocId) {
             // Fire OCR extraction — this is async (Celery task), don't await completion
-            apiClient.request(`/documents/${resultSlipDocId}/extract/`, { method: 'POST' }).catch(() => {})
+            apiClient.request(`/documents/${resultSlipDocId}/extract/`, { method: 'POST' }).catch((err) => logger.warn('OCR extraction request failed', toError(err)))
             // Start polling for AI grade extraction results
             setOcrDocumentId(resultSlipDocId)
             startOcrPollingRef.current?.(resultSlipDocId)
@@ -734,129 +636,13 @@ const useWizardController = (): UseWizardControllerResult => {
     persistLocalDraftSnapshot,
   ])
 
-  useEffect(() => {
-    if (authLoading) return
-
-    if (user) {
-      authRecoveryInFlightRef.current = false
-      setError(current => (current === SESSION_EXPIRED_BANNER ? '' : current))
-      try {
-        sessionStorage.removeItem(WIZARD_AUTH_REDIRECT_GUARD_KEY)
-      } catch {
-        // best effort guard cleanup
-      }
-      return
-    }
-
-    if (authRecoveryInFlightRef.current) return
-    authRecoveryInFlightRef.current = true
-
-    let cancelled = false
-    let graceTimer: ReturnType<typeof setTimeout> | null = null
-
-    const recoverSessionThenMaybeRedirect = async () => {
-      setError(current => current || SESSION_EXPIRED_BANNER)
-      await new Promise<void>(resolve => {
-        graceTimer = setTimeout(resolve, WIZARD_SESSION_GRACE_MS)
-      })
-
-      if (cancelled) return
-
-      const readCachedUser = () =>
-        getCachedAuthUser(queryClient.getQueryData<{ user?: { id?: string } }>(['auth', 'session']))
-
-      const cachedBeforeChecks = readCachedUser()
-      if (cachedBeforeChecks) {
-        setError(current => (current === SESSION_EXPIRED_BANNER ? '' : current))
-        authRecoveryInFlightRef.current = false
-        return
-      }
-
-      let sessionRecheckFailed = true
-      try {
-        const sessionResult = await authService.session()
-        const sessionUser = extractAuthUser(sessionResult)
-        if (sessionUser) {
-          queryClient.setQueryData(['auth', 'session'], { user: sessionUser })
-          sessionRecheckFailed = false
-        }
-      } catch {
-        sessionRecheckFailed = true
-      }
-
-      if (cancelled) return
-
-      let tokenRefreshFailed = true
-      if (sessionRecheckFailed) {
-        try {
-          await authService.refresh()
-          const refreshedSession = await authService.session()
-          const refreshedUser = extractAuthUser(refreshedSession)
-          if (refreshedUser) {
-            queryClient.setQueryData(['auth', 'session'], { user: refreshedUser })
-            tokenRefreshFailed = false
-            sessionRecheckFailed = false
-          }
-        } catch {
-          tokenRefreshFailed = true
-        }
-      }
-
-      const cachedAfterChecks = readCachedUser()
-      const shouldRedirect = shouldRedirectToSignIn({
-        sessionRecheckFailed,
-        tokenRefreshFailed,
-        cachedUser: cachedAfterChecks,
-      })
-
-      if (cancelled || !shouldRedirect) {
-        setError(current => (current === SESSION_EXPIRED_BANNER ? '' : current))
-        authRecoveryInFlightRef.current = false
-        return
-      }
-
-      const now = Date.now()
-      let rawGuard: string | null = null
-      try {
-        rawGuard = sessionStorage.getItem(WIZARD_AUTH_REDIRECT_GUARD_KEY)
-      } catch {
-        rawGuard = null
-      }
-      if (hasRecentWizardRedirectGuard(rawGuard, now)) {
-        setError(SESSION_EXPIRED_BANNER)
-        authRecoveryInFlightRef.current = false
-        return
-      }
-
-      preserveDraftBeforeAuthRedirect()
-      try {
-        sessionStorage.setItem(WIZARD_AUTH_REDIRECT_GUARD_KEY, JSON.stringify({ createdAt: now }))
-      } catch {
-        // best effort loop guard
-      }
-      const redirectTarget = `/student/application-wizard?step=${encodeURIComponent(currentStepConfig.key)}`
-      navigate(`/auth/signin?redirect=${encodeURIComponent(redirectTarget)}`, {
-        replace: true,
-        state: {
-          from: {
-            pathname: '/student/application-wizard',
-            search: `?step=${encodeURIComponent(currentStepConfig.key)}`,
-            hash: '',
-          },
-        },
-      })
-    }
-
-    recoverSessionThenMaybeRedirect().finally(() => {
-      if (!cancelled) authRecoveryInFlightRef.current = false
-    })
-
-    return () => {
-      cancelled = true
-      authRecoveryInFlightRef.current = false
-      if (graceTimer) clearTimeout(graceTimer)
-    }
-  }, [authLoading, currentStepConfig.key, navigate, preserveDraftBeforeAuthRedirect, queryClient, user])
+  useWizardSessionRecovery({
+    authLoading,
+    user,
+    currentStepKey: currentStepConfig.key,
+    setError,
+    preserveDraftBeforeAuthRedirect,
+  })
 
   const slipPayload: ApplicationSlipData | null = useMemo(() => {
     if (!submittedApplication || !submittedApplication.trackingCode || !submittedApplication.applicationNumber) return null
@@ -939,392 +725,40 @@ const useWizardController = (): UseWizardControllerResult => {
     }
   }, [intakes, intakeIds, setValue, watch])
 
-  useEffect(() => {
-    if (user && !authLoading && !restoringDraft && !draftLoaded) {
-      const metadata = getUserMetadata(user)
-      const email = user.email || ''
-      const setIfEmpty = (field: keyof WizardFormData, value: string) => {
-        const normalizedValue = value.trim()
-        if (!normalizedValue) return
-
-        const currentValue = getValues(field)
-        if (typeof currentValue === 'string' && currentValue.trim()) {
-          return
-        }
-
-        setValue(field, normalizedValue as WizardFormData[typeof field], {
-          shouldDirty: false,
-          shouldTouch: false,
-          shouldValidate: false,
-        })
-      }
-      
-      const fullName = getBestValue(profile?.full_name, metadata.full_name, email.split('@')[0] || '')
-      const phone = getBestValue(profile?.phone, metadata.phone, '')
-      const dateOfBirth = normalizeDateInputValue(
-        getBestValue(profile?.date_of_birth, metadata.date_of_birth, '')
-      )
-      const sex = normalizeSexForWizard(getBestValue(profile?.sex, metadata.sex, ''))
-      const residenceTown = getCanonicalResidenceTown(profile, metadata)
-      const residenceCountry = getCanonicalResidenceCountry(profile, metadata)
-      const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
-      const nrcNumber = getBestValue(profile?.nrc_number, metadata.nrc_number, '')
-      const passportNumber = getBestValue(profile?.passport_number, metadata.passport_number, '')
-      const nextOfKinName = getBestValue(profile?.next_of_kin_name, metadata.next_of_kin_name, '')
-      const nextOfKinPhone = getBestValue(profile?.next_of_kin_phone, metadata.next_of_kin_phone, '')
-
-      setIfEmpty('email', email)
-      setIfEmpty('full_name', fullName)
-      setIfEmpty('phone', phone)
-      setIfEmpty('date_of_birth', dateOfBirth)
-      setIfEmpty('sex', sex)
-      setIfEmpty('residence_town', normalizeResidenceTown(residenceTown))
-      setIfEmpty('country', residenceCountry)
-      setIfEmpty('nationality', nationality)
-      setIfEmpty('nrc_number', nrcNumber)
-      setIfEmpty('passport_number', passportNumber)
-      setIfEmpty('next_of_kin_name', nextOfKinName)
-      setIfEmpty('next_of_kin_phone', nextOfKinPhone)
-    }
-  }, [
+  useWizardProfileAutoPopulate({
     user,
-    profile?.full_name,
-    profile?.phone,
-    profile?.date_of_birth,
-    profile?.sex,
-    profile?.residence_town,
-    profile?.country,
-    profile?.nationality,
-    profile?.nrc_number,
-    profile?.passport_number,
-    profile?.next_of_kin_name,
-    profile?.next_of_kin_phone,
+    profile,
     authLoading,
+    restoringDraft,
     draftLoaded,
     getValues,
-    restoringDraft,
     setValue,
-  ])
+  })
 
-  useEffect(() => {
-    const loadDraft = async () => {
-      if (!user || authLoading || draftLoaded || draftApplicationsLoading) return
-      setRestoringDraft(true)
-      let draftRestored = false
-      
-      try {
-        // Check if draft was recently deleted
-        if (isDraftDeleted()) {
-          clearDraftDeletedFlag()
-          setRestoringDraft(false)
-          setDraftLoaded(true)
-          return
-        }
-        
-        // Load both local and server drafts, then reconcile by timestamp
-        interface LocalDraftShape {
-          formData: Record<string, unknown>
-          selectedGrades?: unknown[]
-          uploadedFiles?: Record<string, boolean>
-          paymentStatus?: string | null
-          currentStep?: number
-          currentStepKey?: string
-          applicationId?: string
-          savedAt?: string
-          userId?: string
-          version?: number
-        }
-        interface ServerDraftShape {
-          id: string
-          full_name?: string
-          nrc_number?: string
-          passport_number?: string
-          date_of_birth?: string
-          sex?: string
-          phone?: string
-          email?: string
-          residence_town?: string
-          country?: string
-          nationality?: string
-          next_of_kin_name?: string
-          next_of_kin_phone?: string
-          program?: string
-          intake?: string
-          institution?: string
-          result_slip_url?: string
-          extra_kyc_url?: string
-          payment_status?: string | null
-          status?: string
-          updated_at?: string
-          created_at?: string
-        }
-        let localDraft: LocalDraftShape | null = null
-        let localTimestamp: Date | null = null
-        let serverApp: ServerDraftShape | null = null
-        let serverTimestamp: Date | null = null
-        
-        // 1. Check localStorage for local draft
-        const draft = await applicationSessionManager.getLocalWizardDraft(user.id)
-        if (draft && draft.formData && draft.version === 2) {
-          localDraft = draft as unknown as LocalDraftShape
-          localTimestamp = draft.savedAt ? new Date(draft.savedAt) : null
-        } else if (cachedGetItem('applicationWizardDraft')) {
-          cachedRemoveItem('applicationWizardDraft')
-        }
-        
-        // Clean up old sessionStorage drafts
-        sessionStorage.removeItem('applicationWizardDraft')
-        
-        // 2. Check database for server draft
-        if (draftApplications?.applications && draftApplications.applications.length > 0) {
-          serverApp = draftApplications.applications[0] as unknown as ServerDraftShape
-          serverTimestamp = serverApp.updated_at ? new Date(serverApp.updated_at) : 
-                          (serverApp.created_at ? new Date(serverApp.created_at) : null)
-        }
-        
-        // 3. Reconcile: pick the most recently updated draft
-        const useLocalDraft = (() => {
-          if (localDraft && !serverApp) return true
-          if (!localDraft && serverApp) return false
-          if (!localDraft && !serverApp) return false // nothing to restore
-          
-          // Both exist — compare timestamps, pick most recent
-          if (localTimestamp && serverTimestamp) {
-            return localTimestamp.getTime() >= serverTimestamp.getTime()
-          }
-          // If timestamps are missing, prefer local (it's the most recent user action)
-          return true
-        })()
-        
-        if (useLocalDraft && localDraft) {
-          let localApplicationId = typeof localDraft.applicationId === 'string' ? localDraft.applicationId : null
-          // Restore from localStorage
-            // 3.2: Restore form values with shouldValidate: false to prevent validation errors
-            Object.keys(localDraft.formData).forEach(key => {
-              const rawValue = localDraft.formData[key]
-              const value = key === 'date_of_birth'
-                ? normalizeDateInputValue(rawValue)
-                : rawValue
-              if (value !== undefined && value !== null && value !== '') {
-                setValue(key as keyof WizardFormData, value as WizardFormData[keyof WizardFormData], { shouldValidate: false })
-              }
-            })
-            
-            // Handle program ID resolution correctly
-            if (localDraft.formData.program) {
-              const resolvedProgramId = findProgramId(
-                localDraft.formData.program as string,
-                undefined,
-                programsData?.programs as WizardProgram[] | undefined
-              )
-              if (resolvedProgramId) {
-                setValue('program', resolvedProgramId, { shouldValidate: false })
-              }
-            }
-            
-            // Ensure intake is restored
-            if (localDraft.formData.intake) {
-              setValue('intake', localDraft.formData.intake as string, { shouldValidate: false })
-            }
-            
-            // 3.3: Validate grades array structure before setting
-            if (localDraft.selectedGrades && Array.isArray(localDraft.selectedGrades)) {
-              const validGrades = localDraft.selectedGrades.filter((grade: unknown) => 
-                grade && 
-                typeof grade === 'object' &&
-                typeof (grade as Record<string, unknown>).subject_id === 'string' &&
-                (typeof (grade as Record<string, unknown>).grade === 'number' || typeof (grade as Record<string, unknown>).grade === 'string')
-              ).map((grade: unknown) => {
-                const g = grade as { subject_id: string; grade: string | number }
-                return {
-                  subject_id: g.subject_id,
-                  grade: typeof g.grade === 'string' ? parseInt(g.grade, 10) : g.grade
-                }
-              })
-              
-              if (validGrades.length > 0) {
-                setSelectedGrades(validGrades)
-              } else if (localApplicationId) {
-                setGradesHydrating(true)
-                try {
-                  await hydrateServerGrades(localApplicationId)
-                } finally {
-                  setGradesHydrating(false)
-                }
-              }
-            } else if (localApplicationId) {
-              setGradesHydrating(true)
-              try {
-                await hydrateServerGrades(localApplicationId)
-              } finally {
-                setGradesHydrating(false)
-              }
-            }
-
-            try {
-              const latestDraft = applicationSessionManager.getStoredDraft()
-              if (
-                localApplicationId &&
-                latestDraft &&
-                latestDraft.applicationId !== localApplicationId &&
-                latestDraft.application_id !== localApplicationId
-              ) {
-                localApplicationId = null
-              }
-            } catch {
-              // localStorage may be unavailable; keep the in-memory draft state
-            }
-
-            const serverUploads = localApplicationId
-              ? await hydrateServerDocuments(localApplicationId)
-              : { result_slip: false, extra_kyc: false }
-            const mergedLocalUploads = {
-              result_slip:
-                Boolean(localDraft.uploadedFiles?.result_slip) ||
-                Boolean(serverUploads.result_slip),
-              extra_kyc:
-                Boolean(localDraft.uploadedFiles?.extra_kyc) ||
-                Boolean(serverUploads.extra_kyc),
-            }
-            markUploadedFile('result_slip', mergedLocalUploads.result_slip)
-            markUploadedFile('extra_kyc', mergedLocalUploads.extra_kyc)
-            restorePaymentStatus(serverApp?.payment_status ?? localDraft.paymentStatus ?? null)
-            
-            // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
-            // Use currentStepKey for reliable step matching
-            if (localDraft.currentStepKey) {
-              const index = wizardSteps.findIndex(step => step.key === localDraft.currentStepKey)
-              if (index >= 0) {
-                goToStep(index)
-              }
-            } else if (typeof localDraft.currentStep === 'number') {
-              const index = getStepIndexById(localDraft.currentStep)
-              goToStep(index >= 0 ? index : Math.min(Math.max(localDraft.currentStep - 1, 0), totalSteps - 1))
-            }
-            
-            if (localApplicationId) {
-              setApplicationId(localApplicationId)
-            }
-
-            draftRestored = true
-            setRestoringDraft(false)
-            setDraftLoaded(true)
-            
-            // 3.4: Show restoration confirmation message only if draft was actually restored
-            showSuccess('Draft restored successfully')
-            return
-        } else if (serverApp) {
-          // Restore from database (server draft is newer or local doesn't exist)
-          const app = serverApp
-          logger.info('[Draft] Restoring from database:', app.id)
-          
-          // CRITICAL: Set application ID FIRST
-          setApplicationId(app.id)
-          restorePaymentStatus(app.payment_status ?? null)
-          
-          // 3.2: Set form values with shouldValidate: false
-          setValue('full_name', app.full_name || '', { shouldValidate: false })
-          setValue('nrc_number', app.nrc_number || '', { shouldValidate: false })
-          setValue('passport_number', app.passport_number || '', { shouldValidate: false })
-          setValue('date_of_birth', normalizeDateInputValue(app.date_of_birth || ''), { shouldValidate: false })
-          setValue('sex', (app.sex || '') as WizardFormData['sex'], { shouldValidate: false })
-          setValue('phone', app.phone || '', { shouldValidate: false })
-          setValue('email', app.email || '', { shouldValidate: false })
-          setValue('residence_town', normalizeResidenceTown(app.residence_town || ''), { shouldValidate: false })
-          setValue('country', (String(app.country ?? '') || DEFAULT_RESIDENCE_COUNTRY), { shouldValidate: false })
-          setValue('nationality', (String(app.nationality ?? '') || 'Zambian'), { shouldValidate: false })
-          setValue('next_of_kin_name', app.next_of_kin_name || '', { shouldValidate: false })
-          setValue('next_of_kin_phone', app.next_of_kin_phone || '', { shouldValidate: false })
-          
-          if (app.program) {
-            const resolvedProgramId = findProgramId(
-              app.program,
-              app.institution,
-              programsData?.programs as WizardProgram[] | undefined
-            )
-            setValue('program', resolvedProgramId || app.program, { shouldValidate: false })
-          } else {
-            setValue('program', '', { shouldValidate: false })
-          }
-          setValue('intake', app.intake || '', { shouldValidate: false })
-          const hydratedServerUploads = await hydrateServerDocuments(app.id)
-          const restoredUploads = mergeDraftResumeUploads(app, hydratedServerUploads)
-          markUploadedFile('result_slip', restoredUploads.result_slip)
-          markUploadedFile('extra_kyc', restoredUploads.extra_kyc)
-          setGradesHydrating(true)
-          let restoredGrades: SubjectGrade[]
-          try {
-            restoredGrades = await hydrateServerGrades(app.id)
-          } finally {
-            setGradesHydrating(false)
-          }
-
-          // 3.1: ALWAYS restore step - removed currentStepIndex === 0 condition
-          const stepId = resolveDraftResumeStepId(app, restoredGrades, restoredUploads)
-          const index = getStepIndexById(stepId)
-          goToStep(index >= 0 ? index : Math.min(Math.max(stepId - 1, 0), totalSteps - 1))
-
-          draftRestored = true
-          
-          // Update localStorage to match server state for future reconciliation
-          const syncDraft = {
-            formData: getValues(),
-            selectedGrades: restoredGrades,
-            uploadedFiles: restoredUploads,
-            currentStep: stepId,
-            currentStepKey: wizardSteps[Math.min(stepId - 1, wizardSteps.length - 1)]?.key,
-            applicationId: app.id,
-            savedAt: app.updated_at || app.created_at || new Date().toISOString(),
-            userId: user.id,
-            version: 2,
-            paymentStatus: app.payment_status ?? null,
-          }
-          try {
-            cachedSetItem('applicationWizardDraft', JSON.stringify(syncDraft))
-          } catch { /* non-critical */ }
-          
-          // 3.4: Show restoration confirmation for database draft
-          showSuccess('Draft restored successfully')
-        }
-
-        if (!draftRestored) {
-          const stepFromQuery = new URLSearchParams(location.search).get('step')
-          if (stepFromQuery) {
-            const stepIndexFromQuery = wizardSteps.findIndex(step => step.key === stepFromQuery)
-            if (stepIndexFromQuery >= 0) {
-              goToStep(stepIndexFromQuery)
-            }
-          }
-        }
-      } catch (error) {
-        logger.error('Error loading draft application:', { error: sanitizeForLog(toError(error).message) })
-      } finally {
-        setRestoringDraft(false)
-        setDraftLoaded(true)
-      }
-    }
-
-    // Only load draft on initial mount when user is available and draft query resolved
-    if (user && !authLoading && !draftLoaded && !draftApplicationsLoading) {
-      loadDraft()
-    }
-  }, [
+  useWizardDraftLoader({
     user,
     authLoading,
     draftLoaded,
     draftApplicationsLoading,
-    setValue,
     draftApplications,
-    location.search,
-    location.state,
+    locationSearch: location.search,
     totalSteps,
-    findProgramId,
     programsData,
-    hydrateServerGrades,
+    setValue,
+    getValues,
+    setRestoringDraft,
+    setDraftLoaded,
+    setApplicationId,
+    setSelectedGrades,
+    setGradesHydrating,
+    goToStep,
     markUploadedFile,
     restorePaymentStatus,
-    showSuccess
-  ])
+    showSuccess,
+    findProgramId,
+    hydrateServerGrades,
+    hydrateServerDocuments,
+  })
 
   const handleLoadDraft = useCallback(async (draftData: unknown, draftId?: string) => {
     const app = (
@@ -1356,7 +790,7 @@ const useWizardController = (): UseWizardControllerResult => {
       setValue('nrc_number', String(draft.nrc_number || ''), { shouldValidate: false })
       setValue('passport_number', String(draft.passport_number || ''), { shouldValidate: false })
       setValue('date_of_birth', normalizeDateInputValue(draft.date_of_birth || ''), { shouldValidate: false })
-      setValue('sex', String(draft.sex || '') as WizardFormData['sex'], { shouldValidate: false })
+      setValue('sex', normalizeSexForWizard(draft.sex) as WizardFormData['sex'], { shouldValidate: false })
       setValue('phone', String(draft.phone || ''), { shouldValidate: false })
       setValue('email', String(draft.email || user?.email || ''), { shouldValidate: false })
       setValue('residence_town', normalizeResidenceTown(String(draft.residence_town || '')), { shouldValidate: false })
@@ -1410,6 +844,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
       try {
         cachedSetItem('applicationWizardDraft', JSON.stringify(syncDraft))
+        useDraftStore.getState().markSaved(syncDraft)
         window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: syncDraft }))
       } catch {
         // Local recovery cache is best effort.
@@ -1471,6 +906,7 @@ const useWizardController = (): UseWizardControllerResult => {
       try {
         cachedSetItem('applicationWizardDraft', JSON.stringify(draft))
         sessionStorage.removeItem('applicationWizardDraft')
+        useDraftStore.getState().markSaved(draft)
         window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draft }))
       } catch (error) {
         logger.error('Error saving draft:', { error: sanitizeForLog(toError(error).message) })
@@ -1512,6 +948,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
             try {
               cachedSetItem('applicationWizardDraft', JSON.stringify(draftWithId))
+              useDraftStore.getState().markSaved(draftWithId)
               window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draftWithId }))
             } catch {
               // Non-critical localStorage refresh
@@ -1693,7 +1130,7 @@ const useWizardController = (): UseWizardControllerResult => {
     if (applicationId) {
       const syncable = merged.filter(g => !g.subject_id.startsWith('fallback-'))
       if (syncable.length > 0) {
-        syncGrades.mutateAsync({ id: applicationId, grades: syncable }).catch(() => {})
+        syncGrades.mutateAsync({ id: applicationId, grades: syncable }).catch((err) => logger.warn('Grade sync failed', toError(err)))
       }
     }
   }, [applicationId, syncGrades, showSuccess])
@@ -1715,7 +1152,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const retryOcr = useCallback((documentId?: string | null) => {
     const docId = documentId || ocrDocumentId
     if (!docId) return
-    apiClient.request(`/documents/${docId}/extract/`, { method: 'POST', body: JSON.stringify({ force: true }), headers: { 'Content-Type': 'application/json' } }).catch(() => {})
+    apiClient.request(`/documents/${docId}/extract/`, { method: 'POST', body: JSON.stringify({ force: true }), headers: { 'Content-Type': 'application/json' } }).catch((err) => logger.warn('OCR retry request failed', toError(err)))
     startOcrPolling(docId)
   }, [ocrDocumentId, startOcrPolling])
 
@@ -2148,7 +1585,7 @@ const useWizardController = (): UseWizardControllerResult => {
       }
 
       logger.info('[handleSubmitApplication] Finalizing submission...')
-      const idempotencyKey = crypto.randomUUID()
+      const idempotencyKey = generateIdempotencyKey(applicationId)
       const updatedApp = await submitApplicationMutation.mutateAsync({
         id: applicationId,
         headers: { 'Idempotency-Key': idempotencyKey },

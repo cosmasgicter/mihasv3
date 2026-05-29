@@ -1,10 +1,7 @@
 import React, { useCallback, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { FileText, CheckCircle } from 'lucide-react'
-import { useToastStore } from '@/hooks/useToast'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
-import { getPaymentStatusLabel } from '@/lib/paymentStatus'
-import { formatApplicationStatus } from '@/types/applicationStatus'
 import { logger } from '@/lib/logger'
 
 interface ApplicationsTableProps {
@@ -36,7 +33,6 @@ export function ApplicationsTable({
 }: ApplicationsTableProps) {
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
   const [updatingPayment, setUpdatingPayment] = useState<string | null>(null)
-  const { error: showError, success: showSuccess } = useToastStore()
 
   const handleSelect = (id: string, selected: boolean) => {
     if (!onSelectionChange) return
@@ -55,31 +51,29 @@ export function ApplicationsTable({
     onSelectionChange(allSelected ? [] : applications.map(app => app.id))
   }
 
+  // Parent (Applications.tsx) already handles toasts and error display.
+  // This wrapper only tracks local loading state for the card UI.
   const handleStatusUpdate = useCallback(async (id: string, status: string) => {
     try {
       setUpdatingStatus(id)
       await onStatusUpdate(id, status)
-      showSuccess('Status Updated', `Application status changed to ${formatApplicationStatus(status)}`)
     } catch (error) {
       logger.error('Failed to update status:', error)
-      showError('Update Failed', error instanceof Error ? error.message : 'Failed to update application status')
     } finally {
       setUpdatingStatus(null)
     }
-  }, [onStatusUpdate, showSuccess, showError])
+  }, [onStatusUpdate])
 
   const handlePaymentUpdate = useCallback(async (id: string, status: string, verificationNotes?: string) => {
     try {
       setUpdatingPayment(id)
       await onPaymentStatusUpdate(id, status, verificationNotes)
-      showSuccess('Payment Updated', `Payment status changed to ${getPaymentStatusLabel(status)}`)
     } catch (error) {
       logger.error('Failed to update payment status:', error)
-      showError('Update Failed', error instanceof Error ? error.message : 'Failed to update payment status')
     } finally {
       setUpdatingPayment(null)
     }
-  }, [onPaymentStatusUpdate, showSuccess, showError])
+  }, [onPaymentStatusUpdate])
 
   return (
     <div className="space-y-6">

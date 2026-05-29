@@ -1,4 +1,4 @@
-"""Common models — maps to existing Neon Postgres tables."""
+"""Common models - maps to existing Neon Postgres tables."""
 
 import uuid
 
@@ -34,7 +34,7 @@ class AuditLog(models.Model):
 
 
 class IdempotencyKey(models.Model):
-    """Maps to 'idempotency_keys' table — command-identity keying."""
+    """Maps to 'idempotency_keys' table - command-identity keying."""
 
     PENDING = "pending"
     COMPLETED = "completed"
@@ -203,7 +203,7 @@ class ErrorLog(models.Model):
 
     This model is no longer actively written to. Error monitoring has been
     migrated to GlitchTip (Sentry-compatible). The table and existing records
-    are preserved for historical reference. Do not create new ErrorLog rows —
+    are preserved for historical reference. Do not create new ErrorLog rows -
     use sentry_sdk.capture_exception() or sentry_sdk.capture_message() instead.
     """
 

@@ -37,7 +37,7 @@ class CommunicationTemplateSerializer(serializers.Serializer):
 
 
 class CommunicationTemplateListResponseSerializer(serializers.Serializer):
-    """Envelope for GET /api/v1/admin/templates/ — returns a list of templates."""
+    """Envelope for GET /api/v1/admin/templates/ - returns a list of templates."""
 
     success = serializers.BooleanField()
     data = CommunicationTemplateSerializer(many=True)
@@ -46,7 +46,7 @@ class CommunicationTemplateListResponseSerializer(serializers.Serializer):
 class CommunicationTemplateUpdateRequestSerializer(serializers.Serializer):
     """PUT /api/v1/admin/templates/{key}/ request body.
 
-    All fields optional — updating subject_template and/or body_template is the
+    All fields optional - updating subject_template and/or body_template is the
     common case. Use is_active=false to soft-disable a template.
     """
 
@@ -64,7 +64,7 @@ class CommunicationTemplateUpdateResponseSerializer(serializers.Serializer):
 
 
 class CommunicationTemplateListView(APIView):
-    """GET /api/v1/admin/templates/ — list all communication templates (admin only)."""
+    """GET /api/v1/admin/templates/ - list all communication templates (admin only)."""
 
     permission_classes = [IsAuthenticated]
     serializer_class = CommunicationTemplateSerializer
@@ -85,7 +85,7 @@ class CommunicationTemplateListView(APIView):
 
 
 class CommunicationTemplateUpdateView(APIView):
-    """PUT /api/v1/admin/templates/{key}/ — update a template by key (admin only)."""
+    """PUT /api/v1/admin/templates/{key}/ - update a template by key (admin only)."""
 
     permission_classes = [IsAuthenticated]
     serializer_class = CommunicationTemplateUpdateRequestSerializer

@@ -1,11 +1,11 @@
-"""Payment metrics — counter registry with PII label guardrails.
+"""Payment metrics - counter registry with PII label guardrails.
 
 This module is the single authoritative registry of payment counter names
 and their allowed label schema, per the payment-hardening design's
 "MetricsService" / "Audit Events and Metrics" section.
 
-It exposes two thin wrappers — :func:`increment` and
-:func:`observe_latency` — over the GlitchTip-compatible ``sentry_sdk``
+It exposes two thin wrappers - :func:`increment` and
+:func:`observe_latency` - over the GlitchTip-compatible ``sentry_sdk``
 metrics API. There is no Prometheus endpoint in this repo; GlitchTip
 aggregates counter events emitted via ``sentry_sdk.metrics.incr`` /
 ``sentry_sdk.metrics.distribution`` where available, and every call is
@@ -38,9 +38,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
-try:  # pragma: no cover — optional at import time
+try:  # pragma: no cover - optional at import time
     import sentry_sdk
-except Exception:  # pragma: no cover — environments without sentry_sdk
+except Exception:  # pragma: no cover - environments without sentry_sdk
     sentry_sdk = None  # type: ignore[assignment]
 
 
@@ -202,7 +202,7 @@ def _sanitize_tags(
     - Drops any key in :data:`_FORBIDDEN_LABEL_NAMES` (PII / high cardinality).
     - For keys present in :data:`ALLOWED_LABEL_VALUES`, drops entries whose
       value is not in the allow-list.
-    - Coerces remaining values to ``str`` — GlitchTip/Sentry tag values
+    - Coerces remaining values to ``str`` - GlitchTip/Sentry tag values
       are always string-typed.
     - Logs a WARNING for every dropped key/value so the caller is
       audible in logs without raising in the payment hot path.
@@ -239,7 +239,7 @@ def _sanitize_tags(
                 continue
             sanitized[key] = value_str
         else:
-            # Unknown tag name — passed through as a string. The smoke
+            # Unknown tag name - passed through as a string. The smoke
             # test / code review is the backstop here; we do not
             # silently reject unseen keys (the design is additive).
             sanitized[key] = str(raw_value)
@@ -295,7 +295,7 @@ def increment(
     if metrics_mod is not None and hasattr(metrics_mod, "incr"):
         try:
             metrics_mod.incr(counter, amount, tags=safe_tags)
-        except Exception:  # pragma: no cover — defensive
+        except Exception:  # pragma: no cover - defensive
             logger.warning(
                 "payment_metrics: sentry_sdk.metrics.incr failed",
                 extra={"metric": counter},
@@ -340,7 +340,7 @@ def observe_latency(
                 unit="millisecond",
                 tags=safe_tags,
             )
-        except Exception:  # pragma: no cover — defensive
+        except Exception:  # pragma: no cover - defensive
             logger.warning(
                 "payment_metrics: sentry_sdk.metrics.distribution failed",
                 extra={"metric": histogram},

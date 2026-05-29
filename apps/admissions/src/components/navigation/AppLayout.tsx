@@ -34,6 +34,7 @@ import {
   UserCircle2,
   BriefcaseBusiness,
 } from 'lucide-react'
+import { toError } from '@/lib/toError'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -138,7 +139,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
       await signOut()
       toast.success('Signed out', 'You have been signed out successfully.')
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Please try again.'
+      const message = toError(error).message || 'Please try again.'
       toast.error('Sign out failed', message)
     }
   }
@@ -219,7 +220,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
         <main
           id={APP_MAIN_CONTENT_ID}
           className={cn(
-            'min-h-screen scroll-smooth overflow-x-hidden transition-all duration-300 ease-in-out',
+            'flex-1 scroll-smooth overflow-x-hidden transition-all duration-300 ease-in-out',
             isWizardRoute ? 'pb-6 md:pb-6' : 'pb-20 md:pb-6'
           )}
           style={{

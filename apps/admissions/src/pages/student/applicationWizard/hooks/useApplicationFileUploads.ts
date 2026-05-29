@@ -7,6 +7,7 @@ import { sanitizeForLog } from '@/lib/security'
 import { isPermissionDenial } from '@/lib/sessionHardening'
 import { apiClient } from '@/services/client'
 import { logger } from '@/lib/logger'
+import { toError } from '@/lib/toError'
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024
 export const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'] as const
@@ -349,7 +350,7 @@ export function useApplicationFileUploads({
           return result.url!
         } catch (error) {
           logger.error(`File upload error (attempt ${retryCount + 1}/${MAX_UPLOAD_RETRIES + 1}):`, {
-            error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error')
+            error: sanitizeForLog(toError(error).message)
           })
 
           const shouldRetry = retryCount < MAX_UPLOAD_RETRIES && isRetryableUploadError(error)
@@ -405,7 +406,7 @@ export function useApplicationFileUploads({
             onUploadComplete?.(file, url, uploadedDocumentIds.current[fileType])
           } catch (error) {
             logger.error('Auto-upload failed:', error)
-            onValidationError?.(error instanceof Error ? error.message : 'Upload failed')
+            onValidationError?.(toError(error).message || 'Upload failed')
           }
         }
       },
@@ -444,7 +445,7 @@ export function useApplicationFileUploads({
             await startUpload(file, fileType)
           } catch (error) {
             logger.error('Auto-upload failed:', error)
-            onValidationError?.(error instanceof Error ? error.message : 'Upload failed')
+            onValidationError?.(toError(error).message || 'Upload failed')
           }
         }
       },

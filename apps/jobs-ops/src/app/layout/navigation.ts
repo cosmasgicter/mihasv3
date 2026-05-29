@@ -2,7 +2,6 @@ import {
   Activity,
   BellRing,
   BriefcaseBusiness,
-  FileSpreadsheet,
   FileStack,
   Gauge,
   GitBranch,
@@ -45,9 +44,4 @@ export const pinnedArtifacts = [
   'docs/design/2026-03-30-ai-job-hunting-platform-ui-spec.md',
 ]
 
-export const scaffoldFocus = [
-  'Preserve strict route names so backend and frontend stay aligned.',
-  'Keep high-risk actions approval-gated until automation policy is complete.',
-  'Replace frontend fallbacks with live endpoints one feature slice at a time.',
-]
 

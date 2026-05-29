@@ -339,7 +339,7 @@ export function JobsOpsShell() {
           </div>
 
           <div>
-            <h3 className="font-display text-lg font-semibold text-ink">Pinned handoff anchors</h3>
+            <h3 className="font-display text-lg font-semibold text-ink">Pinned references</h3>
             <ul className="mt-3 grid gap-2 text-sm text-muted">
               {pinnedArtifacts.map((item) => (
                 <li key={item} className="rounded-2xl border border-line/70 bg-panel/75 px-3 py-3 font-mono text-xs">

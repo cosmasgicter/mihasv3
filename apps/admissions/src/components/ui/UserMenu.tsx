@@ -7,6 +7,7 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { useSignOutAction } from '@/hooks/useSignOutAction'
 import { useToastStore } from '@/hooks/useToast'
 import { cn } from '@/lib/utils'
+import { toError } from '@/lib/toError'
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
@@ -61,7 +62,7 @@ export function UserMenu() {
       await signOut()
       toast.success('Signed out', 'You have been signed out successfully.')
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Please try again.'
+      const message = toError(error).message || 'Please try again.'
       toast.error('Sign out failed', message)
     }
   }

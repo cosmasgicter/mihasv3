@@ -1,4 +1,4 @@
-"""Deprecated — shim module.
+"""Deprecated - shim module.
 
 The email shell has moved to ``apps.common.email.shell``. This module is
 preserved for one release so existing callers don't break while we update

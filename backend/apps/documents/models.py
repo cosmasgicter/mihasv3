@@ -1,4 +1,4 @@
-"""Document and payment models — maps to existing Neon Postgres tables."""
+"""Document and payment models - maps to existing Neon Postgres tables."""
 
 import uuid
 

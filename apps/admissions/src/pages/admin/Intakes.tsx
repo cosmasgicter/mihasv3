@@ -1,3 +1,4 @@
+import { toError } from '@/lib/toError'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -16,7 +17,7 @@ import {
 } from '@/components/ui/Dialog'
 import { DashboardSkeleton } from '@/components/ui'
 import { ResponsiveTable } from '@/components/ui/ResponsiveTable'
-import { Pencil, Trash2, Plus, ArrowLeft, Calendar, AlertTriangle } from 'lucide-react'
+import { Pencil, Trash2, Plus, ArrowLeft, Calendar, AlertTriangle, AlertOctagon, CheckCircle2, CircleDashed } from 'lucide-react'
 import { useForm, type FieldErrors, type Resolver, type UseFormRegister } from 'react-hook-form'
 import { z } from '@/lib/zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -36,13 +37,68 @@ interface Intake {
   semester?: string
 }
 
-/** Returns Tailwind classes for the utilization indicator based on enrollment/capacity ratio */
-export function getUtilizationColor(enrollment: number, capacity: number): { bg: string; text: string; label: string } {
-  if (capacity <= 0) return { bg: 'bg-muted', text: 'text-muted-foreground', label: 'N/A' }
+/**
+ * Returns Tailwind classes for the utilization indicator based on
+ * enrollment/capacity ratio.
+ *
+ * Tokenised as part of the 2026-05-26 admin audit fix: the badge no longer
+ * encodes raw red/amber/green palette utilities. The `tone` field is the
+ * semantic source of truth — callers should pair the badge with the
+ * matching icon (see `getUtilizationIcon`) so status colour is never
+ * communicated alone.
+ */
+export type UtilizationTone = 'destructive' | 'warning' | 'success' | 'muted'
+
+export function getUtilizationColor(
+  enrollment: number,
+  capacity: number,
+): { bg: string; text: string; label: string; tone: UtilizationTone } {
+  if (capacity <= 0) {
+    return {
+      bg: 'bg-muted',
+      text: 'text-muted-foreground',
+      label: 'N/A',
+      tone: 'muted',
+    }
+  }
   const ratio = enrollment / capacity
-  if (ratio >= 1) return { bg: 'bg-red-100', text: 'text-red-700', label: 'Over capacity' }
-  if (ratio >= 0.8) return { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Near capacity' }
-  return { bg: 'bg-green-100', text: 'text-green-700', label: 'Available' }
+  if (ratio >= 1) {
+    return {
+      bg: 'bg-destructive/10',
+      text: 'text-destructive',
+      label: 'Over capacity',
+      tone: 'destructive',
+    }
+  }
+  if (ratio >= 0.8) {
+    return {
+      bg: 'bg-warning/10',
+      text: 'text-warning',
+      label: 'Near capacity',
+      tone: 'warning',
+    }
+  }
+  return {
+    bg: 'bg-success/10',
+    text: 'text-success',
+    label: 'Available',
+    tone: 'success',
+  }
+}
+
+/** Lucide icon partner for each utilization tone — never use colour alone. */
+export function getUtilizationIcon(tone: UtilizationTone) {
+  switch (tone) {
+    case 'destructive':
+      return AlertOctagon
+    case 'warning':
+      return AlertTriangle
+    case 'success':
+      return CheckCircle2
+    case 'muted':
+    default:
+      return CircleDashed
+  }
 }
 
 export const intakeSchema = z.object({
@@ -103,11 +159,9 @@ const IntakeFormFields = ({
   </div>
 )
 
-/** Extract a user-friendly message from a mutation error */
+/** Extract a user-friendly message from a mutation error. */
 function getMutationErrorMessage(err: unknown): string {
-  if (err instanceof Error) return err.message
-  if (typeof err === 'string') return err
-  return 'An unexpected error occurred. Please try again.'
+  return toError(err).message || 'An unexpected error occurred. Please try again.'
 }
 
 export default function AdminIntakes() {
@@ -402,13 +456,16 @@ export default function AdminIntakes() {
                     priority: 'always',
                     render: (_value, row) => {
                       const enrollment = row.current_enrollment ?? 0
-                      const { bg, text, label } = getUtilizationColor(enrollment, row.max_capacity)
+                      const { bg, text, label, tone } = getUtilizationColor(enrollment, row.max_capacity)
+                      const Icon = getUtilizationIcon(tone)
                       return (
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${bg} ${text}`}
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-medium ${bg} ${text}`}
                           title={label}
+                          aria-label={`${enrollment} of ${row.max_capacity} enrolled — ${label}`}
                         >
-                          {enrollment}/{row.max_capacity}
+                          <Icon className="h-3 w-3 shrink-0" aria-hidden="true" />
+                          <span>{enrollment}/{row.max_capacity}</span>
                         </span>
                       )
                     },

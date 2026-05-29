@@ -31,6 +31,7 @@ from apps.accounts.permissions import IsAdmin, ROLE_HIERARCHY, is_super_admin
 from apps.accounts.services import hash_password
 from apps.common.audit_network import build_audit_network_fields, decrypt_network_value
 from apps.common.models import AuditLog, Setting
+from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
 from apps.common.openapi_helpers import (
     ErrorResponseSerializer,
     MessageSerializer,
@@ -168,7 +169,7 @@ def _validate_known_setting_value(key, value):
 
 
 # ---------------------------------------------------------------------------
-# 19.1 — Admin Dashboard
+# 19.1 - Admin Dashboard
 # ---------------------------------------------------------------------------
 
 
@@ -285,7 +286,7 @@ class AdminDashboardView(APIView):
 
                 recent_payments = (
                     Payment.objects
-                    .filter(status__in=['successful', 'force_approved'])
+                    .filter(status__in=RECEIPT_ELIGIBLE_STATUSES)
                     .select_related('application')
                     .order_by('-updated_at')[:5]
                 )
@@ -360,7 +361,7 @@ class AdminDashboardView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# 19.1 — Admin User List
+# 19.1 - Admin User List
 # ---------------------------------------------------------------------------
 
 
@@ -389,8 +390,8 @@ class AdminDashboardView(APIView):
     ),
 )
 class AdminUserListView(APIView):
-    """GET /api/v1/admin/users/ — paginated user listing.
-    POST /api/v1/admin/users/ — create user with role assignment.
+    """GET /api/v1/admin/users/ - paginated user listing.
+    POST /api/v1/admin/users/ - create user with role assignment.
 
     Role filtering, search by name/email, include inactive option. Admin only.
     """
@@ -475,7 +476,7 @@ class AdminUserListView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# 19.1 — Admin User Detail (GET/PATCH)
+# 19.1 - Admin User Detail (GET/PATCH)
 # ---------------------------------------------------------------------------
 
 
@@ -624,7 +625,7 @@ class AdminUserDetailView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# 19.1 — Admin User Export (CSV)
+# 19.1 - Admin User Export (CSV)
 # ---------------------------------------------------------------------------
 
 

@@ -1,4 +1,4 @@
-"""Rejection — a respectful decline of the application."""
+"""Rejection - a respectful decline of the application."""
 
 from html import escape
 
@@ -14,7 +14,7 @@ from apps.common.email.components import (
 def render(context: dict) -> tuple[str, str]:
     """Render the rejection email.
 
-    Kept warm and brief — rejection letters are hard to read. Don't pad with
+    Kept warm and brief - rejection letters are hard to read. Don't pad with
     filler. Acknowledge the effort, state the decision plainly, offer a
     next step.
 

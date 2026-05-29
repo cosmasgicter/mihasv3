@@ -38,7 +38,7 @@ class IntakeEnforcer:
             if intake.grace_period_days and intake.grace_period_days > 0:
                 grace_end = intake.application_deadline + timedelta(days=intake.grace_period_days)
                 if date.today() <= grace_end:
-                    # Within grace period — allow but flag as late
+                    # Within grace period - allow but flag as late
                     return IntakeCheckResult(allowed=True, is_late=True)
 
             return IntakeCheckResult(
@@ -46,7 +46,7 @@ class IntakeEnforcer:
                 f"The application deadline ({intake.application_deadline.isoformat()}) has passed.",
             )
 
-        # Capacity check — use live count of non-rejected applications
+        # Capacity check - use live count of non-rejected applications
         if intake.max_capacity is not None:
             from apps.applications.models import Application
             live_count = Application.objects.filter(
@@ -115,7 +115,7 @@ class IntakeEnforcer:
         """Sync current_enrollment with actual count of non-rejected applications.
 
         Performance note (AUDIT-5.6-001):
-        The original implementation used N+1 queries — one COUNT per ProgramIntake
+        The original implementation used N+1 queries - one COUNT per ProgramIntake
         row. This was refactored to use a single GROUP BY aggregation query that
         builds a count_map, then batch-updates all ProgramIntake rows. This reduces
         the query count from O(N) to O(1) regardless of the number of program+intake

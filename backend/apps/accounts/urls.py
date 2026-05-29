@@ -1,4 +1,4 @@
-"""Account URL routing — auth endpoints.
+"""Account URL routing - auth endpoints.
 
 Implements task 9.6.
 Requirements: 10.1

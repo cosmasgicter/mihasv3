@@ -5,6 +5,7 @@ import { applicationSessionManager } from '@/lib/applicationSession'
 import { draftManager } from '@/lib/draftManager'
 import { useToastStore } from '@/hooks/useToast'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
+import { toError } from '@/lib/toError'
 
 export const useDraftManager = () => {
   const { user } = useAuth()
@@ -38,7 +39,7 @@ export const useDraftManager = () => {
         onError?.(error)
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Failed to delete draft'
+      const errorMsg = toError(error).message || 'Failed to delete draft'
       showError(errorMsg)
       onError?.(errorMsg)
     } finally {
@@ -71,7 +72,7 @@ export const useDraftManager = () => {
         onError?.(error)
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Failed to clear drafts'
+      const errorMsg = toError(error).message || 'Failed to clear drafts'
       showError(errorMsg)
       onError?.(errorMsg)
     } finally {

@@ -1,6 +1,6 @@
 """RBAC permission classes for DRF views.
 
-Deterministic permission resolution from JWT role — no database lookup
+Deterministic permission resolution from JWT role - no database lookup
 for standard checks. Falls back to UserPermissionOverride table only
 when the standard role check fails.
 

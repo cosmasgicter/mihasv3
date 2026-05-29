@@ -28,7 +28,40 @@ import type {
   Grade,
 } from './applicationDetailTypes'
 import { getInstitutionName } from './applicationDetailTypes'
+import { useToastStore } from '@/hooks/useToast'
 import { logger } from '@/lib/logger'
+import { toError } from '@/lib/toError'
+
+function AssignReviewerButton({ applicationId, onAssigned }: { applicationId: string; onAssigned: () => void }) {
+  const [loading, setLoading] = useState(false)
+  const { success: showSuccess, error: showError } = useToastStore()
+
+  const handleAutoAssign = async () => {
+    setLoading(true)
+    try {
+      await applicationService.assignReviewer(applicationId, '')
+      showSuccess('Reviewer assigned', 'A reviewer has been assigned to this application.')
+      onAssigned()
+    } catch (error) {
+      logApiError('admin-assign-reviewer', `/applications/${applicationId}/assign/`, error)
+      showError('Assignment failed', toError(error).message || 'Unable to assign reviewer.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => { void handleAutoAssign() }}
+      disabled={loading}
+      className="inline-flex min-h-touch items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+    >
+      <Shield className="h-3.5 w-3.5" aria-hidden="true" />
+      {loading ? 'Assigning...' : 'Assign Reviewer'}
+    </button>
+  )
+}
 
 interface ApplicationDetailModalProps {
  application: ApplicationWithDetails | null
@@ -88,9 +121,9 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  const totalPoints = calculateBestFivePoints(normalizedGrades.map(grade => grade.normalized))
  const getGradeBadgeClass = (normalized: number | null) => {
  if (normalized === null) return 'border-border bg-muted text-foreground'
- if (normalized <= 3) return 'border-green-300 bg-green-50 text-green-800'
- if (normalized <= 6) return 'border-amber-300 bg-amber-50 text-amber-800'
- return 'border-red-300 bg-red-50 text-red-800'
+ if (normalized <= 3) return 'border-success/30 bg-success/10 text-success'
+ if (normalized <= 6) return 'border-warning/30 bg-warning/10 text-warning'
+ return 'border-destructive/30 bg-destructive/10 text-destructive'
  }
 
  return (
@@ -112,11 +145,11 @@ function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean 
  const isBestFive = normalized !== null && bestFiveSubjectIds.has(grade.subject_id)
  return (
  <div key={index} className={`flex justify-between items-center p-3 border rounded-lg ${
- isBestFive ? 'border-green-300 bg-green-50' : 'border-border bg-card'
+ isBestFive ? 'border-success/30 bg-success/5' : 'border-border bg-card'
  }`}>
  <div className="min-w-0 pr-3">
  <span className="break-words text-sm font-semibold text-foreground">{grade.subject_name}</span>
- {isBestFive && <span className="ml-2 inline-flex rounded-md border border-green-300 bg-card px-2 py-0.5 text-xs font-semibold text-green-800">BEST 5</span>}
+ {isBestFive && <span className="ml-2 inline-flex rounded-md border border-success/30 bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">BEST 5</span>}
  </div>
  <span className={`inline-flex min-w-11 items-center justify-center rounded-md border px-3 py-1 text-sm font-bold ${getGradeBadgeClass(normalized)}`}>
  {grade.grade}
@@ -311,7 +344,7 @@ export function ApplicationDetailModal({
  // Show skeleton during SSR/initial render to prevent hydration mismatch
  if (!isClient) {
  return (
- <div className="fixed inset-0 bg-scrim/60  flex items-center justify-center p-0 sm:p-4 z-[60] overflow-hidden">
+ <div className="fixed inset-0 bg-scrim/60 flex items-center justify-center p-0 sm:p-4 z-modal overflow-hidden">
  <div className="flex h-full max-w-full flex-col overflow-hidden bg-card sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg">
  {/* Header Skeleton */}
  <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-card">
@@ -381,7 +414,7 @@ export function ApplicationDetailModal({
  }
 
  return (
- <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-foreground/55 p-0 sm:p-4">
+ <div className="fixed inset-0 z-modal flex items-center justify-center overflow-hidden bg-scrim/60 p-0 sm:p-4">
  <div
  ref={focusTrapRef as React.RefObject<HTMLDivElement>}
  role="dialog"
@@ -521,14 +554,17 @@ export function ApplicationDetailModal({
  {/* Admin badges: reviewer, fee waiver, late submission */}
  <div className="flex flex-wrap gap-2">
  {(applicationData?.application?.assigned_reviewer_name || application.assigned_reviewer_name) && (
- <span className="inline-flex items-center gap-1.5 rounded-md bg-indigo-50 border border-indigo-200 px-3 py-1.5 text-xs font-medium text-indigo-800">
- <Shield className="h-3.5 w-3.5" />
+ <span className="inline-flex items-center gap-1.5 rounded-md border border-info/25 bg-info/10 px-3 py-1.5 text-xs font-medium text-info">
+ <Shield className="h-3.5 w-3.5" aria-hidden="true" />
  Reviewer: {applicationData?.application?.assigned_reviewer_name || application.assigned_reviewer_name}
  </span>
  )}
+ {!(applicationData?.application?.assigned_reviewer_name || application.assigned_reviewer_name) && (
+ <AssignReviewerButton applicationId={application.id} onAssigned={() => { void refreshModalData(application.id) }} />
+ )}
  {(applicationData?.application?.fee_waiver || application.fee_waiver) && (
- <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-800">
- <Tag className="h-3.5 w-3.5" />
+ <span className="inline-flex items-center gap-1.5 rounded-md border border-success/25 bg-success/10 px-3 py-1.5 text-xs font-medium text-success">
+ <Tag className="h-3.5 w-3.5" aria-hidden="true" />
  Fee waiver: {(applicationData?.application?.fee_waiver || application.fee_waiver)?.reason_code?.replace(/_/g, ' ')}
  {(applicationData?.application?.fee_waiver || application.fee_waiver)?.discount_percentage !== 100 && (
  <> ({(applicationData?.application?.fee_waiver || application.fee_waiver)?.discount_percentage}%)</>
@@ -536,17 +572,18 @@ export function ApplicationDetailModal({
  </span>
  )}
  {(applicationData?.application?.is_late_submission || application.is_late_submission) && (
- <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-800">
- <AlertTriangle className="h-3.5 w-3.5" />
+ <span className="inline-flex items-center gap-1.5 rounded-md border border-warning/25 bg-warning/10 px-3 py-1.5 text-xs font-medium text-warning">
+ <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
  Late submission
  </span>
  )}
  {!(applicationData?.application?.fee_waiver || application.fee_waiver) && (
  <button
+   type="button"
    onClick={() => setFeeWaiverOpen(true)}
-   className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-blue-200 bg-muted px-3 py-1.5 text-xs font-medium text-blue-800 transition-colors hover:bg-blue-100"
+   className="inline-flex min-h-touch items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
  >
-   <Tag className="h-3.5 w-3.5" />
+   <Tag className="h-3.5 w-3.5" aria-hidden="true" />
    Apply Fee Waiver
  </button>
  )}
@@ -685,21 +722,22 @@ export function ApplicationDetailModal({
 
  {/* Pending Amendment Requests */}
  {((applicationData?.application?.pending_amendments && applicationData.application.pending_amendments.length > 0) || (application.pending_amendments && application.pending_amendments.length > 0)) && (
- <div className="bg-card border border-amber-200 rounded-lg p-6">
+ <div className="bg-card border border-warning/30 rounded-lg p-6">
  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
- <ClipboardList className="h-5 w-5 text-amber-600" />
+ <ClipboardList className="h-5 w-5 text-warning" aria-hidden="true" />
  Pending Amendment Requests
  </h3>
  <div className="space-y-3">
  {(applicationData?.application?.pending_amendments || application.pending_amendments || []).map((amendment) => (
- <div key={amendment.id} className="flex items-start justify-between p-3 bg-amber-50 border border-amber-100 rounded-lg">
+ <div key={amendment.id} className="flex items-start justify-between p-3 bg-warning/5 border border-warning/20 rounded-lg">
  <div className="flex-1 min-w-0">
  <p className="text-sm font-medium text-foreground capitalize">{amendment.field_name.replace(/_/g, ' ')}</p>
  <p className="text-xs text-muted-foreground mt-0.5">New value: <span className="font-medium text-foreground">{amendment.new_value}</span></p>
  <p className="text-xs text-muted-foreground mt-0.5">Reason: {amendment.reason}</p>
  <p className="text-xs text-muted-foreground mt-0.5">{formatDate(amendment.created_at)}</p>
  </div>
- <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
+ <span className="inline-flex items-center gap-1 rounded-md border border-warning/25 bg-warning/10 px-2 py-1 text-xs font-medium text-warning">
+ <AlertTriangle className="h-3 w-3" aria-hidden="true" />
  {amendment.status}
  </span>
  </div>
@@ -740,6 +778,8 @@ export function ApplicationDetailModal({
  documents={applicationData?.documents || []} 
  loading={loading}
  application={application}
+ applicationId={application.id}
+ onDocumentVerified={() => { void refreshModalData(application.id) }}
  />
  )}
 
@@ -812,11 +852,11 @@ export function ApplicationDetailModal({
       
       {/* Payment Warning Dialog (Req 26.4) */}
       {paymentWarning && (
-        <div className="fixed inset-0 bg-scrim/60  flex items-center justify-center p-4 z-[70]">
+        <div className="fixed inset-0 bg-scrim/60 flex items-center justify-center p-4 z-modal-stacked">
           <div className="w-full max-w-md rounded-lg bg-card p-6 shadow-md animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-amber-600" />
+              <div className="p-2 bg-warning/10 rounded-lg">
+                <AlertCircle className="h-5 w-5 text-warning" aria-hidden="true" />
               </div>
               <h3 className="text-lg font-semibold text-foreground">Payment Not Verified</h3>
             </div>

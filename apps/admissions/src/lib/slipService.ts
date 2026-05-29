@@ -3,6 +3,7 @@ import { importWithChunkRecovery } from '@/lib/lazyImportRecovery'
 import { logger } from '@/lib/logger'
 import { sanitizeForLog } from './security'
 import { apiClient } from '@/services/client'
+import { toError } from '@/lib/toError'
 
 export interface SlipServiceOptions {
   sendEmail?: boolean
@@ -50,7 +51,7 @@ export async function createApplicationSlip(
     // Always generate locally via @react-pdf/renderer
     const blob = await generateApplicationSlip(data).catch((err: unknown) => {
       logger.error('Slip generation error:', err)
-      const message = err instanceof Error ? err.message : 'Unknown error'
+      const message = toError(err).message
       throw new Error(`Failed to generate PDF: ${message}`)
     })
 
@@ -76,7 +77,7 @@ export async function createApplicationSlip(
         }
       }
     } catch (storageError) {
-      uploadError = storageError instanceof Error ? storageError.message : 'Failed to persist application slip'
+      uploadError = toError(storageError).message || 'Failed to persist application slip'
       logger.error('Application slip storage error:', sanitizeForLog(uploadError))
       toast?.showWarning?.('Storage issue', 'We could not store your slip automatically. You can still download it below.')
     }
@@ -105,7 +106,7 @@ export async function createApplicationSlip(
             toast?.showSuccess?.('Email queued', 'Your application slip will be sent shortly.')
           }
         } catch (emailErr) {
-          emailError = emailErr instanceof Error ? emailErr.message : 'Failed to send application slip email'
+          emailError = toError(emailErr).message || 'Failed to send application slip email'
           logger.warn('[slipService] Email slip failed, falling back to download:', emailError)
           toast?.showWarning?.('Email not sent', 'We could not email your slip. You can still download it below.')
         }
@@ -124,7 +125,7 @@ export async function createApplicationSlip(
       emailError
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create application slip'
+    const message = toError(error).message || 'Failed to create application slip'
     logger.error('Application slip generation failed:', sanitizeForLog(message))
     return { error: message }
   }

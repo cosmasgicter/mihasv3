@@ -1,11 +1,11 @@
-"""AI service — Vercel AI Gateway integration.
+"""AI service - Vercel AI Gateway integration.
 
 Uses the OpenAI Python SDK pointed at Vercel AI Gateway for:
 - Document OCR (vision model)
 - Application review assistance
 - Text extraction and analysis
 
-All AI calls are best-effort — failures never block core flows.
+All AI calls are best-effort - failures never block core flows.
 """
 
 import base64
@@ -42,7 +42,7 @@ def extract_text_from_image(image_bytes: bytes, mime_type: str = "image/jpeg") -
     """
     client = _get_client()
     if not client:
-        logger.warning("AI Gateway not configured — skipping vision OCR")
+        logger.warning("AI Gateway not configured -- skipping vision OCR")
         return None
 
     model = getattr(settings, "AI_MODEL_VISION", "google/gemini-2.5-flash")
@@ -163,7 +163,7 @@ Text:
 {text}"""
 
     try:
-        # Use gpt-4o-mini for analysis — 7x cheaper than Gemini for text, returns clean JSON
+        # Use gpt-4o-mini for analysis - 7x cheaper than Gemini for text, returns clean JSON
         analysis_model = getattr(settings, "AI_MODEL_ANALYSIS", "openai/gpt-4o-mini")
         response = client.chat.completions.create(
             model=analysis_model,
@@ -183,7 +183,7 @@ Text:
         if not isinstance(parsed, dict):
             logger.warning("AI returned non-dict analysis: %r", type(parsed))
             return None
-        # Light schema validation — defense-in-depth against malformed/
+        # Light schema validation - defense-in-depth against malformed/
         # injected responses. Enforces shape only; semantic validation
         # (exam number length, year range, 1-9 grades) happens at the
         # persistence layer in documents/tasks.py.
@@ -200,7 +200,7 @@ Text:
                     grade = s.get("grade")
                     if not isinstance(name, str) or not name.strip():
                         continue
-                    # grade may come back as str from some models — coerce
+                    # grade may come back as str from some models - coerce
                     try:
                         grade_int = int(grade)
                     except (TypeError, ValueError):

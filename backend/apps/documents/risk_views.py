@@ -1,4 +1,4 @@
-"""Super-admin risk-flag inspection endpoint — payment-hardening Task 47.
+"""Super-admin risk-flag inspection endpoint - payment-hardening Task 47.
 
 ``GET /api/v1/payments/risk-flags/``
 
@@ -9,13 +9,13 @@ redacted from ``details`` before serialisation.
 Query parameters
 ----------------
 
-* ``type`` — optional; one of the design's canonical risk-flag types:
+* ``type`` - optional; one of the design's canonical risk-flag types:
   ``amount_mismatch``, ``currency_mismatch``, ``invalid_amount``,
   ``missing_provider_reference``.
-* ``since`` / ``until`` — optional ISO8601 timestamps bounding
+* ``since`` / ``until`` - optional ISO8601 timestamps bounding
   ``recorded_at``; inclusive on both ends.
-* ``page`` — 1-based page number, default ``1``.
-* ``page_size`` — default ``25``, clamped to ``[1, 100]``.
+* ``page`` - 1-based page number, default ``1``.
+* ``page_size`` - default ``25``, clamped to ``[1, 100]``.
 
 The endpoint returns the platform envelope:
 
@@ -82,7 +82,7 @@ logger = logging.getLogger(__name__)
 
 
 #: The four canonical risk-flag ``type`` values. Anything outside this set is
-#: rejected with ``VALIDATION_ERROR`` — mirrors the types emitted by
+#: rejected with ``VALIDATION_ERROR`` - mirrors the types emitted by
 #: :meth:`PaymentService._record_payment_risk` (design § Integrity Gate).
 ALLOWED_RISK_TYPES: frozenset[str] = frozenset(
     {
@@ -160,7 +160,7 @@ def _parse_iso_datetime(raw: Optional[str]) -> tuple[Optional[datetime], Optiona
     """Parse an ISO8601 timestamp query param.
 
     Returns ``(datetime, error_message)``. ``None``/empty input returns
-    ``(None, None)`` — the caller treats that as "no bound".
+    ``(None, None)`` - the caller treats that as "no bound".
     """
     if raw is None or raw == "":
         return None, None
@@ -176,7 +176,7 @@ def _parse_iso_datetime(raw: Optional[str]) -> tuple[Optional[datetime], Optiona
 
 
 class RiskFlagsListView(GenericAPIView):
-    """``GET /api/v1/payments/risk-flags/`` — super-admin risk-flag review.
+    """``GET /api/v1/payments/risk-flags/`` - super-admin risk-flag review.
 
     See module docstring for the full contract. The view uses raw SQL to
     unnest ``payments.metadata->'risk_flags'`` via ``jsonb_array_elements``
@@ -233,7 +233,7 @@ class RiskFlagsListView(GenericAPIView):
         responses={200: OpenApiResponse(response=RiskFlagsResponseSerializer)},
     )
     @require_not_dev_bypass_in_production
-    def get(self, request):  # noqa: D401 — DRF convention
+    def get(self, request):  # noqa: D401 - DRF convention
         params = request.query_params
 
         # ---- Validate & parse query params -----------------------------------

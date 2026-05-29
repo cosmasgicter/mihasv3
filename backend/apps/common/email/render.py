@@ -1,7 +1,7 @@
 """Top-level email render dispatcher.
 
 Given a ``message_type`` and a context dict, returns ``(subject, html, text)``
-— ready to hand off to the email queue.
+- ready to hand off to the email queue.
 
 Every outbound transactional email should flow through this function so we
 preserve a single render path and consistent shell wrapping.

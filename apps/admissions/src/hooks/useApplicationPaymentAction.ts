@@ -5,6 +5,7 @@ import { normalizePaymentStatusValue } from '@/hooks/usePaymentStatus'
 import { generateIdempotencyKey } from '@/lib/paymentStatus'
 import { initiatePayment, verifyPayment } from '@/services/payments'
 import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
+import { toError } from '@/lib/toError'
 
 export type PaymentActionStatus = 'idle' | 'initiating' | 'pending' | 'successful' | 'failed'
 
@@ -230,7 +231,7 @@ export function useApplicationPaymentAction({
         },
       })
     } catch (error) {
-      setInitiateError(error instanceof Error ? error.message : 'Failed to initiate payment')
+      setInitiateError(toError(error).message || 'Failed to initiate payment')
       updatePaymentStatus('idle')
       initiatingRef.current = false
     }

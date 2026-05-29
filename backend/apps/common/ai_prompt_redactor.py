@@ -3,13 +3,14 @@
 Applies to the two callers that currently send PII-rich application
 data to the Vercel AI Gateway:
 
-* ``generate_admin_review_summary`` — consumed by the admin review
-  panel. Redaction is aggressive: no name, no NRC/passport, no DOB.
-  An age bracket is derived so the AI can still reason about life
-  stage without receiving the exact birth date.
-* ``generate_student_preview_summary`` — consumed by the student's
+* ``generate_admin_review_summary`` - consumed by the admin review
+  panel. Redaction is aggressive: no name, no NRC/passport, no DOB,
+  no phone/mobile, no email. An age bracket is derived so the AI can
+  still reason about life stage without receiving the exact birth date.
+* ``generate_student_preview_summary`` - consumed by the student's
   wizard review step. Mild redaction: first name is retained (the
-  tone of voice requires it) but NRC/passport/DOB are dropped.
+  tone of voice requires it) but NRC/passport/DOB/phone/mobile/email
+  are dropped.
 
 Both functions are deterministic and side-effect-free. The module is
 import-safe with no Django dependencies beyond the settings flag.
@@ -77,7 +78,7 @@ def _derive_age_bracket(dob: Any) -> str:
         elif isinstance(dob, _dt.date):
             birth_date = dob
         elif isinstance(dob, str):
-            # Accept "YYYY-MM-DD" or longer ISO strings — take first 10 chars.
+            # Accept "YYYY-MM-DD" or longer ISO strings - take first 10 chars.
             birth_date = _dt.date.fromisoformat(dob.strip()[:10])
         else:
             return "unknown"
@@ -85,7 +86,7 @@ def _derive_age_bracket(dob: Any) -> str:
         return "unknown"
 
     today = _dt.date.today()
-    # Rough age — exact year boundaries don't matter at bracket granularity.
+    # Rough age - exact year boundaries don't matter at bracket granularity.
     years = today.year - birth_date.year
     if (today.month, today.day) < (birth_date.month, birth_date.day):
         years -= 1

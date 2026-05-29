@@ -114,7 +114,7 @@ class ApplicationWithdrawView(APIView):
     """Student-initiated application withdrawal.
 
     POST /api/v1/applications/{id}/withdraw/
-    Owner only — admins use the review endpoint for rejection.
+    Owner only - admins use the review endpoint for rejection.
     Supports idempotency via ``Idempotency-Key`` header.
 
     Requirements: 1.9, 1.10

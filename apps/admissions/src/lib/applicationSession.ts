@@ -565,6 +565,13 @@ class ApplicationSessionManager {
           if (blockedIds.length > 0) {
             this.clearAllLocalStorage()
             try {
+              void import('@/stores/draftStore').then(({ useDraftStore }) => {
+                useDraftStore.getState().markCleared()
+              })
+            } catch {
+              // best effort store sync
+            }
+            try {
               window.dispatchEvent(new CustomEvent('draftCleared', {
                 detail: { deletedIds, blockedIds }
               }))
@@ -596,6 +603,14 @@ class ApplicationSessionManager {
       try {
         sessionStorage.setItem('draftDeleted', 'true')
       } catch (storageError) {
+      }
+
+      try {
+        void import('@/stores/draftStore').then(({ useDraftStore }) => {
+          useDraftStore.getState().markCleared()
+        })
+      } catch {
+        // best effort store sync
       }
 
       try {

@@ -21,7 +21,7 @@ def validate_required_env_vars() -> None:
     """
     required: list[str] = list(getattr(settings, "REQUIRED_ENV_VARS", []))
 
-    # SECRET_KEY is critical in production — must not use the dev default
+    # SECRET_KEY is critical in production - must not use the dev default
     if "prod" in os.environ.get("DJANGO_SETTINGS_MODULE", "") and "SECRET_KEY" not in required:
         required.append("SECRET_KEY")
 

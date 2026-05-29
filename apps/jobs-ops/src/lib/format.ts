@@ -11,10 +11,6 @@ export function labelize(value: string) {
   return value.replace(/_/g, ' ')
 }
 
-export function titleize(value: string) {
-  return labelize(value).replace(/\b\w/g, (character) => character.toUpperCase())
-}
-
 export function formatPercentage(value: number, mode: 'score' | 'ratio' = 'score') {
   const normalized = mode === 'ratio' ? value * 100 : value
   return `${Math.round(normalized)}%`
@@ -48,4 +44,11 @@ export function formatRelativeTime(value: string) {
 
   const diffDays = Math.round(diffHours / 24)
   return relativeTimeFormatter.format(diffDays, 'day')
+}
+
+export function recommendationTone(recommendation: string) {
+  if (recommendation === 'apply_now') return 'success' as const
+  if (recommendation === 'review') return 'warning' as const
+  if (recommendation === 'watch') return 'insight' as const
+  return 'danger' as const
 }

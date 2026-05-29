@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import { applicationService } from '@/services/applications'
 import { logger } from '@/lib/logger'
+import { generateIdempotencyKey } from '@/lib/paymentStatus'
 
 interface WizardFormData {
   full_name: string
@@ -19,18 +20,6 @@ interface WizardFormData {
   next_of_kin_phone?: string
   program: string
   intake: string
-}
-
-/**
- * Generate a unique idempotency key for submission deduplication.
- * Uses crypto.randomUUID() when available, falls back to a timestamp-based key.
- */
-function generateIdempotencyKey(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID()
-  }
-  // Fallback for environments without crypto.randomUUID
-  return `${Date.now()}-${Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(36).padStart(2, '0')).join('').slice(0, 11)}`
 }
 
 /**

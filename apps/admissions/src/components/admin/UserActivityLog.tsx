@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
 import { adminAuditService, type AuditLogEntry } from '@/services/admin/audit'
 import { sanitizeForLog } from '@/lib/sanitize'
-import { formatTimestamp } from '@/lib/dateFormat'
+import { formatTimestamp, formatDistanceFromNow } from '@/lib/dateFormat'
 import {
   Activity,
   Calendar,
@@ -171,7 +170,7 @@ export function UserActivityLog({ userId, isOpen, onClose }: UserActivityLogProp
                 const payloadText = stringifyPayload(activity.changes || activity.metadata)
                 const relativeTime = (() => {
                   try {
-                    return formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })
+                    return formatDistanceFromNow(new Date(activity.createdAt))
                   } catch {
                     return activity.createdAt
                   }

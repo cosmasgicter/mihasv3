@@ -174,7 +174,7 @@ def auto_document_error_responses(result, generator, request, public):
 
     Uses ``#/components/schemas/ErrorResponse`` as the response body schema.
     Explicit error responses declared via ``@extend_schema(responses={...})``
-    are preserved — this hook only fills in gaps.
+    are preserved - this hook only fills in gaps.
     """
     paths = result.get("paths", {})
     for path, methods in paths.items():
@@ -188,7 +188,7 @@ def auto_document_error_responses(result, generator, request, public):
                 if is_public and code in ("401", "403"):
                     continue
                 if code in responses:
-                    # Already declared by the view's @extend_schema — preserve.
+                    # Already declared by the view's @extend_schema - preserve.
                     continue
                 responses[code] = {
                     "description": _ERROR_DESCRIPTIONS.get(code, ""),

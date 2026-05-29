@@ -115,3 +115,13 @@ export { InfoCallout } from './InfoCallout'
 export { PageHeader } from './PageHeader'
 export { StatusIcon } from './StatusIcon'
 
+// Status & Metric Primitives
+export { StatusBadge } from './StatusBadge'
+export type { StatusBadgeProps, StatusBadgeTone } from './StatusBadge'
+export { MetricTile, NeedsAttentionGrid } from './MetricTile'
+export type {
+  MetricTileProps,
+  MetricTileTone,
+  NeedsAttentionGridProps,
+} from './MetricTile'
+

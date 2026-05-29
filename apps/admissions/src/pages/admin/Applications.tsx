@@ -45,6 +45,7 @@ import {
   Table,
   Keyboard
 } from 'lucide-react'
+import { toError } from '@/lib/toError'
 
 const EXPORT_BATCH_SIZE = 500
 
@@ -324,7 +325,7 @@ export default function Applications() {
       showSuccess('Export complete', 'Your applications report has been downloaded.')
     } catch (error) {
       logApiError('admin-applications', '/applications/export/', error)
-      showError('Export failed', error instanceof Error ? error.message : 'Unable to export applications right now.')
+      showError('Export failed', toError(error).message || 'Unable to export applications right now.')
     } finally {
       setExportingFormat(null)
     }
@@ -359,7 +360,7 @@ export default function Applications() {
       showSuccess('Notification sent', 'Student has been notified successfully.')
     } catch (error) {
       logApiError('admin-applications', `/applications/${selectedApplication}/notification`, error)
-      showError('Failed to send notification', error instanceof Error ? error.message : 'Unable to send notification.')
+      showError('Failed to send notification', toError(error).message || 'Unable to send notification.')
     } finally {
       setModalLoading(prev => ({ ...prev, notification: false }))
     }
@@ -397,7 +398,7 @@ export default function Applications() {
       showInfo('Documents opened', `Opened ${opened.length} document(s) in new tabs.`)
     } catch (error) {
       logApiError('admin-applications', `/applications/${selectedApp.id}/documents/`, error)
-      showError('Documents unavailable', error instanceof Error ? error.message : 'Unable to prepare document links.')
+      showError('Documents unavailable', toError(error).message || 'Unable to prepare document links.')
     }
   }, [selectedApp, showError, showInfo])
 
@@ -413,7 +414,7 @@ export default function Applications() {
       }
     } catch (error) {
       logApiError('admin-applications', `/applications/${selectedApplication}/summary/`, error)
-      showError('Failed to load history', error instanceof Error ? error.message : 'Unable to load application history.')
+      showError('Failed to load history', toError(error).message || 'Unable to load application history.')
     }
   }, [selectedApplication, showError, showInfo])
 
@@ -426,7 +427,7 @@ export default function Applications() {
       showSuccess('Acceptance letter generated', 'The acceptance letter has been generated and sent to the student.')
     } catch (error) {
       logApiError('admin-applications', `/applications/${selectedApplication}/acceptance-letter/`, error)
-      showError('Failed to generate letter', error instanceof Error ? error.message : 'Unable to generate acceptance letter.')
+      showError('Failed to generate letter', toError(error).message || 'Unable to generate acceptance letter.')
     } finally {
       setModalLoading(prev => ({ ...prev, acceptance: false }))
     }
@@ -441,7 +442,7 @@ export default function Applications() {
       showSuccess('Finance receipt generated', 'The finance receipt has been generated and sent to the student.')
     } catch (error) {
       logApiError('admin-applications', `/applications/${selectedApplication}/finance-receipt/`, error)
-      showError('Failed to generate receipt', error instanceof Error ? error.message : 'Unable to generate finance receipt.')
+      showError('Failed to generate receipt', toError(error).message || 'Unable to generate finance receipt.')
     } finally {
       setModalLoading(prev => ({ ...prev, receipt: false }))
     }
@@ -467,7 +468,7 @@ export default function Applications() {
       return result
     } catch (error: unknown) {
       const status = getErrorStatus(error)
-      const message = error instanceof Error ? error.message : String(error)
+      const message = toError(error).message
 
       // Handle 409 conflict — application was modified by another user
       if (status === 409 || message.includes('Conflict detected') || message.includes('modified')) {
@@ -520,7 +521,7 @@ export default function Applications() {
       showSuccess('Payment status updated', `Payment status changed to ${getPaymentStatusLabel(newPaymentStatus)}.`)
     } catch (error: unknown) {
       const status = getErrorStatus(error)
-      const message = error instanceof Error ? error.message : String(error)
+      const message = toError(error).message
 
       // Handle 409 conflict — application was modified by another user
       if (status === 409 || message.includes('Conflict detected') || message.includes('modified')) {
@@ -560,7 +561,7 @@ export default function Applications() {
       await refreshCurrentPage()
     } catch (error: unknown) {
       const status = getErrorStatus(error)
-      const message = error instanceof Error ? error.message : String(error)
+      const message = toError(error).message
 
       if (status === 409 || message.includes('Conflict detected') || message.includes('modified')) {
         logApiError('admin-applications', '/applications/bulk-status/', error)

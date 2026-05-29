@@ -48,7 +48,7 @@ def verify_password(plaintext: str, hashed: str) -> bool:
     # Legacy SHA-256 hash migration path
     sha256_hash = hashlib.sha256(plaintext.encode("utf-8")).hexdigest()
     if sha256_hash == hashed:
-        # Password matches legacy hash — caller should re-hash with bcrypt
+        # Password matches legacy hash - caller should re-hash with bcrypt
         return True
 
     return False

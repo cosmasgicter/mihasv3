@@ -4,6 +4,7 @@ import { repairLegacyDocumentReference } from '@/lib/applicationSlipStorage'
 import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import type { SlipServiceOptions, SlipServiceResult } from '@/lib/slipService'
 import { logger } from '@/lib/logger'
+import { toError } from '@/lib/toError'
 
 export interface SubmittedApplicationSummary {
   applicationNumber: string | null
@@ -198,7 +199,7 @@ export function useApplicationSlip({
       triggerDownload(objectUrl, filename)
     } catch (error) {
       logger.error('Slip download failed:', error)
-      const message = error instanceof Error ? error.message : 'Unable to download slip'
+      const message = toError(error).message || 'Unable to download slip'
       toast.showError?.('Download failed', message)
     } finally {
       setSlipLoading(false)
@@ -244,7 +245,7 @@ export function useApplicationSlip({
       toast.showWarning?.('Email failed', `${failureReason} ${fallbackMessage}`.trim())
     } catch (error) {
       logger.error('Slip email failed:', error)
-      const message = error instanceof Error ? error.message : 'Unable to email slip'
+      const message = toError(error).message || 'Unable to email slip'
       toast.showWarning?.('Email failed', `${message}. Please use Download Slip to continue.`)
     } finally {
       setEmailLoading(false)

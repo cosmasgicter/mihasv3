@@ -1,4 +1,4 @@
-"""Application submitted — sent immediately after a student submits."""
+"""Application submitted - sent immediately after a student submits."""
 
 from html import escape
 

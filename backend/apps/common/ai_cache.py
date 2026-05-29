@@ -6,7 +6,7 @@ data has not meaningfully changed.
 
 Design:
 
-* **Gate**: ``settings.AI_HARDENING_CACHE``. Off by default — callers
+* **Gate**: ``settings.AI_HARDENING_CACHE``. Off by default - callers
   invoke ``cached_ai_call`` unconditionally and when the flag is off
   the generator runs every time (pre-hardening behaviour).
 * **Backend**: Django cache (Redis in prod, LocMem in tests).
@@ -20,7 +20,7 @@ Design:
   overwrites the stored value. Callers gate this on privileges (e.g.
   super-admin query param).
 * **Negative results**: if the generator returns ``None`` the cache is
-  NOT populated — we want the next caller to retry the AI call rather
+  NOT populated - we want the next caller to retry the AI call rather
   than serve a stale miss.
 * **Generator errors**: never cached; the exception propagates so
   the circuit breaker layer can count it.
@@ -68,7 +68,7 @@ def cached_ai_call(
     namespace:
         Short label identifying the AI call kind (e.g. ``"admin_summary"``,
         ``"student_preview"``). Used as the first segment of the cache
-        key — different namespaces cannot collide.
+        key - different namespaces cannot collide.
     fingerprint:
         Deterministic hash of every input that should invalidate this
         cache entry. Two calls with the same ``fingerprint`` must
@@ -86,7 +86,7 @@ def cached_ai_call(
     the generator returned ``None`` (never cached).
     """
     if not getattr(settings, "AI_HARDENING_CACHE", False):
-        # Flag off — behave exactly like pre-hardening: always call
+        # Flag off - behave exactly like pre-hardening: always call
         # the generator, never touch the cache.
         return generator()
 
@@ -95,14 +95,14 @@ def cached_ai_call(
     if not refresh:
         try:
             hit = cache.get(key)
-        except Exception:  # pragma: no cover — defensive
+        except Exception:  # pragma: no cover - defensive
             logger.warning("ai_cache: cache.get failed for %s", key)
             hit = None
         if hit is not None:
             logger.info("ai_cache hit: %s", key)
             return hit  # type: ignore[return-value]
 
-    # Miss (or refresh) — call the generator.
+    # Miss (or refresh) - call the generator.
     result = generator()
 
     if result is None:
@@ -113,7 +113,7 @@ def cached_ai_call(
     try:
         cache.set(key, result, timeout=ttl)
         logger.info("ai_cache store: %s ttl=%ss", key, ttl)
-    except Exception:  # pragma: no cover — defensive
+    except Exception:  # pragma: no cover - defensive
         logger.warning("ai_cache: cache.set failed for %s", key)
 
     return result
@@ -159,7 +159,7 @@ def compute_grades_fingerprint(grades: Any) -> str:
                 grd = str(g[1]) if len(g) > 1 else ""
             if sid:
                 normalised.append((sid, grd))
-    except Exception:  # pragma: no cover — defensive
+    except Exception:  # pragma: no cover - defensive
         normalised = []
 
     normalised.sort()
@@ -177,8 +177,8 @@ def invalidate_application_caches(application_id: Any) -> int:
     deletion, so this is a no-op for LocMem/Redis; callers should
     rely on ``updated_at`` + TTL instead.
     """
-    # Left as a stub — documented intent is to use ``updated_at``
-    # bumping, not pattern deletion.
+    # No-op by design: cache eviction is driven by ``updated_at``
+    # bumping plus TTL, not pattern deletion.
     return 0
 
 

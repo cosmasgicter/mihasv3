@@ -176,7 +176,7 @@ class ApplicationPreviewSummaryView(APIView):
     """GET /api/v1/applications/{id}/preview-summary/
 
     Returns a personalized AI-generated summary for the student's review step.
-    Cached for 10 minutes per application. Best-effort — returns a template
+    Cached for 10 minutes per application. Best-effort - returns a template
     fallback if AI is unavailable or slow.
     """
 
@@ -226,7 +226,7 @@ class ApplicationPreviewSummaryView(APIView):
         program = app.program or "your chosen programme"
         intake = getattr(app, "intake", "") or ""
 
-        # Cache-key fingerprint includes grades — if the student edits
+        # Cache-key fingerprint includes grades - if the student edits
         # grades we regenerate the summary rather than serving stale
         # copy for 24 h.
         grades_fp = compute_grades_fingerprint(grades_list)
@@ -367,7 +367,7 @@ class ApplicationSummaryView(APIView):
                     "institution": getattr(app, "institution", ""),
                 })
             except Exception:
-                pass
+                logger.exception("AI summary generation failed for app=%s", app.id)
         return Response(
             {
                 "success": True,

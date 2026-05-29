@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import type { Grade12Subject, SubjectGrade, WizardFormData } from '../types'
 import type { WizardReadiness } from '../lib/wizardReadiness'
 import type { StepKey } from '../steps/config'
+import { toError } from '@/lib/toError'
 
 interface SubmitStepProps {
   title: string
@@ -155,7 +156,7 @@ const SubmitStep = ({
         }
         finalError = summary ? 'The personalized summary was incomplete.' : 'No personalized summary was returned.'
       } catch (error) {
-        finalError = error instanceof Error ? error.message : 'Unable to load the personalized summary.'
+        finalError = toError(error).message || 'Unable to load the personalized summary.'
       }
 
       if (attempt === 0) {

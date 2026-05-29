@@ -1,4 +1,4 @@
-"""Application models — maps to existing Neon Postgres tables."""
+"""Application models - maps to existing Neon Postgres tables."""
 
 import uuid
 
@@ -48,8 +48,8 @@ class Application(models.Model):
     extra_kyc_url = models.CharField(max_length=500, null=True, blank=True)
     application_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     payment_status = models.CharField(max_length=20, null=True, blank=True)
-    payment_verified_at = models.DateTimeField(null=True, blank=True)  # DEPRECATED — use payments table
-    payment_verified_by = models.ForeignKey(  # DEPRECATED — use payments table
+    payment_verified_at = models.DateTimeField(null=True, blank=True)  # DEPRECATED - use payments table
+    payment_verified_by = models.ForeignKey(  # DEPRECATED - use payments table
         'accounts.Profile',
         on_delete=models.SET_NULL,
         null=True,

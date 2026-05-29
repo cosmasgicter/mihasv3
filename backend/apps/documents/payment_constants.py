@@ -1,4 +1,4 @@
-"""Payment service constants — extracted from payment_service.py.
+"""Payment service constants - extracted from payment_service.py.
 
 Stream 9 Phase 2 of the canonical-truth program. All constants used by
 ``PaymentService`` are kept here so the main service file shrinks and other
@@ -78,11 +78,15 @@ ALLOWED_TRANSITIONS: dict[tuple[str, str], set[str]] = {
     ("pending", "successful"): {"verify", "webhook", "reconciliation", "super_admin_correction"},
     ("pending", "failed"): {"verify", "webhook", "super_admin_correction"},
     ("pending", "expired"): {"reconciliation", "super_admin_correction"},
+    ("pending", "deferred"): {"initiate", "super_admin_correction"},
     # deferred → *
     ("deferred", "pending"): {"initiate", "super_admin_correction"},
     ("deferred", "successful"): {"verify", "webhook", "reconciliation", "super_admin_correction"},
     ("deferred", "failed"): {"verify", "webhook", "super_admin_correction"},
     ("deferred", "expired"): {"reconciliation", "super_admin_correction"},
+    # Provider truth can arrive out of order: a provisional failure webhook
+    # may be followed by a later integrity-clean success from the gateway.
+    ("failed", "successful"): {"webhook", "super_admin_correction"},
     # Admin override onto a live row.
     ("pending", "force_approved"): {"admin_override", "super_admin_correction"},
     ("deferred", "force_approved"): {"admin_override", "super_admin_correction"},
@@ -160,9 +164,33 @@ PROVIDER_STATUS_REJECTED = "rejected"
 PROVIDER_STATUS_UNKNOWN = "unknown"
 
 
+# ---------------------------------------------------------------------------
+# Derived payment-status tuples (canonical source of truth)
+# ---------------------------------------------------------------------------
+
+# Full set of statuses meaning "payment resolved" for approval/submission
+# gates. Includes legacy DB values (verified, paid) and current canonical
+# values (successful, force_approved) plus deferred.
+RESOLVED_PAYMENT_STATUSES: tuple[str, ...] = (
+    "successful", "force_approved", "verified", "paid", "deferred",
+)
+
+# Statuses meaning "already paid" (no deferred). Used for early-return
+# guards that prevent duplicate payment initiation. Includes legacy values.
+COMPLETED_PAYMENT_STATUSES: tuple[str, ...] = (
+    "successful", "force_approved", "verified", "paid",
+)
+
+# Only canonical terminal-success statuses eligible for receipt generation.
+RECEIPT_ELIGIBLE_STATUSES: tuple[str, ...] = (
+    "successful", "force_approved",
+)
+
+
 __all__ = [
     "ALLOWED_TRANSITIONS",
     "CanonicalStatus",
+    "COMPLETED_PAYMENT_STATUSES",
     "EXPIRED_EXCLUSION_DAYS",
     "MAX_PAYMENT_ATTEMPTS",
     "PAYMENT_TO_APP_MAP",
@@ -172,6 +200,8 @@ __all__ = [
     "PROVIDER_STATUS_SENT",
     "PROVIDER_STATUS_UNKNOWN",
     "ProviderInitiationStatus",
+    "RECEIPT_ELIGIBLE_STATUSES",
+    "RESOLVED_PAYMENT_STATUSES",
     "TransitionSource",
     "_ALLOWED_TRANSITIONS",
     "_LENCO_STATUS_MAP",

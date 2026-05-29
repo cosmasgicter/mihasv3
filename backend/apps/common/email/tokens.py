@@ -1,7 +1,7 @@
 """Design tokens for MIHAS-KATC outbound emails.
 
-Mirror of ``apps/admissions/src/lib/pdf/theme`` — identical palette, typography
-scale, and spacing units — so that emails and PDFs feel like they come from
+Mirror of ``apps/admissions/src/lib/pdf/theme`` - identical palette, typography
+scale, and spacing units - so that emails and PDFs feel like they come from
 the same institution.
 
 Email tokens are strings rather than typed objects because every style
@@ -12,14 +12,14 @@ PDF ↔ Email font mapping:
     Source Sans 3 (PDF body)        → Arial (email body)
     JetBrains Mono (PDF mono)       → Courier New (email mono)
 
-The color palette is shared verbatim — no mapping needed.
+The color palette is shared verbatim - no mapping needed.
 """
 
 # ---------------------------------------------------------------------------
 # Color tokens
 # ---------------------------------------------------------------------------
 
-# Ink scale — restrained, institutional
+# Ink scale - restrained, institutional
 INK_900 = "#0B1F3A"  # primary text, document titles
 INK_700 = "#1D3557"  # section headings, strong labels
 INK_500 = "#5C6B7A"  # metadata labels, tertiary text
@@ -29,7 +29,7 @@ INK_50 = "#F3F6FA"   # subtle surface
 
 PAPER = "#FFFFFF"
 
-# Accent colors — used sparingly, one per message
+# Accent colors - used sparingly, one per message
 GOLD = "#B8860B"
 GREEN = "#2F6B3A"
 RED = "#8B1E3F"
@@ -52,7 +52,7 @@ FONT_BODY = "Arial, Helvetica, sans-serif"
 # Monospace for reference codes
 FONT_MONO = "'Courier New', Consolas, monospace"
 
-# Type-scale — in pixels (email clients use px, not pt)
+# Type-scale - in pixels (email clients use px, not pt)
 TYPE_DISPLAY_SIZE = "30px"
 TYPE_DISPLAY_LINE = "1.15"
 TYPE_TITLE_SIZE = "22px"
@@ -66,7 +66,7 @@ TYPE_LABEL_LINE = "1.4"
 TYPE_CAPTION_SIZE = "12px"
 TYPE_CAPTION_LINE = "1.5"
 
-# Weight constants — mail clients only reliably render 400, 600, 700
+# Weight constants - mail clients only reliably render 400, 600, 700
 WEIGHT_REGULAR = "400"
 WEIGHT_SEMIBOLD = "600"
 WEIGHT_BOLD = "700"
@@ -82,13 +82,13 @@ SPACE_LG = "24px"
 SPACE_XL = "32px"
 SPACE_2XL = "48px"
 
-# Card paddings — tuned for Outlook, which adds its own 2-3px to all padding
+# Card paddings - tuned for Outlook, which adds its own 2-3px to all padding
 CARD_PADDING_X = "26px"
 CARD_PADDING_Y = "28px"
 SHELL_PADDING_X = "40px"
 SHELL_PADDING_Y = "22px"
 
-# Radius — email clients vary widely in rounded-corner support.
+# Radius - email clients vary widely in rounded-corner support.
 # Gmail and Apple Mail render; Outlook classic silently ignores.
 RADIUS_SM = "6px"
 RADIUS_MD = "14px"

@@ -1,4 +1,4 @@
-"""Communication service — template-based notifications and emails.
+"""Communication service - template-based notifications and emails.
 
 Implements task 10.1.
 Requirements: 9.1–9.5, 9.7

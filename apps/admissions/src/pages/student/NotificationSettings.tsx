@@ -188,7 +188,7 @@ export default function NotificationSettings() {
                 icon={<Bell className="h-5 w-5" />}
               >
                 <div className="space-y-4">
-                  {/* In-app — always on */}
+                  {/* In-app -- always on */}
                   <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Bell className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -202,7 +202,7 @@ export default function NotificationSettings() {
                     </span>
                   </div>
 
-                  {/* Email — always on */}
+                  {/* Email -- always on */}
                   <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Bell className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -216,7 +216,7 @@ export default function NotificationSettings() {
                     </span>
                   </div>
 
-                  {/* SMS — coming soon */}
+                  {/* SMS channel: planned but not enabled (no provider configured yet). */}
                   <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-3">
                     <div className="flex items-center gap-3">
                       <MessageSquare className="h-5 w-5 text-muted-foreground" aria-hidden="true" />

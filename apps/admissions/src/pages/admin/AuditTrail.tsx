@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { format, formatDistanceToNow } from 'date-fns'
+import { formatDistanceFromNow, formatTimestampFull } from '@/lib/dateFormat'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
 import { DashboardSkeleton } from '@/components/ui'
@@ -148,7 +148,7 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
 
   const relativeTime = useMemo(() => {
     try {
-      return formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true })
+      return formatDistanceFromNow(new Date(entry.createdAt))
     } catch {
       return entry.createdAt
     }
@@ -156,7 +156,7 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
 
   const exactTime = useMemo(() => {
     try {
-      return format(new Date(entry.createdAt), 'dd MMM yyyy HH:mm:ss')
+      return formatTimestampFull(new Date(entry.createdAt))
     } catch {
       return entry.createdAt
     }
@@ -276,7 +276,7 @@ const AuditEntryCard = React.memo(function AuditEntryCard({ entry }: { entry: Au
             <div className="rounded-lg border border-border bg-card p-4">
               <h4 className="text-sm font-semibold text-foreground">Change payload</h4>
               {payloadText ? (
-                <pre className="mt-3 max-h-72 overflow-auto rounded-lg bg-foreground p-3 text-xs text-muted-foreground">
+                <pre className="mt-3 max-h-72 overflow-auto rounded-lg bg-muted p-3 text-xs text-foreground">
                   {payloadText}
                 </pre>
               ) : (

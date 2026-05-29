@@ -10,7 +10,6 @@ import json
 import logging
 import uuid
 from decimal import Decimal
-from urllib.parse import unquote, urlparse
 
 from django.conf import settings
 from django.db.models import Q
@@ -117,28 +116,6 @@ def _get_authorized_document(request, view, document_id):
     return document, None
 
 
-def _get_document_storage_key(document):
-    """Convert persisted file URLs/keys into a MediaStorage-relative file name."""
-    raw_file_url = (getattr(document, "file_url", None) or "").strip()
-    if not raw_file_url:
-        return ""
-
-    if raw_file_url.startswith(("http://", "https://")):
-        key = unquote(urlparse(raw_file_url).path.lstrip("/"))
-    else:
-        key = raw_file_url.lstrip("/")
-
-    bucket_name = getattr(settings, "AWS_STORAGE_BUCKET_NAME", "")
-    if bucket_name and key.startswith(f"{bucket_name}/"):
-        key = key[len(bucket_name) + 1:]
-
-    # MediaStorage uses location='media', so strip the prefix to avoid media/media/...
-    if key.startswith("media/"):
-        key = key[len("media/"):]
-
-    return key
-
-
 DocumentResponseSerializer = envelope_serializer(
     "DocumentResponse",
     DocumentSerializer(),
@@ -187,7 +164,7 @@ class SuperAdminPaymentCorrectionRequestSerializer(serializers.Serializer):
 
 
 class SuperAdminPaymentCorrectionView(APIView):
-    """POST /api/v1/payments/<uuid:payment_id>/correct/ — super-admin override.
+    """POST /api/v1/payments/<uuid:payment_id>/correct/ - super-admin override.
 
     Super_Admin_Correction_Path (design § State Machine): allows a
     super-admin to move a Payment to any canonical status, including
@@ -197,7 +174,7 @@ class SuperAdminPaymentCorrectionView(APIView):
     to the 365-day security retention window via
     ``SECURITY_RETENTION_ACTION_PREFIXES`` (R2.6).
 
-    Permission: ``IsAuthenticated`` + ``IsSuperAdmin`` (R17.5 analogue —
+    Permission: ``IsAuthenticated`` + ``IsSuperAdmin`` (R17.5 analogue -
     actor role must equal ``super_admin``). Dev-bypass vectors are
     locked out in production via ``require_not_dev_bypass_in_production``
     (R16.1). Per-user rate limit of ``3/min`` via the ``payment_correct``
@@ -224,6 +201,7 @@ class SuperAdminPaymentCorrectionView(APIView):
         summary="Super-admin correction — move a Payment to any canonical status.",
     )
     @require_not_dev_bypass_in_production
+    @idempotent
     def post(self, request, payment_id):
         serializer = SuperAdminPaymentCorrectionRequestSerializer(data=request.data)
         if not serializer.is_valid():

@@ -503,13 +503,22 @@ export const applicationService = {
 
   /** POST /applications/bulk-status/ — admin bulk status updates */
   bulkStatus: async (data: { applicationIds: string[]; status: string; notes?: string }) => {
+    // Backend requires SHA-256(sorted_ids_joined + target_status) as confirmation_token
+    const sortedIds = [...data.applicationIds].sort()
+    const tokenInput = sortedIds.join('') + data.status
+    const encoder = new TextEncoder()
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(tokenInput))
+    const confirmationToken = Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+
     return apiClient.request<unknown>('/applications/bulk-status/', {
       method: 'POST',
-      // camelCase → snake_case: Django expects `application_ids`, not `applicationIds`
       body: JSON.stringify({
         application_ids: data.applicationIds,
         new_status: data.status,
         notes: data.notes,
+        confirmation_token: confirmationToken,
       }),
     })
   },

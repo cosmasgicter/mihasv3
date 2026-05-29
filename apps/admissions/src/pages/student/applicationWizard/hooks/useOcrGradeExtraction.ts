@@ -1,10 +1,13 @@
 /**
- * useOcrGradeExtraction — polls for OCR results after result slip upload
- * and auto-populates grade selectors when AI analysis is available.
+ * useOcrGradeExtraction -- polls for OCR results after result slip upload
+ * and delivers matched grades to the consumer's callback.
  *
  * Resilience guarantees:
- * - Never blocks the wizard — all failures are silent
- * - Scanned grades take precedence over manual entries (but remain editable)
+ * - Never blocks the wizard -- all failures are silent
+ * - Returns matched grades to the consumer; the consumer is responsible
+ *   for merging with existing manual entries. The wizard controller's
+ *   `handleOcrGrades` only fills empty slots and never overwrites
+ *   manually entered grades (canonical rule per .kiro/steering/tech.md).
  * - Stops polling on unmount, navigation, or timeout
  * - Uses refs for callbacks to avoid stale closures
  * - Validates every AI response field before use

@@ -113,7 +113,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
 
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-200/80">Admissions</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70">Admissions</p>
               <span className="block truncate text-base font-bold text-white transition-opacity duration-200 motion-reduce:transition-none">
                 {isAdmin ? 'MIHAS Admin' : 'MIHAS Student'}
               </span>
@@ -186,8 +186,8 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
       )}>
         {!collapsed ? (
           <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-card/10 px-3 py-3 text-xs text-muted-foreground shadow-sm transition-opacity duration-200 motion-reduce:transition-none">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-400/15 text-emerald-200">
-              <Sparkles className="h-4 w-4" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/20 text-white">
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
             </div>
             <div>
               <p className="font-semibold text-white">Workspace ready</p>
@@ -197,7 +197,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         ) : (
           <Tooltip content="Workspace ready" side="right">
             <div className="flex justify-center transition-opacity duration-200 motion-reduce:transition-none" role="status">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-card/10 text-emerald-200 shadow-sm">
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-success/20 text-white shadow-sm">
                 <Sparkles className="h-4 w-4" aria-hidden="true" />
               </div>
               <span className="sr-only">Workspace ready</span>
@@ -239,7 +239,7 @@ function SidebarSection({
             'flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em]',
             'text-muted-foreground transition-colors hover:text-white',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-foreground',
-            hasActiveItem && 'text-sky-200'
+            hasActiveItem && 'text-white'
           )}
         >
           <span>{section.title}</span>

@@ -25,6 +25,7 @@ import {
   ArrowRight,
   RefreshCw
 } from 'lucide-react';
+import { toError } from '@/lib/toError'
 
 const resetPasswordSchema = z
   .object({
@@ -93,7 +94,7 @@ export default function ResetPasswordPage() {
     onError: (error: unknown) => {
       logApiError('reset-password', '/auth/password-reset/confirm/', error);
       // Handle token-expired errors
-      const message = error instanceof Error ? error.message : 'Failed to update password';
+      const message = toError(error).message || 'Failed to update password';
       if (/expired|invalid.*token/i.test(message)) {
         setVerifyError('This password reset link has expired. Please request a new one.');
         setStatus('error');
