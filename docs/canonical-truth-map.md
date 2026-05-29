@@ -76,6 +76,8 @@ before merging. If it has a frontend mirror, a drift-guard test is required.
 | Applied migrations | `backend/scripts/applied/` | historical record |
 | Legacy column inventory | `backend/apps/common/legacy_columns.py:LEGACY_DEPRECATED_COLUMNS` | drift test, drop migration |
 | Drop migration (Day 90) | `backend/scripts/legacy_columns_drop_2026_08_15.sql` | scheduled execution |
+| Migration-history coverage exemptions | `check_schema_drift.py:_COVERAGE_EXEMPT_SCRIPTS` (`00_full_schema.sql` snapshot + `legacy_columns_drop_2026_08_15.sql` future drop) | drift guard `test_check_schema_drift_migration_history_coverage.py::test_exempt_scripts_are_not_flagged_as_stale` |
+| Jobs-ops missing-table degradation | `backend/apps/jobs/_persistence.py` (`resolve_job_posting`, `persist_match_score_safe`) | `JobScoreView`/`JobTailorDocumentsView`; guard `tests/unit/test_jobs_orm_degradation.py` |
 | Drift guard | `backend/tests/property/test_schema_drift_strict.py` + `check_schema_drift --check-fk-indexes --check-migration-history-coverage` (Component 6 of `.kiro/specs/production-schema-reconciliation/`) |
 | No-writes guard | `backend/tests/unit/test_legacy_columns_no_writes.py` |
 | Deprecation runbook | `docs/runbooks/legacy-column-deprecation.md` |

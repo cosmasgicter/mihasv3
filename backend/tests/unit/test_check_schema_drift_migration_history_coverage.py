@@ -529,3 +529,110 @@ def test_coverage_check_skips_when_migration_history_missing(
     )
     assert "STALE_UNRECORDED_MIGRATION" not in text
     assert "UNTRACKED_MIGRATION_SCRIPT" not in text
+
+
+# ---------------------------------------------------------------------------
+# Coverage exemption set (spec jobs-ops-orm-db-drift, Requirements 2.5/2.6/3.7).
+# ---------------------------------------------------------------------------
+
+
+def test_exempt_scripts_are_not_flagged_as_stale(
+    migration_history_table, scripts_dir, monkeypatch,
+):
+    """The two declarative exemptions (``00_full_schema.sql`` and
+    ``legacy_columns_drop_2026_08_15.sql``) are never reported as stale,
+    even when committed far outside the window and absent from
+    ``migration_history`` — and the check exits zero.
+
+    Validates: Requirements 2.5, 2.6, 2.7.
+    """
+    from apps.common.management.commands import check_schema_drift
+
+    _write_sql(scripts_dir / "00_full_schema.sql")
+    _write_sql(scripts_dir / "legacy_columns_drop_2026_08_15.sql")
+    fake_commit = datetime.now(timezone.utc) - timedelta(days=90)
+
+    monkeypatch.setattr(check_schema_drift, "MIGRATION_SCRIPTS_DIR", scripts_dir)
+    monkeypatch.setattr(
+        check_schema_drift, "_git_commit_timestamp", lambda path: fake_commit
+    )
+
+    out = StringIO()
+    try:
+        call_command(
+            "check_schema_drift",
+            "--check-migration-history-coverage",
+            stdout=out,
+        )
+    except SystemExit as exc:
+        pytest.fail(
+            f"Exempt scripts must not fail the coverage check (code={exc.code}). "
+            f"Output:\n{out.getvalue()}"
+        )
+
+    text = out.getvalue()
+    assert "STALE_UNRECORDED_MIGRATION" not in text
+    assert "UNTRACKED_MIGRATION_SCRIPT" not in text
+    assert "00_full_schema.sql" not in text
+    assert "legacy_columns_drop_2026_08_15.sql" not in text
+
+
+def test_exemption_does_not_mask_other_stale_scripts(
+    migration_history_table, scripts_dir, monkeypatch,
+):
+    """Exact-filename exemption must not weaken real-drift detection: a
+    genuinely stale, non-exempt, unrecorded script is still flagged and
+    the command still exits non-zero, even alongside the exempt files.
+
+    Validates: Requirement 3.7.
+    """
+    from apps.common.management.commands import check_schema_drift
+
+    _write_sql(scripts_dir / "00_full_schema.sql")
+    _write_sql(scripts_dir / "legacy_columns_drop_2026_08_15.sql")
+    genuine = _write_sql(scripts_dir / "2024_01_01_genuinely_stale.sql")
+    fake_commit = datetime.now(timezone.utc) - timedelta(days=90)
+
+    monkeypatch.setattr(check_schema_drift, "MIGRATION_SCRIPTS_DIR", scripts_dir)
+    monkeypatch.setattr(
+        check_schema_drift, "_git_commit_timestamp", lambda path: fake_commit
+    )
+
+    out = StringIO()
+    with pytest.raises(SystemExit) as exc:
+        call_command(
+            "check_schema_drift",
+            "--check-migration-history-coverage",
+            stdout=out,
+        )
+    assert exc.value.code == 1
+
+    text = out.getvalue()
+    assert f"STALE_UNRECORDED_MIGRATION: {genuine.name} committed=" in text
+    # The exempt files are still not reported.
+    assert "00_full_schema.sql" not in text
+    assert "legacy_columns_drop_2026_08_15.sql" not in text
+
+
+def test_exempt_scripts_remain_enumerated_for_count(scripts_dir):
+    """Exempt scripts stay in the enumerated sweep (so the
+    ``migration-history=<k>`` count reflects the full surface); only the
+    gap list excludes them.
+
+    Validates: Requirement 2.7 (count semantics).
+    """
+    from apps.common.management.commands.check_schema_drift import (
+        _COVERAGE_EXEMPT_SCRIPTS,
+        _enumerate_migration_scripts,
+    )
+
+    _write_sql(scripts_dir / "00_full_schema.sql")
+    _write_sql(scripts_dir / "legacy_columns_drop_2026_08_15.sql")
+    _write_sql(scripts_dir / "2026_05_30_forward.sql")
+
+    names = {p.name for p in _enumerate_migration_scripts(scripts_dir)}
+    assert "00_full_schema.sql" in names
+    assert "legacy_columns_drop_2026_08_15.sql" in names
+    assert _COVERAGE_EXEMPT_SCRIPTS == frozenset(
+        {"00_full_schema.sql", "legacy_columns_drop_2026_08_15.sql"}
+    )
