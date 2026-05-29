@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from apps.accounts.authentication import OptionalJWTCookieAuthentication
 from apps.common.jobs_ops_seed import build_action_payload, sample_job_applications, sample_job_detail, sample_jobs
 from apps.common.openapi_helpers import ErrorResponseSerializer, envelope_serializer, paginated_serializer
-from apps.jobs.models import JobPosting, JobMatchScore
+from apps.jobs._persistence import persist_match_score_safe, resolve_job_posting
 from apps.jobs.serializers import (
     DiscoveryRunSerializer,
     JobActionSerializer,
@@ -156,13 +156,28 @@ class JobScoreView(JobActionBaseView):
         responses={202: OpenApiResponse(response=JOB_ACTION_RESPONSE)},
     )
     def post(self, request, job_id):
-        try:
-            job = JobPosting.objects.select_related('company', 'source').get(id=job_id)
-        except JobPosting.DoesNotExist:
-            return Response({"success": False, "error": "Job not found"}, status=status.HTTP_404_NOT_FOUND)
+        job = resolve_job_posting(job_id)
+        if job is not None:
+            job_data = {
+                "title": job.title,
+                "company": getattr(job.company, "name", "") if job.company_id else "",
+                "location": getattr(job, "location", ""),
+                "description": getattr(job, "description", ""),
+                "requirements": getattr(job, "requirements", ""),
+            }
+        else:
+            # Table/row absent — fall back to seed detail so the operator still
+            # gets a scoring result instead of a 500 (mirrors JobDetailView).
+            seed = sample_job_detail(str(job_id))
+            job_data = {
+                "title": seed.get("title", ""),
+                "company": seed.get("company", ""),
+                "location": seed.get("location", ""),
+                "description": "",
+                "requirements": "",
+            }
 
         from apps.jobs.ai_service import score_job_match
-        job_data = {"title": job.title, "company": getattr(job, "company_name", ""), "location": getattr(job, "location", ""), "description": getattr(job, "description", ""), "requirements": getattr(job, "requirements", "")}
         candidate_data = request.data.get("candidate", {})
         result = score_job_match(job_data, candidate_data)
 
@@ -176,17 +191,21 @@ class JobScoreView(JobActionBaseView):
             if not isinstance(missing_signals, list):
                 missing_signals = [str(missing_signals)]
 
-            JobMatchScore.objects.update_or_create(
-                job_posting=job,
-                candidate=request.user,
-                defaults={
-                    "match_score": score_value,
-                    "shortlist_probability": score_value,
-                    "recommendation": recommendation,
-                    "explanation": explanation,
-                    "missing_signals": missing_signals,
-                },
-            )
+            # Persist only when a real JobPosting was resolved. When degraded
+            # (seed-backed or table missing) the write is skipped silently and
+            # the scoring result is still returned.
+            if job is not None:
+                persist_match_score_safe(
+                    job_posting=job,
+                    candidate=request.user,
+                    defaults={
+                        "match_score": score_value,
+                        "shortlist_probability": score_value,
+                        "recommendation": recommendation,
+                        "explanation": explanation,
+                        "missing_signals": missing_signals,
+                    },
+                )
             return Response({"success": True, "data": {"job_id": str(job_id), "score": result}})
 
         return self.build_response(job_id, "AI scoring unavailable. Manual review required.", "pending")
@@ -199,13 +218,22 @@ class JobTailorDocumentsView(JobActionBaseView):
         responses={202: OpenApiResponse(response=JOB_ACTION_RESPONSE)},
     )
     def post(self, request, job_id):
-        try:
-            job = JobPosting.objects.select_related('company', 'source').get(id=job_id)
-        except JobPosting.DoesNotExist:
-            return Response({"success": False, "error": "Job not found"}, status=status.HTTP_404_NOT_FOUND)
+        job = resolve_job_posting(job_id)
+        if job is not None:
+            job_data = {
+                "title": job.title,
+                "company": getattr(job.company, "name", "") if job.company_id else "",
+                "requirements": getattr(job, "requirements", ""),
+            }
+        else:
+            seed = sample_job_detail(str(job_id))
+            job_data = {
+                "title": seed.get("title", ""),
+                "company": seed.get("company", ""),
+                "requirements": "",
+            }
 
         from apps.jobs.ai_service import tailor_resume
-        job_data = {"title": job.title, "company": getattr(job, "company_name", ""), "requirements": getattr(job, "requirements", "")}
         resume_text = request.data.get("resume_text", "")
         if not resume_text:
             return Response({"success": False, "error": "resume_text is required"}, status=status.HTTP_400_BAD_REQUEST)

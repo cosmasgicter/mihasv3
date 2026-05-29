@@ -285,6 +285,21 @@ _EXCLUDED_MIGRATION_SUBDIRS: frozenset[str] = frozenset(
     {"applied", "archive", "migrations"}
 )
 
+# Top-level forward scripts that are intentionally NOT recorded in
+# ``migration_history`` and must NOT be reported as stale, because recording
+# them would be misleading or dangerous:
+#   * ``00_full_schema.sql`` — a full-schema bootstrap snapshot used to stand
+#     up a brand-new environment, not an incremental applied migration.
+#   * ``legacy_columns_drop_2026_08_15.sql`` — a Day-90 future-scheduled
+#     destructive drop (see docs/runbooks/legacy-column-deprecation.md) that
+#     must stay UNAPPLIED until its scheduled date.
+# Exact-filename match only, so this can never mask a genuinely stale script
+# with a different name (preserves real-drift detection — spec R3.7).
+# Registered in docs/canonical-truth-map.md ("Database Schema").
+_COVERAGE_EXEMPT_SCRIPTS: frozenset[str] = frozenset(
+    {"00_full_schema.sql", "legacy_columns_drop_2026_08_15.sql"}
+)
+
 
 def _enumerate_migration_scripts(
     directory: Optional[Path] = None,
@@ -445,6 +460,12 @@ def _find_stale_unrecorded_migrations(
        (fallback) is strictly older than ``commit_window_days`` before
        ``now``.
 
+    Filenames in ``_COVERAGE_EXEMPT_SCRIPTS`` are skipped entirely: they are
+    never reported as stale and are never applied/recorded by this check. They
+    remain enumerated by ``_enumerate_migration_scripts`` (so the
+    ``migration-history=<k>`` success-line count reflects the full sweep) but
+    are excluded from the gap list only.
+
     Files committed exactly at the window boundary are tolerated per
     R8.4 ("strictly older than 7 days" - boundary cases are in-flight).
 
@@ -465,6 +486,11 @@ def _find_stale_unrecorded_migrations(
 
     gaps: list[tuple[str, str, str]] = []
     for path in scripts:
+        # Declarative exemptions: bootstrap snapshot + future-scheduled drop.
+        # Exact-filename match, applied before the recorded/timestamp checks,
+        # so these are never flagged AND never applied (spec R2.5/R2.6/R3.7).
+        if path.name in _COVERAGE_EXEMPT_SCRIPTS:
+            continue
         if path.name in recorded:
             continue
 
