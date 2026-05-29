@@ -213,18 +213,43 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
             cache[cache_key] = direct_summary
             return direct_summary
 
-        latest_payment = (
-            Payment.objects
-            .filter(application_id=getattr(obj, "id", None))
-            .order_by("-updated_at", "-created_at")
-            .first()
-        )
-        latest_successful_payment = (
-            Payment.objects
-            .filter(application_id=getattr(obj, "id", None), status="successful")
-            .order_by("-verified_at", "-updated_at", "-created_at")
-            .first()
-        )
+        # Prefer the prefetched payment_set to avoid 2 queries per row (N+1).
+        # The list views prefetch 'payment_set'; when present we sort in
+        # Python instead of issuing per-row queries.
+        prefetch_cache = getattr(obj, "_prefetched_objects_cache", {})
+        if "payment_set" in prefetch_cache:
+            payments = list(obj.payment_set.all())
+
+            def _payment_recency(p):
+                return (
+                    getattr(p, "updated_at", None),
+                    getattr(p, "created_at", None),
+                )
+
+            latest_payment = max(payments, key=_payment_recency, default=None)
+
+            def _successful_recency(p):
+                return (
+                    getattr(p, "verified_at", None),
+                    getattr(p, "updated_at", None),
+                    getattr(p, "created_at", None),
+                )
+
+            successful = [p for p in payments if getattr(p, "status", None) == "successful"]
+            latest_successful_payment = max(successful, key=_successful_recency, default=None)
+        else:
+            latest_payment = (
+                Payment.objects
+                .filter(application_id=getattr(obj, "id", None))
+                .order_by("-updated_at", "-created_at")
+                .first()
+            )
+            latest_successful_payment = (
+                Payment.objects
+                .filter(application_id=getattr(obj, "id", None), status="successful")
+                .order_by("-verified_at", "-updated_at", "-created_at")
+                .first()
+            )
 
         summary = {
             "payment_method": getattr(latest_payment, "payment_method", None),

@@ -280,7 +280,7 @@ const EducationStep = ({
                       : 'Automatic grade scanning is taking longer than expected. You can keep going manually below without losing your upload.'}
             </span>
             {onRetryOcr && (
-              <button type="button" onClick={onRetryOcr} className="shrink-0 text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80">
+              <button type="button" onClick={onRetryOcr} className="shrink-0 min-h-touch inline-flex items-center text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80">
                 Retry scan
               </button>
             )}
@@ -486,7 +486,7 @@ const EducationStep = ({
                   <CheckCircle className="h-5 w-5 shrink-0" />
                   <div>
                     <p className="font-medium">Previously uploaded</p>
-                    <button type="button" className="mt-1 text-xs underline text-muted-foreground hover:text-foreground" onClick={() => handleResultSlipUpload(null)}>
+                    <button type="button" className="mt-1 min-h-touch inline-flex items-center text-xs underline text-muted-foreground hover:text-foreground" onClick={() => handleResultSlipUpload(null)}>
                       Replace file
                     </button>
                   </div>
@@ -520,7 +520,7 @@ const EducationStep = ({
                   <CheckCircle className="h-5 w-5 shrink-0" />
                   <div>
                     <p className="font-medium">Previously uploaded</p>
-                    <button type="button" className="mt-1 text-xs underline text-muted-foreground hover:text-foreground" onClick={() => handleExtraKycUpload(null)}>
+                    <button type="button" className="mt-1 min-h-touch inline-flex items-center text-xs underline text-muted-foreground hover:text-foreground" onClick={() => handleExtraKycUpload(null)}>
                       Replace file
                     </button>
                   </div>

@@ -439,6 +439,47 @@ class PaymentInitiationMixin:
                 currency=resolved.currency,
             )
 
+    def _refresh_reference_for_retry(self, payment_id, application_id):
+        """Mint a fresh transaction_reference when retrying an already-sent payment.
+
+        Lenco rejects a repeat mobile-money collection that reuses a
+        reference it has already seen. When a pending Payment row is reused
+        for a new attempt and it already carries a ``provider_initiation``
+        record, we generate a new reference and persist it so the next Lenco
+        call is treated as a fresh collection. Returns the new reference, or
+        ``None`` when no refresh is needed (first attempt on this row).
+        """
+        from django.db import transaction
+
+        from apps.applications.models import Application
+        from apps.documents.payment_service import _generate_reference as _gen_ref
+
+        with transaction.atomic():
+            try:
+                payment = Payment.objects.select_for_update().get(id=payment_id)
+            except Payment.DoesNotExist:  # pragma: no cover - defensive
+                return None
+
+            already_sent = bool((payment.metadata or {}).get("provider_initiation"))
+            if not already_sent:
+                return None
+
+            application_number = (
+                Application.objects.filter(id=application_id)
+                .values_list("application_number", flat=True)
+                .first()
+                or str(application_id)
+            )
+            new_reference = _gen_ref(application_number)
+            payment.transaction_reference = new_reference
+            payment.updated_at = timezone.now()
+            payment.save(update_fields=["transaction_reference", "updated_at"])
+            logger.info(
+                "initiate_mobile_money: minted fresh reference for retry on payment %s",
+                payment_id,
+            )
+            return new_reference
+
     def initiate_mobile_money(
         self,
         application_id: UUID,
@@ -458,6 +499,24 @@ class PaymentInitiationMixin:
         if not result.payment_id:
             # Application already paid (or similar); propagate unchanged.
             return result
+
+        # 1b. If we reused a pending payment that Lenco has already seen on
+        #     this reference, mint a fresh reference. Lenco rejects a repeat
+        #     collection on a duplicate reference, so a retry on the same row
+        #     must carry a new reference. The webhook/verify join key
+        #     (transaction_reference) is updated in lockstep so reconciliation
+        #     still resolves. Only refresh when a prior provider initiation
+        #     exists, to avoid churning references on the first attempt.
+        refreshed_reference = self._refresh_reference_for_retry(
+            result.payment_id, application_id
+        )
+        if refreshed_reference is not None:
+            result = PaymentInitiationResult(
+                payment_id=result.payment_id,
+                reference=refreshed_reference,
+                amount=result.amount,
+                currency=result.currency,
+            )
 
         # 2. Read Lenco credentials. Missing creds must degrade gracefully
         #    - the provider call is skipped and the payment stays pending.
@@ -516,7 +575,8 @@ class PaymentInitiationMixin:
 
         if provider_status == "rejected":
             logger.info(
-                "initiate_mobile_money: Lenco rejected for payment %s", result.payment_id,
+                "initiate_mobile_money: Lenco rejected for payment %s: %s",
+                result.payment_id, provider_error,
             )
         elif provider_status == "unknown":
             logger.warning(

@@ -259,7 +259,7 @@ const SubmitStep = ({
                   <button
                     type="button"
                     onClick={() => setAiRetryNonce((count) => count + 1)}
-                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-primary/80"
+                    className="mt-2 min-h-touch inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-primary/80"
                   >
                     <RefreshCw className="h-3 w-3" />
                     Load personalized preview
@@ -304,7 +304,7 @@ const SubmitStep = ({
                       <button
                         type="button"
                         onClick={() => onNavigateToStep(item.stepKey)}
-                        className="mt-0.5 shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning-foreground transition-colors hover:bg-warning/20"
+                        className="mt-0.5 shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
                       >
                         Go to step
                       </button>

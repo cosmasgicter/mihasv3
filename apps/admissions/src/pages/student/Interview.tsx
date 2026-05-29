@@ -460,9 +460,9 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
 
           {/* Location / link detail */}
           {modeDetail && (
-            <p className="text-sm text-muted-foreground inline-flex items-center gap-1.5">
-              {modeDetail.icon}
-              {modeDetail.text}
+            <p className="text-sm text-muted-foreground flex items-start gap-1.5 break-words">
+              <span className="shrink-0 mt-0.5">{modeDetail.icon}</span>
+              <span className="min-w-0 break-words">{modeDetail.text}</span>
             </p>
           )}
 
