@@ -30,6 +30,7 @@ import {
   type SessionQueryData,
 } from './authQueries'
 import { logger } from '@/lib/logger'
+import { toError } from '@/lib/toError'
 
 export type { User, UserProfile, SignInResult, SignUpResult, PasswordResetResult } from '@/types/auth'
 export type AuthUser = User
@@ -132,7 +133,7 @@ export function useSessionListener() {
 
       return { user: authUser, profile: normalizedProfile }
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Login failed' }
+      return { error: toError(error).message || 'Login failed' }
     }
   }, [queryClient])
 
@@ -162,7 +163,7 @@ export function useSessionListener() {
         loginResult = await authService.login({ email, password }) as { user?: User; profile?: UserProfile } | null
         await queryClient.cancelQueries({ queryKey: SESSION_QUERY_KEY })
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unable to sign in after account creation'
+        const message = toError(error).message || 'Unable to sign in after account creation'
         if (/invalid credentials|unauthorized/i.test(message)) {
           return { error: 'We could not sign you in after registration. If this email is already registered, please sign in instead.' }
         }
@@ -191,7 +192,7 @@ export function useSessionListener() {
 
       return { user: null }
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Unable to create account' }
+      return { error: toError(error).message || 'Unable to create account' }
     }
   }, [queryClient])
 
@@ -234,7 +235,7 @@ export function useSessionListener() {
       await authService.passwordReset({ email })
       return {}
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Unable to send reset instructions' }
+      return { error: toError(error).message || 'Unable to send reset instructions' }
     }
   }, [])
 
@@ -244,7 +245,7 @@ export function useSessionListener() {
       await authService.passwordResetConfirm({ token, newPassword: password })
       return {}
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Unable to reset password' }
+      return { error: toError(error).message || 'Unable to reset password' }
     }
   }, [])
 

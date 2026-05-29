@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger'
+
 export type ReloadReason =
   | 'chunk_preload_error'
   | 'chunk_import_error'
@@ -100,7 +102,7 @@ export const logReloadEvent = (context: ReloadLogContext) => {
     ts: new Date().toISOString(),
   }
 
-  console.info('[ReloadControl]', payload)
+  logger.info('[ReloadControl]', payload)
 }
 
 export const consumeAutoReloadGuard = ({
@@ -148,7 +150,7 @@ export const emitReloadTelemetry = ({ reason, mode, buildKey, details }: ReloadL
   }
 
   window.dispatchEvent(new CustomEvent('mihas:reload', { detail: payload }))
-  console.info('[telemetry] reload', payload)
+  logger.info('[telemetry] reload', payload)
 }
 
 export const performReload = ({

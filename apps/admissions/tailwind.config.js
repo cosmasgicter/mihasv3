@@ -236,6 +236,13 @@ module.exports = {
         'height': 'height',
         'spacing': 'margin, padding',
       },
+      zIndex: {
+        // Semantic z-index scale — see design-tokens.css for the full
+        // contract. Always prefer named tokens over raw numeric `z-[60]`.
+        modal: '60',
+        'modal-stacked': '70',
+        toast: '80',
+      },
     },
   },
   plugins: [

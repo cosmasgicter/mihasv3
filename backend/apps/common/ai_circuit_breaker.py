@@ -5,12 +5,12 @@ degraded UX during Vercel AI Gateway outages.
 
 Design (matches payment-hardening feature-flag pattern):
 
-* **Gate**: ``settings.AI_HARDENING_CIRCUIT_BREAKER`` — when ``False``
+* **Gate**: ``settings.AI_HARDENING_CIRCUIT_BREAKER`` - when ``False``
   the decorator is a no-op pass-through, preserving pre-hardening
   behaviour bit-exact. This lets us ship the code without flipping
   behaviour until ops are ready.
 * **State storage**: Redis (via Django cache). Two keys per breaker
-  name — a ``failures`` counter with a short TTL (``COOLDOWN_SECONDS``)
+  name - a ``failures`` counter with a short TTL (``COOLDOWN_SECONDS``)
   and an ``open`` flag with the same TTL. When open, the wrapped call
   is short-circuited.
 * **Thresholds**:
@@ -46,7 +46,7 @@ FAILURE_THRESHOLD: int = 3
 #: Seconds the breaker stays open before allowing a probe call.
 COOLDOWN_SECONDS: int = 300
 
-#: Sentinel returned when the breaker is open — the AI-service callers
+#: Sentinel returned when the breaker is open - the AI-service callers
 #: already treat ``None`` as "no AI result, fall back gracefully".
 _OPEN_SENTINEL = None
 
@@ -61,7 +61,7 @@ def _is_open(name: str) -> bool:
     """Return True if the breaker for ``name`` is currently open."""
     try:
         return bool(cache.get(_breaker_key(name, "open")))
-    except Exception:  # pragma: no cover — never fail in the hot path
+    except Exception:  # pragma: no cover - never fail in the hot path
         logger.warning("ai_circuit_breaker: cache.get failed for %s", name)
         return False
 
@@ -71,19 +71,19 @@ def _record_failure(name: str) -> None:
     key = _breaker_key(name, "failures")
     try:
         # ``cache.incr`` raises ValueError if the key doesn't exist, so
-        # seed it first. Two-step is fine — worst case we lose a count
+        # seed it first. Two-step is fine - worst case we lose a count
         # in a race, which doesn't meaningfully change the breaker.
         if cache.get(key) is None:
             cache.set(key, 0, timeout=COOLDOWN_SECONDS)
         count = cache.incr(key)
-    except Exception:  # pragma: no cover — defensive
+    except Exception:  # pragma: no cover - defensive
         logger.warning("ai_circuit_breaker: cache.incr failed for %s", name)
         return
 
     if count >= FAILURE_THRESHOLD:
         try:
             cache.set(_breaker_key(name, "open"), True, timeout=COOLDOWN_SECONDS)
-        except Exception:  # pragma: no cover — defensive
+        except Exception:  # pragma: no cover - defensive
             logger.warning("ai_circuit_breaker: cache.set failed for %s", name)
         logger.warning(
             "AI circuit breaker opened: name=%s failures=%s cooldown=%ss",
@@ -99,7 +99,7 @@ def _record_success(name: str) -> None:
     try:
         cache.delete(_breaker_key(name, "failures"))
         cache.delete(_breaker_key(name, "open"))
-    except Exception:  # pragma: no cover — defensive
+    except Exception:  # pragma: no cover - defensive
         logger.warning("ai_circuit_breaker: cache.delete failed for %s", name)
 
 
@@ -116,7 +116,7 @@ def _emit_metric(metric: str, name: str) -> None:
         metrics_mod = getattr(sentry_sdk, "metrics", None)
         if metrics_mod is not None and hasattr(metrics_mod, "incr"):
             metrics_mod.incr(metric, 1, tags={"breaker": name})
-    except Exception:  # pragma: no cover — defensive
+    except Exception:  # pragma: no cover - defensive
         pass
 
 
@@ -136,16 +136,16 @@ def with_circuit_breaker(name: str, fallback: Any = _OPEN_SENTINEL) -> Callable[
     Behaviour
     ---------
     * When ``AI_HARDENING_CIRCUIT_BREAKER`` is falsy, the wrapper is a
-      pass-through and does NOT record failures/successes — this keeps
+      pass-through and does NOT record failures/successes - this keeps
       the flag-off path identical to pre-hardening.
     * When enabled and the breaker is OPEN, the wrapped callable is
       not invoked. ``fallback`` is returned immediately.
     * When enabled and the breaker is CLOSED, the callable is invoked:
-        * Returning a value — counted as success, breaker cleared.
-        * Raising — counted as failure, may open the breaker. The
+        * Returning a value - counted as success, breaker cleared.
+        * Raising - counted as failure, may open the breaker. The
           exception is *not* re-raised; ``fallback`` is returned so
           upstream callers see the same no-AI contract.
-        * Returning ``None`` — NOT counted as a failure (callers
+        * Returning ``None`` - NOT counted as a failure (callers
           already return ``None`` for "AI unavailable, keep going").
     """
 
@@ -156,13 +156,13 @@ def with_circuit_breaker(name: str, fallback: Any = _OPEN_SENTINEL) -> Callable[
                 return fn(*args, **kwargs)
 
             if _is_open(name):
-                logger.info("AI circuit breaker open — short-circuiting %s", name)
+                logger.info("AI circuit breaker open -- short-circuiting %s", name)
                 _emit_metric("ai.circuit_breaker.short_circuited", name)
                 return fallback
 
             try:
                 result = fn(*args, **kwargs)
-            except Exception as exc:  # noqa: BLE001 — intentional catch-all
+            except Exception as exc:  # noqa: BLE001 - intentional catch-all
                 logger.warning(
                     "AI call %s raised — counting as breaker failure: %s",
                     name,
@@ -172,7 +172,7 @@ def with_circuit_breaker(name: str, fallback: Any = _OPEN_SENTINEL) -> Callable[
                 return fallback
 
             # ``None`` is the canonical "AI unavailable but soft-failed"
-            # return — do not count as either success or failure.
+            # return - do not count as either success or failure.
             if result is not None:
                 _record_success(name)
             return result

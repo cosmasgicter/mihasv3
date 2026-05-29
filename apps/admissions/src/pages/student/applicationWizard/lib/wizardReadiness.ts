@@ -1,3 +1,4 @@
+import { normalizePaymentStatus } from '@/lib/paymentStatus'
 import { normalizeResidenceTown } from '@/lib/residenceTown'
 import type { SubjectGrade, WizardFormData } from '../types'
 import type { StepKey } from '../steps/config'
@@ -134,7 +135,7 @@ export const buildWizardReadiness = ({
       'payment',
       'payment',
       'Payment or deferment',
-      paymentStatus === 'successful' || paymentStatus === 'deferred',
+      normalizePaymentStatus(paymentStatus) === 'verified' || paymentStatus === 'deferred',
       'Complete payment or defer it before continuing.'
     ),
   ]

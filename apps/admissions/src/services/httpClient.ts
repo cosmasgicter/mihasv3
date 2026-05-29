@@ -9,6 +9,7 @@
  */
 
 import { getApiBaseUrl } from '@/lib/apiConfig';
+import { toError } from '@/lib/toError'
 
 /** Base URL for all API requests, resolved from environment config. */
 export const API_BASE = getApiBaseUrl();
@@ -69,7 +70,7 @@ export async function parseJsonSafely<TResponse>(
   try {
     return JSON.parse(bodyText) as TResponse;
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = toError(error).message;
     throw new Error(`Failed to parse JSON response from ${endpoint}: ${message}`);
   }
 }

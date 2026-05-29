@@ -35,6 +35,7 @@ import { Skeleton } from '@/components/ui'
 import { interviewsService } from '@/services/interviews'
 import { useAuth } from '@/contexts/AuthContext'
 import { CACHE_CONFIG } from '@/hooks/queries/useQueryConfig'
+import { toError } from '@/lib/toError'
 
 interface Interview {
   id: string
@@ -301,7 +302,7 @@ export default function InterviewPage() {
           <ErrorDisplay
             variant="section"
             title="Unable to load interview information"
-            message={error instanceof Error ? error.message : 'Failed to load interview information. Please try again.'}
+            message={toError(error).message || 'Failed to load interview information. Please try again.'}
             onRetry={() => void refetch()}
             className="mb-6"
           />
@@ -441,7 +442,7 @@ function InterviewCard({ interview, isUpcoming }: { interview: Interview; isUpco
             {interview.program_name || 'Application Interview'}
           </p>
           
-          {/* Date, Time, Mode — compact row */}
+          {/* Date, Time, Mode -- compact row */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <Calendar className="h-4 w-4 flex-shrink-0" />

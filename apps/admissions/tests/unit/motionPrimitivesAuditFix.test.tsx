@@ -107,15 +107,16 @@ describe('ButtonSpinner regression (no AnimatePresence wrapper)', () => {
     expect(markup).not.toContain('data-projection-id')
   })
 
-  it('renders exactly two SVG elements and no other wrapper', () => {
+  it('renders exactly one SVG element and no wrapper', () => {
     const { container } = render(<ButtonSpinner />)
 
     const svgs = container.querySelectorAll('svg')
-    // SpinnerIcon (motion.svg) + StaticIcon (plain svg)
-    expect(svgs.length).toBe(2)
+    // Single SVG — the framer-motion + static-fallback hybrid was
+    // dropped in favour of CSS animations, which the global
+    // `prefers-reduced-motion` rule already neutralises.
+    expect(svgs.length).toBe(1)
 
-    // The root should be a bare container (Fragment renders children directly)
-    // so the first children of the test container are the SVGs themselves
+    // The root should be the SVG itself (no Fragment / wrapper element).
     const children = Array.from(container.children)
     expect(children.every((el) => el.tagName === 'svg')).toBe(true)
   })

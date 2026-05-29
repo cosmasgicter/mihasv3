@@ -44,7 +44,7 @@ def canonical_json(payload: dict) -> bytes:
 
     Raises ``TypeError`` / ``ValueError`` on un-serialisable inputs; callers
     MUST short-circuit the webhook (log ``processing_error='Canonical
-    serialization failed'`` and skip the Payment mutation — R21.5).
+    serialization failed'`` and skip the Payment mutation - R21.5).
     """
     try:
         return json.dumps(
@@ -84,7 +84,7 @@ class WebhookEventIdentity:
     payload_hash: str
 
     def print(self) -> str:  # noqa: A003 - name mandated by the spec
-        """Log-safe pretty-print — truncated hash, no payload leakage."""
+        """Log-safe pretty-print - truncated hash, no payload leakage."""
         return (
             f"wh:{self.provider_event_id}|{self.event_type}"
             f"|{self.reference}|{self.payload_hash[:12]}"
@@ -139,7 +139,7 @@ class WebhookProcessor:
         """
         api_secret: str = getattr(settings, 'LENCO_API_SECRET_KEY', '') or ''
         if not api_secret:
-            logger.warning("LENCO_API_SECRET_KEY not configured — cannot validate webhook signature")
+            logger.warning("LENCO_API_SECRET_KEY not configured -- cannot validate webhook signature")
             return False
 
         hash_key = hashlib.sha256(api_secret.encode('utf-8')).hexdigest()
@@ -161,7 +161,7 @@ class WebhookProcessor:
         canonical JSON encoding of the full payload (R8.3, R8.4).
 
         May propagate ``TypeError`` / ``ValueError`` from
-        :func:`canonical_json` — callers should treat that as
+        :func:`canonical_json` - callers should treat that as
         ``processing_error='Canonical serialization failed'`` (R21.5).
         """
         data = payload.get('data', {}) if isinstance(payload, dict) else {}
@@ -223,7 +223,7 @@ class WebhookProcessor:
     def process(self, event_type: str, payload: dict, *, signature_valid: bool = True) -> None:
         """Log the webhook event and delegate to :class:`PaymentService`.
 
-        A ``WebhookEventLog`` record is **always** created — even when the
+        A ``WebhookEventLog`` record is **always** created - even when the
         signature was invalid (the caller passes ``signature_valid=False``).
 
         When ``settings.PAYMENT_HARDENING_WEBHOOK_DEDUP_STRICT`` is enabled,
@@ -239,7 +239,7 @@ class WebhookProcessor:
         self._process_legacy(event_type, payload, signature_valid=signature_valid)
 
     # ------------------------------------------------------------------
-    # Legacy processing path (flag OFF — behaviour preserved)
+    # Legacy processing path (flag OFF - behaviour preserved)
     # ------------------------------------------------------------------
 
     def _process_legacy(
@@ -324,7 +324,7 @@ class WebhookProcessor:
             log_entry.save(update_fields=['processing_error'])
 
     # ------------------------------------------------------------------
-    # Strict processing path (flag ON — Task 21.5)
+    # Strict processing path (flag ON - Task 21.5)
     # ------------------------------------------------------------------
 
     def _process_strict(
@@ -346,7 +346,7 @@ class WebhookProcessor:
         try:
             identity = self.compute_identity(event_type, payload)
         except (TypeError, ValueError):
-            # R21.5: un-serialisable payload — write the audit row and bail
+            # R21.5: un-serialisable payload - write the audit row and bail
             # without mutating any Payment.
             safe_payload = payload if isinstance(payload, dict) else {'_raw': str(payload)}
             WebhookEventLog.objects.create(
@@ -404,7 +404,7 @@ class WebhookProcessor:
             )
             return
 
-        # 4. Dedup check — strict identity-based.
+        # 4. Dedup check - strict identity-based.
         if self.is_duplicate(identity):
             WebhookEventLog.objects.create(
                 event_type=event_type,

@@ -266,7 +266,7 @@ export default function StudentSettings() {
         <button
           type="button"
           onClick={() => handleNavigate('/student/dashboard')}
-          className="inline-flex items-center text-primary transition-colors hover:text-primary/80"
+          className="inline-flex min-h-touch items-center rounded-lg px-3 py-2 text-sm font-medium text-primary transition-colors hover:text-primary/80 hover:bg-primary/5"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to dashboard

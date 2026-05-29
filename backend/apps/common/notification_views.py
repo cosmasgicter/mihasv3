@@ -1,4 +1,4 @@
-"""Notification views — preferences, admin send, list, mark-read, delete, admin history.
+"""Notification views - preferences, admin send, list, mark-read, delete, admin history.
 
 Implements tasks 20.1, 20.3, 11.1 (admissions-frontend-overhaul), 3.1 (communications-history).
 Requirements: 6.1, 6.2, 6.3, 8.1, 8.2, 8.3, 8.5, 8.6, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7
@@ -166,7 +166,7 @@ def _send_notification_from_validated_data(data: dict) -> Response:
 
 
 # ---------------------------------------------------------------------------
-# 20.1 — Notification Preferences
+# 20.1 - Notification Preferences
 # ---------------------------------------------------------------------------
 
 
@@ -245,7 +245,7 @@ class NotificationPreferenceView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# 20.1 — Admin Send Notification
+# 20.1 - Admin Send Notification
 # ---------------------------------------------------------------------------
 
 
@@ -290,7 +290,7 @@ class NotificationSendView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# 20.3 — Email Send Endpoint
+# 20.3 - Email Send Endpoint
 # ---------------------------------------------------------------------------
 
 
@@ -351,7 +351,7 @@ class EmailSendView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# 11.1 — List Notifications for Current User
+# 11.1 - List Notifications for Current User
 # ---------------------------------------------------------------------------
 
 
@@ -373,8 +373,8 @@ class EmailSendView(APIView):
     ),
 )
 class NotificationListView(APIView):
-    """GET /api/v1/notifications/ — list notifications for current user.
-    POST /api/v1/notifications/ — admin send notification (delegates to NotificationSendView).
+    """GET /api/v1/notifications/ - list notifications for current user.
+    POST /api/v1/notifications/ - admin send notification (delegates to NotificationSendView).
 
     Supports pagination (?page=1&pageSize=20) and filtering (?type=info&is_read=true).
     Without params, returns all notifications in the paginated envelope for backward compatibility.
@@ -480,7 +480,7 @@ class NotificationListView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# 11.1 — Mark Single Notification as Read
+# 11.1 - Mark Single Notification as Read
 # ---------------------------------------------------------------------------
 
 
@@ -543,7 +543,7 @@ class NotificationMarkReadView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# 11.1 — Mark All Notifications as Read
+# 11.1 - Mark All Notifications as Read
 # ---------------------------------------------------------------------------
 
 
@@ -685,7 +685,7 @@ class NotificationMarkReadBatchAliasView(NotificationMarkAllReadAliasView):
 
 
 # ---------------------------------------------------------------------------
-# 11.1 — Delete a Notification
+# 11.1 - Delete a Notification
 # ---------------------------------------------------------------------------
 
 
@@ -729,7 +729,7 @@ class NotificationDeleteView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# 3.1 — Admin Notification History for a Specific User
+# 3.1 - Admin Notification History for a Specific User
 # ---------------------------------------------------------------------------
 
 

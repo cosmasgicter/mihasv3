@@ -78,6 +78,8 @@ export const getStatusMessage = (status: string) => {
       return 'This application has been withdrawn at your request.'
     case 'expired':
       return 'This application expired because it was not completed within the allowed time.'
+    case 'enrollment_expired':
+      return 'The enrollment confirmation deadline has passed. The spot has been released to the next candidate on the waitlist.'
     case 'draft':
       return 'This application is still in draft. Sign in to continue where you left off.'
     default:

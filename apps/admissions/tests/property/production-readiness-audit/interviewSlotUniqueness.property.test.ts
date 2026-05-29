@@ -169,8 +169,8 @@ const interviewModeArb = fc.constantFrom(
 );
 
 const scheduledAtArb = fc
-  .date({ min: new Date('2025-01-01'), max: new Date('2026-12-31') })
-  .map((d) => d.toISOString());
+  .integer({ min: new Date('2025-01-01').getTime(), max: new Date('2026-12-31').getTime() })
+  .map((ts) => new Date(ts).toISOString());
 
 const locationArb = fc.constantFrom(
   'Main Campus - Room 101',

@@ -1,4 +1,4 @@
-"""Catalog models — maps to existing Neon Postgres tables."""
+"""Catalog models - maps to existing Neon Postgres tables."""
 
 import uuid
 

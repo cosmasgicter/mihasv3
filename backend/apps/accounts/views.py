@@ -1,14 +1,14 @@
-"""Authentication views — re-export shim.
+"""Authentication views - re-export shim.
 
 Decomposed during Stream 9 backend module decomposition.
 All view classes, response serializers, and shared helpers are re-exported
 here so that existing imports continue to work without changes.
 
 Split files:
-  - auth_views.py     — LoginView, LogoutView, RegisterView, RefreshView, SessionView
-  - password_views.py — PasswordResetRequestView, PasswordResetConfirmView, ChangePasswordView
-  - profile_views.py  — ProfileView
-  - auth_helpers.py   — _set_auth_cookies, _clear_auth_cookies, _generate_csrf_token,
+  - auth_views.py     - LoginView, LogoutView, RegisterView, RefreshView, SessionView
+  - password_views.py - PasswordResetRequestView, PasswordResetConfirmView, ChangePasswordView
+  - profile_views.py  - ProfileView
+  - auth_helpers.py   - _set_auth_cookies, _clear_auth_cookies, _generate_csrf_token,
                         _has_recent_csrf_token, _get_client_ip, _hash_value
 """
 

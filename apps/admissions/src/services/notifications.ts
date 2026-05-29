@@ -1,5 +1,6 @@
 import { apiClient } from './client'
 import { logApiError } from '@/lib/apiErrorLogger'
+import { generateIdempotencyKey } from '@/lib/paymentStatus'
 import type { NotificationData, StudentNotification } from '@/types/notifications'
 
 type UpdatePreferencesPayload = {
@@ -84,15 +85,6 @@ export function normalizeNotificationContent(value: string): string {
     .replace(/ *\n */g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
-}
-
-function createIdempotencyKey(): string {
-  const cryptoRef = globalThis.crypto
-  if (cryptoRef && typeof cryptoRef.randomUUID === 'function') {
-    return cryptoRef.randomUUID()
-  }
-
-  return `notification-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
 function normalizeNotification(item: unknown): StudentNotification | null {
@@ -212,7 +204,7 @@ export const notificationService = {
       title: payload.subject,
       message: payload.message,
       type: normalizeNotificationType(payload.type),
-      idempotency_key: createIdempotencyKey(),
+      idempotency_key: generateIdempotencyKey(),
       ...(payload.actionUrl ? { action_url: payload.actionUrl } : {}),
     }
     const response = await apiClient.request<SendNotificationApiResponse>('/notifications/', {

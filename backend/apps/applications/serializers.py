@@ -18,6 +18,7 @@ from apps.applications.models import (
     ApplicationStatusHistory,
 )
 from apps.applications.identifier_resolver import IdentifierResolver
+from apps.common.serializer_fields import SexField
 from apps.common.validators import validate_nrc, validate_phone_e164, validate_zambian_phone
 from apps.documents.models import ApplicationGrade, Payment
 
@@ -403,7 +404,7 @@ class ApplicationCreateSerializer(serializers.Serializer):
     nrc_number = serializers.CharField(max_length=20, required=False, allow_blank=True, allow_null=True, default="")
     passport_number = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True, default="")
     date_of_birth = serializers.DateField()
-    sex = serializers.ChoiceField(choices=["male", "female"])
+    sex = SexField()
     phone = serializers.CharField(max_length=20)
     email = serializers.EmailField()
     residence_town = serializers.CharField(max_length=255)
@@ -531,7 +532,7 @@ class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.Mode
 
 
 class ApplicationTrackingSerializer(serializers.ModelSerializer):
-    """Public tracking serializer — no auth required.
+    """Public tracking serializer - no auth required.
 
     Keep this response intentionally small: it is exposed to anyone who knows
     an application number or tracking code.
@@ -593,7 +594,7 @@ class ApplicationInterviewSerializer(serializers.ModelSerializer):
 
 
 class ApplicationReviewSerializer(serializers.Serializer):
-    """Admin review — status update."""
+    """Admin review - status update."""
 
     new_status = serializers.CharField(max_length=50)
     notes = serializers.CharField(required=False, allow_blank=True, default="")
@@ -625,7 +626,7 @@ class ApplicationBulkStatusSerializer(serializers.Serializer):
 
 
 # ---------------------------------------------------------------------------
-# Applications remediation serializers (T15 — API remediation Phase 3)
+# Applications remediation serializers (T15 - API remediation Phase 3)
 # ---------------------------------------------------------------------------
 
 
@@ -720,7 +721,7 @@ class ApplicationFeeWaiverRequestSerializer(serializers.Serializer):
 class ApplicationConfirmEnrollmentRequestSerializer(serializers.Serializer):
     """POST /api/v1/applications/{id}/confirm-enrollment/ request body.
 
-    Body is intentionally empty — this endpoint is idempotent and takes no
+    Body is intentionally empty - this endpoint is idempotent and takes no
     user-supplied data. We declare an empty serializer so drf-spectacular
     generates an explicit (empty) request schema rather than fallback text.
     """

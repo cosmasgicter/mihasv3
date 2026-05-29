@@ -4,7 +4,7 @@ Implements security headers, request ID propagation, rate limiting,
 audit logging, and request metrics.
 
 Note: CSRFEnforcementMiddleware and JWTAuthenticationMiddleware have been
-moved to ``middleware_compat.py`` — they are no longer in the MIDDLEWARE
+moved to ``middleware_compat.py`` - they are no longer in the MIDDLEWARE
 stack but are preserved for backward-compatible tests.
 """
 
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# 7.1 — SecurityHeadersMiddleware
+# 7.1 - SecurityHeadersMiddleware
 # ---------------------------------------------------------------------------
 
 
@@ -96,7 +96,7 @@ class SecurityHeadersMiddleware:
 
 
 # ---------------------------------------------------------------------------
-# 7.2 — RequestIDMiddleware
+# 7.2 - RequestIDMiddleware
 # ---------------------------------------------------------------------------
 
 
@@ -121,7 +121,7 @@ class RequestIDMiddleware:
 
 
 # ---------------------------------------------------------------------------
-# 7.2b — MetricsMiddleware
+# 7.2b - MetricsMiddleware
 # ---------------------------------------------------------------------------
 
 
@@ -192,13 +192,13 @@ class MetricsMiddleware:
                     },
                 )
         except Exception:
-            pass  # Metrics are best-effort — never block the response
+            pass  # Metrics are best-effort - never block the response
 
         return response
 
 
 # ---------------------------------------------------------------------------
-# 7.3 — RateLimitMiddleware
+# 7.3 - RateLimitMiddleware
 # ---------------------------------------------------------------------------
 
 
@@ -258,7 +258,7 @@ class RateLimitMiddleware:
         ("/api/v1/payments/", "60/10m"),
         # Catch-all API (must be last API scope)
         ("/api/v1/", "120/10m"),
-        # Django admin panel — strict brute-force protection
+        # Django admin panel - strict brute-force protection
         ("/mihas-admin-panel/", "10/1m"),
     ]
 
@@ -322,7 +322,7 @@ class RateLimitMiddleware:
                         increment=True,
                     )
                 except Exception:
-                    # Redis unavailable — use in-memory fallback instead of failing open
+                    # Redis unavailable - use in-memory fallback instead of failing open
                     ip = self._get_client_ip(request)
                     limited = self._fallback_is_limited(ip)
                     if limited:
@@ -366,7 +366,7 @@ class RateLimitMiddleware:
 
 
 # ---------------------------------------------------------------------------
-# 7.5 — AuditMiddleware
+# 7.5 - AuditMiddleware
 # ---------------------------------------------------------------------------
 
 

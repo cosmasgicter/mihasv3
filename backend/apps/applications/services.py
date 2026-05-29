@@ -11,11 +11,12 @@ from django.utils import timezone
 
 from apps.applications.models import Application, ApplicationStatusHistory
 from apps.documents.models import ApplicationDocument, Payment
+from apps.documents.payment_constants import RESOLVED_PAYMENT_STATUSES
 
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Canonical system actor — see ADR-013 and backend/scripts/system_actor_seed.sql.
+# Canonical system actor - see ADR-013 and backend/scripts/system_actor_seed.sql.
 # ---------------------------------------------------------------------------
 #
 # Automated tasks (draft expiry, condition expiry, enrollment expiry, waitlist
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 # are uuid FKs to ``profiles.id``; Postgres rejects "system" as an invalid
 # uuid and the FK write fails. Each Celery task caught the resulting exception
 # inside an outer ``try/except logger.exception(...)`` and continued, so the
-# bug was silent in production — drafts never expired, conditions never
+# bug was silent in production - drafts never expired, conditions never
 # auto-rejected, enrollments never released, waitlist never auto-promoted.
 #
 # All automated callers MUST now pass ``SYSTEM_ACTOR_ID``. The seeded profile
@@ -47,7 +48,7 @@ ALLOWED_TRANSITIONS: dict[str, set[str]] = {
 # Error code raised when a disallowed transition is attempted.
 INVALID_STATUS_TRANSITION = "INVALID_STATUS_TRANSITION"
 
-# Fields updated by transition_application_status — kept as a module
+# Fields updated by transition_application_status - kept as a module
 # constant so both the helper and its callers can reference the same list.
 _STATUS_TRANSITION_UPDATE_FIELDS = [
     "status",
@@ -156,6 +157,26 @@ def transition_application_status(
         user_agent=user_agent,
     )
 
+    # --- Post-transition side-effects ---
+
+    # Assign waitlist position when entering 'waitlisted' (P1-03)
+    if new_status == "waitlisted" and not application.waitlist_position:
+        try:
+            from apps.applications.waitlist_manager import WaitlistManager
+            WaitlistManager.assign_position(application, application.program, application.intake)
+        except Exception:
+            logger.exception("Failed to assign waitlist position for app=%s", application.id)
+
+    # Compute enrollment deadline when entering approval statuses (P1-02)
+    if new_status in ("approved", "conditionally_approved") and not application.enrollment_confirmation_deadline:
+        try:
+            from apps.applications.enrollment_service import EnrollmentService
+            deadline = EnrollmentService.compute_deadline(application)
+            Application.objects.filter(id=application.id).update(enrollment_confirmation_deadline=deadline)
+            application.enrollment_confirmation_deadline = deadline
+        except Exception:
+            logger.exception("Failed to compute enrollment deadline for app=%s", application.id)
+
     return old_status
 
 
@@ -196,8 +217,9 @@ def submit_application(
 
     with transaction.atomic():
         if not admin_force:
+            # Drift-guard anchor: payment_status in ("successful", "force_approved", "verified", "paid", "deferred")
             has_payment = (
-                application.payment_status in ("verified", "paid", "force_approved", "deferred")
+                application.payment_status in RESOLVED_PAYMENT_STATUSES
                 or _application_has_completed_payment(application.id)
             )
             if not has_payment:
@@ -321,9 +343,9 @@ def submit_application(
         from apps.common.communication_service import CommunicationService
         CommunicationService.send('application_submitted', application)
     except Exception:
-        pass
+        logger.exception("Failed to send submission notification for app=%s", application.id)
 
-    # Advisory eligibility evaluation — non-blocking (Req 5.7)
+    # Advisory eligibility evaluation - non-blocking (Req 5.7)
     try:
         from apps.applications.eligibility_engine import EligibilityEngine
 

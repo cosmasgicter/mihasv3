@@ -9,27 +9,16 @@ import { Button } from '@/components/ui/Button'
 import { useTimeline } from '@/hooks/useTimeline'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatRelative } from '@/lib/dateFormat'
-
-// ─── Status color mapping ───
-
-const STATUS_COLORS: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800/40 dark:text-gray-400',
-  submitted: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  under_review: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  approved: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  rejected: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  waitlisted: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-}
-
-const UNKNOWN_STATUS_COLOR = 'bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400'
+import { getTimelineStatusColor } from '@/lib/statusColors'
 
 /**
- * Returns a CSS class string for a given application status.
- * Always returns a non-empty string, falling back to a neutral color for unknown statuses.
+ * Re-export of the canonical timeline status color helper so existing
+ * importers (`import { getStatusColor } from '@/pages/student/History'`)
+ * keep working after the consolidation. The implementation lives in
+ * `@/lib/statusColors`. Drift-guard tests pin both names.
  */
-export function getStatusColor(status: string | null | undefined): string {
-  if (!status) return UNKNOWN_STATUS_COLOR
-  return Object.prototype.hasOwnProperty.call(STATUS_COLORS, status) ? (STATUS_COLORS[status] ?? UNKNOWN_STATUS_COLOR) : UNKNOWN_STATUS_COLOR
+export function getStatusColor(status: string): string {
+  return getTimelineStatusColor(status)
 }
 
 /**
@@ -133,13 +122,13 @@ export default function History() {
                         {/* Status transition indicator */}
                         <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                           <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(entry.old_status)}`}
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getTimelineStatusColor(entry.old_status)}`}
                           >
                             {formatStatus(entry.old_status)}
                           </span>
                           <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" aria-label="to" />
                           <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(entry.new_status)}`}
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getTimelineStatusColor(entry.new_status)}`}
                           >
                             {formatStatus(entry.new_status)}
                           </span>

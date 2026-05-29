@@ -10,7 +10,6 @@ import json
 import logging
 import uuid
 from decimal import Decimal
-from urllib.parse import unquote, urlparse
 
 from django.conf import settings
 from django.db.models import Q
@@ -117,28 +116,6 @@ def _get_authorized_document(request, view, document_id):
     return document, None
 
 
-def _get_document_storage_key(document):
-    """Convert persisted file URLs/keys into a MediaStorage-relative file name."""
-    raw_file_url = (getattr(document, "file_url", None) or "").strip()
-    if not raw_file_url:
-        return ""
-
-    if raw_file_url.startswith(("http://", "https://")):
-        key = unquote(urlparse(raw_file_url).path.lstrip("/"))
-    else:
-        key = raw_file_url.lstrip("/")
-
-    bucket_name = getattr(settings, "AWS_STORAGE_BUCKET_NAME", "")
-    if bucket_name and key.startswith(f"{bucket_name}/"):
-        key = key[len(bucket_name) + 1:]
-
-    # MediaStorage uses location='media', so strip the prefix to avoid media/media/...
-    if key.startswith("media/"):
-        key = key[len("media/"):]
-
-    return key
-
-
 DocumentResponseSerializer = envelope_serializer(
     "DocumentResponse",
     DocumentSerializer(),
@@ -165,7 +142,7 @@ PaymentResponseSerializer = envelope_serializer(
 
 
 class PaymentInitiateView(APIView):
-    """POST /api/v1/payments/initiate/ — create a pending payment record.
+    """POST /api/v1/payments/initiate/ - create a pending payment record.
 
     Authenticated. Creates a Payment via PaymentService and returns the
     reference, amount, currency, and Lenco public key so the frontend can
@@ -298,7 +275,7 @@ class PaymentInitiateView(APIView):
 
 
 class DeferPaymentView(APIView):
-    """POST /api/v1/payments/defer/ — create a deferred payment record."""
+    """POST /api/v1/payments/defer/ - create a deferred payment record."""
 
     permission_classes = [IsAuthenticated]
     throttle_classes = [PaymentUserScopedRateThrottle]
@@ -317,6 +294,7 @@ class DeferPaymentView(APIView):
         tags=["payments"],
         summary="Defer payment — submit application without paying upfront",
     )
+    @require_not_dev_bypass_in_production
     @idempotent
     def post(self, request):
         # Validate via serializer but preserve the {success: false, error, code} envelope.
@@ -381,7 +359,7 @@ class DeferPaymentView(APIView):
 
 
 class PaymentDevBypassView(APIView):
-    """POST /api/v1/payments/dev-bypass/ — simulate payment in local development.
+    """POST /api/v1/payments/dev-bypass/ - simulate payment in local development.
 
     This endpoint is intentionally unavailable unless DEBUG is true and
     PAYMENT_DEV_BYPASS is enabled. It exists only to unblock end-to-end
@@ -457,7 +435,7 @@ class PaymentDevBypassView(APIView):
         else:
             merged_metadata = payment.metadata or {}
             merged_metadata.update(metadata)
-            # Do NOT mutate payment.status here — PaymentService._transition()
+            # Do NOT mutate payment.status here - PaymentService._transition()
             # below is the sole authority for status writes. The admin_override
             # source allows transition from any state to force_approved.
             payment.payment_method = payment.payment_method or "development_bypass"

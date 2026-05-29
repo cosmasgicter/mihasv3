@@ -140,7 +140,7 @@ def verify_token(token: str, token_type: str = "access") -> dict:
         except ValueError:
             raise
         except Exception:
-            pass  # DB unavailable — primary blacklist check (Redis) already passed
+            pass  # DB unavailable - primary blacklist check (Redis) already passed
 
         # Reject tokens issued before password_changed_at
         try:
@@ -157,7 +157,7 @@ def verify_token(token: str, token_type: str = "access") -> dict:
         except ValueError:
             raise
         except Exception:
-            pass  # DB unavailable — degrade gracefully
+            pass  # DB unavailable - degrade gracefully
 
     return payload
 
@@ -188,10 +188,10 @@ def rotate_tokens(refresh_token: str, user=None) -> tuple[str, str]:
     except ValueError:
         raise  # Re-raise "Token already consumed"
     except Exception:
-        # Redis unavailable — proceed without lock (better than logging user out)
-        logger.warning("Redis unavailable for rotation lock — proceeding without dedup")
+        # Redis unavailable - proceed without lock (better than logging user out)
+        logger.warning("Redis unavailable for rotation lock -- proceeding without dedup")
 
-    # Blacklist the old refresh token's jti — if this fails, do NOT issue new tokens
+    # Blacklist the old refresh token's jti - if this fails, do NOT issue new tokens
     blacklist_jti(old_jti)
 
     # Build a minimal user-like object from the payload if not provided
@@ -205,7 +205,7 @@ def rotate_tokens(refresh_token: str, user=None) -> tuple[str, str]:
 
 
 class JTIBlacklistError(Exception):
-    """Raised when JTI blacklisting fails after retry — old token may remain valid."""
+    """Raised when JTI blacklisting fails after retry - old token may remain valid."""
     pass
 
 
@@ -218,7 +218,7 @@ def blacklist_jti(jti: str, ttl_seconds: int | None = None) -> None:
             return
         except redis.RedisError:
             if attempt == 0:
-                logger.warning("Redis write failed for JTI blacklist — retrying once")
+                logger.warning("Redis write failed for JTI blacklist -- retrying once")
                 continue
             logger.error("CRITICAL: Redis write failed for JTI blacklist after retry", exc_info=True)
             raise JTIBlacklistError(f"Failed to blacklist JTI {jti} after 2 attempts")
@@ -233,10 +233,10 @@ def is_jti_blacklisted(jti: str) -> bool:
             return _get_redis().exists(f"{JTI_PREFIX}{jti}") > 0
         except redis.RedisError:
             if attempt == 0:
-                logger.warning("Redis read failed for JTI blacklist — retrying once")
+                logger.warning("Redis read failed for JTI blacklist -- retrying once")
                 continue
             # Second failure: fail-closed for security
-            logger.error("Redis read failed for JTI blacklist after retry — failing closed", exc_info=True)
+            logger.error("Redis read failed for JTI blacklist after retry -- failing closed", exc_info=True)
             return True
     return True
 

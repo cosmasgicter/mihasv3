@@ -1,14 +1,14 @@
-"""Admin dashboard and user management views — re-export shim.
+"""Admin dashboard and user management views - re-export shim.
 
 Decomposed during Stream 9 backend module decomposition.
 All view classes AND their supporting serializers/helpers are re-exported here
 so that existing imports continue to work.
 
 Split files:
-  - admin_user_views.py      — AdminDashboardView, AdminUserListView, AdminUserDetailView, AdminUserExportView
-  - admin_settings_views.py  — AdminSettingsListView, AdminSettingDetailView, AdminSettingsImportView, AdminSettingsResetView
-  - admin_audit_views.py     — AdminAuditLogView
-  - admin_serializers.py     — Shared serializers, helpers, regex constants
+  - admin_user_views.py      - AdminDashboardView, AdminUserListView, AdminUserDetailView, AdminUserExportView
+  - admin_settings_views.py  - AdminSettingsListView, AdminSettingDetailView, AdminSettingsImportView, AdminSettingsResetView
+  - admin_audit_views.py     - AdminAuditLogView
+  - admin_serializers.py     - Shared serializers, helpers, regex constants
 """
 
 # View classes

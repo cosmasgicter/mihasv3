@@ -354,18 +354,26 @@ describe('Admin Dashboard page verification', () => {
     vi.clearAllMocks()
   })
 
-  async function renderAndWait(timeoutMs = 600) {
+  async function renderAndWait(timeoutMs = 3000) {
     root.render(<AdminDashboard />)
     await new Promise((r) => setTimeout(r, timeoutMs))
   }
 
-  async function renderAndWaitForText(text: string, timeoutMs = 5000) {
+  async function renderAndWaitForText(text: string, timeoutMs = 20000) {
     root.render(<AdminDashboard />)
     const start = Date.now()
     while (Date.now() - start < timeoutMs) {
       await new Promise((r) => setTimeout(r, 100))
-      if ((container.textContent || '').includes(text)) return
+      if ((container.textContent || '').includes(text)) {
+        // Let downstream effects settle so subsequent assertions are stable.
+        await new Promise((r) => setTimeout(r, 100))
+        return
+      }
     }
+    throw new Error(
+      `renderAndWaitForText timeout after ${timeoutMs}ms looking for "${text}". ` +
+        `Last container text: ${(container.textContent || '').slice(0, 200)}`,
+    )
   }
 
   it('renders without errors and exits loading state', async () => {

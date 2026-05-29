@@ -9,11 +9,16 @@ import { getUtilizationColor } from '@/pages/admin/Intakes'
  *
  * Property 14: For any intake displayed on the admin Intakes page, the visual
  * utilization indicator reflects the ratio of current_enrollment to capacity —
- * green below 80%, amber at 80-99%, red at 100%+.
+ * success below 80%, warning at 80-99%, destructive at 100%+.
+ *
+ * Updated 2026-05-26: badge now uses semantic design-system tokens
+ * (`bg-success/10`, `bg-warning/10`, `bg-destructive/10`) instead of raw
+ * Tailwind palette utilities. The `tone` field is asserted as the semantic
+ * source of truth.
  */
 
 describe('Property 14: Intake utilization visual indicator', () => {
-  it('returns green when enrollment is below 80% of capacity', () => {
+  it('returns success tone when enrollment is below 80% of capacity', () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 1, max: 10_000 }),
@@ -24,16 +29,17 @@ describe('Property 14: Intake utilization visual indicator', () => {
           const enrollment = fc.sample(fc.integer({ min: 0, max: maxEnrollment }), 1)[0]
           const result = getUtilizationColor(enrollment, capacity)
 
-          expect(result.bg).toBe('bg-green-100')
-          expect(result.text).toBe('text-green-700')
+          expect(result.bg).toBe('bg-success/10')
+          expect(result.text).toBe('text-success')
           expect(result.label).toBe('Available')
+          expect(result.tone).toBe('success')
         },
       ),
       { numRuns: 100 },
     )
   })
 
-  it('returns amber when enrollment is between 80% and 99% of capacity', () => {
+  it('returns warning tone when enrollment is between 80% and 99% of capacity', () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 5, max: 10_000 }),
@@ -45,16 +51,17 @@ describe('Property 14: Intake utilization visual indicator', () => {
           const enrollment = fc.sample(fc.integer({ min: low, max: high }), 1)[0]
           const result = getUtilizationColor(enrollment, capacity)
 
-          expect(result.bg).toBe('bg-amber-100')
-          expect(result.text).toBe('text-amber-700')
+          expect(result.bg).toBe('bg-warning/10')
+          expect(result.text).toBe('text-warning')
           expect(result.label).toBe('Near capacity')
+          expect(result.tone).toBe('warning')
         },
       ),
       { numRuns: 100 },
     )
   })
 
-  it('returns red when enrollment is at or above 100% of capacity', () => {
+  it('returns destructive tone when enrollment is at or above 100% of capacity', () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 1, max: 10_000 }),
@@ -63,9 +70,10 @@ describe('Property 14: Intake utilization visual indicator', () => {
           const enrollment = capacity + extra
           const result = getUtilizationColor(enrollment, capacity)
 
-          expect(result.bg).toBe('bg-red-100')
-          expect(result.text).toBe('text-red-700')
+          expect(result.bg).toBe('bg-destructive/10')
+          expect(result.text).toBe('text-destructive')
           expect(result.label).toBe('Over capacity')
+          expect(result.tone).toBe('destructive')
         },
       ),
       { numRuns: 100 },
@@ -83,6 +91,7 @@ describe('Property 14: Intake utilization visual indicator', () => {
           expect(result.bg).toBe('bg-muted')
           expect(result.text).toBe('text-muted-foreground')
           expect(result.label).toBe('N/A')
+          expect(result.tone).toBe('muted')
         },
       ),
       { numRuns: 100 },

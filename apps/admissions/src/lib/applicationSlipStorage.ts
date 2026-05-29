@@ -1,6 +1,7 @@
 import { sanitizeForLog } from './security'
 import { apiClient } from '@/services/client'
 import { logger } from '@/lib/logger'
+import { toError } from '@/lib/toError'
 
 export interface PersistSlipResult {
   success: boolean
@@ -66,7 +67,7 @@ export async function repairLegacyDocumentReference(reference: string, applicati
   } catch (error) {
     logger.error(
       'Failed to resolve legacy document reference:',
-      sanitizeForLog(error instanceof Error ? error.message : String(error)),
+      sanitizeForLog(toError(error).message),
     )
     return {}
   }
@@ -105,7 +106,7 @@ export async function persistSlip(
       documentId: uploadResult.id,
     }
   } catch (error) {
-    logger.error('Persist error:', sanitizeForLog(error instanceof Error ? error.message : String(error)))
-    return { success: false, error: error instanceof Error ? error.message : 'Failed to persist application slip' }
+    logger.error('Persist error:', sanitizeForLog(toError(error).message))
+    return { success: false, error: toError(error).message || 'Failed to persist application slip' }
   }
 }

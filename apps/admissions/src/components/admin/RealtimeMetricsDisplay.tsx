@@ -36,7 +36,13 @@ interface MetricData {
   previousValue?: number;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  color: 'blue' | 'yellow' | 'green' | 'secondary' | 'orange';
+  /**
+   * Semantic tone name (not raw palette). 2026-05-26 audit fix:
+   * the public component API previously leaked raw palette names
+   * (`'blue' | 'yellow' | 'green' | 'secondary' | 'orange'`) into
+   * consumer code. Now mirrors the canonical token vocabulary.
+   */
+  tone: 'info' | 'warning' | 'success' | 'accent' | 'primary';
   suffix?: string;
   trend?: 'up' | 'down' | 'stable';
   trendValue?: number;
@@ -60,31 +66,31 @@ interface RealtimeMetricsDisplayProps {
   compact?: boolean;
 }
 
-const colorConfig = {
-  blue: {
-    bg: 'bg-primary/10',
-    icon: 'text-primary',
-    pulse: 'bg-primary',
+const toneConfig: Record<MetricData['tone'], { bg: string; icon: string; pulse: string }> = {
+  info: {
+    bg: 'bg-info/10',
+    icon: 'text-info',
+    pulse: 'bg-info',
   },
-  yellow: {
+  warning: {
     bg: 'bg-warning/10',
     icon: 'text-warning',
     pulse: 'bg-warning',
   },
-  green: {
+  success: {
     bg: 'bg-success/10',
     icon: 'text-success',
     pulse: 'bg-success',
   },
-  secondary: {
-    bg: 'bg-secondary/10',
-    icon: 'text-secondary',
-    pulse: 'bg-secondary',
+  accent: {
+    bg: 'bg-accent/40',
+    icon: 'text-accent-foreground',
+    pulse: 'bg-accent-foreground',
   },
-  orange: {
-    bg: 'bg-accent/10',
-    icon: 'text-accent',
-    pulse: 'bg-accent',
+  primary: {
+    bg: 'bg-primary/10',
+    icon: 'text-primary',
+    pulse: 'bg-primary',
   },
 };
 
@@ -129,8 +135,9 @@ function DataUpdateFlash({
     <div
       className={cn(
         'rounded-lg transition-shadow duration-600 motion-reduce:transition-none',
-        // Intentional inline rgba: blue-500 at 30% opacity for highlight glow ring — Tailwind has no semantic shadow-color utility for this
-        show && 'shadow-[0_0_0_4px_rgba(59,130,246,0.3)]'
+        // Token-based highlight glow: uses --color-primary-rgb instead of a
+        // raw rgba literal. Stays in sync with theme + supports dark mode.
+        show && 'shadow-[0_0_0_4px_rgb(var(--color-primary-rgb)/0.3)]'
       )}
     >
       {children}
@@ -174,7 +181,7 @@ function MetricCard({
   delay?: number;
   compact?: boolean;
 }) {
-  const colors = colorConfig[metric.color];
+  const colors = toneConfig[metric.tone];
   const Icon = metric.icon;
   const change = previousValue !== undefined ? metric.value - previousValue : 0;
   const [showFlash, setShowFlash] = useState(false);
@@ -345,7 +352,7 @@ export function RealtimeMetricsDisplay({
       label: 'Today',
       description: 'New Applications',
       icon: Calendar,
-      color: 'blue',
+      tone: 'info',
       trend: todayApplications > 0 ? 'up' : 'stable',
     },
     {
@@ -354,7 +361,7 @@ export function RealtimeMetricsDisplay({
       label: 'Queue',
       description: 'Decision Queue',
       icon: Clock,
-      color: 'yellow',
+      tone: 'warning',
       trend: pendingApplications > 5 ? 'up' : 'stable',
     },
     {
@@ -363,7 +370,7 @@ export function RealtimeMetricsDisplay({
       label: 'Days',
       description: 'Avg Processing',
       icon: Zap,
-      color: 'secondary',
+      tone: 'primary',
       trend: 'down',
       trendValue: 15,
     },
@@ -372,7 +379,7 @@ export function RealtimeMetricsDisplay({
       label: 'Rate',
       description: 'Approval Rate',
       icon: CheckCircle,
-      color: 'green',
+      tone: 'success',
       suffix: '%',
       trend: 'stable',
     },

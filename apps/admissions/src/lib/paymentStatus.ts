@@ -186,16 +186,17 @@ export function isPaymentHardeningUiEnabled(): boolean {
 // ---------------------------------------------------------------------------
 
 /**
- * Build a per-submission idempotency key for payment endpoints.
+ * Build a unique idempotency key.
  *
- * Format: `pay-<first8ofAppId>-<uuidv4>`
+ * When `applicationId` is provided the format is `pay-<first8>-<uuid>`.
+ * Without an argument the format is a plain UUID (or legacy fallback).
  *
  * Uses `crypto.randomUUID()` when available. On legacy browsers without
  * the `crypto.randomUUID` API, falls back to a `Math.random`-based
  * string — flagged with `LEGACY FALLBACK` so it is easy to grep.
  */
-export function generateIdempotencyKey(applicationId: string): string {
-  const prefix = `pay-${(applicationId || '').slice(0, 8)}-`
+export function generateIdempotencyKey(applicationId?: string): string {
+  const prefix = applicationId ? `pay-${applicationId.slice(0, 8)}-` : ''
 
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return `${prefix}${crypto.randomUUID()}`

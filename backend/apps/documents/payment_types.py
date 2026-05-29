@@ -1,4 +1,4 @@
-"""Payment service result dataclasses — extracted from payment_service.py.
+"""Payment service result dataclasses - extracted from payment_service.py.
 
 Stream 9 Phase 2 of the canonical-truth program. The four frozen dataclasses
 that ``PaymentService`` returns from its public methods are kept here so any

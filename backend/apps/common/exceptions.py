@@ -46,7 +46,7 @@ def _emit_payment_rate_limit_telemetry(request, view, scope):
         else "anonymous"
     )
 
-    # Audit — lazy import to avoid cycles.
+    # Audit - lazy import to avoid cycles.
     try:
         from apps.documents.payment_audit_service import PaymentAuditService
 
@@ -67,12 +67,12 @@ def _emit_payment_rate_limit_telemetry(request, view, scope):
             "payment.rate_limited audit write failed", exc_info=True
         )
 
-    # Counter — lazy import to avoid cycles.
+    # Counter - lazy import to avoid cycles.
     try:
         from apps.documents import payment_metrics
 
         # ``payment.rate_limited`` accepts ``endpoint`` + ``user_role``
-        # labels — both of which are validated against the allow-list
+        # labels - both of which are validated against the allow-list
         # in ``payment_metrics.ALLOWED_LABEL_VALUES``.
         payment_metrics.increment(
             "payment.rate_limited",
@@ -172,7 +172,7 @@ def envelope_exception_handler(exc, context):
 
                 envelope["error"] = PAYMENT_ERROR_CODES["RATE_LIMITED"].message
             except Exception:
-                # Catalogue unavailable — fall back to the generic message.
+                # Catalogue unavailable - fall back to the generic message.
                 logger.warning(
                     "payment_error_codes import failed during 429 handling",
                     exc_info=True,

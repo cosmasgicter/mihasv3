@@ -1,26 +1,99 @@
 import { useState } from 'react'
-import { FileText, Download, Loader2 } from 'lucide-react'
+import { FileText, Download, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import { Skeleton } from '@/components/ui'
+import { Button } from '@/components/ui/Button'
 import type { DocumentItem, ApplicationWithDetails } from './applicationDetailTypes'
 import { documentService } from '@/services/documents'
+import { applicationService } from '@/services/applications'
 import { useToastStore } from '@/hooks/useToast'
+import { logApiError } from '@/lib/apiErrorLogger'
+import { toError } from '@/lib/toError'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function DocumentVerifyActions({ doc, applicationId, onVerified }: { doc: DocumentItem; applicationId: string; onVerified?: () => void }) {
+  const [loading, setLoading] = useState(false)
+  const { success: showSuccess, error: showError } = useToastStore()
+  const isPending = !doc.verification_status || doc.verification_status === 'pending' || doc.verification_status === 'ocr_complete'
+
+  if (!isPending || !applicationId) return null
+
+  const handleVerify = async (status: 'verified' | 'rejected') => {
+    setLoading(true)
+    try {
+      await applicationService.verifyDocument(applicationId, {
+        documentId: doc.id,
+        status,
+      })
+      showSuccess(
+        status === 'verified' ? 'Document verified' : 'Document rejected',
+        `${doc.document_name} has been ${status}.`
+      )
+      onVerified?.()
+    } catch (error) {
+      logApiError('admin-doc-verify', `/applications/${applicationId}/verify-document/`, error)
+      showError('Verification failed', toError(error).message || 'Unable to update document status.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="flex gap-1.5">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => { void handleVerify('verified') }}
+        disabled={loading}
+        className="border-green-300 text-green-700 hover:bg-green-50"
+      >
+        <CheckCircle className="h-3.5 w-3.5" />
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => { void handleVerify('rejected') }}
+        disabled={loading}
+        className="border-red-300 text-red-700 hover:bg-red-50"
+      >
+        <XCircle className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  )
+}
 
 function ViewDocButton({ doc }: { doc: DocumentItem }) {
   const [loading, setLoading] = useState(false)
   const showError = useToastStore((state) => state.error)
-  const isReal = UUID_RE.test(doc.id)
+  const isRealDocumentRecord = UUID_RE.test(doc.id)
 
   const handleClick = async () => {
-    if (!isReal) {
-      window.open(doc.file_url, '_blank', 'noopener,noreferrer')
+    // Legacy/synthetic rows: the backend now ships a fresh short-lived
+    // signed URL inline (see ApplicationDocumentsView), so the file_url
+    // is already safe to open directly. We never open raw private R2
+    // URLs — those always 403. If the URL is not signed, surface a
+    // clear error rather than launching a broken tab.
+    if (!isRealDocumentRecord) {
+      const url = doc.file_url
+      if (!url || !url.includes('?')) {
+        // Heuristic: a properly signed R2/S3 URL always carries a
+        // querystring (X-Amz-Signature, X-Amz-Expires, etc.). If it has
+        // no querystring, it is the raw private object URL and will 403.
+        showError('Document unavailable', 'The legacy file link is missing a signature. Please refresh the page.')
+        return
+      }
+      window.open(url, '_blank', 'noopener,noreferrer')
       return
     }
+
     setLoading(true)
     try {
       const result = await documentService.getSignedUrl(doc.id)
-      const url = result?.url || doc.file_url
+      const url = result?.url
+      if (!url) {
+        showError('Document unavailable', 'The file link could not be prepared. Please refresh and try again.')
+        return
+      }
       window.open(url, '_blank', 'noopener,noreferrer')
     } catch {
       showError('Document unavailable', 'The file link could not be prepared. Please refresh and try again.')
@@ -45,10 +118,19 @@ function ViewDocButton({ doc }: { doc: DocumentItem }) {
 interface ApplicationDetailDocumentsProps {
   documents: DocumentItem[]
   loading: boolean
+  applicationId?: string
+  /**
+   * Retained for backwards compatibility with existing call sites.
+   * The component no longer reads `application.result_slip_url` /
+   * `application.extra_kyc_url`; the backend documents endpoint now
+   * surfaces those legacy attachments as synthesized rows with
+   * fresh signed URLs.
+   */
   application?: ApplicationWithDetails | null
+  onDocumentVerified?: () => void
 }
 
-export function ApplicationDetailDocuments({ documents, loading, application }: ApplicationDetailDocumentsProps) {
+export function ApplicationDetailDocuments({ documents, loading, applicationId, onDocumentVerified }: ApplicationDetailDocumentsProps) {
   if (loading) {
     return (
       <div className="space-y-3" role="status" aria-label="Loading documents">
@@ -68,23 +150,11 @@ export function ApplicationDetailDocuments({ documents, loading, application }: 
     )
   }
 
+  // Backend now synthesizes legacy rows with fresh signed URLs, so we
+  // simply render whatever the documents endpoint returned. No frontend
+  // fallback is needed (and the previous fallback always 403'd because
+  // it opened raw private R2 URLs).
   const allDocuments = [...documents]
-
-  if (application) {
-    const existingUrls = new Set(documents.map(d => d.file_url))
-    if (application.result_slip_url && !existingUrls.has(application.result_slip_url)) {
-      allDocuments.push({
-        id: 'result_slip', document_type: 'result_slip', document_name: 'Result Slip',
-        file_url: application.result_slip_url, verification_status: 'pending', system_generated: false
-      } as DocumentItem)
-    }
-    if (application.extra_kyc_url && !existingUrls.has(application.extra_kyc_url)) {
-      allDocuments.push({
-        id: 'extra_kyc', document_type: 'extra_kyc', document_name: 'Identity Support Document',
-        file_url: application.extra_kyc_url, verification_status: 'pending', system_generated: false
-      } as DocumentItem)
-    }
-  }
 
   if (allDocuments.length === 0) {
     return (
@@ -164,7 +234,10 @@ export function ApplicationDetailDocuments({ documents, loading, application }: 
                 )}
               </div>
             </div>
-            <ViewDocButton doc={doc} />
+            <div className="flex items-center gap-2">
+              {applicationId && <DocumentVerifyActions doc={doc} applicationId={applicationId} onVerified={onDocumentVerified} />}
+              <ViewDocButton doc={doc} />
+            </div>
           </div>
         )
       })}

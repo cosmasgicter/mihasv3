@@ -1,4 +1,4 @@
-"""Interview scheduled — sent when an interview slot is assigned."""
+"""Interview scheduled - sent when an interview slot is assigned."""
 
 from html import escape
 

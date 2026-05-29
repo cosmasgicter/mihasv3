@@ -1,4 +1,4 @@
-"""Backward-compatible middleware classes — NOT mounted in MIDDLEWARE.
+"""Backward-compatible middleware classes - NOT mounted in MIDDLEWARE.
 
 CSRFEnforcementMiddleware and JWTAuthenticationMiddleware were removed from
 the Django MIDDLEWARE stack. CSRF is now enforced inside DRF's
@@ -93,7 +93,7 @@ class JWTAuthenticationMiddleware:
 
         signing_key, algorithm = self._get_jwt_config()
         if not signing_key:
-            logger.error("JWT_SIGNING_KEY is not configured — middleware cannot authenticate")
+            logger.error("JWT_SIGNING_KEY is not configured -- middleware cannot authenticate")
             return None
 
         try:

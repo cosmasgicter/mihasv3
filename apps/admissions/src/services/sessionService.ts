@@ -9,6 +9,7 @@
  */
 import { apiClient } from '@/services/client'
 import { logApiError } from '@/lib/apiErrorLogger'
+import { toError } from '@/lib/toError'
 
 export interface SessionDeviceInfo {
   browser?: string
@@ -73,7 +74,7 @@ export async function listActiveSessions(): Promise<ListSessionsResult> {
       accessIssue: false,
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage = toError(error).message || 'Unknown error occurred'
 
     logApiError('session', '/api/v1/sessions/', error)
 
@@ -107,7 +108,7 @@ export async function terminateSessionById(sessionId: string): Promise<Terminate
       success: Boolean(result?.message || result === null),
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage = toError(error).message || 'Unknown error occurred'
     logApiError('session', `/api/v1/sessions/${encodeURIComponent(sessionId)}/revoke/`, error)
     return {
       success: false,
@@ -137,7 +138,7 @@ export async function terminateAllOtherSessions(): Promise<TerminateSessionsResu
       terminatedCount,
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    const errorMessage = toError(error).message || 'Unknown error occurred'
     logApiError('session', '/api/v1/sessions/revoke-all/', error)
     if (errorMessage.includes('401') || errorMessage.includes('Authentication required')) {
       return {

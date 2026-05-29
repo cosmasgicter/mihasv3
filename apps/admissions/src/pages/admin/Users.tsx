@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from '@/lib/zod'
@@ -8,17 +8,12 @@ import { Link } from 'react-router-dom'
 import type { UserProfile } from '@/types/database'
 import { Button } from '@/components/ui/Button'
 import { SkeletonTable as TableSkeleton, SkeletonCard as CardSkeleton } from '@/components/ui'
-import { UserMobileCard, UserTableRow } from '@/components/admin/UserRowCard'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
-import { Container } from '@/components/ui/Container'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageShell } from '@/components/ui/PageShell'
 import { Seo } from '@/components/seo/Seo'
 import { UserStats } from '@/components/admin/UserStats'
 import { BulkUserOperations } from '@/components/admin/BulkUserOperations'
-import { formatDate } from '@/lib/dateFormat'
 import { UserActivityLog } from '@/components/admin/UserActivityLog'
 import { UserExport } from '@/components/admin/UserExport'
 import { UserImport } from '@/components/admin/UserImport'
@@ -27,37 +22,34 @@ import { usersData as userQueries } from '@/data/users'
 import {
   ArrowLeft,
   BarChart3,
-  Calendar,
   CheckSquare,
   Download,
-  Eye,
-  EyeOff,
   Filter,
-  Lock,
-  Phone,
   Search,
-  Shield,
-  Square,
-  Trophy,
   Upload,
   User,
   UserPlus,
-  UserX,
   Users as UsersIcon,
-  ArrowUpDown,
-  ChevronUp,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react'
 import { useToastStore } from '@/hooks/useToast'
 import { sanitizeForLog } from '@/lib/security'
 import { isAdminRole } from '@/lib/auth/roles'
-import { sanitizeForDisplay } from '@/lib/sanitize'
 import type { AdminUserMutationResult } from '@/services/admin/users'
 import { logger } from '@/lib/logger'
+import {
+  usersReducer,
+  initialUsersState,
+  ROLE_VALUES,
+  AVAILABLE_ROLES,
+  getRoleLabel,
+  getSessionSummary,
+  PAGE_SIZE,
+} from './lib/usersReducer'
+import { CreateUserDialog, EditUserDialog, DeleteUserDialog, UsersTableSection } from '@/components/admin/users'
 
-const ROLE_VALUES = ['student', 'reviewer', 'admissions_officer', 'registrar', 'finance_officer', 'academic_head', 'admin', 'super_admin'] as const
+// Re-export helpers for test compatibility
+export { ROLE_VALUES, AVAILABLE_ROLES, getRoleLabel, getSessionSummary, PAGE_SIZE }
+export { getRoleDescription } from './lib/usersReducer'
 
 const createUserSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -77,67 +69,6 @@ const editUserSchema = z.object({
 type CreateUserForm = z.infer<typeof createUserSchema>
 type EditUserForm = z.infer<typeof editUserSchema>
 
-const AVAILABLE_ROLES = [
-  { value: 'student', label: 'Student', description: 'Regular student user' },
-  { value: 'reviewer', label: 'Reviewer', description: 'Can review submitted applications' },
-  { value: 'admissions_officer', label: 'Admissions Officer', description: 'Can review applications' },
-  { value: 'registrar', label: 'Registrar', description: 'Academic records management' },
-  { value: 'finance_officer', label: 'Finance Officer', description: 'Payment verification' },
-  { value: 'academic_head', label: 'Academic Head', description: 'Department oversight' },
-  { value: 'admin', label: 'Administrator', description: 'Full system access' },
-  { value: 'super_admin', label: 'Super Admin', description: 'Platform-wide administrative control' },
-]
-
-const getRoleLabel = (role: string) => {
-  const roleMatch = AVAILABLE_ROLES.find((entry) => entry.value === role)
-  return roleMatch ? roleMatch.label : role.replace(/_/g, ' ').toUpperCase()
-}
-
-const getRoleDescription = (role: string) => {
-  const roleMatch = AVAILABLE_ROLES.find((entry) => entry.value === role)
-  return roleMatch?.description || 'Operational access role'
-}
-
-const getRoleIcon = (role: string) => {
-  if (isAdminRole(role)) {
-    return <Shield className="h-4 w-4 text-destructive" />
-  }
-
-  if (role !== 'student') {
-    return <Shield className="h-4 w-4 text-primary" />
-  }
-
-  return <User className="h-4 w-4 text-foreground" />
-}
-
-const getRoleColor = (role: string) => {
-  if (isAdminRole(role)) {
-    return 'border-destructive/30 bg-destructive/5 text-destructive'
-  }
-
-  if (role !== 'student') {
-    return 'border-primary/30 bg-primary/5 text-primary'
-  }
-
-  return 'border-border bg-muted text-foreground'
-}
-
-const formatJoinDate = (value?: string) => {
-  if (!value) {
-    return 'Unknown'
-  }
-  const result = formatDate(value)
-  return result === 'Not available' ? 'Unknown' : result
-}
-
-const getSessionSummary = (count?: number) => {
-  if (!count) {
-    return 'No active sessions needed revocation.'
-  }
-
-  return `${count} active session${count === 1 ? '' : 's'} revoked.`
-}
-
 export default function AdminUsers() {
   const { data: usersData, isLoading: loading, error: queryError, refetch } = userQueries.useList()
   const createUserMutation = userQueries.useCreate()
@@ -146,17 +77,16 @@ export default function AdminUsers() {
   const updatePermissionsMutation = userQueries.useUpdatePermissions()
   const { success: showSuccess, info: showInfo } = useToastStore()
 
+  const [state, dispatch] = useReducer(usersReducer, initialUsersState)
+  const { dialogs, filters, selection } = state
+
   const users = (usersData?.users || []) as UserProfile[]
   const totalCount = usersData?.totalCount ?? users.length
-  const [error, setError] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const debouncedSearchTerm = useDebounce(searchTerm, 300)
-  const [roleFilter, setRoleFilter] = useState('')
-  const [showCreateDialog, setShowCreateDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showPermissionsDialog, setShowPermissionsDialog] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null)
+  const debouncedSearchTerm = useDebounce(filters.searchTerm, 300)
+
+  const selectedUserId = dialogs.selectedUser?.user_id || dialogs.selectedUser?.id
+  const permissionsQuery = userQueries.usePermissions(dialogs.showPermissionsDialog ? selectedUserId : undefined)
+
   const createFormHook = useForm<CreateUserForm>({
     resolver: zodResolver(createUserSchema),
     defaultValues: { email: '', password: '', full_name: '', phone: '', role: 'student' },
@@ -165,33 +95,17 @@ export default function AdminUsers() {
     resolver: zodResolver(editUserSchema),
     defaultValues: { full_name: '', email: '', phone: '', role: 'student' },
   })
-  const [showPassword, setShowPassword] = useState(false)
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
-  const [showStats, setShowStats] = useState(false)
-  const [showActivityLog, setShowActivityLog] = useState(false)
-  const [activityLogUserId, setActivityLogUserId] = useState<string | null>(null)
-  const [showExportDialog, setShowExportDialog] = useState(false)
-  const [showImportDialog, setShowImportDialog] = useState(false)
-  const [sortField, setSortField] = useState<'name' | 'role' | 'email' | 'created'>('name')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-  const [currentPage, setCurrentPage] = useState(1)
-  const PAGE_SIZE = 25
-
-  const selectedUserId = selectedUser?.user_id || selectedUser?.id
-  const permissionsQuery = userQueries.usePermissions(showPermissionsDialog ? selectedUserId : undefined)
 
   useEffect(() => {
     if (queryError) {
-      setError(queryError instanceof Error ? queryError.message : 'Failed to load users')
-      return
+      dispatch({ type: 'SET_ERROR', payload: queryError instanceof Error ? queryError.message : 'Failed to load users' })
+    } else {
+      dispatch({ type: 'SET_ERROR', payload: '' })
     }
-
-    setError('')
   }, [queryError])
 
   const filteredUsers = useMemo(() => {
     let filtered = users
-
     if (debouncedSearchTerm) {
       const normalizedSearch = debouncedSearchTerm.toLowerCase()
       filtered = filtered.filter((user) =>
@@ -200,180 +114,104 @@ export default function AdminUsers() {
         user.phone?.includes(debouncedSearchTerm),
       )
     }
-
-    if (roleFilter) {
-      filtered = filtered.filter((user) => user.role === roleFilter)
+    if (filters.roleFilter) {
+      filtered = filtered.filter((user) => user.role === filters.roleFilter)
     }
-
     return filtered
-  }, [roleFilter, debouncedSearchTerm, users])
+  }, [filters.roleFilter, debouncedSearchTerm, users])
 
   const sortedUsers = useMemo(() => {
     const sorted = [...filteredUsers]
     sorted.sort((a, b) => {
       let cmp = 0
-      switch (sortField) {
-        case 'name':
-          cmp = (a.full_name || '').localeCompare(b.full_name || '')
-          break
-        case 'email':
-          cmp = (a.email || '').localeCompare(b.email || '')
-          break
-        case 'role':
-          cmp = (a.role || '').localeCompare(b.role || '')
-          break
-        case 'created':
-          cmp = (a.created_at || '').localeCompare(b.created_at || '')
-          break
+      switch (filters.sortField) {
+        case 'name': cmp = (a.full_name || '').localeCompare(b.full_name || ''); break
+        case 'email': cmp = (a.email || '').localeCompare(b.email || ''); break
+        case 'role': cmp = (a.role || '').localeCompare(b.role || ''); break
+        case 'created': cmp = (a.created_at || '').localeCompare(b.created_at || ''); break
       }
-      return sortDirection === 'asc' ? cmp : -cmp
+      return filters.sortDirection === 'asc' ? cmp : -cmp
     })
     return sorted
-  }, [filteredUsers, sortField, sortDirection])
+  }, [filteredUsers, filters.sortField, filters.sortDirection])
 
   const totalPages = Math.max(1, Math.ceil(sortedUsers.length / PAGE_SIZE))
   const paginatedUsers = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE
+    const start = (filters.currentPage - 1) * PAGE_SIZE
     return sortedUsers.slice(start, start + PAGE_SIZE)
-  }, [sortedUsers, currentPage])
+  }, [sortedUsers, filters.currentPage])
 
-  // Reset page when filters change
-  useEffect(() => { setCurrentPage(1) }, [debouncedSearchTerm, roleFilter])
-
-  const toggleSort = useCallback((field: typeof sortField) => {
-    if (sortField === field) {
-      setSortDirection(d => d === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortDirection('asc')
-    }
-  }, [sortField])
-
-  const SortIcon = ({ field }: { field: typeof sortField }) => {
-    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 opacity-40" />
-    return sortDirection === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
-  }
+  useEffect(() => { dispatch({ type: 'RESET_PAGE' }) }, [debouncedSearchTerm, filters.roleFilter])
 
   const filteredCount = filteredUsers.length
-  const selectedCount = selectedUsers.length
-  const hasActiveFilters = Boolean(searchTerm || roleFilter)
-  const staffCount = useMemo(() => users.filter((user) => user.role !== 'student').length, [users])
-  const privilegedCount = useMemo(() => users.filter((user) => isAdminRole(user.role)).length, [users])
-  const newThisMonthCount = useMemo(() => {
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - 30)
-
-    return users.filter((user) => {
-      if (!user.created_at) {
-        return false
-      }
-
-      const createdAt = new Date(user.created_at)
-      return Number.isFinite(createdAt.getTime()) && createdAt >= cutoff
-    }).length
-  }, [users])
+  const selectedCount = selection.selectedUsers.length
+  const hasActiveFilters = Boolean(filters.searchTerm || filters.roleFilter)
 
   const createUser = createFormHook.handleSubmit(async (values) => {
     try {
       const result = await createUserMutation.mutateAsync(values) as AdminUserMutationResult
-      setError('')
-      setShowCreateDialog(false)
+      dispatch({ type: 'SET_ERROR', payload: '' })
+      dispatch({ type: 'CLOSE_CREATE' })
       createFormHook.reset({ email: '', password: '', full_name: '', phone: '', role: 'student' })
       showSuccess('User created', `${values.full_name} can now sign in as ${getRoleLabel(values.role)}.`)
       showInfo('Secure handoff', 'Share the temporary password through a trusted channel and ask the user to change it after first sign-in.')
-
-      if (result?.message) {
-        showInfo('Admin API', result.message)
-      }
+      if (result?.message) showInfo('Admin API', result.message)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create user'
       logger.error('Failed to create user:', sanitizeForLog(errorMessage))
-      setError(errorMessage)
+      dispatch({ type: 'SET_ERROR', payload: errorMessage })
     }
   })
 
   const openEditDialog = useCallback((user: UserProfile) => {
-    setSelectedUser(user)
     editFormHook.reset({
       full_name: user.full_name || '',
       email: user.email || '',
       phone: user.phone || '',
       role: (user.role || 'student') as EditUserForm['role'],
     })
-    setShowEditDialog(true)
+    dispatch({ type: 'OPEN_EDIT', user })
   }, [editFormHook])
-
-  const openPermissionsDialog = useCallback((user: UserProfile) => {
-    setSelectedUser(user)
-    setShowPermissionsDialog(true)
-  }, [])
-
-  const openDeleteDialog = useCallback((user: UserProfile) => {
-    setSelectedUser(user)
-    setShowDeleteDialog(true)
-  }, [])
 
   const updateUser = editFormHook.handleSubmit(async (values) => {
     if (!selectedUserId) return
-
     try {
-      const roleChanged = selectedUser?.role !== values.role
-      const result = await updateUserMutation.mutateAsync({
-        id: selectedUserId,
-        data: values,
-      }) as AdminUserMutationResult
-
-      setError('')
-      setShowEditDialog(false)
-      setSelectedUser(null)
+      const roleChanged = dialogs.selectedUser?.role !== values.role
+      const result = await updateUserMutation.mutateAsync({ id: selectedUserId, data: values }) as AdminUserMutationResult
+      dispatch({ type: 'SET_ERROR', payload: '' })
+      dispatch({ type: 'CLOSE_EDIT' })
       showSuccess('User updated', roleChanged ? `${values.full_name} now has the ${getRoleLabel(values.role)} role.` : 'Profile details were updated.')
-
-      if (result?.revokedSessions) {
-        showInfo('Reauthentication required', getSessionSummary(result.revokedSessions))
-      }
+      if (result?.revokedSessions) showInfo('Reauthentication required', getSessionSummary(result.revokedSessions))
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update user'
       logger.error('Failed to update user:', sanitizeForLog(errorMessage))
-      setError(errorMessage)
+      dispatch({ type: 'SET_ERROR', payload: errorMessage })
     }
   })
 
   const deactivateUser = async () => {
-    if (!selectedUserId) {
-      return
-    }
-
+    if (!selectedUserId) return
     try {
-      const userName = selectedUser?.full_name || selectedUser?.email || 'User'
+      const userName = dialogs.selectedUser?.full_name || dialogs.selectedUser?.email || 'User'
       const result = await deleteUserMutation.mutateAsync(selectedUserId) as AdminUserMutationResult
-      setError('')
-      setShowDeleteDialog(false)
-      setSelectedUser(null)
-      setSelectedUsers((current) => current.filter((id) => id !== selectedUserId))
+      dispatch({ type: 'SET_ERROR', payload: '' })
+      dispatch({ type: 'CLOSE_DELETE' })
+      dispatch({ type: 'REMOVE_FROM_SELECTION', userId: selectedUserId })
       showSuccess('User deactivated', `${userName} no longer has access to the portal.`)
-
-      if (result?.revokedSessions) {
-        showInfo('Sessions revoked', getSessionSummary(result.revokedSessions))
-      }
+      if (result?.revokedSessions) showInfo('Sessions revoked', getSessionSummary(result.revokedSessions))
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to deactivate user'
       logger.error('Failed to deactivate user:', sanitizeForLog(errorMessage))
-      setError(errorMessage)
+      dispatch({ type: 'SET_ERROR', payload: errorMessage })
     }
   }
 
   const savePermissions = async (permissions: string[]) => {
-    if (!selectedUserId) {
-      return
-    }
-
+    if (!selectedUserId) return
     try {
-      const result = await updatePermissionsMutation.mutateAsync({
-        id: selectedUserId,
-        permissions,
-      })
+      const result = await updatePermissionsMutation.mutateAsync({ id: selectedUserId, permissions })
       await refetch()
-      setError('')
+      dispatch({ type: 'SET_ERROR', payload: '' })
       showSuccess(
         'Permissions updated',
         result?.source === 'override'
@@ -384,31 +222,21 @@ export default function AdminUsers() {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update permissions'
       logger.error('Failed to update permissions:', sanitizeForLog(errorMessage))
-      setError(errorMessage)
+      dispatch({ type: 'SET_ERROR', payload: errorMessage })
       throw err
     }
   }
 
-  const handleUserSelect = useCallback((userId: string) => {
-    setSelectedUsers((current) =>
-      current.includes(userId)
-        ? current.filter((id) => id !== userId)
-        : [...current, userId],
-    )
-  }, [])
-
   const handleSelectAll = useCallback(() => {
-    if (selectedUsers.length === filteredUsers.length) {
-      setSelectedUsers([])
-      return
+    if (selection.selectedUsers.length === filteredUsers.length) {
+      dispatch({ type: 'DESELECT_ALL' })
+    } else {
+      dispatch({ type: 'SELECT_ALL', userIds: filteredUsers.map((u) => u.user_id || u.id).filter((id): id is string => Boolean(id)) })
     }
+  }, [selection.selectedUsers.length, filteredUsers])
 
-    setSelectedUsers(filteredUsers.map((user) => user.user_id || user.id).filter((id): id is string => Boolean(id)))
-  }, [selectedUsers.length, filteredUsers])
-
-  const openActivityLog = useCallback((userId: string) => {
-    setActivityLogUserId(userId)
-    setShowActivityLog(true)
+  const handleUserSelect = useCallback((userId: string) => {
+    dispatch({ type: 'TOGGLE_USER', userId })
   }, [])
 
   return (
@@ -419,608 +247,270 @@ export default function AdminUsers() {
         path="/admin/users"
         noindex
       />
-    <PageShell
-      title="User Management"
-      eyebrow="People & Access"
-      subtitle="Create accounts, adjust operational roles, manage effective permissions, and review account activity."
-      maxWidth="7xl"
-      tone="admin"
-      metrics={[
-        { label: 'Users', value: totalCount, helper: `${filteredCount} currently match filters` },
-        { label: 'Selected', value: selectedUsers.length, helper: 'Bulk action selection size' },
-        { label: 'Visible list', value: filteredUsers.length, helper: 'Users shown on the current screen' },
-        { label: 'State', value: error ? 'Needs attention' : 'Ready', helper: error || 'Permissions and role actions available' },
-      ]}
-      actions={
-        <div className="flex flex-wrap gap-2">
-          <Link to="/admin">
-            <Button variant="ghost" size="sm" className="min-h-touch min-w-touch">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+      <PageShell
+        title="User Management"
+        eyebrow="People & Access"
+        subtitle="Create accounts, adjust operational roles, manage effective permissions, and review account activity."
+        maxWidth="7xl"
+        tone="admin"
+        metrics={[
+          { label: 'Users', value: totalCount, helper: `${filteredCount} currently match filters` },
+          { label: 'Selected', value: selection.selectedUsers.length, helper: 'Bulk action selection size' },
+          { label: 'Visible list', value: filteredUsers.length, helper: 'Users shown on the current screen' },
+          { label: 'State', value: state.error ? 'Needs attention' : 'Ready', helper: state.error || 'Permissions and role actions available' },
+        ]}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Link to="/admin">
+              <Button variant="ghost" size="sm" className="min-h-touch min-w-touch">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+            </Link>
+            <Button onClick={() => dispatch({ type: 'TOGGLE_STATS' })} variant="ghost" size="sm" className="min-h-touch min-w-touch">
+              <BarChart3 className="mr-2 h-4 w-4" />
+              {dialogs.showStats ? 'Hide stats' : 'Show stats'}
             </Button>
-          </Link>
-          <Button
-            onClick={() => setShowStats((current) => !current)}
-            variant="ghost"
-            size="sm"
-            className="min-h-touch min-w-touch"
-          >
-            <BarChart3 className="mr-2 h-4 w-4" />
-            {showStats ? 'Hide stats' : 'Show stats'}
-          </Button>
-          <Button
-            onClick={() => setShowImportDialog(true)}
-            variant="ghost"
-            size="sm"
-            className="min-h-touch min-w-touch"
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            Import
-          </Button>
-          <Button
-            onClick={() => setShowExportDialog(true)}
-            variant="ghost"
-            size="sm"
-            className="min-h-touch min-w-touch"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <Button
-            onClick={() => setShowCreateDialog(true)}
-            size="sm"
-            className="min-h-touch min-w-touch"
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add user
-          </Button>
-        </div>
-      }
-    >
-      <div className="space-y-6">
-
-        <SectionCard
-          title="Filter and operate"
-          description="Search the active directory, narrow by role, and keep the user operations workflow aligned with how access is really enforced."
-          icon={<Filter className="h-5 w-5" />}
-          actions={hasActiveFilters ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="min-h-touch min-w-touch"
-              onClick={() => {
-                setSearchTerm('')
-                setRoleFilter('')
-              }}
-            >
-              Clear filters
+            <Button onClick={() => dispatch({ type: 'OPEN_IMPORT' })} variant="ghost" size="sm" className="min-h-touch min-w-touch">
+              <Upload className="mr-2 h-4 w-4" />
+              Import
             </Button>
-          ) : undefined}
-        >
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
-            <Input
-              label="Search users"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search by name, email, or phone"
-              icon={<Search className="h-4 w-4" />}
-              helperText="The directory only shows active accounts by default."
-            />
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">
-                Role
-              </label>
-              <div className="relative">
-                <Filter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground" />
-                <select
-                  value={roleFilter}
-                  onChange={(event) => setRoleFilter(event.target.value)}
-                  className="min-h-touch h-12 w-full rounded-lg border border-input bg-background pl-10 pr-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  <option value="">All roles</option>
-                  {AVAILABLE_ROLES.map((role) => (
-                    <option key={role.value} value={role.value}>
-                      {role.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <p className="mt-1.5 text-sm text-foreground">Use role filtering before running bulk actions or exports.</p>
-            </div>
+            <Button onClick={() => dispatch({ type: 'OPEN_EXPORT' })} variant="ghost" size="sm" className="min-h-touch min-w-touch">
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+            <Button onClick={() => dispatch({ type: 'OPEN_CREATE' })} size="sm" className="min-h-touch min-w-touch">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add user
+            </Button>
           </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Access changes</p>
-              <p className="mt-2 text-base font-semibold text-foreground">Role and permission saves force reauthentication</p>
-              <p className="mt-2 text-sm text-foreground">
-                Admin role updates and custom permission overrides revoke active sessions so the next login receives fresh claims.
-              </p>
-            </div>
-            <div className="rounded-lg border border-border bg-muted/50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Operational directory</p>
-              <p className="mt-2 text-base font-semibold text-foreground">Deactivated users stay in history, not the live list</p>
-              <p className="mt-2 text-sm text-foreground">
-                Account deactivation removes sign-in access immediately while preserving audit continuity and prior application ownership.
-              </p>
-            </div>
-            <div className="rounded-lg border border-border bg-muted/50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Account creation</p>
-              <p className="mt-2 text-base font-semibold text-foreground">Phone, role, and seeded profile basics are captured together</p>
-              <p className="mt-2 text-sm text-foreground">
-                New users now leave this screen with the contact details and initial operational role the rest of the admin system expects.
-              </p>
-            </div>
-          </div>
-        </SectionCard>
-
-        {showStats && (
+        }
+      >
+        <div className="space-y-6">
           <SectionCard
-            title="Directory statistics"
-            description="Use this summary when reviewing staffing mix before imports, bulk changes, or audit follow-up."
-            icon={<BarChart3 className="h-5 w-5" />}
+            title="Filter and operate"
+            description="Search the active directory, narrow by role, and keep the user operations workflow aligned with how access is really enforced."
+            icon={<Filter className="h-5 w-5" />}
+            actions={hasActiveFilters ? (
+              <Button variant="outline" size="sm" className="min-h-touch min-w-touch" onClick={() => dispatch({ type: 'CLEAR_FILTERS' })}>
+                Clear filters
+              </Button>
+            ) : undefined}
           >
-            <UserStats users={users} />
-          </SectionCard>
-        )}
-
-        {selectedCount > 0 && (
-          <SectionCard
-            title={`Bulk operations (${selectedCount} selected)`}
-            description="Bulk changes apply only to the currently selected active accounts."
-            icon={<CheckSquare className="h-5 w-5" />}
-          >
-            <BulkUserOperations
-              users={filteredUsers}
-              selectedUsers={selectedUsers}
-              onSelectionChange={setSelectedUsers}
-              onOperationComplete={() => refetch()}
-            />
-          </SectionCard>
-        )}
-
-        <SectionCard
-          title="Active user directory"
-          description={`${filteredCount} of ${totalCount} active accounts are currently shown.`}
-          icon={<User className="h-5 w-5" />}
-          actions={(
-            <Button variant="outline" size="sm" className="min-h-touch min-w-touch" onClick={() => refetch()}>
-              Refresh users
-            </Button>
-          )}
-        >
-          {error && (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-              <p className="text-sm font-medium text-destructive">User operations issue</p>
-              <p className="mt-1 text-sm text-foreground">{error}</p>
-            </div>
-          )}
-
-          {loading ? (
-            <>
-              <div className="block space-y-4 lg:hidden">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <CardSkeleton key={index} />
-                ))}
-              </div>
-              <div className="hidden lg:block">
-                <TableSkeleton rows={8} columns={5} />
-              </div>
-            </>
-          ) : filteredUsers.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border bg-muted/40 px-6 py-12 text-center">
-              <UsersIcon className="mx-auto h-12 w-12 text-foreground" />
-              <h3 className="mt-4 text-xl font-semibold text-foreground">
-                {hasActiveFilters ? 'No matching users' : 'No active users found'}
-              </h3>
-              <p className="mx-auto mt-2 max-w-md text-sm text-foreground">
-                {hasActiveFilters
-                  ? 'Adjust the search query or role filter to widen the directory.'
-                  : 'Users will appear here once accounts are created or imported into the system.'}
-              </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                {hasActiveFilters && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSearchTerm('')
-                      setRoleFilter('')
-                    }}
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
+              <Input
+                label="Search users"
+                value={filters.searchTerm}
+                onChange={(event) => dispatch({ type: 'SET_SEARCH', payload: event.target.value })}
+                placeholder="Search by name, email, or phone"
+                icon={<Search className="h-4 w-4" />}
+                helperText="The directory only shows active accounts by default."
+              />
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">Role</label>
+                <div className="relative">
+                  <Filter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground" />
+                  <select
+                    value={filters.roleFilter}
+                    onChange={(event) => dispatch({ type: 'SET_ROLE_FILTER', payload: event.target.value })}
+                    className="min-h-touch h-12 w-full rounded-lg border border-input bg-background pl-10 pr-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
-                    Clear filters
-                  </Button>
-                )}
-                <Button onClick={() => refetch()}>Refresh users</Button>
+                    <option value="">All roles</option>
+                    {AVAILABLE_ROLES.map((role) => (
+                      <option key={role.value} value={role.value}>{role.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <p className="mt-1.5 text-sm text-foreground">Use role filtering before running bulk actions or exports.</p>
               </div>
             </div>
-          ) : (
-            <>
-              <div className="rounded-lg border border-border bg-muted/40 p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-foreground">Showing the operational active-user directory.</p>
-                    <p className="text-sm text-foreground">
-                      Open a user to edit role, inspect activity history, or manage effective permissions without leaving this screen.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 text-xs text-foreground">
-                    <span className="rounded-full border border-border bg-card px-2.5 py-1">
-                      Filtered: {filteredCount}
-                    </span>
-                    <span className="rounded-full border border-border bg-card px-2.5 py-1">
-                      Selected: {selectedCount}
-                    </span>
-                  </div>
-                </div>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary">Access changes</p>
+                <p className="mt-2 text-base font-semibold text-foreground">Role and permission saves force reauthentication</p>
+                <p className="mt-2 text-sm text-foreground">
+                  Admin role updates and custom permission overrides revoke active sessions so the next login receives fresh claims.
+                </p>
               </div>
-
-              <div className="block space-y-4 lg:hidden">
-                {paginatedUsers.map((user) => {
-                  const userId = user.user_id || user.id
-                  return (
-                    <UserMobileCard
-                      key={userId}
-                      user={user}
-                      isSelected={selectedUsers.includes(userId)}
-                      onSelect={handleUserSelect}
-                      onEdit={openEditDialog}
-                      onPermissions={openPermissionsDialog}
-                      onActivity={openActivityLog}
-                      onDeactivate={openDeleteDialog}
-                    />
-                  )
-                })}
-              </div>
-
-              <div className="hidden overflow-x-auto rounded-lg border border-border/60 lg:block">
-                <table className="min-w-full divide-y divide-border/40" aria-label="Users">
-                  <thead className="sticky top-0 z-10 bg-muted/50 ">
-                    <tr>
-                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={handleSelectAll}
-                            className="min-h-touch min-w-touch flex items-center justify-center text-primary hover:text-primary"
-                            aria-label={selectedUsers.length === filteredUsers.length ? 'Deselect all users' : 'Select all users'}
-                          >
-                            {selectedUsers.length === filteredUsers.length && filteredUsers.length > 0 ? (
-                              <CheckSquare className="h-4 w-4" />
-                            ) : (
-                              <Square className="h-4 w-4" />
-                            )}
-                          </button>
-                          <button onClick={() => toggleSort('name')} className="flex items-center gap-1 hover:text-foreground">
-                            User <SortIcon field="name" />
-                          </button>
-                        </div>
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        <button onClick={() => toggleSort('email')} className="flex items-center gap-1 hover:text-foreground">
-                          <Phone className="h-4 w-4" />
-                          Contact <SortIcon field="email" />
-                        </button>
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        <button onClick={() => toggleSort('role')} className="flex items-center gap-1 hover:text-foreground">
-                          <Trophy className="h-4 w-4" />
-                          Role <SortIcon field="role" />
-                        </button>
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        <button onClick={() => toggleSort('created')} className="flex items-center gap-1 hover:text-foreground">
-                          <Calendar className="h-4 w-4" />
-                          Joined <SortIcon field="created" />
-                        </button>
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/40 bg-card">
-                    {paginatedUsers.map((user) => {
-                      const userId = user.user_id || user.id
-                      return (
-                        <UserTableRow
-                          key={userId}
-                          user={user}
-                          isSelected={selectedUsers.includes(userId)}
-                          onSelect={handleUserSelect}
-                          onEdit={openEditDialog}
-                          onPermissions={openPermissionsDialog}
-                          onActivity={openActivityLog}
-                          onDeactivate={openDeleteDialog}
-                        />
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
-                  <p className="text-sm text-muted-foreground">
-                    Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, sortedUsers.length)} of {sortedUsers.length}
-                  </p>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="min-h-[36px] min-w-[36px]"
-                      aria-label="Previous page"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1)
-                      .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
-                      .reduce<(number | 'ellipsis')[]>((acc, p, idx, arr) => {
-                        if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('ellipsis')
-                        acc.push(p)
-                        return acc
-                      }, [])
-                      .map((item, idx) =>
-                        item === 'ellipsis' ? (
-                          <span key={`e${idx}`} className="px-1 text-muted-foreground">…</span>
-                        ) : (
-                          <Button
-                            key={item}
-                            variant={currentPage === item ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setCurrentPage(item as number)}
-                            className="min-h-[36px] min-w-[36px]"
-                          >
-                            {item}
-                          </Button>
-                        ),
-                      )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                      className="min-h-[36px] min-w-[36px]"
-                      aria-label="Next page"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </SectionCard>
-
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogContent size="md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-primary" />
-                <span>Create user</span>
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={createUser}>
-            <div className="space-y-4">
               <div className="rounded-lg border border-border bg-muted/50 p-4">
-                <p className="text-sm font-medium text-foreground">Create the account with its operational role from the start.</p>
-                <p className="mt-1 text-sm text-foreground">
-                  The phone number captured here now feeds the same profile/contact flows used elsewhere in the system.
+                <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Operational directory</p>
+                <p className="mt-2 text-base font-semibold text-foreground">Deactivated users stay in history, not the live list</p>
+                <p className="mt-2 text-sm text-foreground">
+                  Account deactivation removes sign-in access immediately while preserving audit continuity and prior application ownership.
                 </p>
               </div>
-              <Input
-                label="Full name"
-                {...createFormHook.register('full_name')}
-                error={createFormHook.formState.errors.full_name?.message}
-                placeholder="Enter full name"
-                required
-              />
-              <Input
-                label="Email"
-                type="email"
-                {...createFormHook.register('email')}
-                error={createFormHook.formState.errors.email?.message}
-                placeholder="Enter email address"
-                required
-              />
-              <div className="relative">
-                <Input
-                  label="Temporary password"
-                  type={showPassword ? 'text' : 'password'}
-                  {...createFormHook.register('password')}
-                  error={createFormHook.formState.errors.password?.message}
-                  placeholder="Enter password"
-                  helperText="Share this securely with the user after creation."
-                  required
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-[2.75rem] min-h-touch min-w-touch flex items-center justify-center text-foreground hover:text-foreground"
-                  onClick={() => setShowPassword((current) => !current)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
-                </button>
-              </div>
-              <Input
-                label="Phone"
-                {...createFormHook.register('phone')}
-                placeholder="Enter phone number"
-              />
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">
-                  Role <span className="text-destructive">*</span>
-                </label>
-                <select
-                  {...createFormHook.register('role')}
-                  className="min-h-touch h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  required
-                >
-                  {AVAILABLE_ROLES.map((role) => (
-                    <option key={role.value} value={role.value}>
-                      {role.label} - {role.description}
-                    </option>
-                  ))}
-                </select>
-                {createFormHook.formState.errors.role?.message && (
-                  <p className="mt-1.5 text-sm text-destructive">{createFormHook.formState.errors.role.message}</p>
-                )}
+              <div className="rounded-lg border border-border bg-muted/50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-foreground">Account creation</p>
+                <p className="mt-2 text-base font-semibold text-foreground">Phone, role, and seeded profile basics are captured together</p>
+                <p className="mt-2 text-sm text-foreground">
+                  New users now leave this screen with the contact details and initial operational role the rest of the admin system expects.
+                </p>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" type="button" onClick={() => setShowCreateDialog(false)} disabled={createUserMutation.isPending}>
-                Cancel
-              </Button>
-              <Button type="submit" loading={createUserMutation.isPending}>
-                Create user
-              </Button>
-            </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+          </SectionCard>
 
-        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent size="md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
-                <span>Edit user</span>
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={updateUser}>
-            <div className="space-y-4">
-              {selectedUser && (
-                <div className="rounded-lg border border-border bg-muted/50 p-4">
-                  <p className="text-sm font-medium text-foreground">{sanitizeForDisplay(selectedUser.email)}</p>
-                  <p className="mt-1 text-sm text-foreground">
-                    Changing the assigned role revokes active sessions so the user signs in again with fresh access.
-                  </p>
-                </div>
-              )}
-              <Input
-                label="Full name"
-                {...editFormHook.register('full_name')}
-                error={editFormHook.formState.errors.full_name?.message}
-                placeholder="Enter full name"
-                required
-              />
-              <Input
-                label="Email"
-                type="email"
-                {...editFormHook.register('email')}
-                error={editFormHook.formState.errors.email?.message}
-                placeholder="Enter email address"
-                required
-              />
-              <Input
-                label="Phone"
-                {...editFormHook.register('phone')}
-                placeholder="Enter phone number"
-              />
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-foreground">
-                  Role <span className="text-destructive">*</span>
-                </label>
-                <select
-                  {...editFormHook.register('role')}
-                  className="min-h-touch h-12 w-full rounded-lg border border-input bg-background px-3 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  required
-                  disabled={isSuperAdmin(selectedUser)}
-                >
-                  {AVAILABLE_ROLES.map((role) => (
-                    <option key={role.value} value={role.value}>
-                      {role.label} - {role.description}
-                    </option>
-                  ))}
-                </select>
-                {editFormHook.formState.errors.role?.message && (
-                  <p className="mt-1.5 text-sm text-destructive">{editFormHook.formState.errors.role.message}</p>
-                )}
-                {isSuperAdmin(selectedUser) ? (
-                  <p className="mt-1.5 text-sm text-foreground">Super admin access is locked from this dialog.</p>
-                ) : (
-                  <p className="mt-1.5 text-sm text-foreground">Role changes end active sessions and require the user to sign in again.</p>
-                )}
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" type="button" onClick={() => setShowEditDialog(false)} disabled={updateUserMutation.isPending}>
-                Cancel
-              </Button>
-              <Button type="submit" loading={updateUserMutation.isPending}>
-                Update user
-              </Button>
-            </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+          {dialogs.showStats && (
+            <SectionCard
+              title="Directory statistics"
+              description="Use this summary when reviewing staffing mix before imports, bulk changes, or audit follow-up."
+              icon={<BarChart3 className="h-5 w-5" />}
+            >
+              <UserStats users={users} />
+            </SectionCard>
+          )}
 
-        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <DialogContent size="md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-destructive">
-                <UserX className="h-5 w-5" />
-                <span>Deactivate user</span>
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-1">
-              <p className="text-sm text-foreground">
-                Deactivate <strong>{sanitizeForDisplay(selectedUser?.full_name || selectedUser?.email)}</strong>?
-              </p>
+          {selectedCount > 0 && (
+            <SectionCard
+              title={`Bulk operations (${selectedCount} selected)`}
+              description="Bulk changes apply only to the currently selected active accounts."
+              icon={<CheckSquare className="h-5 w-5" />}
+            >
+              <BulkUserOperations
+                users={filteredUsers}
+                selectedUsers={selection.selectedUsers}
+                onSelectionChange={(ids) => dispatch({ type: 'SELECT_ALL', userIds: ids })}
+                onOperationComplete={() => refetch()}
+              />
+            </SectionCard>
+          )}
+
+          <SectionCard
+            title="Active user directory"
+            description={`${filteredCount} of ${totalCount} active accounts are currently shown.`}
+            icon={<User className="h-5 w-5" />}
+            actions={<Button variant="outline" size="sm" className="min-h-touch min-w-touch" onClick={() => refetch()}>Refresh users</Button>}
+          >
+            {state.error && (
               <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-                <p className="text-sm font-medium text-destructive">This removes live sign-in access immediately.</p>
-                <p className="mt-1 text-sm text-foreground">
-                  Existing sessions are revoked, but audit history and owned records remain intact for operational traceability.
-                </p>
+                <p className="text-sm font-medium text-destructive">User operations issue</p>
+                <p className="mt-1 text-sm text-foreground">{state.error}</p>
               </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={deleteUserMutation.isPending}>
-                Cancel
-              </Button>
-              <Button onClick={deactivateUser} loading={deleteUserMutation.isPending} variant="destructive">
-                Deactivate user
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            )}
 
-        {selectedUser && (
-          <UserPermissions
-            user={selectedUser}
-            isOpen={showPermissionsDialog}
-            onClose={() => setShowPermissionsDialog(false)}
-            onSave={savePermissions}
-            initialPermissions={permissionsQuery.data?.permissions ?? null}
-            permissionSource={permissionsQuery.data?.source ?? 'role'}
-            isLoading={permissionsQuery.isLoading || updatePermissionsMutation.isPending}
+            {loading ? (
+              <>
+                <div className="block space-y-4 lg:hidden">
+                  {Array.from({ length: 5 }).map((_, index) => (<CardSkeleton key={index} />))}
+                </div>
+                <div className="hidden lg:block"><TableSkeleton rows={8} columns={5} /></div>
+              </>
+            ) : filteredUsers.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border bg-muted/40 px-6 py-12 text-center">
+                <UsersIcon className="mx-auto h-12 w-12 text-foreground" />
+                <h3 className="mt-4 text-xl font-semibold text-foreground">
+                  {hasActiveFilters ? 'No matching users' : 'No active users found'}
+                </h3>
+                <p className="mx-auto mt-2 max-w-md text-sm text-foreground">
+                  {hasActiveFilters
+                    ? 'Adjust the search query or role filter to widen the directory.'
+                    : 'Users will appear here once accounts are created or imported into the system.'}
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  {hasActiveFilters && (
+                    <Button variant="outline" onClick={() => dispatch({ type: 'CLEAR_FILTERS' })}>Clear filters</Button>
+                  )}
+                  <Button onClick={() => refetch()}>Refresh users</Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="rounded-lg border border-border bg-muted/40 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-foreground">Showing the operational active-user directory.</p>
+                      <p className="text-sm text-foreground">
+                        Open a user to edit role, inspect activity history, or manage effective permissions without leaving this screen.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-xs text-foreground">
+                      <span className="rounded-full border border-border bg-card px-2.5 py-1">Filtered: {filteredCount}</span>
+                      <span className="rounded-full border border-border bg-card px-2.5 py-1">Selected: {selectedCount}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <UsersTableSection
+                  paginatedUsers={paginatedUsers}
+                  filteredUsers={filteredUsers}
+                  selectedUsers={selection.selectedUsers}
+                  sortField={filters.sortField}
+                  sortDirection={filters.sortDirection}
+                  currentPage={filters.currentPage}
+                  totalPages={totalPages}
+                  totalSorted={sortedUsers.length}
+                  pageSize={PAGE_SIZE}
+                  onToggleSort={(field) => dispatch({ type: 'TOGGLE_SORT', field })}
+                  onSelectAll={handleSelectAll}
+                  onSelectUser={handleUserSelect}
+                  onEdit={openEditDialog}
+                  onPermissions={(user) => dispatch({ type: 'OPEN_PERMISSIONS', user })}
+                  onActivity={(userId) => dispatch({ type: 'OPEN_ACTIVITY_LOG', userId })}
+                  onDeactivate={(user) => dispatch({ type: 'OPEN_DELETE', user })}
+                  onPageChange={(page) => dispatch({ type: 'SET_PAGE', page })}
+                />
+              </>
+            )}
+          </SectionCard>
+
+          <CreateUserDialog
+            open={dialogs.showCreateDialog}
+            onOpenChange={(open) => { if (!open) dispatch({ type: 'CLOSE_CREATE' }) }}
+            form={createFormHook as never}
+            onSubmit={createUser}
+            isPending={createUserMutation.isPending}
+            showPassword={dialogs.showPassword}
+            onTogglePassword={() => dispatch({ type: 'TOGGLE_PASSWORD' })}
           />
-        )}
 
-        <UserActivityLog
-          userId={activityLogUserId || undefined}
-          isOpen={showActivityLog}
-          onClose={() => {
-            setShowActivityLog(false)
-            setActivityLogUserId(null)
-          }}
-        />
+          <EditUserDialog
+            open={dialogs.showEditDialog}
+            onOpenChange={(open) => { if (!open) dispatch({ type: 'CLOSE_EDIT' }) }}
+            form={editFormHook as never}
+            onSubmit={updateUser}
+            isPending={updateUserMutation.isPending}
+            selectedUser={dialogs.selectedUser}
+          />
 
-        <UserExport
-          users={users}
-          isOpen={showExportDialog}
-          onClose={() => setShowExportDialog(false)}
-        />
+          <DeleteUserDialog
+            open={dialogs.showDeleteDialog}
+            onOpenChange={(open) => { if (!open) dispatch({ type: 'CLOSE_DELETE' }) }}
+            onConfirm={deactivateUser}
+            isPending={deleteUserMutation.isPending}
+            selectedUser={dialogs.selectedUser}
+          />
 
-        <UserImport
-          isOpen={showImportDialog}
-          onClose={() => setShowImportDialog(false)}
-          onImportComplete={() => {
-            setShowImportDialog(false)
-            refetch()
-          }}
-        />
-      </div>
-    </PageShell>
+          {dialogs.selectedUser && (
+            <UserPermissions
+              user={dialogs.selectedUser}
+              isOpen={dialogs.showPermissionsDialog}
+              onClose={() => dispatch({ type: 'CLOSE_PERMISSIONS' })}
+              onSave={savePermissions}
+              initialPermissions={permissionsQuery.data?.permissions ?? null}
+              permissionSource={permissionsQuery.data?.source ?? 'role'}
+              isLoading={permissionsQuery.isLoading || updatePermissionsMutation.isPending}
+            />
+          )}
+
+          <UserActivityLog
+            userId={dialogs.activityLogUserId || undefined}
+            isOpen={dialogs.showActivityLog}
+            onClose={() => dispatch({ type: 'CLOSE_ACTIVITY_LOG' })}
+          />
+
+          <UserExport
+            users={users}
+            isOpen={dialogs.showExportDialog}
+            onClose={() => dispatch({ type: 'CLOSE_EXPORT' })}
+          />
+
+          <UserImport
+            isOpen={dialogs.showImportDialog}
+            onClose={() => dispatch({ type: 'CLOSE_IMPORT' })}
+            onImportComplete={() => { dispatch({ type: 'CLOSE_IMPORT' }); refetch() }}
+          />
+        </div>
+      </PageShell>
     </>
   )
 }

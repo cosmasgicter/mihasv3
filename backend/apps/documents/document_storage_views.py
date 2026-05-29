@@ -10,9 +10,7 @@ import json
 import logging
 import uuid
 from decimal import Decimal
-from urllib.parse import unquote, urlparse
 
-from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view, inline_serializer
@@ -118,25 +116,15 @@ def _get_authorized_document(request, view, document_id):
 
 
 def _get_document_storage_key(document):
-    """Convert persisted file URLs/keys into a MediaStorage-relative file name."""
-    raw_file_url = (getattr(document, "file_url", None) or "").strip()
-    if not raw_file_url:
-        return ""
+    """Compatibility shim - delegates to ``apps.common.storage.get_document_storage_key``.
 
-    if raw_file_url.startswith(("http://", "https://")):
-        key = unquote(urlparse(raw_file_url).path.lstrip("/"))
-    else:
-        key = raw_file_url.lstrip("/")
+    Kept so legacy imports (e.g. ``from apps.documents.views import
+    _get_document_storage_key``) and existing test patches keep working
+    while we migrate callers to the shared helper.
+    """
+    from apps.common.storage import get_document_storage_key
 
-    bucket_name = getattr(settings, "AWS_STORAGE_BUCKET_NAME", "")
-    if bucket_name and key.startswith(f"{bucket_name}/"):
-        key = key[len(bucket_name) + 1:]
-
-    # MediaStorage uses location='media', so strip the prefix to avoid media/media/...
-    if key.startswith("media/"):
-        key = key[len("media/"):]
-
-    return key
+    return get_document_storage_key(document)
 
 
 DocumentResponseSerializer = envelope_serializer(
@@ -174,7 +162,7 @@ PaymentResponseSerializer = envelope_serializer(
     )
 )
 class DocumentUploadView(APIView):
-    """POST /api/v1/documents/upload/ — upload a document.
+    """POST /api/v1/documents/upload/ - upload a document.
 
     Validates magic bytes, stores in S3/R2, creates ApplicationDocument record.
     """
@@ -312,7 +300,7 @@ class DocumentUploadView(APIView):
     )
 )
 class DocumentExtractView(APIView):
-    """POST /api/v1/documents/{id}/extract/ — enqueue OCR Celery task."""
+    """POST /api/v1/documents/{id}/extract/ - enqueue OCR Celery task."""
 
     permission_classes = [IsAuthenticated]
     serializer_class = TaskQueuedSerializer
@@ -374,7 +362,7 @@ class DocumentExtractView(APIView):
 
 
 class DocumentSignedUrlView(APIView):
-    """GET /api/v1/documents/{id}/signed-url/ — generate a time-limited signed URL.
+    """GET /api/v1/documents/{id}/signed-url/ - generate a time-limited signed URL.
 
     Returns {"url": "https://..."} for the document's file in R2/S3.
     Requires authentication.
@@ -410,7 +398,7 @@ class DocumentSignedUrlView(APIView):
 
 
 class DocumentDownloadView(APIView):
-    """GET /api/v1/documents/{id}/download/ — redirect to signed download URL.
+    """GET /api/v1/documents/{id}/download/ - redirect to signed download URL.
 
     Generates a signed URL and returns HTTP 302 redirect.
     Requires authentication.
@@ -446,7 +434,7 @@ class DocumentDownloadView(APIView):
 
 
 class DocumentInfoView(APIView):
-    """GET /api/v1/documents/{id}/info/ — return document metadata.
+    """GET /api/v1/documents/{id}/info/ - return document metadata.
 
     Returns document_name, document_type, verification_status,
     uploaded_at, file_size, and mime_type.
@@ -488,7 +476,7 @@ class DocumentInfoView(APIView):
 
 
 class DocumentDeleteView(APIView):
-    """DELETE /api/v1/documents/{id}/delete/ — soft-delete a document record.
+    """DELETE /api/v1/documents/{id}/delete/ - soft-delete a document record.
 
     Sets verification_status to 'deleted' as a soft-delete marker.
     Requires authentication.

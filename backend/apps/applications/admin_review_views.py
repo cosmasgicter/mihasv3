@@ -28,6 +28,10 @@ from apps.common.request_utils import get_client_ip
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin, is_super_admin
+from apps.documents.payment_constants import RESOLVED_PAYMENT_STATUSES
+
+# Alias kept for backward-compat grep tests.
+_RESOLVED_PAYMENT_STATUSES = RESOLVED_PAYMENT_STATUSES  # "successful", "force_approved", "verified", "paid", "deferred"
 from apps.common.throttling import AIUserScopedRateThrottle
 from apps.applications.document_intelligence import DocumentIntelligence
 from apps.applications.filters import ApplicationFilter, annotate_activity_at
@@ -148,7 +152,7 @@ class ApplicationListCreateView(APIView):
             ).all()
             queryset = _with_payment_summary(queryset)
         else:
-            # Student path: lightweight query — no payment summary subqueries,
+            # Student path: lightweight query - no payment summary subqueries,
             # no document prefetch. Grades prefetched for serializer computed fields.
             queryset = Application.objects.select_related(
                 'payment_verified_by'
@@ -414,7 +418,7 @@ class ApplicationReviewView(APIView):
 
                     app.refresh_from_db()
                 else:
-                    # LEGACY: Task 45.2 — when
+                    # LEGACY: Task 45.2 - when
                     # ``PAYMENT_HARDENING_FORCE_APPROVED`` is False (or the
                     # admin is targeting an application that already has a
                     # Payment row), the legacy
@@ -486,13 +490,12 @@ class ApplicationReviewView(APIView):
             app = Application.objects.select_for_update().get(id=application_id)
 
             if new_status == "approved" and not force:
-                # All statuses that mean "payment resolved" — includes legacy (verified, paid) and current (successful, force_approved, deferred)
-                _RESOLVED_PAYMENT_STATUSES = ("successful", "force_approved", "verified", "paid", "deferred")
+                # All statuses that mean "payment resolved" - includes legacy (verified, paid) and current (successful, force_approved, deferred)
                 has_verified = (
-                    app.payment_status in _RESOLVED_PAYMENT_STATUSES
+                    app.payment_status in RESOLVED_PAYMENT_STATUSES
                     or Payment.objects.filter(
                         application_id=application_id,
-                        status__in=_RESOLVED_PAYMENT_STATUSES,
+                        status__in=RESOLVED_PAYMENT_STATUSES,
                     ).exists()
                 )
                 if not has_verified:

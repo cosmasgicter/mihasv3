@@ -5,6 +5,7 @@
 
 import { apiClient } from '@/services/client'
 import { getApiBaseUrl } from '@/lib/apiConfig'
+import { toError } from '@/lib/toError'
 
 /** Simple connectivity check — replaces networkDiagnostics dependency */
 async function testConnection(): Promise<{ status: 'online' | 'offline' }> {
@@ -55,7 +56,7 @@ export class ConnectionManager {
       this.retryAttempts.delete(retryKey)
       return response
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorMessage = toError(error).message
       
       // Check if this is a retryable error
       if (this.isRetryableError(error) && attemptCount < this.maxRetries) {

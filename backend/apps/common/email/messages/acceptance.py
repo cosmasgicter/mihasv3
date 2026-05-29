@@ -1,4 +1,4 @@
-"""Acceptance — unconditional offer of admission."""
+"""Acceptance - unconditional offer of admission."""
 
 from html import escape
 

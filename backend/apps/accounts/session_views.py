@@ -193,7 +193,7 @@ def _try_blacklist_refresh_for_session(request, session):
     Uses the stored refresh_jti on the DeviceSession if available,
     falling back to cookie-based matching for legacy sessions.
     """
-    # Prefer stored JTI — works for any session, not just the current one
+    # Prefer stored JTI - works for any session, not just the current one
     if getattr(session, "refresh_jti", None):
         try:
             blacklist_jti(session.refresh_jti)

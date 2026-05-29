@@ -108,7 +108,7 @@ def _generate_application_number(institution_name: str = '') -> str:
     Uses a per-(institution_code, year) Postgres sequence via the SQL helper
     function ``next_application_number(p_code, p_year)`` defined in
     ``backend/scripts/application_number_sequences.sql``. Sequences are
-    atomic — the previous count+attempt loop with random-hex fallback is
+    atomic - the previous count+attempt loop with random-hex fallback is
     eliminated.
 
     Falls back to the legacy count+attempt path only if the SQL function is
@@ -182,7 +182,7 @@ def _enqueue_document_task(application, task_type, task_func, request):
 
     application_id = str(application.id)
 
-    # Idempotency check — 1-hour TTL (server-generated key for task dedup)
+    # Idempotency check - 1-hour TTL (server-generated key for task dedup)
     idem_key = f"{task_type}:{application_id}"
     actor_id = request.user.id
     method = "POST"

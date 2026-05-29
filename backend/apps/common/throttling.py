@@ -3,7 +3,7 @@
 This module is the single source of truth for the DRF ``ScopedRateThrottle``
 subclass used by every payment endpoint:
 
-* ``PaymentUserScopedRateThrottle`` — keys a throttle bucket by
+* ``PaymentUserScopedRateThrottle`` - keys a throttle bucket by
   ``request.user.pk`` for authenticated requests and by
   ``self.get_ident(request)`` (client IP) for anonymous requests. This
   matches the design's R19.2 rule: authenticated endpoints budget per
@@ -13,7 +13,7 @@ subclass used by every payment endpoint:
 Gate behaviour:
 
 * When ``settings.PAYMENT_HARDENING_RATE_LIMITS`` is ``False`` the
-  throttle is a no-op — ``get_cache_key`` returns ``None`` so DRF skips
+  throttle is a no-op - ``get_cache_key`` returns ``None`` so DRF skips
   the bucket entirely. Views can therefore always list this throttle
   class in ``throttle_classes`` and the pre-hardening behaviour is
   preserved bit-exact until the flag is flipped (R22.6).
@@ -24,7 +24,7 @@ Bucket-key format:
 
 Under DRF the full cache key gains the ``throttle_`` prefix via
 ``SimpleRateThrottle.cache_format``. We therefore return only the
-``{scope}_user_{pk_or_ip}`` suffix from ``get_cache_key`` — DRF itself
+``{scope}_user_{pk_or_ip}`` suffix from ``get_cache_key`` - DRF itself
 prepends the ``throttle_`` literal. The effective Redis/LocMem key is:
 
     throttle_<scope>_user_<pk_or_ip>
@@ -56,7 +56,7 @@ class PaymentUserScopedRateThrottle(ScopedRateThrottle):
        ``user.pk`` for authenticated users and by
        ``self.get_ident(request)`` (client IP, respecting
        ``X-Forwarded-For`` via ``NUM_PROXIES`` conventions) for
-       anonymous users — instead of the base class's mixed
+       anonymous users - instead of the base class's mixed
        authenticated/anonymous keying.
     """
 
@@ -100,7 +100,7 @@ class AIUserScopedRateThrottle(ScopedRateThrottle):
     Gate: ``settings.AI_HARDENING_RATE_LIMITS``. When off,
     ``get_cache_key`` returns ``None`` so the throttle is a no-op.
 
-    Cache key format: ``throttle_<scope>_ai_user_<pk_or_ip>`` — the
+    Cache key format: ``throttle_<scope>_ai_user_<pk_or_ip>`` - the
     ``_ai_`` infix keeps AI buckets disjoint from payment buckets
     even if a scope name happened to collide.
     """

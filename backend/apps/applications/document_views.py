@@ -25,6 +25,7 @@ from apps.applications.models import Application
 from apps.applications.serializers import ApplicationSerializer
 from apps.common.openapi_helpers import ErrorResponseSerializer
 from apps.documents.models import ApplicationDocument, Payment
+from apps.documents.payment_constants import COMPLETED_PAYMENT_STATUSES
 from apps.documents.serializers import DocumentSerializer
 
 from ._view_helpers import (
@@ -248,7 +249,7 @@ class FinanceReceiptView(APIView):
             )
 
         has_verified_payment = Payment.objects.filter(
-            application_id=application.id, status__in=("successful", "force_approved", "verified", "paid")
+            application_id=application.id, status__in=COMPLETED_PAYMENT_STATUSES
         ).exists()
         if not has_verified_payment:
             return Response(

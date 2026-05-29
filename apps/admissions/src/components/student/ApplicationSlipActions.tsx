@@ -7,6 +7,7 @@ import { createApplicationSlip } from '@/lib/slipService'
 import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import { applicationService } from '@/services/applications'
 import { toast } from '@/hooks/useToast'
+import { toError } from '@/lib/toError'
 
 interface ApplicationSlipActionsProps {
   applicationId: string
@@ -102,7 +103,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
       if (!result.blob) throw new Error('The slip could not be generated for download')
       triggerBlobDownload(result.blob)
     } catch (error) {
-      toast.error('Download Failed', error instanceof Error ? error.message : 'Unable to download the slip')
+      toast.error('Download Failed', toError(error).message || 'Unable to download the slip')
     } finally {
       setIsDownloading(false)
     }
@@ -153,7 +154,7 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
       setSentTo(target)
       setTimeout(() => { setSentTo(null); setShowEmailInput(false) }, 5000)
     } catch (error) {
-      setEmailError(error instanceof Error ? error.message : 'Unable to email the slip')
+      setEmailError(toError(error).message || 'Unable to email the slip')
     } finally {
       setIsEmailing(false)
     }

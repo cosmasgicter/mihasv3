@@ -1,4 +1,4 @@
-"""Password reset — security email with a time-bounded reset link."""
+"""Password reset - security email with a time-bounded reset link."""
 
 from html import escape
 

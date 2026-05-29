@@ -117,7 +117,7 @@ class AmendmentService:
                 status="pending",
             )
 
-        # Notify admins (Req 14.6) — outside the transaction so a notification
+        # Notify admins (Req 14.6) - outside the transaction so a notification
         # failure does not roll back the persisted amendment.
         _notify_admins_of_amendment(application, amendment)
 

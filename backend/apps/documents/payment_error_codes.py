@@ -1,9 +1,9 @@
 """Stable payment error-code catalogue.
 
 Spec:     ``.kiro/specs/payment-hardening/``
-Task:     22.1 — stable error code catalogue (single source of truth for
+Task:     22.1 - stable error code catalogue (single source of truth for
           backend payment endpoints).
-Phase:    Phase 3 — webhook dedup strict + stable error codes.
+Phase:    Phase 3 - webhook dedup strict + stable error codes.
 
 Every payment endpoint returns error envelopes whose ``code`` value comes
 from :data:`PAYMENT_ERROR_CODES`. The frontend's
@@ -12,8 +12,8 @@ list (drift detected by ``test_payment_error_codes_snapshot.py``).
 
 Each entry carries:
 
-* ``http_status``  — the HTTP status the endpoint MUST emit.
-* ``message``      — the user-facing message the error envelope carries.
+* ``http_status``  - the HTTP status the endpoint MUST emit.
+* ``message``      - the user-facing message the error envelope carries.
                      Plain language, no provider names, no technical detail.
 
 **Stable code contract**:
@@ -45,7 +45,7 @@ class PaymentErrorCode:
 # Authoritative catalogue
 # ---------------------------------------------------------------------------
 #
-# The key of each entry equals the ``code`` string — keep them in sync.
+# The key of each entry equals the ``code`` string - keep them in sync.
 # ``test_payment_error_codes_snapshot.py`` snapshots the whole dict so any
 # accidental rename or message drift fails CI.
 

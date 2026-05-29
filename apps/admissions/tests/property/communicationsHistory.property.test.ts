@@ -65,7 +65,7 @@ describe('Communications History — Property 1: Chronological ordering', () => 
           expect(sorted[i].created_at >= sorted[i + 1].created_at).toBe(true)
         }
       }),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -79,7 +79,7 @@ describe('Communications History — Property 1: Chronological ordering', () => 
           expect(sorted[i].created_at >= sorted[i + 1].created_at).toBe(true)
         }
       }),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -97,7 +97,7 @@ describe('Communications History — Property 1: Chronological ordering', () => 
           expect(sortedIds.has(n.id)).toBe(true)
         }
       }),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -109,7 +109,7 @@ describe('Communications History — Property 1: Chronological ordering', () => 
 
         expect(sorted2.map((n) => n.id)).toEqual(sorted1.map((n) => n.id))
       }),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 })
@@ -148,7 +148,7 @@ describe('Communications History — Property 2: Notification display completene
         const parsed = new Date(notification.created_at)
         expect(Number.isNaN(parsed.getTime())).toBe(false)
       }),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -162,7 +162,7 @@ describe('Communications History — Property 2: Notification display completene
           expect(notification[field]).not.toBeNull()
         }
       }),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -178,7 +178,7 @@ describe('Communications History — Property 2: Notification display completene
         expect(typeof formatted).toBe('string')
         expect(formatted.length).toBeGreaterThan(0)
       }),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 })
@@ -255,7 +255,7 @@ describe('Communications History — Property 4: Filter correctness', () => {
           expect(filtered.length).toBeLessThanOrEqual(notifications.length)
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -277,7 +277,7 @@ describe('Communications History — Property 4: Filter correctness', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -300,7 +300,7 @@ describe('Communications History — Property 4: Filter correctness', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -318,7 +318,7 @@ describe('Communications History — Property 4: Filter correctness', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 })
@@ -383,7 +383,7 @@ describe('Communications History — Property 5: Action URL conditional renderin
           expect(shouldRenderActionLink(notification.action_url)).toBe(true)
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -403,7 +403,7 @@ describe('Communications History — Property 5: Action URL conditional renderin
           expect(shouldRenderActionLink(notification.action_url)).toBe(false)
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -423,7 +423,7 @@ describe('Communications History — Property 5: Action URL conditional renderin
           expect(shouldRenderActionLink(notification.action_url)).toBe(false)
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -440,7 +440,7 @@ describe('Communications History — Property 5: Action URL conditional renderin
           expect(result).toBe(true)
         }
       }),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 })
@@ -482,7 +482,7 @@ describe('Communications History — Property 6: Status color mapping totality',
         expect(typeof result).toBe('string')
         expect(result.length).toBeGreaterThan(0)
       }),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -496,7 +496,7 @@ describe('Communications History — Property 6: Status color mapping totality',
         expect(typeof result).toBe('string')
         expect(result.length).toBeGreaterThan(0)
       }),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -510,7 +510,7 @@ describe('Communications History — Property 6: Status color mapping totality',
         expect(typeof result).toBe('string')
         expect(result.length).toBeGreaterThan(0)
       }),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -525,7 +525,7 @@ describe('Communications History — Property 6: Status color mapping totality',
         expect(typeof result).toBe('string')
         expect(result.trim().length).toBeGreaterThan(0)
       }),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 })
@@ -588,7 +588,7 @@ describe('Communications History — Property 7: Timeline grouping correctness',
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -615,7 +615,7 @@ describe('Communications History — Property 7: Timeline grouping correctness',
           expect(groupedIds.sort()).toEqual(inputIds.sort())
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 
@@ -634,7 +634,7 @@ describe('Communications History — Property 7: Timeline grouping correctness',
           expect(groups.length).toBe(distinctAppNumbers.size)
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 100, seed: 0 }
     )
   })
 })

@@ -1,4 +1,4 @@
-"""Catalog Celery tasks — intake lifecycle management.
+"""Catalog Celery tasks - intake lifecycle management.
 
 Implements task 1.4.
 Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 3.4
@@ -21,14 +21,14 @@ _ALERT_THROTTLE_TTL = 900  # 15 minutes
 def _log_error_and_alert(error_msg: str) -> None:
     """Log error to GlitchTip and dispatch a throttled alert email.
 
-    ErrorLog model is deprecated — errors go to GlitchTip via sentry_sdk.
+    ErrorLog model is deprecated - errors go to GlitchTip via sentry_sdk.
     """
     import sentry_sdk
     from apps.common.outbox import queue_email
 
     sentry_sdk.capture_message(error_msg, level="error")
 
-    # Throttled alert — one per unique message per 15 minutes.
+    # Throttled alert - one per unique message per 15 minutes.
     msg_hash = hashlib.sha256(error_msg.encode("utf-8")).hexdigest()[:16]
     cache_key = f"error_alert:{msg_hash}"
 
@@ -50,7 +50,7 @@ def _log_error_and_alert(error_msg: str) -> None:
         )
 
 
-@shared_task(bind=True, max_retries=2, default_retry_delay=300)
+@shared_task(bind=True, max_retries=2, default_retry_delay=300, soft_time_limit=120, time_limit=150)
 def intake_manager_task(self):
     """Ensure at least 2 open intakes exist. Idempotent.
 
@@ -61,10 +61,15 @@ def intake_manager_task(self):
     On failure the task retries up to 2 times (5-minute delay), then logs
     to ErrorLog and dispatches a throttled alert email.
     """
-    from apps.catalog.intake_date_computer import ensure_minimum_open_intakes
-    from apps.catalog.models import Intake
-
+    if not cache.add("celery_lock:intake_manager_task", "1", timeout=300):
+        logger.info("intake_manager_task: skipped (already running)")
+        return
     try:
+        from apps.catalog.intake_date_computer import ensure_minimum_open_intakes
+        from apps.catalog.models import Intake
+
+        logger.info("intake_manager_task: starting")
+
         today = date.today()
         existing = list(Intake.objects.filter(is_active=True))
         to_create = ensure_minimum_open_intakes(today, existing)
@@ -117,3 +122,5 @@ def intake_manager_task(self):
             _log_error_and_alert(error_msg)
         except Exception:
             logger.exception("Failed to log error or dispatch alert")
+    finally:
+        cache.delete("celery_lock:intake_manager_task")

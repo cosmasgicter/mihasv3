@@ -82,17 +82,17 @@ const subjectGradeArb = fc.record({
   grade: eczGradeArb,
 })
 
-/** Date string in YYYY-MM-DD format */
-const dateStringArb = fc.date({
-  min: new Date('1950-01-01'),
-  max: new Date('2008-12-31'),
-}).map(d => d.toISOString().split('T')[0])
+/** Date string in YYYY-MM-DD format (use integer timestamps to avoid Invalid Date during shrinking) */
+const dateStringArb = fc.integer({
+  min: new Date('1950-01-01').getTime(),
+  max: new Date('2008-12-31').getTime(),
+}).map(ts => new Date(ts).toISOString().split('T')[0])
 
 /** ISO timestamp string */
-const isoTimestampArb = fc.date({
-  min: new Date('2024-01-01'),
-  max: new Date('2026-12-31'),
-}).map(d => d.toISOString())
+const isoTimestampArb = fc.integer({
+  min: new Date('2024-01-01').getTime(),
+  max: new Date('2026-12-31').getTime(),
+}).map(ts => new Date(ts).toISOString())
 
 /** Wizard form data matching the actual schema */
 const wizardFormDataArb: fc.Arbitrary<WizardFormData> = fc.record({

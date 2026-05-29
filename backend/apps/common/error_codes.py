@@ -1,4 +1,4 @@
-"""Canonical error-code catalogue — single source of truth for the entire platform.
+"""Canonical error-code catalogue - single source of truth for the entire platform.
 
 Every error code emitted by any backend endpoint MUST have an entry here.
 The frontend mirror at ``apps/admissions/src/lib/errorMessages.ts`` keeps
@@ -22,7 +22,7 @@ from apps.documents.payment_error_codes import PAYMENT_ERROR_CODES
 ERROR_CODES: dict[str, dict] = {}
 
 # Re-export payment codes (preserves payment_error_codes.py as the
-# payment-specific catalog — we just merge into the unified map).
+# payment-specific catalog - we just merge into the unified map).
 for code, entry in PAYMENT_ERROR_CODES.items():
     ERROR_CODES[code] = {
         "http_status": entry.http_status,

@@ -1,4 +1,4 @@
-"""Payment received — sent after a student's payment is verified."""
+"""Payment received - sent after a student's payment is verified."""
 
 from decimal import Decimal, InvalidOperation
 from html import escape
@@ -23,7 +23,7 @@ def _format_amount(raw_amount, currency: str) -> str:
     """Format a raw amount as a locale-correct money string.
 
     Mirrors the PDF currency formatter (src/lib/pdf/currency.ts). Uses
-    Decimal for deterministic rounding — banker's float rounding caused
+    Decimal for deterministic rounding - banker's float rounding caused
     occasional off-by-a-cent drift on receipts that function as legal
     records. Falls back to a placeholder on bad input so the email still
     renders.
@@ -33,7 +33,7 @@ def _format_amount(raw_amount, currency: str) -> str:
         value = Decimal(str(raw_amount))
     except (InvalidOperation, TypeError, ValueError):
         return f"{symbol}0.00 {currency}"
-    # Quantise to 2 decimal places with ROUND_HALF_UP — the financially
+    # Quantise to 2 decimal places with ROUND_HALF_UP - the financially
     # conventional rounding mode.
     from decimal import ROUND_HALF_UP
     quantised = value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)

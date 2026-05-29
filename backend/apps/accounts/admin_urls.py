@@ -21,7 +21,7 @@ from apps.accounts.batch_views import BatchUserImportView
 
 urlpatterns = [
     path("dashboard/", AdminDashboardView.as_view(), name="admin-dashboard"),
-    # GET lists users, POST creates user — same path per API spec
+    # GET lists users, POST creates user - same path per API spec
     path("users/", AdminUserListView.as_view(), name="admin-user-list"),
     path("users/export/", AdminUserExportView.as_view(), name="admin-user-export"),
     path("users/batch-import/", BatchUserImportView.as_view(), name="admin-user-batch-import"),

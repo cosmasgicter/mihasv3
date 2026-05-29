@@ -1,7 +1,10 @@
 """Application withdrawal service.
 
-Handles student-initiated withdrawal of submitted applications.
-Requirements: 1.1–1.8
+Handles student-initiated withdrawal from any of the five withdrawable
+statuses: submitted, under_review, waitlisted, conditionally_approved,
+approved.
+
+Requirements: 1.1-1.8
 """
 
 import hashlib

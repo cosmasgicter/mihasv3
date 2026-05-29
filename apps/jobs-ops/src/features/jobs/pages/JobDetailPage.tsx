@@ -8,16 +8,9 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { formatRelativeTime, labelize } from '@/lib/format'
+import { formatRelativeTime, labelize, recommendationTone } from '@/lib/format'
 import { listJobApplications } from '@/services/api/job-applications'
 import { getJobDetail } from '@/services/api/jobs'
-
-function recommendationTone(recommendation: string) {
-  if (recommendation === 'apply_now') return 'success' as const
-  if (recommendation === 'review') return 'warning' as const
-  if (recommendation === 'watch') return 'insight' as const
-  return 'danger' as const
-}
 
 export function JobDetailPage() {
   const { jobId = '' } = useParams()
@@ -61,7 +54,7 @@ export function JobDetailPage() {
       <PageHeader
         eyebrow="Job detail"
         title={job.title}
-        description={`${job.company} • ${job.location} • ${labelize(job.workMode)}. This screen is now structured as a real operator review surface rather than a documentation handoff stub.`}
+        description={`${job.company} • ${job.location} • ${labelize(job.workMode)}.`}
         actions={
           <>
             <StatusBadge tone="success">{job.matchScore}% match</StatusBadge>

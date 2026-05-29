@@ -8,6 +8,7 @@
 import { sanitizeForLog } from './security'
 import { apiClient } from '@/services/client'
 import { logger } from '@/lib/logger'
+import { toError } from '@/lib/toError'
 
 export interface UploadResult {
   success: boolean
@@ -99,8 +100,8 @@ async function uploadDocument(
       url: uploaded.file_url,
     }
   } catch (error) {
-    logger.error('Upload error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
-    const message = error instanceof Error ? error.message : 'Upload failed'
+    logger.error('Upload error:', { error: sanitizeForLog(toError(error).message) })
+    const message = toError(error).message || 'Upload failed'
     const lowerMessage = message.toLowerCase()
     return {
       success: false,
@@ -147,7 +148,7 @@ export async function uploadApplicationFile(
     return uploadDocument(file, applicationId, fileType)
   } catch (error) {
     logger.error('Upload error:', error)
-    const message = error instanceof Error ? error.message : 'Upload failed'
+    const message = toError(error).message || 'Upload failed'
     const lowerMessage = message.toLowerCase()
     const retryable =
       lowerMessage.includes('network') ||
@@ -229,10 +230,10 @@ export async function uploadFile(
       retryable: false,
     }
   } catch (error) {
-    logger.error('Upload error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
+    logger.error('Upload error:', { error: sanitizeForLog(toError(error).message) })
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Upload failed'
+      error: toError(error).message || 'Upload failed'
     }
   }
 }
@@ -249,10 +250,10 @@ export async function deleteFile(bucket: string, path: string): Promise<{ succes
     })
     return { success: true }
   } catch (error) {
-    logger.error('Delete error:', { error: sanitizeForLog(error instanceof Error ? error.message : 'Unknown error') })
+    logger.error('Delete error:', { error: sanitizeForLog(toError(error).message) })
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Delete failed'
+      error: toError(error).message || 'Delete failed'
     }
   }
 }
@@ -277,7 +278,7 @@ export async function getFileUrl(bucket: string, path: string): Promise<{ succes
     logger.error('Get URL error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to get URL'
+      error: toError(error).message || 'Failed to get URL'
     }
   }
 }
@@ -319,7 +320,7 @@ export async function downloadFile(bucket: string, path: string): Promise<{ succ
     logger.error('Download error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Download failed'
+      error: toError(error).message || 'Download failed'
     }
   }
 }
@@ -340,7 +341,7 @@ export async function listFiles(bucket: string, folder?: string): Promise<{ succ
     logger.error('List error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'List failed'
+      error: toError(error).message || 'List failed'
     }
   }
 }
@@ -370,7 +371,7 @@ export async function getFileInfo(bucket: string, path: string): Promise<{ succe
     logger.error('File info error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to get file info'
+      error: toError(error).message || 'Failed to get file info'
     }
   }
 }

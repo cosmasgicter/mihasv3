@@ -276,7 +276,7 @@ class ApplicationAdminSummaryView(APIView):
         docs = ApplicationDocument.objects.filter(application_id=app.id).values_list("document_type", flat=True)
         docs_summary = ", ".join(docs) if docs else "No documents uploaded"
 
-        # Super-admin-only cache bypass — audit-logged via the existing
+        # Super-admin-only cache bypass - audit-logged via the existing
         # middleware. Non-super-admins always read from cache when
         # available.
         force_refresh = False

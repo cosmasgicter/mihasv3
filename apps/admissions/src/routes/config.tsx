@@ -79,6 +79,10 @@ export const routes: RouteConfig[] = [
   { path: '/student/dashboard', element: StudentDashboard, guard: 'student', lazy: true, skeletonType: 'dashboard' },
   { path: '/apply', element: ApplicationWizard, guard: 'student', lazy: true, skeletonType: 'wizard' },
   { path: '/student/application-wizard', element: ApplicationWizard, guard: 'student', lazy: true, skeletonType: 'wizard' },
+  // Legacy aliases — keep old bookmarks and outbound links working.
+  { path: '/student/applications/new', element: <Navigate to="/student/application-wizard?new=true" replace />, guard: 'student' },
+  { path: '/student/applications', element: <Navigate to="/student/dashboard" replace />, guard: 'student' },
+  { path: '/student/application-status', element: <Navigate to="/student/status" replace />, guard: 'student' },
   { path: '/student/status', element: ApplicationStatus, guard: 'student', lazy: true, skeletonType: 'detail' },
   { path: '/application/:id', element: ApplicationStatus, guard: 'student', lazy: true, skeletonType: 'detail' },
   { path: '/student/application/:id/status', element: ApplicationStatus, guard: 'student', lazy: true, skeletonType: 'detail' },

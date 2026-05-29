@@ -204,5 +204,5 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
 
 # Backward-compat alias for the old function name.
 def get_base_email_html(content_html: str, title: str = "") -> str:
-    """Deprecated — use ``render_shell`` instead. Kept for one release."""
+    """Deprecated - use ``render_shell`` instead. Kept for one release."""
     return render_shell(content_html, title=title)

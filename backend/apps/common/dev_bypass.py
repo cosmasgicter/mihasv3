@@ -6,9 +6,9 @@ This module is the single source of truth for production lockout of any
 Dev-Bypass Lockout, Req 16) pins this file as the sole location for:
 
 1. The **sets** of recognised dev-bypass parameter names and header names.
-2. A **detector** — :func:`is_dev_bypass_attempted` — which scans a Django
+2. A **detector** - :func:`is_dev_bypass_attempted` - which scans a Django
    ``HttpRequest`` / DRF ``Request`` for any known vector.
-3. A **decorator** — :func:`require_not_dev_bypass_in_production` — which
+3. A **decorator** - :func:`require_not_dev_bypass_in_production` - which
    short-circuits decorated view methods with HTTP 404 under production
    settings (``DEBUG is False`` OR ``DJANGO_ENV == 'production'``) whenever
    a dev-bypass vector is present, and otherwise emits a
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Recognised vectors — the exact names the decorator looks for
+# Recognised vectors - the exact names the decorator looks for
 # ---------------------------------------------------------------------------
 
 #: Parameter names that may appear in the query string or request body.
@@ -82,7 +82,7 @@ def _iter_candidate_mappings(request: Any) -> Iterable[tuple[str, Any]]:
 
     Accessing ``request.data`` can force DRF to parse the body, which may
     raise on malformed payloads. We swallow parsing errors so the detector
-    is always safe to call — missing data never masks a bypass attempt but
+    is always safe to call - missing data never masks a bypass attempt but
     must also never crash the request path.
     """
     get = getattr(request, "GET", None)
@@ -99,7 +99,7 @@ def _iter_candidate_mappings(request: Any) -> Iterable[tuple[str, Any]]:
         pass
     try:
         data = getattr(request, "data", None)
-    except Exception:  # pragma: no cover — DRF raises on unparseable body
+    except Exception:  # pragma: no cover - DRF raises on unparseable body
         data = None
     if data is not None:
         yield "body", data
@@ -133,7 +133,7 @@ def is_dev_bypass_attempted(request: Any) -> bool:
     for _kind, mapping in _iter_candidate_mappings(request):
         try:
             keys = mapping.keys() if hasattr(mapping, "keys") else []
-        except Exception:  # pragma: no cover — mapping-like but unreadable
+        except Exception:  # pragma: no cover - mapping-like but unreadable
             continue
         for key in keys:
             if not isinstance(key, str):
@@ -163,7 +163,7 @@ def _is_production() -> bool:
     ``False`` **or** ``DJANGO_ENV`` is ``'production'``. This mirrors the
     spec's disjunction (R16.1) so that staging/QA deployments that keep
     ``DEBUG=False`` but use a non-production ``DJANGO_ENV`` still lock out
-    dev-bypass vectors — the safest default for a production-facing
+    dev-bypass vectors - the safest default for a production-facing
     surface.
     """
     debug = bool(getattr(settings, "DEBUG", False))
@@ -200,12 +200,12 @@ def _emit_audit(request: Any) -> None:
 
     The audit row carries the actor identity, the actor role (when
     available), and the request path/method. The **value** of the
-    dev-bypass vector is never included in the metadata — we log only
+    dev-bypass vector is never included in the metadata - we log only
     that a vector was used, never the opaque payload that was supplied.
     """
     try:
         from apps.documents.payment_audit_service import PaymentAuditService
-    except Exception:  # pragma: no cover — defensive
+    except Exception:  # pragma: no cover - defensive
         logger.warning(
             "dev_bypass audit: PaymentAuditService unavailable", exc_info=True
         )
@@ -236,7 +236,7 @@ def _emit_audit(request: Any) -> None:
             request=request,
         )
     except Exception:
-        # Never propagate audit-writer failures — the request continues.
+        # Never propagate audit-writer failures - the request continues.
         logger.warning(
             "dev_bypass audit: failed to record payment.dev_bypass_used",
             exc_info=True,
@@ -246,19 +246,19 @@ def _emit_audit(request: Any) -> None:
 def require_not_dev_bypass_in_production(
     view_method: Callable[..., Any],
 ) -> Callable[..., Any]:
-    """Decorator — lock out dev-bypass vectors on production payment views.
+    """Decorator - lock out dev-bypass vectors on production payment views.
 
     Behaviour:
 
     * **Production** (``DEBUG is False`` OR ``DJANGO_ENV == 'production'``):
       if any known dev-bypass vector (query param, body field, or header)
       is present, short-circuit with a bare ``HttpResponse(status=404)``
-      — no body, no envelope — indistinguishable from a missing route.
+      - no body, no envelope - indistinguishable from a missing route.
     * **Non-production**: when a vector is present, emit
       ``PaymentAuditService.record_payment_event(
       action='payment.dev_bypass_used', ...)`` with the actor identity
       and ``{'path', 'method'}`` metadata, then call the view as usual.
-      Dev-bypass in non-production does **not** alter routing — it is
+      Dev-bypass in non-production does **not** alter routing - it is
       only observable in the audit trail.
 
     Works for both ``def view(request, ...)`` and
@@ -269,15 +269,15 @@ def require_not_dev_bypass_in_production(
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         request, _is_method = _extract_request(args)
         if request is None:
-            # Nothing to inspect — fall through to the view so behaviour
+            # Nothing to inspect - fall through to the view so behaviour
             # is unchanged for edge cases we don't recognise.
             return view_method(*args, **kwargs)
 
         if is_dev_bypass_attempted(request):
             if _is_production():
-                # Production lockout — bare 404, no body, no envelope.
+                # Production lockout - bare 404, no body, no envelope.
                 return HttpResponse(status=404)
-            # Non-production — audit and continue.
+            # Non-production - audit and continue.
             _emit_audit(request)
 
         return view_method(*args, **kwargs)

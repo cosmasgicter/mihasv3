@@ -5,6 +5,7 @@ import { adminDashboardService } from '@/services/admin/dashboard'
 import { sanitizeForLog, sanitizeFilePath } from '@/lib/security'
 import type { Application } from '@/types/database'
 import { logger } from '@/lib/logger'
+import { toError } from '@/lib/toError'
 
 /** Strip null values from an object so it's compatible with Partial<Application> */
 function stripNulls<T extends object>(obj: T): Partial<Application> {
@@ -106,7 +107,7 @@ export const applicationsData = {
           if (signal?.aborted) {
             return { applications: [], totalCount: 0, page: 1, pageSize: 15 }
           }
-          const message = error instanceof Error ? error.message : String(error)
+          const message = toError(error).message
           logger.error('Applications fetch error:', sanitizeForLog(message))
           throw error
         }
@@ -156,7 +157,7 @@ export const applicationsData = {
             activeUsers: stats?.activeUsers ?? 0
           }
         } catch (error: unknown) {
-          const message = error instanceof Error ? error.message : String(error)
+          const message = toError(error).message
           logger.error('Stats fetch error:', sanitizeForLog(message))
           throw error
         }
@@ -194,7 +195,7 @@ export const applicationsData = {
             user: app.full_name
           }))
         } catch (error: unknown) {
-          const message = error instanceof Error ? error.message : String(error)
+          const message = toError(error).message
           logger.error('Recent activity fetch error:', sanitizeForLog(message))
           throw error
         }

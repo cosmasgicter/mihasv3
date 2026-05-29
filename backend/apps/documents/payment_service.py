@@ -1,33 +1,21 @@
 """Payment lifecycle service for Lenco integration.
 
-Stream 9 Phase 2 of the canonical-truth program: extracted constants,
-result dataclasses, and module-level helpers into separate modules
-(``payment_constants.py``, ``payment_types.py``, ``payment_helpers.py``).
-The ``PaymentService`` class itself is intentionally NOT split — the
-forward-only state machine, integrity gates, and Lenco interactions are
-deeply interdependent and decomposing them is its own dedicated spec.
-This module remains the public import path; every previously-defined
-symbol is re-exported below.
-
-Central service for creating payment records, verifying payment status with
-the Lenco API, and processing webhook events.  All payment-status mutations
-flow through this module so that forward-only transition rules and amount-
-mismatch detection are enforced in a single place.
-
-Requirements: 2.1, 2.2, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 4.3, 4.4, 4.9,
-              9.1, 9.2, 9.5, 9.6, 10.3, 10.4, 10.5, 10.7
+All payment-status mutations flow through this module (ADR-007).
+Constants, dataclasses, and pure helpers live in ``payment_constants.py``,
+``payment_types.py``, and ``payment_helpers.py``. This module re-exports
+every previously-public symbol for backward compatibility.
 """
 
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from datetime import timedelta
-from decimal import Decimal, InvalidOperation
-from typing import Literal, Optional
+from decimal import Decimal
+from typing import Optional
 from uuid import UUID
 
-import requests as http_requests
+import time  # noqa: F401 - tests patch this name (payment_reference tests)
+import requests as http_requests  # noqa: F401 - tests patch this name
 from django.conf import settings
 from django.db import IntegrityError
 from django.utils import timezone
@@ -35,10 +23,11 @@ from django.utils import timezone
 from apps.documents.fee_resolver import FeeResolver
 from apps.documents.models import Payment
 
-# Stream 9 Phase 2 — extracted modules. Re-exported below for back-compat.
+# Re-exported constants (backward-compatible public API).
 from apps.documents.payment_constants import (  # noqa: F401
     ALLOWED_TRANSITIONS,
     CanonicalStatus,
+    COMPLETED_PAYMENT_STATUSES,
     EXPIRED_EXCLUSION_DAYS,
     MAX_PAYMENT_ATTEMPTS,
     PAYMENT_TO_APP_MAP,
@@ -48,261 +37,54 @@ from apps.documents.payment_constants import (  # noqa: F401
     PROVIDER_STATUS_SENT,
     PROVIDER_STATUS_UNKNOWN,
     ProviderInitiationStatus,
+    RECEIPT_ELIGIBLE_STATUSES,
+    RESOLVED_PAYMENT_STATUSES,
     TransitionSource,
     _ALLOWED_TRANSITIONS,
     _LENCO_STATUS_MAP,
     _LENCO_TIMEOUT,
     _SECURITY_RETENTION_ACTION_PREFIXES,
 )
+
+# Re-exported result dataclasses.
 from apps.documents.payment_types import (  # noqa: F401
     PaymentInitiationResult,
     PaymentSnapshot,
     PaymentVerificationResult,
     TransitionResult,
 )
+
+# Re-exported helpers.
 from apps.documents.payment_helpers import (  # noqa: F401
+    _ADMIN_REVIEW_STATUS_MAP,
     _AIRTEL_PREFIXES,
+    _LEGACY_PAYMENT_TO_APP_STATUS,
     _MTN_PREFIXES,
+    _PII_KEYS_IN_LENCO_RESPONSE,
+    _build_snapshot_dict,
+    _call_lenco_collection_status,
+    _call_lenco_mobile_money,
+    _check_retry_limit,
+    _classify_mobile_money_response,
+    _forward_only_enabled,
     _generate_receipt_number,
-    _generate_reference,
+    _generate_reference as _generate_reference_base,  # base impl; shadowed below
     _normalize_phone_e164,
     _operator_for_msisdn,
     _parse_amount,
+    _process_webhook_event_impl,
+    _resolve_fee_for_application,
+    _review_application_payment_impl,
+    _sanitize_lenco_response,
 )
 
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# PII sanitizer for Lenco API responses persisted in payment metadata
-# ---------------------------------------------------------------------------
-_PII_KEYS_IN_LENCO_RESPONSE = frozenset(k.lower() for k in {
-    "phone", "phoneNumber", "phone_number", "msisdn",
-    "email", "emailAddress",
-    "firstName", "lastName", "fullName", "name",
-    "address", "city", "country",
-    "nrc", "passport", "identityNumber", "idNumber",
-    "dateOfBirth", "dob",
-})
-
-
-def _sanitize_lenco_response(data):
-    """Recursively strip PII fields from Lenco API response before persisting."""
-    if isinstance(data, dict):
-        return {
-            k: "[REDACTED]" if k.lower() in _PII_KEYS_IN_LENCO_RESPONSE else _sanitize_lenco_response(v)
-            for k, v in data.items()
-        }
-    if isinstance(data, list):
-        return [_sanitize_lenco_response(item) for item in data]
-    return data
-
-
-# ---------------------------------------------------------------------------
-# Feature flag default — flipped by Task 15.1 (payment-hardening)
-# ---------------------------------------------------------------------------
-def _forward_only_enabled() -> bool:
-    """Return True when the forward-only transition matrix should be enforced."""
-    return bool(getattr(settings, "PAYMENT_HARDENING_FORWARD_ONLY", False))
-
-
-# ---------------------------------------------------------------------------
-# Canonical type aliases / dataclasses / constants are imported above from
-# the dedicated modules. The legacy in-file definitions that follow are
-# preserved verbatim so the diff against the previous file is minimal and
-# the PaymentService class has identical resolution. They shadow the
-# imports but are equivalent.
-# ---------------------------------------------------------------------------
-
-CanonicalStatus = Literal[
-    "pending",
-    "deferred",
-    "successful",
-    "failed",
-    "expired",
-    "force_approved",
-]
-
-ProviderInitiationStatus = Literal[
-    "not_started",
-    "sent",
-    "accepted",
-    "rejected",
-    "unknown",
-]
-
-TransitionSource = Literal[
-    "initiate",
-    "verify",
-    "webhook",
-    "admin_override",
-    "reconciliation",
-    "super_admin_correction",
-]
-
-
-# ---------------------------------------------------------------------------
-# Result dataclasses
-# ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class PaymentInitiationResult:
-    """Returned by ``initiate_payment``."""
-
-    payment_id: UUID | None
-    reference: str
-    amount: Decimal
-    currency: str
-
-
-@dataclass(frozen=True)
-class PaymentVerificationResult:
-    """Returned by ``verify_payment``."""
-
-    status: str
-    amount: Decimal | None
-    currency: str | None
-    lenco_reference: str | None
-    payment_method: str | None
-    error: str | None
-
-
-@dataclass(frozen=True)
-class PaymentSnapshot:
-    """Immutable snapshot of fee/resolution state captured at initiation.
-
-    Persisted to ``Payment.metadata["snapshot"]`` and used by the integrity
-    gate in ``_transition()`` for successful-payment verification.
-
-    Requirements: R6.2, R6.3.
-    """
-
-    expected_amount: Decimal
-    currency: str
-    residency_category: str
-    program_code: str
-    intake_id: Optional[str]
-    waiver_applied: bool
-    original_amount: Decimal
-    fee_source: str
-
-
-@dataclass(frozen=True)
-class TransitionResult:
-    """Result of ``PaymentService._transition()``.
-
-    ``risk_flag`` is set to a short string (e.g. ``"amount_mismatch"``,
-    ``"currency_mismatch"``, ``"missing_provider_reference"``,
-    ``"invalid_amount"``) when an integrity-gate check blocked the
-    transition; it is ``None`` otherwise. When blocked, ``status`` reflects
-    the unchanged current payment status.
-    """
-
-    payment_id: UUID
-    status: CanonicalStatus
-    risk_flag: Optional[str]
-
-
-# ---------------------------------------------------------------------------
-# Forward-only state machine (payment-hardening Task 11.2)
-# ---------------------------------------------------------------------------
-#
-# Mirrors the "State Machine (Formal)" table in
-# ``.kiro/specs/payment-hardening/design.md``. Keys are
-# ``(from_status, target_status)`` and values are the set of sources allowed
-# to perform that transition. ``from_status=""`` represents creation (no
-# prior row).
-#
-# ``super_admin_correction`` is permitted for any ``from`` → any ``to`` pair
-# when the caller supplies a reason ≥ 10 chars (enforced at the service
-# layer, not here). Listing every pair here would be noisy, so the
-# ``_transition`` code allows ``source == "super_admin_correction"`` when
-# the tuple is not in ``ALLOWED_TRANSITIONS`` (terminal → anything).
-ALLOWED_TRANSITIONS: dict[tuple[str, str], set[str]] = {
-    # (none) → pending / deferred / force_approved
-    ("", "pending"): {"initiate"},
-    ("", "deferred"): {"initiate"},
-    ("", "force_approved"): {"admin_override", "super_admin_correction"},
-
-    # pending → *
-    ("pending", "successful"): {"verify", "webhook", "reconciliation", "super_admin_correction"},
-    ("pending", "failed"): {"verify", "webhook", "super_admin_correction"},
-    ("pending", "expired"): {"reconciliation", "super_admin_correction"},
-
-    # deferred → *
-    ("deferred", "pending"): {"initiate", "super_admin_correction"},
-    ("deferred", "successful"): {"verify", "webhook", "reconciliation", "super_admin_correction"},
-    ("deferred", "failed"): {"verify", "webhook", "super_admin_correction"},
-    ("deferred", "expired"): {"reconciliation", "super_admin_correction"},
-
-    # Provider truth can arrive out of order: a provisional failure webhook
-    # may be followed by a later integrity-clean success from the gateway.
-    # Let the authenticated success event converge the ledger to paid.
-    ("failed", "successful"): {"webhook", "super_admin_correction"},
-
-    # Admin override onto a live row — supports ``force_approve`` when a
-    # pending/deferred Payment already exists. The design's visual state
-    # table focuses on non-admin paths; this row encodes the documented
-    # admin-override behaviour in the formal matrix so ``_transition``
-    # accepts it without falling through to the ``super_admin_correction``
-    # escape hatch.
-    ("pending", "force_approved"): {"admin_override", "super_admin_correction"},
-    ("deferred", "force_approved"): {"admin_override", "super_admin_correction"},
-}
-
-
-# ADR-1: ``applications.payment_status`` is a derived summary of the
-# canonical Payment state. The mapping below is the single source of truth
-# for the derived value and MUST be kept in sync with the ADR.
-PAYMENT_TO_APP_MAP: dict[str, str] = {
-    "successful": "verified",
-    "force_approved": "verified",
-    "failed": "failed",
-    "expired": "not_paid",
-    "deferred": "deferred",
-    "pending": "pending_review",
-}
-
-
-# Audit action prefixes that should be retained for the longer security
-# retention window (365 days). Everything else defaults to "standard".
-_SECURITY_RETENTION_ACTION_PREFIXES: tuple[str, ...] = (
-    "payment.force_approved",
-    "payment.super_admin_corrected",
-    "payment.dev_bypass_used",
-    "payment.rate_limited",
-)
-
-# Maximum payment attempts per application (Req 8.4)
-MAX_PAYMENT_ATTEMPTS = 5
-
-# Expired payments older than this are excluded from attempt count (Req 8.5)
-EXPIRED_EXCLUSION_DAYS = 7
-
-# Lenco API status → internal status mapping
-_LENCO_STATUS_MAP: dict[str, str] = {
-    'successful': 'successful',
-    'paid': 'successful',
-    'failed': 'failed',
-    'pending': 'pending',
-    'pay-offline': 'pending',
-    'otp-required': 'pending',
-}
-
-# Lenco API timeout in seconds
-_LENCO_TIMEOUT = 15
-
-PROVIDER_STATUS_NOT_STARTED = "not_started"
-PROVIDER_STATUS_SENT = "sent"
-PROVIDER_STATUS_ACCEPTED = "accepted"
-PROVIDER_STATUS_REJECTED = "rejected"
-PROVIDER_STATUS_UNKNOWN = "unknown"
-
-
-# ---------------------------------------------------------------------------
-# Service
-# ---------------------------------------------------------------------------
+def _generate_reference(application_number: str) -> str:  # noqa: F811
+    """Build a unique payment reference - uses module-level ``time`` for testability."""
+    ts_ms = int(time.time() * 1000)
+    return f"MIHAS-{application_number}-{ts_ms}"
 
 
 class PaymentService:
@@ -311,26 +93,16 @@ class PaymentService:
     def __init__(self) -> None:
         self._fee_resolver = FeeResolver()
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
     def initiate_payment(
         self, application_id: UUID, user_id: UUID
     ) -> PaymentInitiationResult:
         """Create a *pending* Payment record with the resolved fee.
 
-        If a pending payment already exists for the same application, the
-        existing record is returned instead of creating a duplicate.  This
-        prevents double-payment initiation from rapid clicks or retries.
-
-        Enforces a maximum of MAX_PAYMENT_ATTEMPTS per application (Req 8.4).
-        Raises ``Application.DoesNotExist`` when the application is not found.
-        Raises ``ValueError`` with code MAX_PAYMENT_ATTEMPTS_EXCEEDED when limit reached.
+        Returns existing pending payment if one exists. Enforces
+        MAX_PAYMENT_ATTEMPTS per application.
         """
         from django.db import transaction
 
-        from apps.applications.identifier_resolver import IdentifierResolver
         from apps.applications.models import Application
 
         # Double-payment prevention: atomic + select_for_update to close TOCTOU race.
@@ -354,26 +126,11 @@ class PaymentService:
                 )
 
             # Retry limit enforcement (Req 8.4, 8.5)
-            expired_cutoff = timezone.now() - timedelta(days=EXPIRED_EXCLUSION_DAYS)
-            attempt_count = Payment.objects.filter(
-                application_id=application_id,
-            ).exclude(
-                status='expired', created_at__lt=expired_cutoff,
-            ).count()
-
-            if attempt_count >= MAX_PAYMENT_ATTEMPTS:
-                remaining = 0
-                logger.warning(
-                    "Payment attempt limit reached for application %s (%d attempts)",
-                    application_id, attempt_count,
-                )
-                raise ValueError(
-                    f"MAX_PAYMENT_ATTEMPTS_EXCEEDED|{remaining}"
-                )
+            _check_retry_limit(application_id, MAX_PAYMENT_ATTEMPTS, EXPIRED_EXCLUSION_DAYS)
 
             application = Application.objects.get(id=application_id)
 
-            if application.payment_status in ('successful', 'verified', 'force_approved'):
+            if application.payment_status in COMPLETED_PAYMENT_STATUSES:
                 return PaymentInitiationResult(
                     payment_id=None,
                     reference='',
@@ -381,36 +138,9 @@ class PaymentService:
                     currency='',
                 )
 
-            resolved_program = IdentifierResolver.resolve_program(application.program)
-            if resolved_program.source == "not_found":
-                logger.error(
-                    "Payment initiation failed: program '%s' not found for application %s",
-                    application.program, application_id,
-                )
-                raise ValueError(
-                    f"Cannot resolve program '{application.program}'. "
-                    f"Please verify the program exists and is active."
-                )
-
-            resolved = self._fee_resolver.resolve_fee(
-                program_code=resolved_program.code,
-                nationality=application.nationality,
-                country=getattr(application, 'country', None),
+            resolved_program, resolved, effective_amount = _resolve_fee_for_application(
+                self._fee_resolver, application, application_id,
             )
-
-            # Apply partial fee waiver if active (Req 12.4, 12.5)
-            effective_amount = resolved.amount
-            try:
-                from apps.documents.fee_waiver_service import FeeWaiverService
-                effective_amount = FeeWaiverService.get_effective_fee(
-                    str(application_id), resolved.amount,
-                )
-            except Exception:
-                logger.warning(
-                    "Fee waiver check failed for application %s, using full fee",
-                    application_id,
-                    exc_info=True,
-                )
 
             reference = _generate_reference(application.application_number)
 
@@ -457,165 +187,24 @@ class PaymentService:
     ) -> "Application":
         """Apply an admin payment review against the canonical payment record.
 
-        Admin review may override the latest payment record, but it must not
-        update only ``Application.payment_status`` when a payment record exists.
-        This keeps application summary state aligned with the payment ledger.
-
-        If no payment record exists and the admin is force-approving (verified),
-        a synthetic payment record is created to maintain ledger consistency.
+        Creates a synthetic payment record if none exists and admin is
+        force-approving. Keeps application summary state aligned with the
+        payment ledger.
         """
-        from django.db import transaction
-
-        from apps.accounts.models import Profile
-        from apps.applications.models import Application
-
-        payment_status_map = {
-            'pending_review': 'pending',
-            'verified': 'successful',
-            'rejected': 'failed',
-            'deferred': 'deferred',
-        }
-        target_payment_status = payment_status_map.get(payment_status)
-
-        with transaction.atomic():
-            application = Application.objects.select_for_update().get(id=application_id)
-            latest_payment = (
-                Payment.objects.select_for_update()
-                .filter(application_id=application_id)
-                .order_by('-created_at')
-                .first()
-            )
-            synthetic_payment_created = False
-
-            # If no payment record exists and admin is verifying, create a
-            # synthetic admin-override record instead of rejecting.
-            if target_payment_status and latest_payment is None:
-                if payment_status in ('verified', 'deferred'):
-                    latest_payment = Payment.objects.create(
-                        application_id=application_id,
-                        user_id=application.user_id,
-                        status=target_payment_status,
-                        amount=0,
-                        currency='ZMW',
-                        payment_method='admin_override',
-                        notes=notes or f'Admin set payment to {payment_status} (no prior record)',
-                        verified_by_id=reviewed_by_id if payment_status == 'verified' else None,
-                        verified_at=timezone.now() if payment_status == 'verified' else None,
-                        metadata={
-                            'admin_review': {
-                                'status': payment_status,
-                                'reviewed_by': reviewed_by_id,
-                                'reviewed_at': timezone.now().isoformat(),
-                                'notes': notes,
-                                'synthetic': True,
-                            }
-                        },
-                    )
-                    logger.warning(
-                        "Admin force-approved payment without record: app=%s admin=%s",
-                        application_id, reviewed_by_id,
-                    )
-                    synthetic_payment_created = True
-                else:
-                    raise ValueError("PAYMENT_RECORD_REQUIRED")
-
-            now = timezone.now()
-
-            if latest_payment is not None and target_payment_status:
-                # Hardened mode treats every terminal ledger state as immutable
-                # through the ordinary admin-review path. Corrections must go
-                # through the explicit super-admin flow so the audit trail says
-                # what happened.
-                if (
-                    _forward_only_enabled()
-                    and latest_payment.status in ('successful', 'failed', 'expired', 'force_approved')
-                    and target_payment_status != latest_payment.status
-                ):
-                    raise ValueError("TERMINAL_PAYMENT_IMMUTABLE")
-                if (
-                    _forward_only_enabled()
-                    and latest_payment.status in ('successful', 'failed', 'expired', 'force_approved')
-                    and target_payment_status == latest_payment.status
-                    and not synthetic_payment_created
-                ):
-                    return application
-                # Legacy guard retained when hardened mode is disabled.
-                if (
-                    not _forward_only_enabled()
-                    and latest_payment.status in ('successful', 'force_approved')
-                    and target_payment_status != latest_payment.status
-                ):
-                    raise ValueError("CANNOT_REVERSE_SUCCESSFUL_PAYMENT")
-
-                metadata = latest_payment.metadata or {}
-                metadata['admin_review'] = {
-                    **(
-                        metadata.get('admin_review', {})
-                        if isinstance(metadata.get('admin_review'), dict)
-                        else {}
-                    ),
-                    'status': payment_status,
-                    'reviewed_by': reviewed_by_id,
-                    'reviewed_at': now.isoformat(),
-                    'notes': notes,
-                }
-                latest_payment.status = target_payment_status
-                latest_payment.metadata = metadata
-                latest_payment.notes = notes or latest_payment.notes
-                latest_payment.verified_by_id = (
-                    reviewed_by_id
-                    if payment_status == 'verified'
-                    and Profile.objects.filter(id=reviewed_by_id).exists()
-                    else latest_payment.verified_by_id
-                )
-                latest_payment.verified_at = now if payment_status == 'verified' else latest_payment.verified_at
-                latest_payment.updated_at = now
-                latest_payment.save(update_fields=[
-                    'status',
-                    'metadata',
-                    'notes',
-                    'verified_by',
-                    'verified_at',
-                    'updated_at',
-                ])
-
-            application.payment_status = payment_status
-            if notes:
-                application.admin_feedback = notes
-                application.admin_feedback_date = now
-                application.admin_feedback_by_id = (
-                    reviewed_by_id
-                    if Profile.objects.filter(id=reviewed_by_id).exists()
-                    else application.admin_feedback_by_id
-                )
-            application.updated_at = now
-            application.save(update_fields=[
-                'payment_status',
-                'admin_feedback',
-                'admin_feedback_date',
-                'admin_feedback_by',
-                'updated_at',
-            ])
-
-            try:
-                from apps.common.communication_service import CommunicationService
-                template = 'payment_verified' if target_payment_status == 'successful' else 'payment_rejected'
-                CommunicationService.send(template, application)
-            except Exception:
-                logger.exception(
-                    "Failed to send payment review notification for application %s",
-                    application_id,
-                )
-
-            return application
+        return _review_application_payment_impl(
+            self,
+            application_id=application_id,
+            payment_status=payment_status,
+            reviewed_by_id=reviewed_by_id,
+            notes=notes,
+        )
 
     def defer_payment(
         self, application_id: UUID, user_id: UUID
     ) -> PaymentInitiationResult:
-        """Create a *deferred* Payment record — student can pay later."""
+        """Create a *deferred* Payment record - student can pay later."""
         from django.db import transaction
 
-        from apps.applications.identifier_resolver import IdentifierResolver
         from apps.applications.models import Application
 
         with transaction.atomic():
@@ -632,23 +221,24 @@ class PaymentService:
                     currency=existing.currency,
                 )
 
-            # Transition existing pending payment to deferred instead of creating new
             existing_pending = (
                 Payment.objects.select_for_update()
                 .filter(application_id=application_id, status='pending')
                 .first()
             )
             if existing_pending:
-                existing_pending.status = 'deferred'
-                existing_pending.updated_at = timezone.now()
+                self._transition(
+                    existing_pending,
+                    "deferred",
+                    source="initiate",
+                    actor=user_id,
+                    reason="student deferred payment",
+                )
+                existing_pending.refresh_from_db()
                 meta = existing_pending.metadata or {}
                 meta['deferred'] = True
                 existing_pending.metadata = meta
-                existing_pending.save(update_fields=['status', 'updated_at', 'metadata'])
-
-                Application.objects.filter(id=application_id).update(
-                    payment_status='deferred', updated_at=timezone.now(),
-                )
+                existing_pending.save(update_fields=['metadata'])
 
                 return PaymentInitiationResult(
                     payment_id=existing_pending.id,
@@ -659,33 +249,14 @@ class PaymentService:
 
             application = Application.objects.get(id=application_id)
 
-            if application.payment_status in ('successful', 'verified', 'force_approved'):
+            if application.payment_status in COMPLETED_PAYMENT_STATUSES:
                 return PaymentInitiationResult(
                     payment_id=None, reference='', amount=Decimal('0'), currency='',
                 )
 
-            resolved_program = IdentifierResolver.resolve_program(application.program)
-            if resolved_program.source == "not_found":
-                raise ValueError(f"Cannot resolve program '{application.program}'.")
-
-            resolved = self._fee_resolver.resolve_fee(
-                program_code=resolved_program.code,
-                nationality=application.nationality,
-                country=getattr(application, 'country', None),
+            resolved_program, resolved, effective_amount = _resolve_fee_for_application(
+                self._fee_resolver, application, application_id,
             )
-
-            effective_amount = resolved.amount
-            try:
-                from apps.documents.fee_waiver_service import FeeWaiverService
-                effective_amount = FeeWaiverService.get_effective_fee(
-                    str(application_id), resolved.amount,
-                )
-            except Exception:
-                logger.warning(
-                    "Fee waiver check failed for deferred payment %s, using full fee",
-                    application_id,
-                    exc_info=True,
-                )
 
             reference = _generate_reference(application.application_number)
 
@@ -705,7 +276,6 @@ class PaymentService:
                 updated_at=timezone.now(),
             )
 
-            # Sync application payment_status
             Application.objects.filter(id=application_id).update(
                 payment_status='deferred', updated_at=timezone.now(),
             )
@@ -721,108 +291,53 @@ class PaymentService:
         """Call the Lenco API to verify payment status and update records.
 
         Raises ``Payment.DoesNotExist`` when the payment is not found.
-
-        Threading note (AUDIT-5.2-001, AUDIT-5.6-002 — resolved):
-        This method uses a synchronous ``requests.get()`` call.  Both call
-        sites are safe from event-loop blocking:
-
-        1. ``PaymentVerifyView.post()`` is a **sync** DRF view.  Uvicorn's
-           ASGI adapter automatically runs sync views in a thread-pool
-           worker, so the blocking HTTP call never touches the event loop.
-        2. ``poll_pending_payments_task`` runs inside a **Celery worker**
-           process, which is entirely synchronous — no event loop involved.
-
-        No migration to ``httpx`` or ``asyncio.to_thread`` is required
-        unless a call site is converted to an ``async def`` view in the
-        future.
         """
         payment = Payment.objects.get(id=payment_id)
 
         if payment.status != 'pending':
-            # Already resolved — return current state without calling Lenco.
             return PaymentVerificationResult(
-                status=payment.status,
-                amount=payment.amount,
-                currency=payment.currency,
-                lenco_reference=payment.lenco_reference,
-                payment_method=payment.payment_method,
-                error=None,
+                status=payment.status, amount=payment.amount,
+                currency=payment.currency, lenco_reference=payment.lenco_reference,
+                payment_method=payment.payment_method, error=None,
             )
 
         reference = payment.transaction_reference
         if not reference:
             return PaymentVerificationResult(
-                status=payment.status,
-                amount=payment.amount,
-                currency=payment.currency,
-                lenco_reference=None,
-                payment_method=None,
-                error='Payment has no transaction reference.',
+                status=payment.status, amount=payment.amount,
+                currency=payment.currency, lenco_reference=None,
+                payment_method=None, error='Payment has no transaction reference.',
             )
 
         api_secret = settings.LENCO_API_SECRET_KEY
         base_url = settings.LENCO_API_BASE_URL
 
         if not api_secret:
-            logger.warning("LENCO_API_SECRET_KEY not configured — cannot verify payment %s", payment_id)
+            logger.warning("LENCO_API_SECRET_KEY not configured -- cannot verify payment %s", payment_id)
             return PaymentVerificationResult(
-                status=payment.status,
-                amount=payment.amount,
-                currency=payment.currency,
-                lenco_reference=None,
-                payment_method=None,
-                error='Payment processing is unavailable.',
+                status=payment.status, amount=payment.amount,
+                currency=payment.currency, lenco_reference=None,
+                payment_method=None, error='Payment processing is unavailable.',
             )
 
-        url = f"{base_url.rstrip('/')}/collections/status/{reference}"
-
-        try:
-            resp = http_requests.get(
-                url,
-                headers={'Authorization': f'Bearer {api_secret}', 'User-Agent': 'MIHAS/2.0', 'Accept': 'application/json'},
-                timeout=_LENCO_TIMEOUT,
-            )
-            resp.raise_for_status()
-        except http_requests.RequestException:
-            logger.exception("Lenco API request failed for payment %s", payment_id)
+        data, error = _call_lenco_collection_status(reference, api_secret, base_url, _LENCO_TIMEOUT)
+        if error is not None:
             return PaymentVerificationResult(
-                status=payment.status,
-                amount=payment.amount,
-                currency=payment.currency,
-                lenco_reference=None,
-                payment_method=None,
-                error='Unable to reach payment provider. Please try again later.',
-            )
-
-        try:
-            data = resp.json().get('data', {})
-        except (ValueError, AttributeError):
-            logger.error("Lenco API returned non-JSON response for payment %s", payment_id)
-            return PaymentVerificationResult(
-                status=payment.status,
-                amount=payment.amount,
-                currency=payment.currency,
-                lenco_reference=None,
-                payment_method=None,
-                error='Unexpected response from payment provider.',
+                status=payment.status, amount=payment.amount,
+                currency=payment.currency, lenco_reference=None,
+                payment_method=None, error=error,
             )
 
         lenco_status = data.get('status', '').lower()
         new_status = _LENCO_STATUS_MAP.get(lenco_status)
 
         if new_status == 'successful':
-            # Amount mismatch detection (Req 10.4)
-            lenco_amount = _parse_amount(data.get('amount'))
-            if lenco_amount is not None and lenco_amount != payment.amount:
-                logger.warning(
-                    "Amount mismatch for payment %s: expected=%s got=%s",
-                    payment_id,
-                    payment.amount,
-                    lenco_amount,
-                )
+            from apps.documents.payment_state_machine import check_legacy_mismatch
+            mismatch = check_legacy_mismatch(data, payment.amount, payment.currency)
+            if mismatch is not None:
+                logger.warning("Amount/currency mismatch for payment %s", payment_id)
                 return PaymentVerificationResult(
-                    status=payment.status,
-                    amount=payment.amount,
+                    status=payment.status, amount=payment.amount,
                     currency=payment.currency,
                     lenco_reference=data.get('lencoReference'),
                     payment_method=data.get('type'),
@@ -834,196 +349,77 @@ class PaymentService:
             payment.refresh_from_db()
 
         return PaymentVerificationResult(
-            status=payment.status,
-            amount=payment.amount,
-            currency=payment.currency,
-            lenco_reference=payment.lenco_reference,
-            payment_method=payment.payment_method,
-            error=None,
+            status=payment.status, amount=payment.amount,
+            currency=payment.currency, lenco_reference=payment.lenco_reference,
+            payment_method=payment.payment_method, error=None,
         )
 
     def process_webhook_event(
         self, event_type: str, reference: str, payload: dict
     ) -> None:
-        """Update a Payment record from webhook data.  Idempotent.
+        """Update a Payment record from webhook data. Idempotent.
 
-        If the referenced payment does not exist or is already in a terminal
-        state, the call is a safe no-op.
-
-        The payment lookup uses ``SELECT FOR UPDATE`` inside
-        ``transaction.atomic()`` so that concurrent webhook events for the
-        same payment are serialized at the row level.  This prevents two
-        webhooks from both reading the payment before either applies a
-        status transition.
+        Uses ``SELECT FOR UPDATE`` to serialize concurrent webhook events.
         """
-        from django.db import transaction
-
-        try:
-            with transaction.atomic():
-                payment = (
-                    Payment.objects
-                    .select_for_update()
-                    .get(transaction_reference=reference)
-                )
-        except Payment.DoesNotExist:
-            logger.warning("Webhook references unknown payment: reference=%s", reference)
-            return
-
-        data = payload.get('data', {})
-
-        if event_type == 'collection.successful':
-            # Amount mismatch detection (Req 10.4)
-            lenco_amount = _parse_amount(data.get('amount'))
-            if lenco_amount is not None and lenco_amount != payment.amount:
-                logger.warning(
-                    "Webhook amount mismatch for payment %s: expected=%s got=%s",
-                    payment.id,
-                    payment.amount,
-                    lenco_amount,
-                )
-                return
-
-            # Currency validation
-            lenco_currency = str(data.get('currency', '')).upper()
-            if lenco_currency and hasattr(payment, 'currency') and payment.currency and lenco_currency != payment.currency.upper():
-                logger.warning('Currency mismatch: expected %s, got %s', payment.currency, lenco_currency)
-
-            self._update_payment_status(payment, 'successful', data)
-
-        elif event_type == 'collection.failed':
-            self._update_payment_status(payment, 'failed', data)
-
-        elif event_type == 'collection.settled':
-            # Settlement events update metadata only — no status change.
-            meta = payment.metadata or {}
-            meta['settlement'] = data.get('settlement', data)
-            payment.metadata = meta
-            payment.updated_at = timezone.now()
-            payment.save(update_fields=['metadata', 'updated_at'])
-            logger.info("Settlement metadata updated for payment %s", payment.id)
-
-        else:
-            logger.info("Ignoring unrecognised webhook event_type=%s", event_type)
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
+        _process_webhook_event_impl(self, event_type, reference, payload)
 
     def _update_payment_status(
         self, payment: Payment, new_status: str, lenco_data: dict
     ) -> None:
         """Apply a forward-only status transition and persist Lenco fields.
 
-        Uses ``SELECT FOR UPDATE`` to re-read the payment row under a
-        row-level lock inside an atomic transaction.  This prevents the
-        webhook handler and the verification endpoint from concurrently
-        transitioning the same payment.
-
-        If the transition is not allowed (e.g. already ``successful``), the
-        call is a no-op — this makes webhook processing idempotent.
+        Uses ``SELECT FOR UPDATE`` inside ``atomic()`` for row-level locking.
+        If the transition is not allowed, the call is a no-op (idempotent).
         """
         from django.db import transaction
 
         with transaction.atomic():
-            # Re-read the row under an exclusive lock so we check the
-            # *latest* status, not the potentially-stale in-memory copy.
             locked = Payment.objects.select_for_update().get(id=payment.id)
 
             allowed = _ALLOWED_TRANSITIONS.get(locked.status, set())
             if new_status not in allowed:
                 logger.info(
                     "Skipping transition %s → %s for payment %s (not allowed)",
-                    locked.status,
-                    new_status,
-                    locked.id,
+                    locked.status, new_status, locked.id,
                 )
                 return
 
-            # Amount mismatch detection (Req 17.1, 17.2, 17.3)
-            # When transitioning to 'successful', verify the Lenco-reported
-            # amount matches the expected amount stored on the payment record.
-            # Uses Decimal comparison to avoid floating-point precision errors.
             if new_status == 'successful':
-                lenco_amount = _parse_amount(lenco_data.get('amount'))
-                if lenco_amount is not None and lenco_amount != locked.amount:
+                from apps.documents.payment_state_machine import check_legacy_mismatch
+                mismatch = check_legacy_mismatch(lenco_data, locked.amount, locked.currency)
+                if mismatch is not None:
+                    risk_type, details = mismatch
                     logger.warning(
-                        "Amount mismatch in _update_payment_status for payment %s: "
-                        "expected=%s got=%s — skipping transition to successful",
-                        locked.id,
-                        locked.amount,
-                        lenco_amount,
+                        "%s in _update_payment_status for payment %s — skipping transition",
+                        risk_type, locked.id,
                     )
-                    self._record_payment_risk(
-                        locked,
-                        risk_type="amount_mismatch",
-                        details={
-                            "expected": str(locked.amount),
-                            "received": str(lenco_amount),
-                            "source": "lenco_status_update",
-                        },
-                    )
-                    return
-
-                lenco_currency = str(lenco_data.get('currency', '')).upper()
-                if lenco_currency and locked.currency and lenco_currency != locked.currency.upper():
-                    logger.warning(
-                        "Currency mismatch in _update_payment_status for payment %s: "
-                        "expected=%s got=%s — skipping transition to successful",
-                        locked.id,
-                        locked.currency,
-                        lenco_currency,
-                    )
-                    self._record_payment_risk(
-                        locked,
-                        risk_type="currency_mismatch",
-                        details={
-                            "expected": locked.currency,
-                            "received": lenco_currency,
-                            "source": "lenco_status_update",
-                        },
-                    )
+                    self._record_payment_risk(locked, risk_type=risk_type, details=details)
                     return
 
             locked.status = new_status
             locked.lenco_reference = lenco_data.get('lencoReference') or locked.lenco_reference
             locked.payment_method = lenco_data.get('type') or locked.payment_method
-
             lenco_fee = _parse_amount(lenco_data.get('fee'))
             if lenco_fee is not None:
                 locked.fee = lenco_fee
-
             locked.bearer = lenco_data.get('bearer') or locked.bearer
-
-            # Store failure reason from Lenco
             reason = lenco_data.get('reasonForFailure')
             if reason and new_status == 'failed':
                 locked.notes = str(reason)[:500]
-
-            # Merge any extra Lenco data into metadata.
             meta = locked.metadata or {}
             meta['lenco_response'] = _sanitize_lenco_response(lenco_data)
             locked.metadata = meta
             locked.updated_at = timezone.now()
-
             locked.save(update_fields=[
-                'status',
-                'lenco_reference',
-                'payment_method',
-                'fee',
-                'bearer',
-                'notes',
-                'metadata',
-                'updated_at',
+                'status', 'lenco_reference', 'payment_method',
+                'fee', 'bearer', 'notes', 'metadata', 'updated_at',
             ])
 
             logger.info(
                 "Payment %s transitioned to %s (lenco_ref=%s)",
-                locked.id,
-                new_status,
-                locked.lenco_reference,
+                locked.id, new_status, locked.lenco_reference,
             )
 
-            # Emit business metric for successful payments (Req 3.1)
             if new_status == "successful":
                 logger.info(
                     "business_metric",
@@ -1035,14 +431,7 @@ class PaymentService:
                     },
                 )
 
-            # Sync application payment_status inside the same atomic block
-            # so both updates commit or roll back together (Req 8.7).
-            _PAYMENT_TO_APP_STATUS = {
-                'successful': 'verified',
-                'paid': 'verified',
-                'failed': 'failed',
-            }
-            app_status = _PAYMENT_TO_APP_STATUS.get(new_status)
+            app_status = _LEGACY_PAYMENT_TO_APP_STATUS.get(new_status)
             if app_status and payment.application_id:
                 self._update_application_payment_status(
                     payment.application_id, app_status
@@ -1105,39 +494,10 @@ class PaymentService:
                 ]
             )
 
-    # ------------------------------------------------------------------
-    # payment-hardening — Task 11.5–11.10 (new public surface)
-    # ------------------------------------------------------------------
-    #
-    # The six methods below (``initiate``, ``initiate_mobile_money``,
-    # ``verify``, ``apply_webhook_event``, ``force_approve``,
-    # ``expire_stale``) are the hardened public surface described in
-    # ``.kiro/specs/payment-hardening/design.md`` → "Interface Signatures".
-    # They live alongside the legacy ``initiate_payment`` / ``verify_payment``
-    # / ``process_webhook_event`` so existing callers continue to work.
-    #
-    # When ``settings.PAYMENT_HARDENING_FORWARD_ONLY`` is ``False`` each
-    # new method delegates back to its legacy equivalent for full
-    # backward compatibility. When ``True`` it takes the hardened path
-    # that routes every mutation through ``_transition()``.
-
     def initiate(
         self, application_id: UUID, user_id: UUID
     ) -> PaymentInitiationResult:
-        """Hardened public API for starting a payment.
-
-        Resolves the Application from ``user_id`` + ``application_id``,
-        re-checks ownership inside the row lock, enforces the retry limit,
-        and creates a ``pending`` Payment with an immutable
-        ``metadata.snapshot``. Client-supplied ``amount`` / ``currency`` /
-        ``reference`` / ``status`` / ``operator`` are ignored by contract
-        (R4.6) — the method takes only ``application_id`` and ``user_id``.
-
-        When ``PAYMENT_HARDENING_FORWARD_ONLY`` is disabled we delegate to
-        the legacy ``initiate_payment`` path so behaviour is unchanged.
-
-        Requirements: R3.1–R3.6, R4.1–R4.6, R6.1–R6.3.
-        """
+        """Hardened initiate: resolve fee, enforce retry limit, create pending Payment."""
         if not _forward_only_enabled():
             # LEGACY: preserve existing behaviour byte-for-byte.
             return self.initiate_payment(application_id, user_id)
@@ -1172,20 +532,7 @@ class PaymentService:
                 )
 
             # ---- 2. Retry limit enforcement (R3.5, R3.6) ----
-            expired_cutoff = timezone.now() - timedelta(
-                days=EXPIRED_EXCLUSION_DAYS
-            )
-            attempt_count = (
-                Payment.objects.filter(application_id=application_id)
-                .exclude(status="expired", created_at__lt=expired_cutoff)
-                .count()
-            )
-            if attempt_count >= MAX_PAYMENT_ATTEMPTS:
-                logger.warning(
-                    "initiate: attempt limit reached for application %s",
-                    application_id,
-                )
-                raise ValueError("MAX_PAYMENT_ATTEMPTS_EXCEEDED|0")
+            _check_retry_limit(application_id, MAX_PAYMENT_ATTEMPTS, EXPIRED_EXCLUSION_DAYS)
 
             # ---- 3. Re-check ownership under the lock (R4.1, R4.2) ----
             try:
@@ -1196,14 +543,9 @@ class PaymentService:
             except Application.DoesNotExist:
                 raise
             if str(application.user_id) != str(user_id):
-                # Defensive: the view layer enforces ownership too, but we
-                # re-check inside the lock so the service is safe to call
-                # from trusted contexts.
                 raise ValueError("NOT_OWNER")
 
-            if application.payment_status in (
-                "successful", "verified", "force_approved",
-            ):
+            if application.payment_status in COMPLETED_PAYMENT_STATUSES:
                 return PaymentInitiationResult(
                     payment_id=None,
                     reference="",
@@ -1226,77 +568,14 @@ class PaymentService:
                     "Please verify the program exists and is active."
                 )
 
-            resolved = None
-            snapshot_dict: dict = {}
-            snapshot_builder = getattr(
-                self._fee_resolver, "resolve_for_payment_snapshot", None
+            resolved, effective_amount, snapshot_dict = _build_snapshot_dict(
+                self._fee_resolver, application, application_id, resolved_program,
             )
-            if callable(snapshot_builder):
-                try:
-                    resolved, snapshot_obj = snapshot_builder(application)
-                    # ``snapshot_obj`` is a ``PaymentSnapshot`` dataclass.
-                    snapshot_dict = {
-                        "expected_amount": str(snapshot_obj.expected_amount),
-                        "currency": snapshot_obj.currency,
-                        "residency_category": snapshot_obj.residency_category,
-                        "program_code": snapshot_obj.program_code,
-                        "intake_id": snapshot_obj.intake_id,
-                        "waiver_applied": snapshot_obj.waiver_applied,
-                        "original_amount": str(snapshot_obj.original_amount),
-                        "fee_source": snapshot_obj.fee_source,
-                    }
-                except Exception:
-                    logger.warning(
-                        "initiate: resolve_for_payment_snapshot failed for "
-                        "application %s — falling back to resolve_fee",
-                        application_id,
-                        exc_info=True,
-                    )
-                    resolved = None
-
-            if resolved is None:
-                resolved = self._fee_resolver.resolve_fee(
-                    program_code=resolved_program.code,
-                    nationality=application.nationality,
-                    country=getattr(application, "country", None),
-                )
-
-            effective_amount = resolved.amount
-            try:
-                from apps.documents.fee_waiver_service import FeeWaiverService
-
-                effective_amount = FeeWaiverService.get_effective_fee(
-                    str(application_id), resolved.amount,
-                )
-            except Exception:
-                logger.warning(
-                    "initiate: fee waiver check failed for application %s",
-                    application_id,
-                    exc_info=True,
-                )
-
-            if not snapshot_dict:
-                snapshot_dict = {
-                    "expected_amount": str(effective_amount),
-                    "currency": resolved.currency,
-                    "residency_category": resolved.residency_category,
-                    "program_code": resolved_program.code,
-                    "intake_id": str(
-                        getattr(application, "intake_id", "") or ""
-                    ) or None,
-                    "waiver_applied": str(effective_amount)
-                    != str(resolved.amount),
-                    "original_amount": str(resolved.amount),
-                    "fee_source": resolved.source,
-                }
 
             reference = _generate_reference(application.application_number)
 
             # ---- 5. Create the Payment; handle the active-row race ----
             try:
-                # Keep the unique-index race inside a savepoint. If another
-                # worker wins, PostgreSQL marks only this inner block dirty;
-                # the outer transaction can still query and return the winner.
                 with transaction.atomic():
                     payment = Payment.objects.create(
                         application_id=application_id,
@@ -1318,9 +597,6 @@ class PaymentService:
                         updated_at=timezone.now(),
                     )
             except IntegrityError as exc:
-                # Partial unique index ``uq_payments_one_active_per_application``
-                # fired — a concurrent initiation won the race. Fall back
-                # to the existing row and return the same envelope.
                 if "uq_payments_one_active_per_application" in str(exc):
                     logger.info(
                         "initiate: race on active-payment index for "
@@ -1380,17 +656,7 @@ class PaymentService:
         user_id: UUID,
         phone_raw: str,
     ) -> PaymentInitiationResult:
-        """Wrap ``initiate`` with a Lenco mobile-money collection call.
-
-        Normalises ``phone_raw`` to E.164, derives the operator from the
-        MSISDN prefix, calls Lenco OUTSIDE any ``atomic()`` block so no DB
-        lock is held during HTTP I/O, and routes the outcome through
-        ``mark_provider_initiation``. Payment is left in ``pending`` on
-        every provider outcome (R11.4) — ``failed`` is never set from a
-        provider timeout or 5xx.
-
-        Requirements: R11.1–R11.6.
-        """
+        """Wrap ``initiate`` with a Lenco mobile-money collection call."""
         import hashlib
 
         # Normalise + operator derivation happen up front so a bad number
@@ -1405,7 +671,7 @@ class PaymentService:
             return result
 
         # 2. Read Lenco credentials. Missing creds must degrade gracefully
-        #    — the provider call is skipped and the payment stays pending.
+        #    - the provider call is skipped and the payment stays pending.
         api_secret = getattr(settings, "LENCO_API_SECRET_KEY", "")
         base_url = getattr(settings, "LENCO_API_BASE_URL", "")
 
@@ -1430,33 +696,17 @@ class PaymentService:
             return result
 
         # 3. Call Lenco OUTSIDE any atomic() so we don't hold a row lock
-        #    across the HTTP round trip (Neon pool hygiene).
-        url = f"{base_url.rstrip('/')}/collections/mobile-money"
-        try:
-            resp = http_requests.post(
-                url,
-                json={
-                    "amount": str(result.amount),
-                    "reference": result.reference,
-                    "phone": phone,
-                    "operator": operator,
-                    "country": "zm",
-                    "bearer": "customer",
-                },
-                headers={
-                    "Authorization": f"Bearer {api_secret}",
-                    "User-Agent": "MIHAS/2.0",
-                    "Accept": "application/json",
-                },
-                timeout=_LENCO_TIMEOUT,
-            )
-        except http_requests.RequestException as exc:
-            # Timeout / connection error / DNS failure → status unknown.
-            # Payment MUST stay pending (R11.4); reconciliation will settle it.
-            logger.warning(
-                "initiate_mobile_money: Lenco HTTP error for payment %s: %s",
-                result.payment_id, exc,
-            )
+        #    across the HTTP round trip.
+        resp, lenco_data, http_error = _call_lenco_mobile_money(
+            base_url=base_url,
+            api_secret=api_secret,
+            amount=str(result.amount),
+            reference=result.reference,
+            phone=phone,
+            operator=operator,
+            timeout=_LENCO_TIMEOUT,
+        )
+        if http_error is not None:
             try:
                 self.mark_provider_initiation(
                     result.payment_id,
@@ -1464,7 +714,7 @@ class PaymentService:
                     operator=operator,
                     phone_hash=phone_hash,
                     phone_last4=phone_last4,
-                    error="Provider request failed before a response was received.",
+                    error=http_error,
                 )
             except Exception:
                 logger.exception(
@@ -1473,105 +723,45 @@ class PaymentService:
                 )
             return result
 
-        try:
-            lenco_data = resp.json() if resp.content else {}
-        except ValueError:
-            lenco_data = {}
+        provider_status, provider_subset, provider_error = _classify_mobile_money_response(resp, lenco_data)
 
-        provider_subset = dict(lenco_data.get("data") or {})
-        # Always record ``type`` so the integrity gate / UI can distinguish
-        # mobile-money vs card responses consistently.
-        provider_subset.setdefault("type", "mobile-money")
-
-        if resp.ok:
-            # 2xx → provider accepted the collection request.
-            try:
-                self.mark_provider_initiation(
-                    result.payment_id,
-                    status=PROVIDER_STATUS_ACCEPTED,
-                    provider_data=provider_subset,
-                    operator=operator,
-                    phone_hash=phone_hash,
-                    phone_last4=phone_last4,
-                )
-            except Exception:
-                logger.exception(
-                    "initiate_mobile_money: failed to mark provider accepted "
-                    "for payment %s", result.payment_id,
-                )
-        elif 400 <= resp.status_code < 500:
-            lenco_error = (
-                lenco_data.get("message")
-                or lenco_data.get("error")
-                or resp.reason
-                or "Provider rejected the request."
+        if provider_status == "rejected":
+            logger.info(
+                "initiate_mobile_money: Lenco rejected for payment %s", result.payment_id,
             )
-            try:
-                self.mark_provider_initiation(
-                    result.payment_id,
-                    status=PROVIDER_STATUS_REJECTED,
-                    provider_data=provider_subset,
-                    operator=operator,
-                    phone_hash=phone_hash,
-                    phone_last4=phone_last4,
-                    error=str(lenco_error),
-                )
-            except Exception:
-                logger.exception(
-                    "initiate_mobile_money: failed to mark provider rejected "
-                    "for payment %s", result.payment_id,
-                )
-            # NOTE: Payment deliberately stays pending even on rejection —
-            # the UI surfaces this via ``next_action=retry_with_different_number``
-            # and the legacy path that moved the row to ``failed`` on 4xx
-            # is preserved in ``MobileMoneyInitiateView`` for back-compat.
-        else:
-            # 5xx → status unknown; reconciliation / webhook will settle.
-            lenco_error = (
-                lenco_data.get("message")
-                or lenco_data.get("error")
-                or resp.reason
-                or "Provider service error."
-            )
+        elif provider_status == "unknown":
             logger.warning(
-                "initiate_mobile_money: Lenco 5xx for payment %s: %s %s",
-                result.payment_id, resp.status_code, lenco_error,
+                "initiate_mobile_money: Lenco 5xx for payment %s: %s",
+                result.payment_id, provider_error,
             )
-            try:
-                self.mark_provider_initiation(
-                    result.payment_id,
-                    status=PROVIDER_STATUS_UNKNOWN,
-                    provider_data=provider_subset,
-                    operator=operator,
-                    phone_hash=phone_hash,
-                    phone_last4=phone_last4,
-                    error=f"Provider responded {resp.status_code}: {lenco_error}",
-                )
-            except Exception:
-                logger.exception(
-                    "initiate_mobile_money: failed to mark provider unknown "
-                    "for payment %s", result.payment_id,
-                )
+
+        status_map = {
+            "accepted": PROVIDER_STATUS_ACCEPTED,
+            "rejected": PROVIDER_STATUS_REJECTED,
+            "unknown": PROVIDER_STATUS_UNKNOWN,
+        }
+        try:
+            self.mark_provider_initiation(
+                result.payment_id,
+                status=status_map[provider_status],
+                provider_data=provider_subset if provider_status != "unknown" or provider_subset else provider_subset,
+                operator=operator,
+                phone_hash=phone_hash,
+                phone_last4=phone_last4,
+                error=provider_error,
+            )
+        except Exception:
+            logger.exception(
+                "initiate_mobile_money: failed to mark provider %s "
+                "for payment %s", provider_status, result.payment_id,
+            )
 
         return result
 
     def verify(
         self, payment_id: UUID, actor_id: Optional[UUID] = None
     ) -> PaymentVerificationResult:
-        """Hardened wrapper around ``verify_payment`` with stable-code semantics.
-
-        - Terminal → return cached state without calling Lenco (R10.1).
-        - Lenco unreachable on ``pending`` → leave ``pending``, surface
-          ``PROVIDER_UNAVAILABLE`` (R10.2).
-        - Lenco ``pay-offline`` / ``otp-required`` / ``pending`` → leave
-          ``pending`` + ``PAYMENT_PENDING`` (R10.3).
-        - Integrity-clean ``successful`` / ``paid`` → ``_transition``
-          (R10.4) — the 4-check integrity gate decides.
-        - Mismatches → risk flag + leave ``pending`` (R10.5).
-
-        ``actor_id`` is accepted for audit emission even though the legacy
-        ``verify_payment`` takes no actor.
-        """
+        """Hardened verify: routes through ``_transition`` for successful outcomes."""
         if not _forward_only_enabled():
             # LEGACY: preserve existing behaviour byte-for-byte.
             return self.verify_payment(payment_id)
@@ -1616,40 +806,10 @@ class PaymentService:
                 error="PROVIDER_UNAVAILABLE",
             )
 
-        url = f"{base_url.rstrip('/')}/collections/status/{reference}"
-        try:
-            resp = http_requests.get(
-                url,
-                headers={
-                    "Authorization": f"Bearer {api_secret}",
-                    "User-Agent": "MIHAS/2.0",
-                    "Accept": "application/json",
-                },
-                timeout=_LENCO_TIMEOUT,
-            )
-            resp.raise_for_status()
-        except http_requests.RequestException:
-            # R10.2: Lenco unreachable → leave pending.
-            logger.info(
-                "verify: Lenco unreachable for payment %s — stays pending",
-                payment_id,
-                exc_info=True,
-            )
-            return PaymentVerificationResult(
-                status=payment.status,
-                amount=payment.amount,
-                currency=payment.currency,
-                lenco_reference=None,
-                payment_method=None,
-                error="PROVIDER_UNAVAILABLE",
-            )
-
-        try:
-            data = resp.json().get("data", {}) or {}
-        except (ValueError, AttributeError):
-            logger.error(
-                "verify: Lenco returned non-JSON for payment %s", payment_id
-            )
+        data, error = _call_lenco_collection_status(
+            reference, api_secret, base_url, _LENCO_TIMEOUT,
+        )
+        if error is not None:
             return PaymentVerificationResult(
                 status=payment.status,
                 amount=payment.amount,
@@ -1663,7 +823,7 @@ class PaymentService:
         new_status = _LENCO_STATUS_MAP.get(lenco_status)
 
         if new_status == "successful":
-            # Route through _transition — its 4-check integrity gate is the
+            # Route through _transition - its 4-check integrity gate is the
             # single source of truth for amount/currency/reference checks.
             tr = self._transition(
                 payment,
@@ -1674,7 +834,7 @@ class PaymentService:
             )
             payment.refresh_from_db()
             if tr.risk_flag is not None:
-                # Integrity gate blocked the transition — surface the
+                # Integrity gate blocked the transition - surface the
                 # matching stable code so the UI can branch deterministically.
                 error_code = {
                     "amount_mismatch": "AMOUNT_MISMATCH",
@@ -1730,22 +890,7 @@ class PaymentService:
     def apply_webhook_event(
         self, event_type: str, reference: str, payload: dict
     ) -> TransitionResult:
-        """Route a Lenco webhook outcome through ``_transition``.
-
-        - ``collection.successful`` → ``_transition(pending → successful)``
-          (integrity gate enforced). Late events against a ``successful``
-          row are absorbed as duplicates by ``_transition``.
-        - ``collection.failed`` → ``_transition(pending → failed)``. When
-          the row is already ``successful`` ``_transition`` blocks the
-          move and emits ``payment.late_failed_webhook_ignored`` (R9.1).
-        - ``collection.settled`` → merge ``metadata.settlement`` only
-          (R9.2); no ``_transition`` call.
-        - Unknown ``event_type`` → log and skip (R8.7).
-
-        When ``PAYMENT_HARDENING_FORWARD_ONLY`` is disabled we delegate to
-        the legacy ``process_webhook_event`` and return a best-effort
-        ``TransitionResult`` summarising the outcome.
-        """
+        """Route a Lenco webhook outcome through ``_transition``."""
         from django.db import transaction
 
         if not _forward_only_enabled():
@@ -1849,7 +994,7 @@ class PaymentService:
                     provider_data=data,
                 )
 
-            # R8.7: unknown event_type → log and skip.
+            # Unknown event_type → log and skip.
             logger.info(
                 "apply_webhook_event: ignoring unknown event_type=%s for payment %s",
                 event_type, payment.id,
@@ -1867,16 +1012,7 @@ class PaymentService:
         actor_role: str,
         reason: str,
     ) -> TransitionResult:
-        """Admin-driven ``force_approved`` transition.
-
-        Rejects if a ``successful`` Payment already exists (R2.1, R2.2).
-        Requires ``reason >= 10 chars`` (R2.5). Creates a Payment row when
-        none exists, then calls ``_transition(... 'force_approved' ...,
-        source='admin_override')``. Writes override metadata (R2.4) and
-        emits ``payment.force_approved`` audit (auto-promoted to the
-        security retention window by prefix — R2.6). Generates the
-        receipt idempotently (R13.1, R13.5, R13.6) inside ``_transition``.
-        """
+        """Admin-driven ``force_approved`` transition (reason >= 10 chars required)."""
         from django.db import transaction
 
         from apps.applications.models import Application
@@ -1911,10 +1047,7 @@ class PaymentService:
 
             now = timezone.now()
             if payment is None:
-                # Create a placeholder pending row so _transition has
-                # something to update. We set minimal metadata; the
-                # snapshot is not required for admin overrides (no
-                # integrity gate runs for ``force_approved``).
+                # Create a placeholder pending row for _transition.
                 payment = Payment.objects.create(
                     application_id=application_id,
                     user_id=application.user_id,
@@ -1930,16 +1063,11 @@ class PaymentService:
                     updated_at=now,
                 )
             elif payment.status in ("failed", "expired", "force_approved"):
-                # Terminal non-successful → cannot progress into
-                # force_approved without super_admin_correction. The
-                # design permits admin_override only from ``""``, pending,
-                # or deferred.
                 if payment.status == "force_approved":
                     raise ValueError("CANNOT_REVERSE_SUCCESSFUL_PAYMENT")
                 raise ValueError("PAYMENT_ALREADY_TERMINAL")
 
-            # R2.4: write override metadata BEFORE the transition so the
-            # audit entry emitted by _transition can reference it.
+            # Write override metadata BEFORE the transition.
             meta = payment.metadata or {}
             meta["override"] = True
             meta["reviewed_by"] = str(actor_id)
@@ -1963,10 +1091,7 @@ class PaymentService:
                 },
             )
 
-            # ``_transition`` emits the canonical ``payment.force_approved``
-            # audit for this target state. Do not emit a second row here:
-            # duplicate audit records make one business event look like two
-            # approvals during incident review.
+            # ``_transition`` emits the canonical audit for this target state.
 
             return result
 
@@ -1978,34 +1103,7 @@ class PaymentService:
         actor_id: UUID,
         reason: str,
     ) -> TransitionResult:
-        """Super-admin-only correction that can move a Payment to any canonical status.
-
-        Unlike ``force_approve`` (which is admin-grade and constrained to
-        ``force_approved``), ``super_admin_correct`` is the ledger-level
-        escape hatch reserved for super-admins: it can transition from any
-        state (including terminal) to any other canonical status. The
-        ``_transition`` matrix already authorises
-        ``source='super_admin_correction'`` as a "terminal → anything"
-        fallback (design → State Machine → Super_Admin_Correction_Path).
-
-        Behaviour:
-
-        1. Validate ``reason`` (≥ 10 chars after strip) — raise
-           ``ValueError('OVERRIDE_REASON_REQUIRED')`` otherwise (R2.5).
-        2. Validate ``target_status`` against the six canonical values —
-           raise ``ValueError('INVALID_TARGET_STATUS')`` otherwise.
-        3. Locate the Payment — raise ``ValueError('PAYMENT_NOT_FOUND')``
-           when missing so the view layer can map to HTTP 404.
-        4. Emit the ``payment.super_admin_corrected`` audit row **before**
-           the transition persists (R1.5). The action prefix is in
-           ``_SECURITY_RETENTION_ACTION_PREFIXES`` so the audit row is
-           auto-promoted to the 365-day security retention window (R2.6).
-        5. Delegate to ``_transition(... source='super_admin_correction')``
-           which opens its own ``atomic()`` block and re-reads the row
-           under ``SELECT FOR UPDATE`` for race-safe mutation.
-
-        Requirements: R1.5, R2.5, R2.6, R17.1.
-        """
+        """Super-admin correction: move a Payment to any canonical status."""
         valid_statuses: tuple[str, ...] = (
             "pending",
             "deferred",
@@ -2026,10 +1124,7 @@ class PaymentService:
         except Payment.DoesNotExist:
             raise ValueError("PAYMENT_NOT_FOUND")
 
-        # R1.5: emit the security-grade audit row BEFORE the mutation so
-        # the governance trail exists even if the transition is blocked
-        # or rolled back downstream. ``payment.super_admin_corrected``
-        # auto-promotes to 365-day retention via the prefix allow-list.
+        # Emit security-grade audit row BEFORE the mutation.
         self._emit_audit(
             "payment.super_admin_corrected",
             payment,
@@ -2058,15 +1153,7 @@ class PaymentService:
     def expire_stale(
         self, older_than_hours: int = 24, batch_cap: int = 50
     ) -> int:
-        """Reconcile stale ``pending`` payments to ``expired``.
-
-        Finds Payments in ``pending`` older than the cutoff (default 24
-        hours, R8.3), ordered by ``created_at`` ascending, capped to
-        ``batch_cap``. Each row is routed through
-        ``_transition(... 'expired', source='reconciliation')``. Returns
-        the count of successful expirations. Idempotent by construction —
-        re-running finds no new candidates.
-        """
+        """Reconcile stale ``pending`` payments to ``expired`` via ``_transition``."""
         cutoff = timezone.now() - timedelta(hours=older_than_hours)
         candidates = list(
             Payment.objects.filter(
@@ -2108,10 +1195,6 @@ class PaymentService:
         )
         return expired
 
-    # ------------------------------------------------------------------
-    # payment-hardening — Task 11.2, 11.3, 11.4
-    # ------------------------------------------------------------------
-
     def _transition(
         self,
         payment: Payment,
@@ -2122,47 +1205,12 @@ class PaymentService:
         reason: Optional[str] = None,
         provider_data: Optional[dict] = None,
     ) -> TransitionResult:
-        """Sole mutation entry point for ``payments.status``.
-
-        Opens a single ``transaction.atomic()`` block that:
-
-        1. Re-reads the Payment under ``SELECT FOR UPDATE``.
-        2. Validates ``(from_status, target_status, source)`` against
-           ``ALLOWED_TRANSITIONS``. Blocked attempts emit a
-           ``payment.transition_blocked`` audit entry and return early.
-        3. For ``target_status == 'successful'`` runs the 4-check integrity
-           gate (amount at 2dp, currency case-insensitive, non-empty
-           provider reference, snapshot preserved). Mismatches append a
-           structured risk flag to ``payment.metadata.risk_flags``, emit a
-           ``payment.risk_flag`` audit, and return early without a status
-           change.
-        4. Persists the status change (plus ``updated_at``).
-        5. Syncs ``Application.payment_status`` via
-           ``PAYMENT_TO_APP_MAP`` inside the same atomic block.
-        6. For ``successful``/``force_approved`` allocates a receipt via
-           ``_generate_receipt_idempotent``.
-        7. Emits the ``payment.transitioned`` (or ``payment.{target}``)
-           audit event.
-
-        Forward-only enforcement is gated on
-        ``settings.PAYMENT_HARDENING_FORWARD_ONLY``. When ``False``, the
-        method is a best-effort no-op shim that delegates back to the
-        legacy ``_update_payment_status`` path so existing callers remain
-        unchanged.
-
-        Requirements: R1.1, R1.2, R1.3, R1.4, R1.6, R1.7, R7.1–R7.6,
-        R9.1, R9.4, R17.1.
-        """
+        """Sole mutation entry point for ``payments.status`` (ADR-007)."""
         from django.db import transaction
 
-        # LEGACY: when the hardening flag is disabled we preserve the
-        # previous behaviour so existing callers do not see a regression.
-        # The legacy path uses ``_update_payment_status`` which only covers
-        # ``successful``/``failed`` → mutations flowing from webhook/verify.
-        # Creation-style sources ("initiate") and admin/super-admin flows
-        # are still handled here so the feature flag can be enabled safely.
+        # LEGACY: when the hardening flag is disabled, delegate to the
+        # pre-hardening mutator for verify/webhook/reconciliation sources.
         if not _forward_only_enabled():
-            # LEGACY: delegate to the pre-hardening mutator when it applies.
             if target_status in ("successful", "failed") and source in (
                 "verify",
                 "webhook",
@@ -2189,9 +1237,7 @@ class PaymentService:
             )
             from_status = locked.status or ""
 
-            # Replays of the same provider outcome are idempotent facts, not
-            # blocked transitions. Preserve the ledger exactly as-is and avoid
-            # manufacturing extra audit rows for duplicate webhooks.
+            # Idempotent replay: same status from provider sources is a no-op.
             if from_status == target_status and source in {"webhook", "verify", "reconciliation"}:
                 return TransitionResult(
                     payment_id=locked.id,
@@ -2204,9 +1250,6 @@ class PaymentService:
                 (from_status, target_status), set()
             )
             is_allowed = source in allowed_sources
-            # super_admin_correction can always move a terminal row, with a
-            # reason enforced by the caller. This mirrors the design's
-            # "terminal → anything" row in the state-machine table.
             if not is_allowed and source == "super_admin_correction":
                 is_allowed = True
 
@@ -2251,8 +1294,6 @@ class PaymentService:
             locked.status = target_status
             locked.updated_at = timezone.now()
 
-            # Merge any provider_data into lenco_response metadata
-            # (non-destructive to the snapshot).
             if provider_data:
                 meta = locked.metadata or {}
                 meta["lenco_response"] = _sanitize_lenco_response(provider_data)
@@ -2331,112 +1372,28 @@ class PaymentService:
 
         Returns the risk-flag type when a check fails (and records the flag
         + audit entry); returns ``None`` when all checks pass.
-
-        Checks:
-
-        1. Amount equality at 2 decimal places via ``Decimal``.
-           Zero/negative/unparseable amounts yield ``invalid_amount``.
-        2. Currency case-insensitive equality.
-        3. Non-empty provider reference (``lencoReference``).
-        4. Snapshot equality — present-and-unchanged. This is advisory;
-           since the snapshot is immutable after first write, a missing
-           snapshot on a pre-hardening row is tolerated (logged).
         """
+        from apps.documents.payment_state_machine import check_integrity_gate
+
         meta = payment.metadata or {}
         snapshot = meta.get("snapshot") or {}
 
-        # --- Check 1: amount ---
-        raw_amount = provider_data.get("amount")
-        try:
-            if raw_amount is None:
-                raise InvalidOperation
-            provider_amount = Decimal(str(raw_amount)).quantize(Decimal("0.01"))
-        except (InvalidOperation, ValueError, TypeError):
-            self._append_risk_flag(
-                payment,
-                risk_type="invalid_amount",
-                details={
-                    "received": str(raw_amount),
-                    "source": "integrity_gate",
-                },
-                actor=actor,
-            )
-            return "invalid_amount"
-
-        if provider_amount <= Decimal("0"):
-            self._append_risk_flag(
-                payment,
-                risk_type="invalid_amount",
-                details={
-                    "received": str(provider_amount),
-                    "source": "integrity_gate",
-                    "reason": "non_positive_amount",
-                },
-                actor=actor,
-            )
-            return "invalid_amount"
-
-        expected_amount = (
-            Decimal(str(snapshot["expected_amount"])).quantize(Decimal("0.01"))
-            if snapshot.get("expected_amount") is not None
-            else (payment.amount or Decimal("0")).quantize(Decimal("0.01"))
+        result = check_integrity_gate(
+            provider_data=provider_data,
+            payment_amount=payment.amount,
+            payment_currency=payment.currency,
+            payment_id=payment.id,
+            snapshot=snapshot,
         )
-        if provider_amount != expected_amount:
+        if result is not None:
+            risk_type, details = result
             self._append_risk_flag(
                 payment,
-                risk_type="amount_mismatch",
-                details={
-                    "expected": str(expected_amount),
-                    "received": str(provider_amount),
-                    "source": "integrity_gate",
-                },
+                risk_type=risk_type,
+                details=details,
                 actor=actor,
             )
-            return "amount_mismatch"
-
-        # --- Check 2: currency (case-insensitive) ---
-        provider_currency = str(provider_data.get("currency") or "").strip()
-        expected_currency = (
-            snapshot.get("currency") or payment.currency or ""
-        ).strip()
-        if provider_currency and expected_currency and (
-            provider_currency.upper() != expected_currency.upper()
-        ):
-            self._append_risk_flag(
-                payment,
-                risk_type="currency_mismatch",
-                details={
-                    "expected": expected_currency,
-                    "received": provider_currency,
-                    "source": "integrity_gate",
-                },
-                actor=actor,
-            )
-            return "currency_mismatch"
-
-        # --- Check 3: non-empty provider reference ---
-        lenco_reference = str(
-            provider_data.get("lencoReference") or ""
-        ).strip()
-        if not lenco_reference:
-            self._append_risk_flag(
-                payment,
-                risk_type="missing_provider_reference",
-                details={
-                    "source": "integrity_gate",
-                },
-                actor=actor,
-            )
-            return "missing_provider_reference"
-
-        # --- Check 4: snapshot presence (advisory) ---
-        if not snapshot:
-            logger.info(
-                "Integrity gate: payment %s has no metadata.snapshot "
-                "(pre-hardening row); proceeding without snapshot check",
-                payment.id,
-            )
-
+            return risk_type
         return None
 
     def _append_risk_flag(
@@ -2451,7 +1408,7 @@ class PaymentService:
 
         Unlike ``_record_payment_risk`` this helper also emits the
         ``payment.risk_flag`` audit entry for governance-grade querying.
-        Safe to call inside ``_transition``'s outer ``atomic()`` block.
+        Safe to call inside the outer ``atomic()`` block of ``_transition``.
         """
         self._record_payment_risk(
             payment,
@@ -2476,21 +1433,7 @@ class PaymentService:
         metadata: dict,
         retention_category: str = "standard",
     ) -> None:
-        """Write a payment audit row to ``audit_logs``.
-
-        Thin delegation shim around
-        :class:`apps.documents.payment_audit_service.PaymentAuditService`.
-        The heavy lifting (PII redaction, retention promotion, swallowing
-        audit-writer errors) lives in ``PaymentAuditService`` so every
-        emitter inherits the same redaction rules (R17.4, R22.4).
-
-        This method is kept as a thin wrapper so existing call sites
-        (``_transition``, ``_record_payment_risk``, force-approve,
-        reconciliation, receipt generation, etc.) and their tests keep
-        working with the previous signature.
-
-        Requirements: R17.1, R17.4, R22.4.
-        """
+        """Write a payment audit row via ``PaymentAuditService``."""
         from apps.documents.payment_audit_service import PaymentAuditService
 
         PaymentAuditService.record_payment_event(
@@ -2507,16 +1450,8 @@ class PaymentService:
     def _generate_receipt_idempotent(self, payment: Payment) -> str:
         """Allocate a receipt number for ``payment`` if one is not set.
 
-        Returns the existing ``receipt_number`` when present (R13.2).
-        Otherwise generates a 12-character base32 string from
-        ``secrets.token_bytes(8)`` (~60 bits entropy), persists it, and
-        emits a ``payment.receipt.generated`` audit entry.
-
-        Uniqueness is enforced by ``uq_payments_receipt_number`` (Phase 1
-        of the payment-hardening rollout). On ``IntegrityError`` the call
-        retries up to 3 times with a fresh random value (R13.3).
-
-        Requirements: R13.1–R13.6.
+        Returns existing ``receipt_number`` when present. Otherwise generates
+        a 12-char base32 string, retries up to 3 times on collision.
         """
         if payment.receipt_number:
             return payment.receipt_number
@@ -2557,10 +1492,6 @@ class PaymentService:
         raise last_error if last_error else RuntimeError(
             "Failed to generate a unique receipt number after 3 attempts"
         )
-
-    # ------------------------------------------------------------------
-    # Legacy internal helpers
-    # ------------------------------------------------------------------
 
     def _record_payment_risk(
         self,

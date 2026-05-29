@@ -24,6 +24,7 @@ import {
 } from '@/services/communications'
 import { normalizeNotificationContent, notificationService } from '@/services/notifications'
 import { formatRelative } from '@/lib/dateFormat'
+import { getTimelineStatusColor } from '@/lib/statusColors'
 
 // ─── Props ───
 
@@ -62,24 +63,6 @@ const TYPE_CONFIG: Record<NotificationType, { icon: React.ReactNode; color: stri
 function getTypeConfig(type: string | null | undefined) {
   if (type && type in TYPE_CONFIG) return TYPE_CONFIG[type as NotificationType]
   return TYPE_CONFIG.info
-}
-
-// ─── Status color mapping (reused from History page) ───
-
-const STATUS_COLORS: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800/40 dark:text-gray-400',
-  submitted: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  under_review: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  approved: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  rejected: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  waitlisted: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-}
-
-const UNKNOWN_STATUS_COLOR = 'bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400'
-
-function getStatusColor(status: string | null | undefined): string {
-  if (!status) return UNKNOWN_STATUS_COLOR
-  return STATUS_COLORS[status] ?? UNKNOWN_STATUS_COLOR
 }
 
 function formatStatus(status: string | null | undefined): string {
@@ -454,14 +437,14 @@ export default function AdminCommunicationsPanel({
                   <li key={entry.id} className="flex items-start gap-3 px-2 py-3">
                     <div className="mt-0.5 flex shrink-0 items-center gap-1">
                       <span
-                        className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${getStatusColor(entry.old_status)}`}
+                        className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${getTimelineStatusColor(entry.old_status)}`}
                       >
                         {formatStatus(entry.old_status)}
                       </span>
                       <ArrowRight className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
                       <span className="sr-only">changed to</span>
                       <span
-                        className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${getStatusColor(entry.new_status)}`}
+                        className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${getTimelineStatusColor(entry.new_status)}`}
                       >
                         {formatStatus(entry.new_status)}
                       </span>

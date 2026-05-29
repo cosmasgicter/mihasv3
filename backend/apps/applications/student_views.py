@@ -1,14 +1,14 @@
-"""Student-facing application views — re-export shim.
+"""Student-facing application views - re-export shim.
 
 Decomposed during Stream 9 backend module decomposition.
 All view classes are re-exported here so that existing imports continue to work.
 
 Split files:
-  - student_draft_views.py       — ApplicationDetailView, ApplicationDetailsView, ApplicationDraftView
-  - student_submission_views.py  — ApplicationSubmitView, ApplicationPreviewSummaryView, ApplicationSummaryView, ApplicationGradesView
-  - student_amendment_views.py   — ApplicationAmendmentView
-  - student_withdrawal_views.py  — ApplicationWithdrawView, ApplicationWaitlistPositionView, ApplicationConditionsView, ApplicationConfirmEnrollmentView
-  - student_document_views.py    — ApplicationDocumentsView, EmailSlipView
+  - student_draft_views.py       - ApplicationDetailView, ApplicationDetailsView, ApplicationDraftView
+  - student_submission_views.py  - ApplicationSubmitView, ApplicationPreviewSummaryView, ApplicationSummaryView, ApplicationGradesView
+  - student_amendment_views.py   - ApplicationAmendmentView
+  - student_withdrawal_views.py  - ApplicationWithdrawView, ApplicationWaitlistPositionView, ApplicationConditionsView, ApplicationConfirmEnrollmentView
+  - student_document_views.py    - ApplicationDocumentsView, EmailSlipView
 """
 
 from apps.applications.student_draft_views import (  # noqa: F401

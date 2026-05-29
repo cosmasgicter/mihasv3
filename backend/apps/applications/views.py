@@ -6,12 +6,12 @@ and shared helpers are re-exported here so that existing URL
 configurations and test imports continue to work unchanged.
 
 Split files:
-  - student_views.py   — student-facing CRUD, submission, withdrawal, etc.
-  - admin_views.py     — admin review, bulk status, export, assignment, etc.
-  - interview_views.py — interview list and CRUD
-  - document_views.py  — document verification, acceptance letter, receipt
-  - public_views.py    — unauthenticated application tracking
-  - _view_helpers.py   — shared helpers, serializers, envelope types
+  - student_views.py   - student-facing CRUD, submission, withdrawal, etc.
+  - admin_views.py     - admin review, bulk status, export, assignment, etc.
+  - interview_views.py - interview list and CRUD
+  - document_views.py  - document verification, acceptance letter, receipt
+  - public_views.py    - unauthenticated application tracking
+  - _view_helpers.py   - shared helpers, serializers, envelope types
 """
 
 from apps.applications.student_views import *  # noqa: F401,F403

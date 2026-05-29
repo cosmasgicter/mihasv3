@@ -6,7 +6,7 @@
  */
 
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { formatDateMedium } from '@/lib/dateFormat';
 import { Check, Clock, AlertCircle, Circle, Loader2 } from 'lucide-react';
 
 type TimelineStatus = 'completed' | 'current' | 'pending' | 'error';
@@ -213,8 +213,7 @@ function HorizontalTimeline({
 
 // Helper to format dates
 function formatDate(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return format(d, 'MMM d, yyyy');
+  return formatDateMedium(date);
 }
 
 // Simple timeline item for custom layouts

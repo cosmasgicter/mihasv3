@@ -7,6 +7,7 @@ Requirements: 11.5
 from rest_framework import serializers
 
 from apps.accounts.models import Profile
+from apps.common.serializer_fields import SexField
 from apps.common.validators import normalize_nationality, validate_zambian_phone
 
 
@@ -123,8 +124,7 @@ class ProfileUpdateSerializer(serializers.Serializer):
         required=False, allow_blank=True, max_length=20
     )
     date_of_birth = serializers.DateField(required=False, allow_null=True)
-    sex = serializers.ChoiceField(
-        choices=["Male", "Female"],
+    sex = SexField(
         required=False,
         allow_blank=True,
     )

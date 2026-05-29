@@ -14,6 +14,7 @@ import {
   Button,
   Textarea,
 } from '@/components/ui'
+import { toError } from '@/lib/toError'
 
 interface ApplicationApprovalActionsProps {
   applicationId: string
@@ -150,7 +151,7 @@ export function ApplicationApprovalActions({
       // Show error to user
       await confirmDialog.confirm({
         title: 'Update Failed',
-        message: error instanceof Error ? error.message : 'Failed to update application status. Please try again.',
+        message: toError(error).message || 'Failed to update application status. Please try again.',
         confirmText: 'OK',
         variant: 'danger'
       })
@@ -192,7 +193,7 @@ export function ApplicationApprovalActions({
       handlePaymentDialogOpenChange(false)
     } catch (error) {
       logApiError('admin-approval-actions', `/applications/${applicationId}/review/`, error)
-      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorMessage = toError(error).message
       const isNoPaymentRecord = errorMessage.includes('PAYMENT_RECORD_REQUIRED') || errorMessage.toLowerCase().includes('no payment record')
       await confirmDialog.confirm({
         title: isNoPaymentRecord ? 'No Payment Record' : 'Update Failed',
@@ -295,6 +296,32 @@ export function ApplicationApprovalActions({
                   <>
                     <XCircle className="h-3 w-3" />
                     Reject
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleStatusUpdate('conditionally_approved')}
+                disabled={updatingStatus || disabled}
+                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+              >
+                {updatingStatus ? 'Updating...' : (
+                  <>
+                    <Clock className="h-3 w-3" />
+                    Conditional
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleStatusUpdate('waitlisted')}
+                disabled={updatingStatus || disabled}
+                className="w-full border-amber-300 text-amber-700 hover:bg-amber-50"
+              >
+                {updatingStatus ? 'Updating...' : (
+                  <>
+                    <Clock className="h-3 w-3" />
+                    Waitlist
                   </>
                 )}
               </Button>

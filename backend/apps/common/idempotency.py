@@ -99,7 +99,7 @@ def idempotent(view_func):
                     status=IdempotencyKey.PENDING,
                 )
             except IntegrityError:
-                # Lost race — another request created it first
+                # Lost race - another request created it first
                 return JsonResponse(
                     {"success": False, "error": "Request already in progress", "code": "IDEMPOTENCY_PENDING"},
                     status=409,

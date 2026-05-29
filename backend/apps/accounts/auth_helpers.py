@@ -80,7 +80,7 @@ def _generate_csrf_token(user) -> str:
     The token is stored in the ``csrf_tokens`` table keyed to the user, with
     a 24-hour expiry. The raw token is returned to the caller (typically
     placed in the ``X-CSRF-Token`` response header) and is never persisted
-    in the database — only its SHA-256 hash.
+    in the database - only its SHA-256 hash.
     """
     if not isinstance(user, Profile):
         user = Profile.objects.get(id=user.id)

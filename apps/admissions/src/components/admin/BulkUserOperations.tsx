@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useUserManagement } from '@/hooks/useUserManagement'
 import { UserProfile } from '@/types/database'
 import { Users, Shield, Trash2, CheckSquare, Square, AlertTriangle } from 'lucide-react'
+import { toError } from '@/lib/toError'
 
 interface BulkUserOperationsProps {
   users: UserProfile[]
@@ -74,7 +75,7 @@ export function BulkUserOperations({
       onSelectionChange([])
       onOperationComplete()
     } catch (error) {
-      setOperationResult({ success: 0, failed: selectedUsers.length, errors: [error instanceof Error ? error.message : 'Role update failed'] })
+      setOperationResult({ success: 0, failed: selectedUsers.length, errors: [toError(error).message || 'Role update failed'] })
     } finally {
       setShowRoleDialog(false)
       setConfirmationToken(null)
@@ -90,7 +91,7 @@ export function BulkUserOperations({
       onSelectionChange([])
       onOperationComplete()
     } catch (error) {
-      setOperationResult({ success: 0, failed: selectedUsers.length, errors: [error instanceof Error ? error.message : 'Deactivation failed'] })
+      setOperationResult({ success: 0, failed: selectedUsers.length, errors: [toError(error).message || 'Deactivation failed'] })
     } finally {
       setShowDeleteDialog(false)
       setConfirmationToken(null)

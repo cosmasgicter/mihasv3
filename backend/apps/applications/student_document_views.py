@@ -117,7 +117,45 @@ class ApplicationDocumentsView(APIView):
         docs = ApplicationDocument.objects.select_related('application', 'verified_by').filter(application_id=application_id).exclude(
             verification_status='deleted'
         )
-        return Response({"success": True, "data": DocumentSerializer(docs, many=True).data})
+        serialized = DocumentSerializer(docs, many=True).data
+
+        # Synthesize entries for legacy applications whose ``result_slip_url``
+        # or ``extra_kyc_url`` was set on the Application row directly without
+        # a matching ApplicationDocument record. These entries get a fresh
+        # short-lived signed URL inline so the frontend never has to open a
+        # raw private R2/S3 URL (which always 403s).
+        existing_urls = {d.get("file_url") for d in serialized if d.get("file_url")}
+        existing_types = {d.get("document_type") for d in serialized if d.get("document_type")}
+        legacy_pairs = [
+            ("result_slip", "Result Slip", getattr(app, "result_slip_url", None)),
+            ("extra_kyc", "Identity Support Document", getattr(app, "extra_kyc_url", None)),
+        ]
+        synthesized: list[dict] = []
+        for doc_type, doc_name, file_url in legacy_pairs:
+            if not file_url or file_url in existing_urls or doc_type in existing_types:
+                continue
+            try:
+                from apps.common.storage import (
+                    generate_signed_url,
+                    get_document_storage_key,
+                )
+
+                key = get_document_storage_key(type("Synth", (), {"file_url": file_url})())
+                signed = generate_signed_url(key) if key else None
+            except Exception:
+                signed = None
+            synthesized.append({
+                "id": f"legacy:{doc_type}:{app.id}",
+                "application": str(app.id),
+                "document_type": doc_type,
+                "document_name": doc_name,
+                "file_url": signed or file_url,
+                "verification_status": "pending",
+                "system_generated": False,
+                "is_legacy_synthetic": True,
+            })
+
+        return Response({"success": True, "data": serialized + synthesized})
 
 
 # ---------------------------------------------------------------------------

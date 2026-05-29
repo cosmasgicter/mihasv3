@@ -10,7 +10,6 @@ import json
 import logging
 import uuid
 from decimal import Decimal
-from urllib.parse import unquote, urlparse
 
 from django.conf import settings
 from django.db.models import Q
@@ -117,28 +116,6 @@ def _get_authorized_document(request, view, document_id):
     return document, None
 
 
-def _get_document_storage_key(document):
-    """Convert persisted file URLs/keys into a MediaStorage-relative file name."""
-    raw_file_url = (getattr(document, "file_url", None) or "").strip()
-    if not raw_file_url:
-        return ""
-
-    if raw_file_url.startswith(("http://", "https://")):
-        key = unquote(urlparse(raw_file_url).path.lstrip("/"))
-    else:
-        key = raw_file_url.lstrip("/")
-
-    bucket_name = getattr(settings, "AWS_STORAGE_BUCKET_NAME", "")
-    if bucket_name and key.startswith(f"{bucket_name}/"):
-        key = key[len(bucket_name) + 1:]
-
-    # MediaStorage uses location='media', so strip the prefix to avoid media/media/...
-    if key.startswith("media/"):
-        key = key[len("media/"):]
-
-    return key
-
-
 DocumentResponseSerializer = envelope_serializer(
     "DocumentResponse",
     DocumentSerializer(),
@@ -160,7 +137,7 @@ PaymentResponseSerializer = envelope_serializer(
 
 
 class LencoWebhookView(APIView):
-    """POST /api/v1/payments/webhook/lenco/ — receive Lenco webhook events.
+    """POST /api/v1/payments/webhook/lenco/ - receive Lenco webhook events.
 
     Unauthenticated (AllowAny). Validates X-Lenco-Signature header via
     WebhookProcessor. Returns 200 for every syntactically valid delivery so

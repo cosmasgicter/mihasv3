@@ -10,7 +10,6 @@ import json
 import logging
 import uuid
 from decimal import Decimal
-from urllib.parse import unquote, urlparse
 
 from django.conf import settings
 from django.db.models import Q
@@ -25,6 +24,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
 from apps.common.pagination import StandardPagination
 from apps.documents.models import ApplicationDocument, Payment, ProgramFee
+from apps.documents.payment_constants import COMPLETED_PAYMENT_STATUSES
 from apps.documents.serializers import (
     DocumentSerializer,
     DocumentUploadSerializer,
@@ -117,28 +117,6 @@ def _get_authorized_document(request, view, document_id):
     return document, None
 
 
-def _get_document_storage_key(document):
-    """Convert persisted file URLs/keys into a MediaStorage-relative file name."""
-    raw_file_url = (getattr(document, "file_url", None) or "").strip()
-    if not raw_file_url:
-        return ""
-
-    if raw_file_url.startswith(("http://", "https://")):
-        key = unquote(urlparse(raw_file_url).path.lstrip("/"))
-    else:
-        key = raw_file_url.lstrip("/")
-
-    bucket_name = getattr(settings, "AWS_STORAGE_BUCKET_NAME", "")
-    if bucket_name and key.startswith(f"{bucket_name}/"):
-        key = key[len(bucket_name) + 1:]
-
-    # MediaStorage uses location='media', so strip the prefix to avoid media/media/...
-    if key.startswith("media/"):
-        key = key[len("media/"):]
-
-    return key
-
-
 DocumentResponseSerializer = envelope_serializer(
     "DocumentResponse",
     DocumentSerializer(),
@@ -160,7 +138,7 @@ PaymentResponseSerializer = envelope_serializer(
 
 
 class MobileMoneyInitiateView(APIView):
-    """POST /api/v1/payments/mobile-money/ — initiate mobile money collection.
+    """POST /api/v1/payments/mobile-money/ - initiate mobile money collection.
 
     Creates a pending Payment record then calls the Lenco mobile money API.
     The student authorizes the payment on their phone (pay-offline flow).
@@ -180,13 +158,13 @@ class MobileMoneyInitiateView(APIView):
 
 
     def _hardened_post(self, request, application_id, phone_raw):
-        """Forward-only path — delegate to ``PaymentService.initiate_mobile_money``.
+        """Forward-only path - delegate to ``PaymentService.initiate_mobile_money``.
 
         The service handles normalisation, operator derivation, Lenco HTTP
         call, and ``mark_provider_initiation``. This view only shapes the
         HTTP envelope with stable codes and metric counters.
 
-        Any ``operator`` field submitted by the client is ignored — the
+        Any ``operator`` field submitted by the client is ignored - the
         backend is the sole authority on operator classification.
         """
         from apps.applications.models import Application
@@ -228,8 +206,8 @@ class MobileMoneyInitiateView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Already-paid fast path — mirrors the legacy behaviour.
-        if application.payment_status in ("successful", "verified", "force_approved"):
+        # Already-paid fast path - mirrors the legacy behaviour.
+        if application.payment_status in COMPLETED_PAYMENT_STATUSES:
             return Response(
                 {
                     "success": True,
@@ -252,7 +230,7 @@ class MobileMoneyInitiateView(APIView):
         except ValueError as exc:
             error_msg = str(exc)
             if error_msg == "PROVIDER_UNAVAILABLE":
-                # Unknown MSISDN prefix — no Airtel/MTN match.
+                # Unknown MSISDN prefix - no Airtel/MTN match.
                 payment_metrics.increment(
                     "payment.provider.rejected",
                     tags={"endpoint": "mobile_money"},
@@ -359,7 +337,7 @@ class MobileMoneyInitiateView(APIView):
         # recorded by the service; status drives HTTP and next_action.
         try:
             payment = Payment.objects.get(id=result.payment_id)
-        except Payment.DoesNotExist:  # pragma: no cover — defensive
+        except Payment.DoesNotExist:  # pragma: no cover - defensive
             logger.warning(
                 "Payment %s not found after initiate_mobile_money",
                 result.payment_id,
@@ -455,7 +433,7 @@ class MobileMoneyInitiateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # not_started / sent / anything else — pending, still in flight.
+        # not_started / sent / anything else - pending, still in flight.
         payment_metrics.increment(
             "payment.provider.unknown",
             tags={"endpoint": "mobile_money", "provider_status": "unknown"},

@@ -1,7 +1,7 @@
 """JWT authentication backend for DRF.
 
 Extracts JWT from HTTP-only cookies (access_token) or Authorization Bearer header.
-Sets request.user with role and permissions from JWT payload — no database lookup.
+Sets request.user with role and permissions from JWT payload - no database lookup.
 
 Implements task 9.1.
 Requirements: 2.1, 3.1
@@ -88,11 +88,11 @@ def validate_csrf_token_for_user(user_id: str, csrf_token: str | None) -> None:
         user_id=user_id,
     ).exists()
 
-    # Best-effort cache write — never blocks the request.
+    # Best-effort cache write - never blocks the request.
     try:
         cache.set(cache_key, "1" if exists else "0", timeout=60)
     except Exception:
-        pass
+        logger.exception("CSRF cache write failed for key=%s", cache_key)
 
     if not exists:
         raise CSRFPermissionDenied(

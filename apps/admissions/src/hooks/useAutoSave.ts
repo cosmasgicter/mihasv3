@@ -4,6 +4,7 @@ import { stripPiiFields } from '@/lib/secureStorage'
 import { cachedGetItem, cachedSetItem, cachedRemoveItem } from '@/lib/localStorageCache'
 import { AuthenticationError } from '@/services/client'
 import { logger } from '@/lib/logger'
+import { toError } from '@/lib/toError'
 
 export interface AutoSaveData {
   [key: string]: unknown
@@ -240,7 +241,7 @@ export function useAutoSave(
       logger.error('Auto-save failed:', error)
       if (mountedRef.current) {
         setSaveStatus('error')
-        setSaveError(error instanceof Error ? error.message : 'Save failed')
+        setSaveError(toError(error).message || 'Save failed')
         const nextAttempts = saveAttemptsRef.current + 1
         saveAttemptsRef.current = nextAttempts
         setSaveAttempts(nextAttempts)

@@ -1,4 +1,4 @@
-"""Conditional acceptance — offer subject to conditions being met."""
+"""Conditional acceptance - offer subject to conditions being met."""
 
 from html import escape
 

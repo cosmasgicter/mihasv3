@@ -36,7 +36,7 @@ def paragraph(text: str, *, muted: bool = False) -> str:
 
 
 def section_heading(text: str) -> str:
-    """Section heading — serif, semibold, institutional."""
+    """Section heading - serif, semibold, institutional."""
     return f"""
 <h2 style="margin:0 0 {t.SPACE_MD} 0;font-family:{t.FONT_DISPLAY};
            font-size:{t.TYPE_HEADING_SIZE};line-height:{t.TYPE_HEADING_LINE};
@@ -48,7 +48,7 @@ def section_heading(text: str) -> str:
 
 
 def divider() -> str:
-    """Thin hairline divider — uses a table for Outlook compatibility."""
+    """Thin hairline divider - uses a table for Outlook compatibility."""
     return f"""
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
        style="margin:{t.SPACE_LG} 0;">
@@ -66,7 +66,7 @@ def divider() -> str:
 
 
 def cta_button(label: str, href: str) -> str:
-    """Primary CTA — large dark button, full-width on mobile.
+    """Primary CTA - large dark button, full-width on mobile.
 
     Uses MSO conditional comments so Outlook classic renders the button as
     a proper VML shape instead of a broken hyperlink.
@@ -191,7 +191,7 @@ def derive_division(program: str | None) -> str | None:
     MIHAS's paper-form convention where the footer for a nursing
     acceptance reads "On behalf of … , School of Nursing".
 
-    Returns None when no mapping is found — caller omits the division line.
+    Returns None when no mapping is found - caller omits the division line.
     """
     if not program:
         return None
@@ -220,7 +220,7 @@ def signature_block(
 
     Dr Solomon Musonda is the Managing Director for both MIHAS and KATC.
     The "MD" postnominal matches the signature convention on MIHAS's
-    official application form — "Dr Solomon Musonda, MD".
+    official application form - "Dr Solomon Musonda, MD".
 
     Callers should pass the specific institution name for the document
     being sent (MIHAS for MIHAS applicants, KATC for KATC applicants).
@@ -260,7 +260,7 @@ def signature_block(
 
 
 def ordered_list(items: list[str]) -> str:
-    """Numbered list with gold accent numbers — matches PDF next-steps pattern."""
+    """Numbered list with gold accent numbers - matches PDF next-steps pattern."""
     row_html = "".join(
         f"""
 <tr>
@@ -295,7 +295,7 @@ def ordered_list(items: list[str]) -> str:
 def to_plain_text(html: str) -> str:
     """Strip HTML tags and collapse whitespace for a plain-text fallback.
 
-    Not a full HTML-to-text converter — intentionally simple because our own
+    Not a full HTML-to-text converter - intentionally simple because our own
     components produce predictable markup.
     """
     import re
@@ -307,7 +307,7 @@ def to_plain_text(html: str) -> str:
     html = re.sub(r"<(br|tr|/p|/div|/table|/h[1-6])[^>]*>", "\n", html, flags=re.I)
     # Strip remaining tags.
     html = re.sub(r"<[^>]+>", "", html)
-    # Decode HTML entities (e.g. &mdash; → —, &amp; → &)
+    # Decode HTML entities (e.g. &mdash; → -, &amp; → &)
     html = unescape(html)
     # Normalize whitespace.
     html = re.sub(r"[ \t]+", " ", html)

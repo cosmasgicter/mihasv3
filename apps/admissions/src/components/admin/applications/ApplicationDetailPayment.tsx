@@ -186,12 +186,16 @@ export function FeeWaiverDialog({ open, onClose, onApply, saving }: FeeWaiverDia
         </div>
       </div>
       <div>
-        <label className="text-xs text-foreground block mb-1">Discount %</label>
-        <input type="number" min={1} max={100} value={form.discount_percentage} onChange={e => setForm(f => ({ ...f, discount_percentage: Number(e.target.value) }))} className="w-24 rounded border border-border bg-background px-2 py-1.5 text-sm" />
+        <label htmlFor="fee-waiver-discount-percentage" className="text-xs text-foreground block mb-1">Discount %</label>
+        <input id="fee-waiver-discount-percentage" type="number" min={1} max={100} value={form.discount_percentage} onChange={e => setForm(f => ({ ...f, discount_percentage: Number(e.target.value) }))} className="w-24 rounded border border-border bg-background px-2 py-1.5 text-sm" />
       </div>
       <div className="flex gap-2">
-        <button onClick={() => onApply(form)} disabled={saving} className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-lg disabled:opacity-50">{saving ? 'Saving…' : 'Apply'}</button>
-        <button onClick={onClose} className="text-xs px-3 py-1.5 rounded-lg border border-border">Cancel</button>
+        <Button size="sm" onClick={() => onApply(form)} disabled={saving} loading={saving}>
+          Apply
+        </Button>
+        <Button variant="outline" size="sm" onClick={onClose}>
+          Cancel
+        </Button>
       </div>
     </div>
   )

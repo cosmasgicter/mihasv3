@@ -23,7 +23,7 @@ CONDITIONALLY_APPROVABLE_STATUSES = {"under_review", "waitlisted"}
 # Valid condition types (Req 5.2).
 VALID_CONDITION_TYPES = {"document", "payment", "academic", "other"}
 
-# Terminal condition statuses — a condition is resolved when in one of these.
+# Terminal condition statuses - a condition is resolved when in one of these.
 TERMINAL_CONDITION_STATUSES = {"met", "waived", "expired"}
 
 # Statuses that count as successfully resolved (for auto-promotion).
@@ -153,7 +153,7 @@ class ConditionManager:
 
         Args:
             condition_id: UUID of the condition.
-            status: Target status — must be 'met' or 'waived'.
+            status: Target status - must be 'met' or 'waived'.
             admin_id: UUID of the admin verifying.
 
         Returns:
