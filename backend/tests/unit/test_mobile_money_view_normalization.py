@@ -144,21 +144,17 @@ def test_normalize_phone_e164_rejects_none() -> None:
 @pytest.mark.parametrize(
     ("msisdn", "expected_operator"),
     [
-        # MTN prefixes.
-        ("+260977000000", "mtn"),
+        # MTN prefixes (ZICTA numbering plan: 96, 76).
+        ("+260960000000", "mtn"),
         ("+260760000000", "mtn"),
-        # Airtel prefixes.
-        ("+260960000000", "airtel"),
-        ("+260950000000", "airtel"),
-        ("+260750000000", "airtel"),
+        # Airtel prefixes (ZICTA numbering plan: 97, 77).
+        ("+260970000000", "airtel"),
         ("+260770000000", "airtel"),
     ],
     ids=[
-        "mtn-97",
+        "mtn-96",
         "mtn-76",
-        "airtel-96",
-        "airtel-95",
-        "airtel-75",
+        "airtel-97",
         "airtel-77",
     ],
 )
@@ -166,6 +162,10 @@ def test_operator_for_msisdn_maps_known_prefix(
     msisdn: str, expected_operator: str,
 ) -> None:
     """Known MTN/Airtel prefixes resolve to the correct operator string.
+
+    Mapping follows the ZICTA national numbering plan: 96/76 -> MTN,
+    97/77 -> Airtel. (Earlier code inverted 96/97, which made Lenco return
+    "Account details was not found" because the operator was wrong.)
 
     Validates: Requirements R11.6
     """
@@ -179,12 +179,16 @@ def test_operator_for_msisdn_maps_known_prefix(
         "+260100000000",   # 10 — out of range
         "+260220000000",   # 22 — unknown prefix
         "+260000000000",   # 00 — clearly invalid prefix
+        "+260950000000",   # 95 — Zamtel (no Lenco mobile money)
+        "+260750000000",   # 75 — Zamtel (no Lenco mobile money)
     ],
     ids=[
         "prefix-90",
         "prefix-10",
         "prefix-22",
         "prefix-00",
+        "zamtel-95",
+        "zamtel-75",
     ],
 )
 def test_operator_for_msisdn_rejects_unknown_prefix(msisdn: str) -> None:
@@ -226,6 +230,24 @@ def test_operator_for_msisdn_rejects_malformed_e164(msisdn: str) -> None:
     with pytest.raises(ValueError) as excinfo:
         _operator_for_msisdn(msisdn)
     assert "PROVIDER_UNAVAILABLE" in str(excinfo.value)
+
+
+# ---------------------------------------------------------------------------
+# Env override for operator prefixes (ops can correct routing w/o redeploy)
+# ---------------------------------------------------------------------------
+
+
+def test_operator_prefix_env_override(settings) -> None:
+    """``LENCO_MTN_PREFIXES`` / ``LENCO_AIRTEL_PREFIXES`` override defaults.
+
+    Lets ops re-route an operator prefix without a code deploy if Lenco's
+    routing ever diverges from the ZICTA plan.
+    """
+    # Swap 96 to Airtel and 97 to MTN via env (inverse of the default).
+    settings.LENCO_AIRTEL_PREFIXES = "96"
+    settings.LENCO_MTN_PREFIXES = "97"
+    assert _operator_for_msisdn("+260960000000") == "airtel"
+    assert _operator_for_msisdn("+260970000000") == "mtn"
 
 
 # ---------------------------------------------------------------------------

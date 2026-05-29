@@ -605,6 +605,11 @@ LENCO_API_BASE_URL = os.environ.get(
 LENCO_PUBLIC_KEY = os.environ.get("LENCO_PUBLIC_KEY", "")
 LENCO_SANDBOX = os.environ.get("LENCO_SANDBOX", "").lower() in ("1", "true", "yes")
 LENCO_WEBHOOK_ALLOWED_IPS = split_csv_env("LENCO_WEBHOOK_ALLOWED_IPS")
+# Optional operator-prefix overrides (comma-separated two-digit MSISDN
+# prefixes after +260). Defaults follow the ZICTA numbering plan:
+# MTN 96/76, Airtel 97/77. Override only if Lenco routing diverges.
+LENCO_MTN_PREFIXES = os.environ.get("LENCO_MTN_PREFIXES", "")
+LENCO_AIRTEL_PREFIXES = os.environ.get("LENCO_AIRTEL_PREFIXES", "")
 
 # Vercel AI Gateway
 AI_GATEWAY_API_KEY = os.environ.get("AI_GATEWAY_API_KEY", "")

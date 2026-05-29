@@ -60,12 +60,14 @@ def _parse_amount(value) -> Decimal | None:
 # MSISDN helpers - shared between mobile-money initiation and validators
 # ---------------------------------------------------------------------------
 
-# Two-digit MSISDN prefixes (after +260) for each operator. Sourced from
-# Lenco's country documentation for Zambia. Kept deliberately narrow -
-# numbers outside these prefixes must be rejected with ``PROVIDER_UNAVAILABLE``
-# rather than guessed.
-_AIRTEL_PREFIXES: frozenset[str] = frozenset({"95", "96", "75", "77"})
-_MTN_PREFIXES: frozenset[str] = frozenset({"97", "76"})
+# Two-digit MSISDN prefixes (after +260) for each operator, per the ZICTA
+# national numbering plan: 96/76 = MTN, 97/77 = Airtel, 95/75 = Zamtel.
+# These are the corrected defaults; ops can override them via the
+# LENCO_*_PREFIXES env vars (read in _operator_for_msisdn) without a redeploy
+# if Lenco's operator routing ever diverges from the public plan.
+_AIRTEL_PREFIXES: frozenset[str] = frozenset({"97", "77"})
+_MTN_PREFIXES: frozenset[str] = frozenset({"96", "76"})
+_ZAMTEL_PREFIXES: frozenset[str] = frozenset({"95", "75"})
 
 
 def _normalize_phone_e164(phone_raw: str) -> str:
@@ -110,22 +112,44 @@ def _normalize_phone_e164(phone_raw: str) -> str:
     raise ValueError("INVALID_PHONE_FORMAT")
 
 
+def _operator_prefix_overrides() -> tuple[frozenset[str], frozenset[str]]:
+    """Read optional env overrides for operator prefix sets.
+
+    ``LENCO_MTN_PREFIXES`` / ``LENCO_AIRTEL_PREFIXES`` are comma-separated
+    two-digit prefixes (e.g. ``"96,76"``). When unset, the ZICTA defaults
+    apply. Lets ops correct routing without a redeploy.
+    """
+    from django.conf import settings
+
+    def _parse(raw: str | None, fallback: frozenset[str]) -> frozenset[str]:
+        if not raw:
+            return fallback
+        parts = {p.strip() for p in raw.split(",") if p.strip()}
+        return frozenset(parts) or fallback
+
+    mtn = _parse(getattr(settings, "LENCO_MTN_PREFIXES", ""), _MTN_PREFIXES)
+    airtel = _parse(getattr(settings, "LENCO_AIRTEL_PREFIXES", ""), _AIRTEL_PREFIXES)
+    return mtn, airtel
+
+
 def _operator_for_msisdn(phone_e164: str) -> str:
     """Derive the operator (``airtel`` / ``mtn``) from an E.164 MSISDN.
 
     Expects the output shape of ``_normalize_phone_e164`` - i.e. ``+260``
     followed by 9 digits. The two digits immediately after ``+260`` identify
-    the operator.
+    the operator per the ZICTA numbering plan (96/76 MTN, 97/77 Airtel).
 
     Raises ``ValueError("PROVIDER_UNAVAILABLE")`` when the prefix is not a
-    recognised Airtel or MTN Zambia range.
+    recognised Airtel or MTN Zambia range (Zamtel mobile money is not
+    supported by Lenco, so 95/75 also raise).
     """
     if not phone_e164 or not phone_e164.startswith("+260") or len(phone_e164) != 13:
         raise ValueError("PROVIDER_UNAVAILABLE")
     prefix = phone_e164[4:6]
-    if prefix in _AIRTEL_PREFIXES:
+    mtn_prefixes, airtel_prefixes = _operator_prefix_overrides()
+    if prefix in airtel_prefixes:
         return "airtel"
-    if prefix in _MTN_PREFIXES:
+    if prefix in mtn_prefixes:
         return "mtn"
     raise ValueError("PROVIDER_UNAVAILABLE")
 
