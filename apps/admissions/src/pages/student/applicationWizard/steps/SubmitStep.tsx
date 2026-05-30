@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { CheckboxWithLabel } from '@/components/ui/checkbox'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { animateClasses } from '@/lib/animations'
+import { isPaymentResolvedForProgress } from '@/lib/paymentStatus'
 import { apiClient } from '@/services/client'
 // eslint-disable-next-line no-restricted-imports -- type import from eligibilityEngine until API-backed replacement is ready
 import type { EligibilityResult } from '@/lib/eligibilityEngine'
@@ -416,7 +417,7 @@ const SubmitStep = ({
         description="You must confirm that the application is accurate before the submit button is enabled."
         padding="sm"
       >
-        {paymentStatus !== 'successful' && paymentStatus !== 'deferred' && (
+        {!isPaymentResolvedForProgress(paymentStatus) && (
           <Alert variant="warning" className="mb-4">
             <AlertTitle className="text-foreground">Payment required</AlertTitle>
             <AlertDescription className="text-muted-foreground">

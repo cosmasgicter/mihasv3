@@ -41,6 +41,20 @@ export function isPaymentVerified(paymentStatus?: string | null) {
   return normalizePaymentStatus(paymentStatus) === 'verified'
 }
 
+/**
+ * Whether payment is "resolved" for wizard progression — i.e. the student
+ * may advance past / submit from the payment step. True when the payment is
+ * verified (covers legacy `verified`/`paid` and canonical
+ * `successful`/`force_approved`) OR the student deferred payment.
+ *
+ * Use this for every wizard payment gate. Branching on the raw
+ * `=== 'successful'` string misses `verified`/`paid`/`force_approved` and
+ * strands students (e.g. admin offline-payment overrides) on the payment step.
+ */
+export function isPaymentResolvedForProgress(paymentStatus?: string | null) {
+  return normalizePaymentStatus(paymentStatus) === 'verified' || paymentStatus === 'deferred'
+}
+
 export function getPaymentStatusLabel(paymentStatus?: string | null) {
   switch (normalizePaymentStatus(paymentStatus)) {
     case 'verified':

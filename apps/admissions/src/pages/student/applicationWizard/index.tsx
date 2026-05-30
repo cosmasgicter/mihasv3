@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageShell } from '@/components/ui/PageShell'
 import { reportError } from '@/lib/errorReporter'
+import { isPaymentResolvedForProgress } from '@/lib/paymentStatus'
 
 import SubmissionSuccess from './components/SubmissionSuccess'
 import { StepChecklist } from './components/StepChecklist'
@@ -242,12 +243,12 @@ const ApplicationWizardContent = () => {
       }
     }
 
-    if (currentStepConfig.key === 'payment' && paymentStatus !== 'successful' && paymentStatus !== 'deferred') {
+    if (currentStepConfig.key === 'payment' && !isPaymentResolvedForProgress(paymentStatus)) {
       errors.push({ field: 'payment', label: 'Payment', message: 'Complete payment confirmation before moving to the review step' })
     }
 
     if (currentStepConfig.key === 'submit') {
-      if (paymentStatus !== 'successful' && paymentStatus !== 'deferred') {
+      if (!isPaymentResolvedForProgress(paymentStatus)) {
         errors.push({ field: 'payment', label: 'Payment', message: 'Payment must be confirmed before you can submit the application' })
       }
       if (uploading) {
@@ -454,11 +455,11 @@ const ApplicationWizardContent = () => {
         ]
       case 2:
         return [
-          { label: paymentChecklistLabel, completed: paymentStatus === 'successful' || paymentStatus === 'deferred' }
+          { label: paymentChecklistLabel, completed: isPaymentResolvedForProgress(paymentStatus) }
         ]
       case 3:
         return [
-          { label: submitPaymentChecklistLabel, completed: paymentStatus === 'successful' || paymentStatus === 'deferred' },
+          { label: submitPaymentChecklistLabel, completed: isPaymentResolvedForProgress(paymentStatus) },
           { label: 'Terms accepted', completed: confirmSubmission }
         ]
       default:
@@ -876,7 +877,7 @@ const ApplicationWizardContent = () => {
 
             <div>
               {!isLastStep ? (
-                <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || (currentStepConfig.key === 'payment' && paymentStatus !== 'successful' && paymentStatus !== 'deferred')} className="min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
+                <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || (currentStepConfig.key === 'payment' && !isPaymentResolvedForProgress(paymentStatus))} className="min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
                   {loading || isUploadBlocking ? nextButtonLabel : (<><span>{nextButtonLabel}</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
                 </Button>
               ) : (

@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
+import { isPaymentResolvedForProgress } from '@/lib/paymentStatus'
 import type { ApplicationFormData, SubjectGrade } from '../types'
 
 export interface StepValidation {
@@ -104,7 +105,7 @@ export const useStepValidation = (
         }
       },
       2: () => {
-        const paymentComplete = paymentStatus === 'successful' || paymentStatus === 'deferred'
+        const paymentComplete = isPaymentResolvedForProgress(paymentStatus)
         return {
           isValid: paymentComplete,
           completedFields: paymentComplete ? 1 : 0,
@@ -113,7 +114,7 @@ export const useStepValidation = (
         }
       },
       3: () => {
-        const paymentComplete = paymentStatus === 'successful' || paymentStatus === 'deferred'
+        const paymentComplete = isPaymentResolvedForProgress(paymentStatus)
         const confirmationComplete = confirmSubmission
         const missing: string[] = []
         if (!paymentComplete) {

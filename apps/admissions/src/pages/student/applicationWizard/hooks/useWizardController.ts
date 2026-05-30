@@ -23,7 +23,7 @@ import { applicationService } from '@/services/applications'
 import type { Application, Intake } from '@/types/database'
 import { logger } from '@/lib/logger'
 import { clearAllDraftData } from '@/lib/draftManager'
-import { generateIdempotencyKey } from '@/lib/paymentStatus'
+import { generateIdempotencyKey, isPaymentResolvedForProgress } from '@/lib/paymentStatus'
 import { useDraftStore } from '@/stores/draftStore'
 import {
   clearStaleApplicationDraftReference,
@@ -1062,7 +1062,7 @@ const useWizardController = (): UseWizardControllerResult => {
         return
       }
 
-      if (paymentStatus !== 'successful' && paymentStatus !== 'deferred') {
+      if (!isPaymentResolvedForProgress(paymentStatus)) {
         const errorMessage = 'Complete and confirm payment before continuing to the review step.'
         setError(errorMessage)
         showError(errorMessage)

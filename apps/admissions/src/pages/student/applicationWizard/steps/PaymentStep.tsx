@@ -8,7 +8,7 @@ import { animateClasses } from '@/lib/animations'
 import { apiClient } from '@/services/client'
 import { useFeeResolver } from '@/hooks/useFeeResolver'
 import { PaymentForm } from '@/components/student/PaymentForm'
-import { isPaymentHardeningUiEnabled } from '@/lib/paymentStatus'
+import { isPaymentHardeningUiEnabled, isPaymentResolvedForProgress } from '@/lib/paymentStatus'
 import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
 import type { WizardFormData } from '../types'
 
@@ -65,7 +65,7 @@ const PaymentStep = ({
   // new initiation attempts and surface the existing payment_id.
   const pendingPaymentIdFromRecovery = recoveredEntry?.payment_id ?? null
 
-  const isPaymentSettledForWizard = polledStatus === 'successful' || polledStatus === 'deferred'
+  const isPaymentSettledForWizard = isPaymentResolvedForProgress(polledStatus)
 
   // Sync local deferred state from polled status (e.g. when navigating back)
   useEffect(() => {
