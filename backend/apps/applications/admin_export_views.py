@@ -5,9 +5,7 @@ Contains views for application listing, review, bulk status, export, grading,
 reviewer assignment, auto-assign, fee waivers, amendment review, and condition verification.
 """
 
-import csv
 import hashlib
-import io
 import logging
 
 from django.db import transaction
@@ -128,44 +126,28 @@ class ApplicationExportView(APIView):
     serializer_class = ApplicationListSerializer
 
     def get(self, request):
-        from django.http import HttpResponse
-
         full_export = is_super_admin(request.user)
         queryset = _with_payment_summary(Application.objects.all()).order_by("-created_at")
         filterset = ApplicationFilter(request.query_params, queryset=queryset)
         queryset = filterset.qs
-        queryset = queryset[:10000]  # Cap export at 10,000 rows
-        output = io.StringIO()
-        writer = csv.writer(output)
-        writer.writerow([
-            "Application Number",
-            "Full Name",
-            "Email",
-            "Phone",
-            "Program",
-            "Intake",
-            "Institution",
-            "Status",
-            "Created At",
-            "Export Scope",
-        ])
-        for app in queryset:
-            full_name = app.full_name if full_export else _redact_name(app.full_name)
-            email = app.email if full_export else _redact_email(app.email)
-            phone = app.phone if full_export else _redact_phone(app.phone)
-            writer.writerow([
-                app.application_number,
-                full_name,
-                email,
-                phone,
-                app.program,
-                app.intake,
-                app.institution,
-                app.status,
-                app.created_at.isoformat() if app.created_at else "",
-                "full" if full_export else "redacted",
-            ])
-        response = HttpResponse(output.getvalue(), content_type="text/csv")
-        response["Content-Disposition"] = 'attachment; filename="applications_export.csv"'
-        return response
+
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        rows = page if page is not None else list(queryset[:10000])
+        serializer = ApplicationListSerializer(rows, many=True)
+        data = serializer.data
+
+        # Preserve role-aware PII redaction: regular admins never see raw
+        # name/email/phone in exports — only super-admins get the full export.
+        if not full_export:
+            for item in data:
+                item["full_name"] = _redact_name(item.get("full_name"))
+                item["email"] = _redact_email(item.get("email"))
+                item["phone"] = _redact_phone(item.get("phone"))
+
+        if page is not None:
+            return paginator.get_paginated_response(data)
+        return Response({"success": True, "data": {
+            "page": 1, "pageSize": len(data), "totalCount": len(data), "results": data,
+        }})
 

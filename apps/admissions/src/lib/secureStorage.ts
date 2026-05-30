@@ -302,7 +302,7 @@ class SecureStorage {
   async keys(): Promise<string[]> {
     try {
       return Object.keys(localStorage)
-        .filter((k) => k.startsWith(this.STORAGE_PREFIX))
+        .filter((k) => k.startsWith(this.STORAGE_PREFIX) && k !== SALT_KEY)
         .map((k) => k.substring(this.STORAGE_PREFIX.length))
     } catch (error) {
       logger.error('Failed to get secure storage keys', { error })

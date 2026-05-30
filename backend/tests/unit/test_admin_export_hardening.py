@@ -56,20 +56,27 @@ class AdminExportHardeningTests(SimpleTestCase):
         queryset = _FakeQuerySet([app])
         request = SimpleNamespace(query_params={}, user=SimpleNamespace(role="admin"))
 
+        rows = [{
+            "full_name": "Jane Mary Doe",
+            "email": "jane@example.com",
+            "phone": "+260971123456",
+        }]
         with (
             patch("apps.applications.admin_views.Application.objects") as objects,
             patch("apps.applications.admin_export_views._with_payment_summary", return_value=queryset),
             patch("apps.applications.admin_export_views.ApplicationFilter", return_value=SimpleNamespace(qs=queryset)),
+            patch("apps.applications.admin_export_views.StandardPagination") as pagination,
+            patch("apps.applications.admin_export_views.ApplicationListSerializer", return_value=SimpleNamespace(data=rows)),
         ):
             objects.all.return_value = queryset
+            paginator = pagination.return_value
+            paginator.paginate_queryset.return_value = None
             response = ApplicationExportView().get(request)
 
-        csv_body = response.content.decode()
-        self.assertIn("J*** M*** D***", csv_body)
-        self.assertIn("j***@example.com", csv_body)
-        self.assertIn("***3456", csv_body)
-        self.assertIn("redacted", csv_body)
-        self.assertNotIn("Jane Mary Doe", csv_body)
+        results = response.data["data"]["results"]
+        self.assertEqual(results[0]["full_name"], "J*** M*** D***")
+        self.assertEqual(results[0]["email"], "j***@example.com")
+        self.assertEqual(results[0]["phone"], "***3456")
 
     def test_super_admin_application_export_is_full(self):
         app = SimpleNamespace(
@@ -86,19 +93,27 @@ class AdminExportHardeningTests(SimpleTestCase):
         queryset = _FakeQuerySet([app])
         request = SimpleNamespace(query_params={}, user=SimpleNamespace(role="super_admin"))
 
+        rows = [{
+            "full_name": "Jane Mary Doe",
+            "email": "jane@example.com",
+            "phone": "+260971123456",
+        }]
         with (
             patch("apps.applications.admin_views.Application.objects") as objects,
             patch("apps.applications.admin_export_views._with_payment_summary", return_value=queryset),
             patch("apps.applications.admin_export_views.ApplicationFilter", return_value=SimpleNamespace(qs=queryset)),
+            patch("apps.applications.admin_export_views.StandardPagination") as pagination,
+            patch("apps.applications.admin_export_views.ApplicationListSerializer", return_value=SimpleNamespace(data=rows)),
         ):
             objects.all.return_value = queryset
+            paginator = pagination.return_value
+            paginator.paginate_queryset.return_value = None
             response = ApplicationExportView().get(request)
 
-        csv_body = response.content.decode()
-        self.assertIn("Jane Mary Doe", csv_body)
-        self.assertIn("jane@example.com", csv_body)
-        self.assertIn("+260971123456", csv_body)
-        self.assertIn("full", csv_body)
+        results = response.data["data"]["results"]
+        self.assertEqual(results[0]["full_name"], "Jane Mary Doe")
+        self.assertEqual(results[0]["email"], "jane@example.com")
+        self.assertEqual(results[0]["phone"], "+260971123456")
 
 
 class _FakeQuerySet(list):

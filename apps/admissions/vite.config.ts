@@ -246,7 +246,12 @@ export default defineConfig(({ mode, command }) => {
       manifest: true,
       rollupOptions: {
         output: {
-          onlyExplicitManualChunks: true,
+          // NOTE: `onlyExplicitManualChunks` is intentionally NOT enabled.
+          // Enabling it bundled @react-pdf's static deps back into the
+          // `render` chunk, creating a `render -> vendor-react-pdf -> render`
+          // circular chunk. In the minified build that surfaced as a TDZ
+          // ("Cannot access 'l' before initialization") on every PDF
+          // generation (slip, receipt, acceptance letter).
           /**
            * Manual Chunks - Minimal Safe Approach
            *

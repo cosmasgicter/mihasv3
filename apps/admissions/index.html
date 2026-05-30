@@ -109,9 +109,11 @@
         box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
         position: relative;
       }
-      .mihas-pre-logo svg {
+      .mihas-pre-logo svg,
+      .mihas-pre-logo img {
         width: 40px;
         height: 40px;
+        object-fit: contain;
       }
       .mihas-pre-logo::after {
         content: "";
@@ -203,20 +205,19 @@
       aria-label="Loading MIHAS Admissions Portal"
     >
       <div class="mihas-pre-card">
-        <div class="mihas-pre-logo" aria-hidden="true">
-          <!-- Stylised lamp-and-leaf crest distilled from the MIHAS logo.
-               40×40 viewBox, two paths, no fills beyond brand colours. -->
-          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" focusable="false">
-            <circle cx="20" cy="20" r="18" fill="#2563eb" />
-            <path
-              d="M20 10c-4 3-6 6-6 10a6 6 0 0 0 12 0c0-4-2-7-6-10Zm0 4.5c1.6 1.6 2.5 3 2.5 5.5a2.5 2.5 0 1 1-5 0c0-2.5.9-3.9 2.5-5.5Z"
-              fill="#ffffff"
+        <div class="mihas-pre-logo">
+          <!-- Real MIHAS logo. webp with png fallback; served same-origin
+               from /public so it paints before the JS bundle loads. -->
+          <picture>
+            <source srcset="/images/logos/mihas-logo.webp" type="image/webp" />
+            <img
+              src="/images/logos/mihas-logo.png"
+              alt="MIHAS logo"
+              width="40"
+              height="40"
+              decoding="async"
             />
-            <path
-              d="M13 28h14v2.5a2 2 0 0 1-2 2H15a2 2 0 0 1-2-2V28Z"
-              fill="#b45309"
-            />
-          </svg>
+          </picture>
         </div>
         <div class="mihas-pre-wordmark">
           Mukuba Institute of Health &amp; Applied Sciences

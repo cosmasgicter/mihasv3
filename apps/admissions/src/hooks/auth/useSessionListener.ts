@@ -204,9 +204,11 @@ export function useSessionListener() {
     await queryClient.cancelQueries({ queryKey: ['user-profile'] })
     await queryClient.cancelQueries()
 
-    try {
-      await authService.logout()
-    } catch { /* best-effort */ }
+    // Fire the server logout but DON'T block local sign-out on it. The POST
+    // only blacklists the refresh-token JTI server-side; on a slow/cold
+    // backend awaiting it made logout appear to hang. Local state is cleared
+    // and the user is redirected immediately below regardless of the network.
+    void authService.logout().catch(() => { /* best-effort */ })
 
     clearCsrfToken()
     queryClient.setQueryData(SESSION_QUERY_KEY, null)
