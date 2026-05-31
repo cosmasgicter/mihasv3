@@ -1,0 +1,142 @@
+# MIHAS — production self-hosted stack (single host: AWS EC2 t3.small, af-south-1)
+#
+# Edge (caddy) is the ONLY service with published ports. Postgres + Redis live
+# on an internal-only network with no host ports — they are unreachable from
+# the internet. Images are built in CI and pulled from GHCR; this file never
+# builds on the box.
+#
+# Run on the box from this directory:
+#   docker compose -f docker-compose.prod.yml --env-file .env pull
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d
+#
+# Memory budget (2GB box + 2GB swap):
+#   caddy 64m · web 640m · celery 384m · beat 128m · postgres 384m · redis 128m
+#   ≈ 1.73GB peak, OS gets the rest, swap absorbs OCR/backup spikes.
+
+x-backend-env: &backend-env
+  env_file:
+    - .env
+  environment:
+    DJANGO_SETTINGS_MODULE: config.settings.prod
+    DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    REDIS_URL: redis://redis:6379/0
+    CELERY_BROKER_URL: redis://redis:6379/0
+
+services:
+  caddy:
+    # Built from apps/admissions/Dockerfile: Caddy + baked SPA + /api proxy.
+    image: ${FRONTEND_IMAGE:?set FRONTEND_IMAGE in .env}
+    restart: unless-stopped
+    environment:
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?set ADMIN_EMAIL for Let's Encrypt}
+      APP_HOST: ${APP_HOST:?set APP_HOST e.g. apply.mihas.edu.zm}
+      API_HOST: ${API_HOST:?set API_HOST e.g. api.mihas.edu.zm}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy-data:/data      # persists Let's Encrypt certs across deploys
+      - caddy-config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+    networks: [edge]          # reaches web via edge; only tier with host ports
+    mem_limit: 96m
+
+  web:
+    image: ${BACKEND_IMAGE:?set BACKEND_IMAGE in .env}
+    <<: *backend-env
+    restart: unless-stopped
+    expose:
+      - "8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [edge, internal]
+    mem_limit: 640m
+    healthcheck:
+      # python (in image) instead of curl (not in slim). X-Forwarded-Proto
+      # avoids the prod SSL redirect; Host satisfies ALLOWED_HOSTS.
+      test: ["CMD", "python", "-c", "import urllib.request as u,sys; r=u.Request('http://127.0.0.1:8000/health/live/', headers={'Host':'${API_HOST}','X-Forwarded-Proto':'https'}); sys.exit(0 if u.urlopen(r,timeout=5).status==200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  celery:
+    image: ${BACKEND_IMAGE:?set BACKEND_IMAGE in .env}
+    <<: *backend-env
+    restart: unless-stopped
+    # concurrency=1 keeps OCR/PDF memory spikes bounded on a 2GB box.
+    command: celery -A config worker -l info --concurrency=1 --max-tasks-per-child=200
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [edge, internal]    # edge=outbound (Lenco/email/AI), internal=db/redis
+    mem_limit: 448m
+
+  beat:
+    image: ${BACKEND_IMAGE:?set BACKEND_IMAGE in .env}
+    <<: *backend-env
+    restart: unless-stopped
+    # Exactly one beat instance (avoids duplicate periodic dispatches).
+    command: celery -A config beat -l info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [edge, internal]    # edge=outbound, internal=db/redis
+    mem_limit: 160m
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # Tuned for a small box; see runbook for postgresql.conf rationale.
+    command: >-
+      postgres
+      -c shared_buffers=128MB
+      -c effective_cache_size=512MB
+      -c max_connections=50
+      -c work_mem=8MB
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks: [internal]          # no host ports — internal only
+    mem_limit: 448m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --maxmemory 96mb --maxmemory-policy allkeys-lru --save "" --appendonly no
+    networks: [internal]          # no host ports — internal only
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  edge:
+    driver: bridge
+  internal:
+    driver: bridge
+    internal: true                # containers here have NO outbound internet
+
+volumes:
+  postgres-data:
+  caddy-data:
+  caddy-config:
