@@ -170,6 +170,7 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
     receipt_number = serializers.SerializerMethodField()
     payment_reference = serializers.SerializerMethodField()
     last_payment_reference = serializers.SerializerMethodField()
+    application_fee = serializers.SerializerMethodField()
 
     def _get_payment_summary(self, obj) -> dict[str, object | None]:
         cache = getattr(self, "_payment_summary_cache", None)
@@ -287,6 +288,30 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
     @extend_schema_field(serializers.CharField(allow_null=True))
     def get_last_payment_reference(self, obj):
         return self._get_payment_summary(obj)["last_payment_reference"]
+
+    @extend_schema_field(serializers.DecimalField(max_digits=10, decimal_places=2, allow_null=True))
+    def get_application_fee(self, obj):
+        """Fee actually applicable to this application.
+
+        ``Application.application_fee`` is a stale snapshot column that is
+        frequently left at the historical default (e.g. 150) and is NOT
+        updated when a program's ``ProgramFee`` changes — so it disagreed
+        with what the student actually paid (the canonical Payment amount,
+        resolved via FeeResolver/ProgramFee). Prefer the canonical payment
+        amount so the admin UI shows e.g. "K1 / K1" instead of "K1 / K150".
+        Falls back to the model column when no Payment row exists yet.
+        """
+        # List path: annotated latest-payment amount (no N+1).
+        annotated = getattr(obj, "payment_summary_amount", None)
+        if annotated is not None:
+            return annotated
+        # Detail path / fallback: latest payment amount via the shared
+        # summary cache, else the legacy model column.
+        summary = self._get_payment_summary(obj)
+        paid = summary.get("paid_amount")
+        if paid is not None:
+            return paid
+        return getattr(obj, "application_fee", None)
 
 
 class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSerializer):

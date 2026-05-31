@@ -51,3 +51,46 @@ class ApplicationListSerializerContractTests(SimpleTestCase):
         self.assertGreaterEqual(data["age"], 16)
         self.assertEqual(data["days_since_submission"], 3)
 
+    def test_application_fee_prefers_canonical_payment_over_stale_column(self):
+        """Regression: 'K1 / K150' bug.
+
+        Application.application_fee is a stale snapshot (150) that does not
+        track ProgramFee changes. The serializer must surface the canonical
+        payment amount (what the student actually paid / was charged) so the
+        admin UI shows the real fee, not the historical default.
+        """
+        application = SimpleNamespace(
+            id="app-2",
+            application_number="APP-002",
+            public_tracking_code="TRK-002",
+            full_name="Abraham Lungu",
+            email="a@example.com",
+            phone="+260977000000",
+            program="Certificate In Psychosocial Counselling",
+            intake="July 2026",
+            institution="MIHAS",
+            status="approved",
+            payment_status="successful",
+            payment_verified_at=None,
+            payment_reference=None,
+            last_payment_reference=None,
+            submitted_at=datetime.now() - timedelta(days=1),
+            created_at=datetime.now() - timedelta(days=2),
+            updated_at=datetime.now() - timedelta(days=1),
+            admin_feedback="",
+            review_started_at=None,
+            decision_date=None,
+            application_fee=150,  # stale column
+            date_of_birth=date(2000, 1, 1),
+            payment_verified_by=None,
+            # Annotated by _with_payment_summary on list querysets:
+            payment_summary_amount=1,
+            payment_summary_paid_amount=1,
+        )
+
+        with patch("apps.applications.serializers.get_application_grades", return_value=[]):
+            data = ApplicationListSerializer(application).data
+
+        self.assertEqual(data["application_fee"], 1)
+        self.assertEqual(data["paid_amount"], 1)
+

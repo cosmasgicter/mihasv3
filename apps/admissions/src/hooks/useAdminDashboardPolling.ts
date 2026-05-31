@@ -204,22 +204,26 @@ export function useAdminDashboardPolling(
   }, [query.isError, query.errorUpdateCount])
 
   useEffect(() => {
-    if (!query.data) return
+    const data = query.data
+    // Guard against a cache entry seeded in a different shape (e.g. a stale
+    // prefetch). Without this a bare-stats payload would make data.stats
+    // undefined and crash statsFingerprint, taking down the whole route.
+    if (!data || !data.stats) return
 
-    const fp = statsFingerprint(query.data.stats)
+    const fp = statsFingerprint(data.stats)
     if (fp !== previousFingerprintRef.current) {
       previousFingerprintRef.current = fp
       setLastUpdated(new Date())
-      onDataChangeRef.current?.(query.data.stats)
+      onDataChangeRef.current?.(data.stats)
     }
 
     // Activity changes independently of stat counts (e.g. a payment event
     // that doesn't shift any status count), so track it with its own
     // fingerprint and push updates to the feed.
-    const afp = activityFingerprint(query.data.activity)
+    const afp = activityFingerprint(data.activity ?? [])
     if (afp !== previousActivityFpRef.current) {
       previousActivityFpRef.current = afp
-      onActivityChangeRef.current?.(query.data.activity)
+      onActivityChangeRef.current?.(data.activity ?? [])
     }
   }, [query.data])
 
@@ -251,7 +255,7 @@ export function useAdminPendingCount(options: { enabled?: boolean } = {}) {
     queryKey: ['admin-dashboard-polling'],
     queryFn: fetchDashboardStats,
     enabled,
-    select: (data) => data.stats.pendingApplications,
+    select: (data) => data.stats?.pendingApplications ?? 0,
     staleTime: POLLING_INTERVAL / 2,
   })
 }
@@ -268,7 +272,7 @@ export function useAdminTotalApplicationCount(options: { enabled?: boolean } = {
     queryKey: ['admin-dashboard-polling'],
     queryFn: fetchDashboardStats,
     enabled,
-    select: (data) => data.stats.totalApplications,
+    select: (data) => data.stats?.totalApplications ?? 0,
     staleTime: POLLING_INTERVAL / 2,
   })
 }

@@ -99,7 +99,10 @@ function prefetchAdminDashboard(): void {
       async () => {
         const { adminDashboardService } = await import('@/services/admin/dashboard')
         const overview = await adminDashboardService.getOverview()
-        return overview.stats
+        // Must match the shape produced by useAdminDashboardPolling's queryFn
+        // ({ stats, activity }). Seeding bare stats here desyncs the cache and
+        // crashes the poller (query.data.stats === undefined).
+        return { stats: overview.stats, activity: overview.recentActivity ?? [] }
       },
       30_000,
     )

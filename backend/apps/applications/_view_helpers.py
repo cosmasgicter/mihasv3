@@ -64,6 +64,10 @@ def _with_payment_summary(queryset):
             latest_payment.values("payment_method")[:1],
             output_field=CharField(),
         ),
+        payment_summary_amount=Subquery(
+            latest_payment.values("amount")[:1],
+            output_field=DecimalField(max_digits=10, decimal_places=2),
+        ),
         payment_summary_reference=Subquery(
             latest_payment.values("transaction_reference")[:1],
             output_field=CharField(),
