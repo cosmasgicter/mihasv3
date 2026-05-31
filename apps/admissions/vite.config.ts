@@ -260,7 +260,39 @@ export default defineConfig(({ mode, command }) => {
            * createContext errors.
            */
           manualChunks: (id) => {
+            // Vite's __vitePreload helper (virtual module id
+            // "\0vite/preload-helper") is used by the entry for EVERY lazy
+            // route. If Rollup parks it inside a feature chunk like
+            // `vendor-pdf`, the entry then statically imports that chunk —
+            // which side-effect-imported `vendor-react-pdf` and forced the
+            // entire ~470KB-gzipped PDF engine to be modulepreload-ed on
+            // first paint for every visitor. Pin the helper into the eager
+            // React chunk so it always stays in the startup graph and the
+            // PDF chunks remain truly lazy. This branch MUST be first.
+            if (id.includes('vite/preload-helper')) {
+              return 'vendor-react'
+            }
+
             if (id.includes('node_modules')) {
+              // React core MUST get its own eager chunk. Without this rule
+              // Rollup folds react + react-dom + scheduler into the first
+              // manual chunk that depends on React — which is
+              // `vendor-react-pdf` (@react-pdf/renderer depends on React).
+              // That dragged the entire ~470KB-gzipped PDF engine into the
+              // entry's static graph, so every visitor `modulepreload`-ed
+              // the PDF engine on first paint even when no PDF is ever
+              // generated. Pinning React here keeps it eager and lets the
+              // PDF chunks stay lazy. Order matters: this branch is first.
+              if (
+                id.includes('/react/') ||
+                id.includes('/react-dom/') ||
+                id.includes('/scheduler/') ||
+                id.includes('/react/jsx-runtime') ||
+                id.includes('/react/jsx-dev-runtime')
+              ) {
+                return 'vendor-react'
+              }
+
               // PDF libraries — dynamically imported
               if (id.includes('/jspdf/') || id.includes('/jspdf-autotable/') || id.includes('/pdf-lib/')) {
                 return 'vendor-pdf'

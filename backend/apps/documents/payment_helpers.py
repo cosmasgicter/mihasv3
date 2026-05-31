@@ -553,25 +553,30 @@ def _review_application_payment_impl(
         now = _tz.now()
 
         if latest_payment is not None and target_payment_status:
+            # Money-received guard (both flag modes): a payment that has
+            # actually collected funds (``successful``/``force_approved``)
+            # can never be demoted via the admin review path. Returns a
+            # handled 409 CANNOT_REVERSE_SUCCESSFUL_PAYMENT at the view.
             if (
-                _forward_only_enabled()
-                and latest_payment.status in ('successful', 'failed', 'expired', 'force_approved')
+                latest_payment.status in ('successful', 'force_approved')
                 and target_payment_status != latest_payment.status
             ):
-                raise ValueError("TERMINAL_PAYMENT_IMMUTABLE")
+                raise ValueError("CANNOT_REVERSE_SUCCESSFUL_PAYMENT")
+            # No-op when the target equals current and no synthetic row was
+            # just created — nothing to mutate.
             if (
-                _forward_only_enabled()
-                and latest_payment.status in ('successful', 'failed', 'expired', 'force_approved')
+                latest_payment.status in ('successful', 'force_approved')
                 and target_payment_status == latest_payment.status
                 and not synthetic_payment_created
             ):
                 return application
-            if (
-                not _forward_only_enabled()
-                and latest_payment.status in ('successful', 'force_approved')
-                and target_payment_status != latest_payment.status
-            ):
-                raise ValueError("CANNOT_REVERSE_SUCCESSFUL_PAYMENT")
+            # NOTE: ``failed``/``expired`` are intentionally NOT immutable on
+            # this legacy admin path. Admins reopen a rejected/failed or
+            # deferred payment back to ``pending`` ("Reopen Review" in
+            # ApplicationApprovalActions). No money was collected, so this
+            # is a safe, reversible correction. The strict forward-only
+            # matrix still applies to webhook/verify mutations via
+            # PaymentService._transition().
 
             metadata = latest_payment.metadata or {}
             metadata['admin_review'] = {

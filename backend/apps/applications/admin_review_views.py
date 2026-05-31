@@ -460,7 +460,17 @@ class ApplicationReviewView(APIView):
                         },
                         status=status.HTTP_409_CONFLICT,
                     )
-                if code == "OVERRIDE_REASON_REQUIRED":
+                if code == "TERMINAL_PAYMENT_IMMUTABLE":
+                    return Response(
+                        {
+                            "success": False,
+                            "error": {
+                                "code": "TERMINAL_PAYMENT_IMMUTABLE",
+                                "message": "This payment is in a terminal state and cannot be changed.",
+                            },
+                        },
+                        status=status.HTTP_409_CONFLICT,
+                    )
                     return Response(
                         {
                             "success": False,

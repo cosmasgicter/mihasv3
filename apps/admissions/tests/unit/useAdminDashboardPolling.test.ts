@@ -66,7 +66,7 @@ describe('useAdminDashboardPolling', () => {
       expect(hookContent).toContain('previousFingerprintRef');
     });
     it('skips callback on identical fingerprint', () => {
-      expect(hookContent).toContain('fp === previousFingerprintRef.current');
+      expect(hookContent).toContain('fp !== previousFingerprintRef.current');
     });
     it('uses ref pattern for onDataChange', () => {
       expect(hookContent).toContain('onDataChangeRef');

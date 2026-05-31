@@ -45,6 +45,7 @@ export default function AdminDashboard() {
     isRefreshing,
     load: loadDashboardStats,
     patchStats,
+    patchActivity,
   } = loader
 
   const [authRecoveryFailed, setAuthRecoveryFailed] = useState(false)
@@ -72,6 +73,9 @@ export default function AdminDashboard() {
         todayApplications: newStats.todayApplications,
         weekApplications: newStats.weekApplications,
       })
+    },
+    onActivityChange: (activity) => {
+      patchActivity(activity)
     },
   })
 

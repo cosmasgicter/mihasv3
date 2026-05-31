@@ -15,6 +15,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { adminDashboardService } from '@/services/admin/dashboard'
+import type { AdminDashboardActivity } from '@/services/admin/dashboard'
 import { logger } from '@/lib/logger'
 
 /** Threshold in ms after which polling stops entirely when tab is hidden */
@@ -39,6 +40,7 @@ export interface UseAdminDashboardPollingOptions {
   enabled?: boolean
   pollingInterval?: number
   onDataChange?: (stats: AdminDashboardStats) => void
+  onActivityChange?: (activity: AdminDashboardActivity[]) => void
 }
 
 export interface UseAdminDashboardPollingReturn {
@@ -74,21 +76,34 @@ function statsFingerprint(stats: AdminDashboardStats): string {
   return `${stats.totalApplications}:${stats.pendingApplications}:${stats.approvedApplications}:${stats.conditionallyApprovedApplications}:${stats.enrolledApplications}:${stats.acceptedApplications}:${stats.rejectedApplications}:${stats.todayApplications}:${stats.weekApplications}`
 }
 
-async function fetchDashboardStats(): Promise<AdminDashboardStats> {
+interface DashboardPollPayload {
+  stats: AdminDashboardStats
+  activity: AdminDashboardActivity[]
+}
+
+async function fetchDashboardStats(): Promise<DashboardPollPayload> {
   const overview = await adminDashboardService.getOverview()
   const stats = overview.stats
 
   return {
-    totalApplications: stats.totalApplications ?? 0,
-    pendingApplications: stats.pendingApplications ?? 0,
-    approvedApplications: stats.approvedApplications ?? 0,
-    conditionallyApprovedApplications: stats.conditionallyApprovedApplications ?? 0,
-    enrolledApplications: stats.enrolledApplications ?? 0,
-    acceptedApplications: stats.acceptedApplications ?? 0,
-    rejectedApplications: stats.rejectedApplications ?? 0,
-    todayApplications: stats.todayApplications ?? 0,
-    weekApplications: stats.weekApplications ?? 0,
+    stats: {
+      totalApplications: stats.totalApplications ?? 0,
+      pendingApplications: stats.pendingApplications ?? 0,
+      approvedApplications: stats.approvedApplications ?? 0,
+      conditionallyApprovedApplications: stats.conditionallyApprovedApplications ?? 0,
+      enrolledApplications: stats.enrolledApplications ?? 0,
+      acceptedApplications: stats.acceptedApplications ?? 0,
+      rejectedApplications: stats.rejectedApplications ?? 0,
+      todayApplications: stats.todayApplications ?? 0,
+      weekApplications: stats.weekApplications ?? 0,
+    },
+    activity: overview.recentActivity ?? [],
   }
+}
+
+/** Fingerprint of the activity feed — changes when the latest events change. */
+function activityFingerprint(activity: AdminDashboardActivity[]): string {
+  return activity.map(a => `${a.id}:${a.timestamp}`).join('|')
 }
 
 export function useAdminDashboardPolling(
@@ -98,17 +113,24 @@ export function useAdminDashboardPolling(
     enabled = true,
     pollingInterval = POLLING_INTERVAL,
     onDataChange,
+    onActivityChange,
   } = options
 
   const queryClient = useQueryClient()
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const previousFingerprintRef = useRef<string | null>(null)
+  const previousActivityFpRef = useRef<string | null>(null)
   const onDataChangeRef = useRef<typeof onDataChange>(onDataChange)
+  const onActivityChangeRef = useRef<typeof onActivityChange>(onActivityChange)
   const hiddenSinceRef = useRef<number | null>(null)
 
   useEffect(() => {
     onDataChangeRef.current = onDataChange
   }, [onDataChange])
+
+  useEffect(() => {
+    onActivityChangeRef.current = onActivityChange
+  }, [onActivityChange])
 
   // Track page visibility to pause polling when hidden > 5 minutes
   useEffect(() => {
@@ -128,7 +150,7 @@ export function useAdminDashboardPolling(
     }
   }, [queryClient])
 
-  const fetchStats = useCallback(async (): Promise<AdminDashboardStats> => {
+  const fetchStats = useCallback(async (): Promise<DashboardPollPayload> => {
     try {
       return await fetchDashboardStats()
     } catch (error) {
@@ -184,15 +206,21 @@ export function useAdminDashboardPolling(
   useEffect(() => {
     if (!query.data) return
 
-    const fp = statsFingerprint(query.data)
-    if (fp === previousFingerprintRef.current) {
-      // Identical data — skip callback and timestamp update
-      return
+    const fp = statsFingerprint(query.data.stats)
+    if (fp !== previousFingerprintRef.current) {
+      previousFingerprintRef.current = fp
+      setLastUpdated(new Date())
+      onDataChangeRef.current?.(query.data.stats)
     }
 
-    previousFingerprintRef.current = fp
-    setLastUpdated(new Date())
-    onDataChangeRef.current?.(query.data)
+    // Activity changes independently of stat counts (e.g. a payment event
+    // that doesn't shift any status count), so track it with its own
+    // fingerprint and push updates to the feed.
+    const afp = activityFingerprint(query.data.activity)
+    if (afp !== previousActivityFpRef.current) {
+      previousActivityFpRef.current = afp
+      onActivityChangeRef.current?.(query.data.activity)
+    }
   }, [query.data])
 
   const refresh = useCallback(() => {
@@ -200,7 +228,7 @@ export function useAdminDashboardPolling(
   }, [queryClient])
 
   return {
-    stats: query.data || null,
+    stats: query.data?.stats || null,
     isLoading: query.isLoading,
     isPolling: enabled && !query.isLoading,
     error: query.error as Error | null,
@@ -223,7 +251,7 @@ export function useAdminPendingCount(options: { enabled?: boolean } = {}) {
     queryKey: ['admin-dashboard-polling'],
     queryFn: fetchDashboardStats,
     enabled,
-    select: (data) => data.pendingApplications,
+    select: (data) => data.stats.pendingApplications,
     staleTime: POLLING_INTERVAL / 2,
   })
 }
@@ -240,7 +268,7 @@ export function useAdminTotalApplicationCount(options: { enabled?: boolean } = {
     queryKey: ['admin-dashboard-polling'],
     queryFn: fetchDashboardStats,
     enabled,
-    select: (data) => data.totalApplications,
+    select: (data) => data.stats.totalApplications,
     staleTime: POLLING_INTERVAL / 2,
   })
 }

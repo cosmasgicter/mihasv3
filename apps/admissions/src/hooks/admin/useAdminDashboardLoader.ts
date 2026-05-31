@@ -57,6 +57,7 @@ type Action =
   | { type: 'load-success'; stats: AdminDashboardStats; activity: AdminDashboardActivity[]; emptyPayload: boolean }
   | { type: 'load-error'; message: string; isNetwork: boolean }
   | { type: 'patch-stats'; patch: Partial<AdminDashboardStats> }
+  | { type: 'patch-activity'; activity: AdminDashboardActivity[] }
 
 const initialState: DashboardState = {
   phase: 'idle',
@@ -103,6 +104,12 @@ function reducer(state: DashboardState, action: Action): DashboardState {
         stats: { ...state.stats, ...action.patch },
         lastUpdated: new Date(),
       }
+    case 'patch-activity':
+      return {
+        ...state,
+        recentActivity: action.activity,
+        lastUpdated: new Date(),
+      }
   }
 }
 
@@ -114,6 +121,7 @@ function isNetworkFailure(d: AdminDashboardDiagnostics): boolean {
 export interface UseAdminDashboardLoaderResult extends DashboardState {
   load: (mode?: 'initial' | 'manual') => Promise<void>
   patchStats: (patch: Partial<AdminDashboardStats>) => void
+  patchActivity: (activity: AdminDashboardActivity[]) => void
   isInitialLoading: boolean
   isRefreshing: boolean
 }
@@ -165,6 +173,10 @@ export function useAdminDashboardLoader(user: MinimalUser | null | undefined): U
     dispatch({ type: 'patch-stats', patch })
   }, [])
 
+  const patchActivity = useCallback((activity: AdminDashboardActivity[]) => {
+    dispatch({ type: 'patch-activity', activity })
+  }, [])
+
   // Run the initial load exactly once per authenticated user id.
   useEffect(() => {
     const userId = user?.id ?? null
@@ -183,6 +195,7 @@ export function useAdminDashboardLoader(user: MinimalUser | null | undefined): U
     ...state,
     load,
     patchStats,
+    patchActivity,
     isInitialLoading: state.phase === 'initial-loading',
     isRefreshing: state.phase === 'refreshing',
   }
