@@ -31,6 +31,7 @@ from apps.common.openapi_helpers import (
     paginated_serializer,
 )
 from apps.documents.models import Payment
+from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
 from apps.documents.serializers import DocumentSerializer
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ def _with_payment_summary(queryset):
     )
     latest_successful_payment = (
         Payment.objects
-        .filter(application_id=OuterRef("pk"), status="successful")
+        .filter(application_id=OuterRef("pk"), status__in=RECEIPT_ELIGIBLE_STATUSES)
         .annotate(summary_paid_at=Coalesce("verified_at", "updated_at", "created_at"))
         .order_by("-summary_paid_at")
     )
@@ -67,6 +68,10 @@ def _with_payment_summary(queryset):
         payment_summary_amount=Subquery(
             latest_payment.values("amount")[:1],
             output_field=DecimalField(max_digits=10, decimal_places=2),
+        ),
+        payment_summary_currency=Subquery(
+            latest_payment.values("currency")[:1],
+            output_field=CharField(),
         ),
         payment_summary_reference=Subquery(
             latest_payment.values("transaction_reference")[:1],

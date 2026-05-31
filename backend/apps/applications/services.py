@@ -11,7 +11,10 @@ from django.utils import timezone
 
 from apps.applications.models import Application, ApplicationStatusHistory
 from apps.documents.models import ApplicationDocument, Payment
-from apps.documents.payment_constants import RESOLVED_PAYMENT_STATUSES
+from apps.documents.payment_constants import (
+    RECEIPT_ELIGIBLE_STATUSES,
+    RESOLVED_PAYMENT_STATUSES,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -181,7 +184,11 @@ def transition_application_status(
 
 
 def _application_has_completed_payment(application_id) -> bool:
-    return Payment.objects.filter(application_id=application_id, status="successful").exists()
+    # force_approved (admin offline-payment override) is a completed payment
+    # too — not just "successful". RECEIPT_ELIGIBLE_STATUSES = both.
+    return Payment.objects.filter(
+        application_id=application_id, status__in=RECEIPT_ELIGIBLE_STATUSES
+    ).exists()
 
 
 def _application_has_identity_document(application_id) -> bool:

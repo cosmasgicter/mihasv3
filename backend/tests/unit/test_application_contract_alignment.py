@@ -94,3 +94,50 @@ class ApplicationListSerializerContractTests(SimpleTestCase):
         self.assertEqual(data["application_fee"], 1)
         self.assertEqual(data["paid_amount"], 1)
 
+    def test_payment_summary_includes_force_approved(self):
+        """Regression: admin force-approved (offline) payments were invisible.
+
+        The list/detail payment summary filtered the 'successful' status
+        only, so a force_approved Payment (offline payment / full fee waiver)
+        showed paid_amount=None, no receipt, and fell back to the stale
+        application_fee column. force_approved is a paid state and must be
+        surfaced exactly like successful.
+        """
+        application = SimpleNamespace(
+            id="app-3",
+            application_number="APP-003",
+            public_tracking_code="TRK-003",
+            full_name="Offline Payer",
+            email="o@example.com",
+            phone="+260977000000",
+            program="Nursing",
+            intake="July 2026",
+            institution="MIHAS",
+            status="approved",
+            payment_status="force_approved",
+            payment_verified_at=None,
+            payment_reference=None,
+            last_payment_reference=None,
+            submitted_at=datetime.now() - timedelta(days=1),
+            created_at=datetime.now() - timedelta(days=2),
+            updated_at=datetime.now() - timedelta(days=1),
+            admin_feedback="",
+            review_started_at=None,
+            decision_date=None,
+            application_fee=150,  # stale column — must NOT win
+            date_of_birth=date(2000, 1, 1),
+            payment_verified_by=None,
+            # Annotations produced by _with_payment_summary for a
+            # force_approved payment of K1:
+            payment_summary_amount=1,
+            payment_summary_paid_amount=1,
+            payment_summary_currency="ZMW",
+        )
+
+        with patch("apps.applications.serializers.get_application_grades", return_value=[]):
+            data = ApplicationListSerializer(application).data
+
+        self.assertEqual(data["paid_amount"], 1)
+        self.assertEqual(data["application_fee"], 1)
+        self.assertEqual(data["payment_currency"], "ZMW")
+

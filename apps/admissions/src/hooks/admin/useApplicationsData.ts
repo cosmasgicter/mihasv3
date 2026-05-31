@@ -31,6 +31,7 @@ export interface ApplicationSummary {
   last_payment_reference: string | null
   application_fee: number
   paid_amount: number
+  payment_currency?: string
   submitted_at: string
   updated_at?: string
   created_at: string
@@ -113,6 +114,7 @@ const mapApplicationRow = (row: RawApplicationRow): ApplicationSummary => ({
   last_payment_reference: strOrNull(row.last_payment_reference),
   application_fee: Number(row.application_fee ?? 0),
   paid_amount: Number(row.paid_amount ?? 0),
+  payment_currency: str(row.payment_currency) || 'ZMW',
   submitted_at: str(row.submitted_at) || str(row.created_at),
   updated_at: str(row.updated_at),
   created_at: str(row.created_at) || str(row.submitted_at),

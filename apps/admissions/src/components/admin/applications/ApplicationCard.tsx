@@ -246,7 +246,9 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
           <div className="text-xs text-muted-foreground mb-1">Payment Status</div>
           {getPaymentBadge(app.payment_status)}
           <div className="text-sm font-medium text-foreground mt-1">
-            K{app.paid_amount || 0} / K{app.application_fee}
+            {app.payment_currency && app.payment_currency !== 'ZMW'
+              ? `${app.payment_currency} ${app.paid_amount || 0} / ${app.payment_currency} ${app.application_fee}`
+              : `K${app.paid_amount || 0} / K${app.application_fee}`}
           </div>
           {normalizePaymentStatus(app.payment_status) === 'deferred' && (
             <div className="flex items-center gap-1 mt-1 text-xs text-amber-700">

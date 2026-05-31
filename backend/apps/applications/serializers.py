@@ -21,6 +21,7 @@ from apps.applications.identifier_resolver import IdentifierResolver
 from apps.common.serializer_fields import SexField
 from apps.common.validators import validate_nrc, validate_phone_e164, validate_zambian_phone
 from apps.documents.models import ApplicationGrade, Payment
+from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
 
 logger = logging.getLogger(__name__)
 
@@ -171,6 +172,7 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
     payment_reference = serializers.SerializerMethodField()
     last_payment_reference = serializers.SerializerMethodField()
     application_fee = serializers.SerializerMethodField()
+    payment_currency = serializers.SerializerMethodField()
 
     def _get_payment_summary(self, obj) -> dict[str, object | None]:
         cache = getattr(self, "_payment_summary_cache", None)
@@ -189,6 +191,7 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
             "receipt_number": getattr(obj, "payment_summary_receipt_number", None),
             "payment_reference": getattr(obj, "payment_summary_reference", None),
             "last_payment_reference": getattr(obj, "payment_summary_reference", None),
+            "currency": getattr(obj, "payment_summary_currency", None),
         }
         if any(value is not None for value in annotated_summary.values()):
             cache[cache_key] = annotated_summary
@@ -205,6 +208,7 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
                 "last_payment_reference",
                 getattr(obj, "payment_reference", None),
             ),
+            "currency": getattr(obj, "payment_currency", None),
         }
         if any(value is not None for value in direct_summary.values()):
             cache[cache_key] = direct_summary
@@ -236,7 +240,7 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
                     getattr(p, "created_at", None),
                 )
 
-            successful = [p for p in payments if getattr(p, "status", None) == "successful"]
+            successful = [p for p in payments if getattr(p, "status", None) in RECEIPT_ELIGIBLE_STATUSES]
             latest_successful_payment = max(successful, key=_successful_recency, default=None)
         else:
             latest_payment = (
@@ -247,7 +251,7 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
             )
             latest_successful_payment = (
                 Payment.objects
-                .filter(application_id=getattr(obj, "id", None), status="successful")
+                .filter(application_id=getattr(obj, "id", None), status__in=RECEIPT_ELIGIBLE_STATUSES)
                 .order_by("-verified_at", "-updated_at", "-created_at")
                 .first()
             )
@@ -261,6 +265,8 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
             "receipt_number": getattr(latest_successful_payment, "receipt_number", None),
             "payment_reference": getattr(latest_payment, "transaction_reference", None),
             "last_payment_reference": getattr(latest_payment, "transaction_reference", None),
+            "currency": getattr(latest_successful_payment, "currency", None)
+            or getattr(latest_payment, "currency", None),
         }
         cache[cache_key] = summary
         return summary
@@ -288,6 +294,15 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
     @extend_schema_field(serializers.CharField(allow_null=True))
     def get_last_payment_reference(self, obj):
         return self._get_payment_summary(obj)["last_payment_reference"]
+
+    @extend_schema_field(serializers.CharField(allow_null=True))
+    def get_payment_currency(self, obj):
+        """Canonical currency of the payment (e.g. ZMW, USD).
+
+        International applicants pay in USD; admin surfaces must not assume
+        ZMW. Defaults to ZMW only when no payment record carries a currency.
+        """
+        return self._get_payment_summary(obj).get("currency") or "ZMW"
 
     @extend_schema_field(serializers.DecimalField(max_digits=10, decimal_places=2, allow_null=True))
     def get_application_fee(self, obj):
@@ -338,6 +353,7 @@ class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSer
             "payment_status", "payment_verified_at", "payment_verified_by",
             "payment_reference", "last_payment_reference",
             "payment_verified_by_name", "payment_verified_by_email",
+            "payment_currency",
             "eligibility_status", "eligibility_score", "eligibility_notes",
             "admin_feedback", "admin_feedback_date", "admin_feedback_by",
             "review_started_at", "decision_date", "reviewed_by",
@@ -542,6 +558,7 @@ class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.Mode
             "receipt_number",
             "payment_verified_at", "payment_reference", "last_payment_reference",
             "payment_verified_by_name", "payment_verified_by_email",
+            "payment_currency",
             "submitted_at", "admin_feedback", "last_payment_audit_notes",
             "review_started_at", "decision_date", "application_fee",
             "grades_summary", "total_subjects", "points", "age", "days_since_submission",
