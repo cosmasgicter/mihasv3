@@ -10,6 +10,8 @@
  */
 
 import React from 'react'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@react-pdf/renderer', async () => {
@@ -254,6 +256,19 @@ describe('SignatureBlock', () => {
         />,
       ),
     ).toBe(true)
+  })
+  it('constrains the signature image to a fixed numeric width (no overflow/overlap)', () => {
+    // Regression: width:'auto' let @react-pdf render the image at its
+    // intrinsic 1344px width, overflowing the 260pt wrapper and overlapping
+    // the verification/QR block. The image style must use a bounded numeric
+    // width so it stays inside the signature column.
+    const src = readFileSync(
+      resolve(__dirname, '../../../src/lib/pdf/components/SignatureBlock.tsx'),
+      'utf8',
+    )
+    const styleBlock = src.slice(src.indexOf('signatureImage:'), src.indexOf('signatureImage:') + 700)
+    expect(styleBlock).not.toContain("width: 'auto'")
+    expect(styleBlock).toMatch(/width:\s*\d+/)
   })
 })
 

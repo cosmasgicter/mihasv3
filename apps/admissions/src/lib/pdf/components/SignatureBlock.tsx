@@ -53,12 +53,15 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   signatureImage: {
-    // 38pt tall — tight but legible. The signature PNG is 1344×459
-    // (~2.93:1), so at 38pt tall it scales to ~111pt wide. Balances
-    // fitting the unconditional letter onto a single page against
-    // maintaining enough visual presence to read as a real signature.
+    // Explicit width + height (not width:'auto'). @react-pdf's Yoga layout
+    // engine renders an <Image> with width:'auto' at the PNG's INTRINSIC
+    // width (1344px), which overflowed the 260pt wrapper and overlapped the
+    // verification/QR block in the footer row. The source PNG is 1344×459
+    // (~2.928:1); 111×38 preserves that aspect ratio (2.921) and keeps the
+    // signature within the wrapper.
     height: 38,
-    width: 'auto',
+    width: 111,
+    objectFit: 'contain',
     marginBottom: spacing[1],
   },
   line: {
