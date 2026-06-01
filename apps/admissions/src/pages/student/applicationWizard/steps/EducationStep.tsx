@@ -143,6 +143,25 @@ const EducationStep = ({
   const identityStatus = getUploadStatus(extraKycFile, uploadStates.extra_kyc, uploadedFiles.extra_kyc)
   const resultSlipPreview = useFilePreview(resultSlipFile, uploadedFiles.result_slip)
   const identityPreview = useFilePreview(extraKycFile, uploadedFiles.extra_kyc)
+
+  // Per-field upload feedback. `rejectError` captures react-dropzone
+  // rejections (wrong type / too large) that would otherwise fail silently;
+  // a `failed` upload state surfaces as an actionable inline error with a
+  // retry button instead of only the small status pill.
+  const [resultSlipRejectError, setResultSlipRejectError] = useState<string | null>(null)
+  const [identityRejectError, setIdentityRejectError] = useState<string | null>(null)
+  const UPLOAD_FAILED_MESSAGE = "Upload didn't finish. Check your connection and tap Retry."
+  const resultSlipError = resultSlipRejectError ?? (uploadStates.result_slip === 'failed' ? UPLOAD_FAILED_MESSAGE : undefined)
+  const identityError = identityRejectError ?? (uploadStates.extra_kyc === 'failed' ? UPLOAD_FAILED_MESSAGE : undefined)
+
+  const onResultSlipChange = (files: File | File[] | null) => {
+    setResultSlipRejectError(null)
+    handleResultSlipUpload(files as File | null)
+  }
+  const onIdentityChange = (files: File | File[] | null) => {
+    setIdentityRejectError(null)
+    handleExtraKycUpload(files as File | null)
+  }
   const subjectCounts = selectedGrades.reduce((counts, grade) => {
     if (grade.subject_id) {
       counts.set(grade.subject_id, (counts.get(grade.subject_id) ?? 0) + 1)
@@ -470,13 +489,18 @@ const EducationStep = ({
 
         <fieldset className="border-none p-0 m-0">
           <legend className="sr-only">Document Uploads</legend>
+          <div className="mb-4">
+            <h3 className="text-md font-medium text-foreground">Upload your documents</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add both documents to continue. A clear phone photo works — PDF, JPG or PNG up to 10MB. Files upload automatically and save as you go.
+            </p>
+          </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="flex h-full flex-col rounded-lg border border-border bg-card p-4 sm:p-5">
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-foreground">Result slip</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">PDF, JPG or PNG. Max 10MB.</p>
-                </div>
+                  <p className="mt-1 text-xs text-muted-foreground">Grade 12 result slip. PDF, JPG or PNG. Max 10MB.</p>                </div>
                 <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${resultSlipStatus.className}`}>
                   {resultSlipStatus.label}
                 </span>
@@ -496,7 +520,10 @@ const EducationStep = ({
                   label={EDUCATION_UPLOAD_COPY.resultSlip.label}
                   accept=".pdf,.jpg,.jpeg,.png"
                   maxSize={10 * 1024 * 1024}
-                  onChange={(files) => handleResultSlipUpload(files as File | null)}
+                  onChange={onResultSlipChange}
+                  onError={setResultSlipRejectError}
+                  onRetry={resultSlipFile ? () => onResultSlipChange(resultSlipFile) : undefined}
+                  error={resultSlipError}
                   value={resultSlipFile}
                   uploading={uploadStates.result_slip === 'uploading'}
                   progress={uploadProgress.result_slip}
@@ -509,7 +536,7 @@ const EducationStep = ({
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-foreground">NRC or passport</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">PDF, JPG or PNG. Max 10MB.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Photo or scan of your NRC or passport. PDF, JPG or PNG. Max 10MB.</p>
                 </div>
                 <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${identityStatus.className}`}>
                   {identityStatus.label}
@@ -530,7 +557,10 @@ const EducationStep = ({
                   label={EDUCATION_UPLOAD_COPY.identityDocument.label}
                   accept=".pdf,.jpg,.jpeg,.png"
                   maxSize={10 * 1024 * 1024}
-                  onChange={(files) => handleExtraKycUpload(files as File | null)}
+                  onChange={onIdentityChange}
+                  onError={setIdentityRejectError}
+                  onRetry={extraKycFile ? () => onIdentityChange(extraKycFile) : undefined}
+                  error={identityError}
                   value={extraKycFile}
                   uploading={uploadStates.extra_kyc === 'uploading'}
                   progress={uploadProgress.extra_kyc}
