@@ -22,7 +22,6 @@ import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { PageShell } from '@/components/ui/PageShell'
 import { Seo } from '@/components/seo/Seo'
 import { VirtualizedApplicationsGrid } from '@/components/admin/applications/VirtualizedApplicationsGrid'
-import { ApplicationCard } from '@/components/admin/applications/ApplicationCard'
 import {
   exportToCSV,
   exportToExcel,
@@ -156,6 +155,26 @@ const buildApplicationsExportFileName = (filters: {
 
 const yieldToBrowser = () => new Promise<void>(resolve => setTimeout(resolve, 0))
 
+function useIsMobileViewport() {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return window.innerWidth < 640
+  })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+
+    const mediaQuery = window.matchMedia('(max-width: 639px)')
+    const handleChange = () => setIsMobile(mediaQuery.matches)
+
+    handleChange()
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+
+  return isMobile
+}
+
 export default function Applications() {
   const {
     filters,
@@ -252,12 +271,20 @@ export default function Applications() {
   }>({ notification: false, acceptance: false, receipt: false })
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
+  const isMobileViewport = useIsMobileViewport()
 
   const programOptions = useMemo(() => [...new Set(applications.map(a => a.program).filter(Boolean))].sort(), [applications])
   const institutionOptions = useMemo(() => [...new Set(applications.map(a => a.institution).filter(Boolean))].sort(), [applications])
   const confirmDialog = useConfirmDialog()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const effectiveViewMode = isMobileViewport ? 'cards' : viewMode
+
+  useEffect(() => {
+    if (isMobileViewport && viewMode === 'table') {
+      setViewMode('cards')
+    }
+  }, [isMobileViewport, viewMode])
   // Track which application is currently being updated (for virtualized grid)
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
   const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null)
@@ -641,7 +668,7 @@ export default function Applications() {
         },
       ]}
       actions={
-        <div className="flex items-center space-x-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           {/* View Toggle */}
           <div className="hidden sm:flex items-center bg-muted rounded-lg p-1">
             <button
@@ -716,16 +743,16 @@ export default function Applications() {
       }
     >
       {/* Filters and content */}
-      <div className="px-4 py-4 sm:px-6">
+      <div className="px-4 py-4 pb-28 sm:px-6 sm:pb-4">
         {/* Export bar */}
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => { void handleExport('csv') }}
             loading={exportingFormat === 'csv'}
             disabled={isExporting && exportingFormat !== 'csv'}
-            className="text-xs"
+            className="min-h-touch text-xs"
           >
             <FileDown className="mr-1 h-3 w-3" />
             CSV
@@ -736,7 +763,7 @@ export default function Applications() {
             onClick={() => { void handleExport('excel') }}
             loading={exportingFormat === 'excel'}
             disabled={isExporting && exportingFormat !== 'excel'}
-            className="text-xs"
+            className="min-h-touch text-xs"
           >
             <FileSpreadsheet className="mr-1 h-3 w-3" />
             Excel
@@ -747,7 +774,7 @@ export default function Applications() {
             onClick={() => { void handleExport('pdf') }}
             loading={exportingFormat === 'pdf'}
             disabled={isExporting && exportingFormat !== 'pdf'}
-            className="text-xs"
+            className="min-h-touch text-xs"
           >
             <FileText className="mr-1 h-3 w-3" />
             PDF
@@ -829,7 +856,7 @@ export default function Applications() {
           </div>
         ) : (
           <ErrorBoundary level="section" onError={(error, errorInfo) => reportError(error, { component: 'Applications.ReviewPanel', ...errorInfo })}>
-          {viewMode === 'table' ? (
+          {effectiveViewMode === 'table' ? (
           <ApplicationsTableView
             applications={applications}
             onViewDetails={handleViewDetails}

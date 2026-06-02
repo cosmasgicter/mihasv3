@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { CheckCircle, XCircle, Clock, Trash2, Download, Mail } from 'lucide-react'
+import { CheckCircle, XCircle, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { logger } from '@/lib/logger'
 
@@ -39,11 +39,11 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
     <div className="fixed bottom-0 left-0 right-0 z-50 animate-in slide-in-from-bottom duration-300">
       <div className="border-t border-border bg-background/95 px-4 py-3 shadow-sm backdrop-blur sm:px-6" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}>
         <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <span className="inline-flex items-center justify-center h-7 min-w-[28px] rounded-full bg-primary text-primary-foreground text-xs font-bold px-2">
               {selectedIds.length}
             </span>
-            <span className="text-sm font-medium text-foreground">
+            <span className="min-w-0 break-words text-sm font-medium text-foreground">
               selected
             </span>
           </div>
@@ -54,7 +54,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
               variant="outline"
               onClick={() => handleAction('approve')}
               loading={loading === 'approve'}
-              className="text-emerald-700 border-emerald-300 hover:bg-emerald-50 rounded-lg min-h-[40px]"
+              className="min-h-touch rounded-lg border-emerald-300 text-emerald-700 hover:bg-emerald-50"
             >
               <CheckCircle className="h-4 w-4 mr-1" />
               Approve
@@ -65,7 +65,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
               variant="outline"
               onClick={() => setConfirmReject(true)}
               loading={loading === 'reject'}
-              className="text-destructive border-destructive/30 hover:bg-destructive/5 rounded-lg min-h-[40px]"
+              className="min-h-touch rounded-lg border-destructive/30 text-destructive hover:bg-destructive/5"
             >
               <XCircle className="h-4 w-4 mr-1" />
               Reject
@@ -76,7 +76,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
               variant="outline"
               onClick={() => handleAction('review')}
               loading={loading === 'review'}
-              className="text-primary border-primary/30 hover:bg-primary/5 rounded-lg min-h-[40px]"
+              className="min-h-touch rounded-lg border-primary/30 text-primary hover:bg-primary/5"
             >
               <Clock className="h-4 w-4 mr-1" />
               Review
@@ -88,7 +88,7 @@ export function BulkActionsBar({ selectedIds, onBulkAction, onClearSelection }: 
               size="sm"
               variant="ghost"
               onClick={onClearSelection}
-              className="rounded-lg text-muted-foreground hover:text-foreground"
+              className="min-h-touch rounded-lg text-muted-foreground hover:text-foreground"
             >
               Clear
             </Button>

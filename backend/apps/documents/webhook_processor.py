@@ -54,7 +54,7 @@ def canonical_json(payload: dict) -> bytes:
             default=str,
             ensure_ascii=False,
         ).encode('utf-8')
-    except (TypeError, ValueError) as exc:
+    except (TypeError, ValueError, UnicodeEncodeError) as exc:
         logger.warning(
             "canonical_json failed: err=%s payload_type=%s",
             exc,
@@ -345,7 +345,7 @@ class WebhookProcessor:
         #    payload in every persisted log row.
         try:
             identity = self.compute_identity(event_type, payload)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, UnicodeEncodeError):
             # R21.5: un-serialisable payload - write the audit row and bail
             # without mutating any Payment.
             safe_payload = payload if isinstance(payload, dict) else {'_raw': str(payload)}

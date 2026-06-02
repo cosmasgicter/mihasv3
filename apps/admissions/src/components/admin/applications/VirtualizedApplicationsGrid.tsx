@@ -136,13 +136,34 @@ export function VirtualizedApplicationsGrid({
     count: totalRows,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 480,
-    overscan: 5 // Increased overscan for smoother mobile scrolling
+    overscan: 5
   })
+
+  if (columns === 1) {
+    return (
+      <div className="space-y-4" role="list" aria-label="Applications list">
+        {applications.map((app) => (
+          <div key={app.id} role="listitem">
+            <ApplicationCard
+              application={app}
+              onStatusUpdate={onStatusUpdate}
+              onPaymentStatusUpdate={onPaymentStatusUpdate}
+              onViewDetails={onViewDetails}
+              updatingStatus={updatingStatusId === app.id}
+              updatingPayment={updatingPaymentId === app.id}
+              isSelected={selectedIds.includes(app.id)}
+              onSelect={onSelectionChange ? handleSelect : undefined}
+            />
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div
       ref={parentRef}
-      className="h-[calc(100vh-400px)] overflow-auto"
+      className="h-[calc(100vh-400px)] min-h-[32rem] overflow-auto"
       role="grid"
       aria-label="Applications grid"
       aria-rowcount={totalRows}

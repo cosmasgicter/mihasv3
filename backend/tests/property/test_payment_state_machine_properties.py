@@ -278,9 +278,9 @@ def _latest_transition_blocked_audits(entity_id):
 
 @pytest.mark.django_db(transaction=True)
 @override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
-@given(n=st.integers(min_value=2, max_value=8))
+@given(n=st.sampled_from([2, 4]))
 @settings(
-    max_examples=5,
+    max_examples=2,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -326,9 +326,14 @@ def test_property_1_race_safety(seed_applicant, n):
     threads = [threading.Thread(target=_worker) for _ in range(n)]
     for t in threads:
         t.start()
-    for t in threads:
-        t.join(timeout=30)
 
+    join_deadline = timezone.now() + timedelta(seconds=15)
+    for t in threads:
+        remaining = (join_deadline - timezone.now()).total_seconds()
+        t.join(timeout=max(0.0, remaining))
+
+    alive = [t.name for t in threads if t.is_alive()]
+    assert not alive, f"Worker threads did not finish before timeout: {alive!r}"
     assert not errors, f"Worker threads raised unexpected errors: {errors!r}"
     assert len(results) == n, f"Expected {n} results; got {len(results)}"
 

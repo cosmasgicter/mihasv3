@@ -8,8 +8,6 @@ import { applicationService } from '@/services/applications'
 import { notificationService } from '@/services/notifications'
 import { getPaymentStatusLabel, normalizePaymentStatus } from '@/lib/paymentStatus'
 import { formatDate } from '@/lib/dateFormat'
-import { ADMIN_APPLICATION_STATUS_BADGES } from '@/lib/applicationStatusUi'
-import { formatApplicationStatus, type ApplicationStatus } from '@/types/applicationStatus'
 import { StatusPill } from '@/components/ui/StatusPill'
 import type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
 
@@ -99,7 +97,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
     return (
       <span className={`inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium leading-tight ${config.color}`}>
         <Icon className="h-3 w-3 shrink-0" />
-        {getPaymentStatusLabel(normalizedStatus)}
+        <span className="min-w-0 break-words">{getPaymentStatusLabel(normalizedStatus)}</span>
       </span>
     )
   }, [])
@@ -147,7 +145,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
 
   return (
-    <article className={`relative rounded-lg border bg-card p-4 shadow-sm transition-colors duration-200 sm:p-5 ${
+    <article className={`relative min-w-0 rounded-lg border bg-card p-4 shadow-sm transition-colors duration-200 sm:p-5 ${
       isSelected ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20' : 'border-border/60 hover:border-primary/20'
     }`}>
       {/* Selection Checkbox */}
@@ -163,20 +161,20 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         </div>
       )}
       {/* Header */}
-      <div className={onSelect ? 'mb-4 flex items-start justify-between gap-4 pr-8' : 'mb-4 flex items-start justify-between gap-4'}>
+      <div className={onSelect ? 'mb-4 flex min-w-0 items-start justify-between gap-3 pr-8 sm:gap-4' : 'mb-4 flex min-w-0 items-start justify-between gap-3 sm:gap-4'}>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="mb-1 flex min-w-0 items-start gap-2">
             <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <h3 className="truncate text-base font-semibold text-foreground">{app.full_name}</h3>
+            <h3 className="min-w-0 break-words text-base font-semibold leading-snug text-foreground">{app.full_name}</h3>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="truncate font-mono">#{app.application_number}</span>
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+            <span className="min-w-0 break-all font-mono">#{app.application_number}</span>
             <span>•</span>
-            <Calendar className="h-3 w-3" />
-            <span className="truncate">{formatDate(app.submitted_at || app.updated_at || app.created_at)}</span>
+            <Calendar className="h-3 w-3 shrink-0" />
+            <span className="min-w-0 break-words">{formatDate(app.submitted_at || app.updated_at || app.created_at)}</span>
           </div>
         </div>
-        <div className="flex max-w-[52%] flex-col items-end gap-2">
+        <div className="flex max-w-[48%] min-w-0 flex-col items-end gap-2 sm:max-w-[52%]">
           {app.isDraft ? (
             <DraftBadge
               completionPercentage={app.completionPercentage}
@@ -191,12 +189,12 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       {/* Draft Status Banner */}
       {app.isDraft && (
         <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              <span className="text-sm font-medium text-yellow-800">Draft Application</span>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-2">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-yellow-600" />
+              <span className="min-w-0 break-words text-sm font-medium text-yellow-800">Draft Application</span>
             </div>
-            <div className="text-xs text-yellow-700">
+            <div className="min-w-0 break-words text-xs text-yellow-700">
               Last updated: {formatDate(app.lastUpdated)}
             </div>
           </div>
@@ -213,29 +211,29 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
       {/* Contact Info */}
       <div className="mb-4 space-y-1.5">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Mail className="h-3 w-3" />
-          <span className="truncate">{app.email}</span>
+        <div className="flex min-w-0 items-start gap-2 text-xs text-muted-foreground">
+          <Mail className="mt-0.5 h-3 w-3 shrink-0" />
+          <span className="min-w-0 break-all">{app.email}</span>
         </div>
         {app.phone && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Phone className="h-3 w-3" />
-            <span>{app.phone}</span>
+          <div className="flex min-w-0 items-start gap-2 text-xs text-muted-foreground">
+            <Phone className="mt-0.5 h-3 w-3 shrink-0" />
+            <span className="min-w-0 break-words">{app.phone}</span>
           </div>
         )}
       </div>
 
       {/* Program Info */}
       <div className="mb-4 rounded-lg border border-border bg-muted/40 p-3">
-        <div className="flex items-center gap-2 mb-1">
-          <GraduationCap className="h-4 w-4 text-primary" />
-          <span className="font-medium text-foreground text-sm">{app.program}</span>
+        <div className="mb-1 flex min-w-0 items-start gap-2">
+          <GraduationCap className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <span className="min-w-0 break-words text-sm font-medium text-foreground">{app.program}</span>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <Building className="h-3 w-3" />
-          <span>{getInstitutionName(app.institution)}</span>
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+          <Building className="h-3 w-3 shrink-0" />
+          <span className="min-w-0 break-words">{getInstitutionName(app.institution)}</span>
           <span>•</span>
-          <span>{app.intake}</span>
+          <span className="min-w-0 break-words">{app.intake}</span>
         </div>
       </div>
 
@@ -245,7 +243,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
         <div>
           <div className="text-xs text-muted-foreground mb-1">Payment Status</div>
           {getPaymentBadge(app.payment_status)}
-          <div className="text-sm font-medium text-foreground mt-1">
+          <div className="mt-1 min-w-0 break-words text-sm font-medium text-foreground">
             {app.payment_currency && app.payment_currency !== 'ZMW'
               ? `${app.payment_currency} ${app.paid_amount || 0} / ${app.payment_currency} ${app.application_fee}`
               : `K${app.paid_amount || 0} / K${app.application_fee}`}
@@ -297,9 +295,9 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
 
       {/* Documents */}
       {documentsCount > 0 && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-primary/15 bg-primary/5 p-2">
-          <FileText className="h-4 w-4 text-primary" />
-          <span className="text-sm text-info-strong">{documentsCount} document{documentsCount > 1 ? 's' : ''} uploaded</span>
+        <div className="mb-4 flex min-w-0 items-center gap-2 rounded-lg border border-primary/15 bg-primary/5 p-2">
+          <FileText className="h-4 w-4 shrink-0 text-primary" />
+          <span className="min-w-0 break-words text-sm text-info-strong">{documentsCount} document{documentsCount > 1 ? 's' : ''} uploaded</span>
         </div>
       )}
 
@@ -316,7 +314,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
       />
 
       {/* Actions */}
-      <div className="mt-4 flex gap-2 border-t border-border/40 pt-4">
+      <div className="mt-4 flex flex-col gap-2 border-t border-border/40 pt-4 sm:flex-row">
         <button
           type="button"
           onClick={() => onViewDetails(app.id)}
@@ -331,7 +329,7 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
           <button
             type="button"
             onClick={() => setShowCommunicationModal(true)}
-            className="flex min-h-touch items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition-colors duration-200 hover:bg-secondary/80"
+            className="flex min-h-touch min-w-touch items-center justify-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition-colors duration-200 hover:bg-secondary/80"
             title="Contact Applicant"
           >
             <MessageSquare className="h-4 w-4" />

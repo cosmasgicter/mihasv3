@@ -345,7 +345,7 @@ export function ApplicationDetailModal({
  if (!isClient) {
  return (
  <div className="fixed inset-0 bg-scrim/60 flex items-center justify-center p-0 sm:p-4 z-modal overflow-hidden">
- <div className="flex h-full max-w-full flex-col overflow-hidden bg-card sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg">
+ <div className="flex h-dvh max-w-full flex-col overflow-hidden bg-card sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg">
  {/* Header Skeleton */}
  <div className="flex-shrink-0 p-4 sm:p-6 border-b border-border bg-card">
  <div className="flex items-center justify-between gap-2">
@@ -420,7 +420,7 @@ export function ApplicationDetailModal({
  role="dialog"
  aria-modal="true"
  aria-label={`Application details for ${application.full_name}`}
- className="flex h-full max-w-full flex-col overflow-hidden bg-card shadow-lg animate-in fade-in zoom-in-95 duration-200 sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg"
+ className="flex h-dvh max-w-full flex-col overflow-hidden bg-card shadow-lg animate-in fade-in zoom-in-95 duration-200 sm:max-h-[95vh] sm:w-full sm:max-w-6xl sm:rounded-lg"
  >
  {/* Header */}
  <ApplicationDetailHeader application={application} onClose={onClose} />
@@ -467,7 +467,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  {/* Content */}
- <div className="flex-1 overflow-y-auto bg-muted/50">
+ <div className="min-h-0 flex-1 overflow-y-auto bg-muted/50">
  <div id={`panel-${activeTab}`} role="tabpanel" aria-labelledby={`tab-${activeTab}`} className="p-4 sm:p-6">
  {loading ? (
  <div className="flex items-center justify-center py-12" role="status" aria-label="Loading application details">
@@ -798,7 +798,7 @@ export function ApplicationDetailModal({
  </div>
  </div>
  {/* Action Bar — sticky bottom */}
- <div className="flex-shrink-0 border-t border-border bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:p-5 sm:pb-5">
+ <div className="max-h-[45dvh] flex-shrink-0 overflow-y-auto overscroll-contain border-t border-border bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:max-h-none sm:p-5 sm:pb-5">
  <ApplicationApprovalActions
  applicationId={application.id}
  currentStatus={application.status}
