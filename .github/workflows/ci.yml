@@ -83,9 +83,6 @@ jobs:
       - name: Run unit tests
         run: python -m pytest tests/unit/ -q --tb=short
         working-directory: backend
-      - name: Run property tests
-        run: python -m pytest tests/property/ -q --tb=short
-        working-directory: backend
       - name: API quality gate (schema lint + breaking-change vs baseline)
         if: always()
         run: PY=python bash scripts/api_quality.sh --report /tmp/api_quality_report.md
@@ -101,6 +98,47 @@ jobs:
             /tmp/current_lint.json
           if-no-files-found: warn
           retention-days: 14
+
+  backend-property:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: test_mihas
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mihas
+      REDIS_URL: redis://localhost:6379/0
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      JWT_SIGNING_KEY: ci-test-key-not-for-production
+      SECRET_KEY: ci-test-secret-not-for-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+        working-directory: backend
+      - name: Run property tests
+        run: python -m pytest tests/property/ -q --tb=short
+        working-directory: backend
 
   admissions:
     runs-on: ubuntu-latest
