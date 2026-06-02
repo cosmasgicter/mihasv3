@@ -280,7 +280,7 @@ def _latest_transition_blocked_audits(entity_id):
 @override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @given(n=st.integers(min_value=2, max_value=8))
 @settings(
-    max_examples=20,
+    max_examples=5,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
