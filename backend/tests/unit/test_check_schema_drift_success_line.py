@@ -270,8 +270,14 @@ def test_both_flags_emit_structured_ok_with_both_counts(
     assert "OK: schema-drift=" in text, (
         f"Expected structured OK line; got:\n{text}"
     )
-    # FK-index helper short-circuits on SQLite with ``disabled``.
-    assert "fk-indexes=disabled" in text
+    # FK-index helper short-circuits on SQLite with ``disabled``; on
+    # postgres (the CI backend service) it runs and reports a count.
+    if connection.vendor == "postgresql":
+        assert "fk-indexes=" in text and "fk-indexes=disabled" not in text, (
+            f"Expected a real fk-indexes count on postgres; got:\n{text}"
+        )
+    else:
+        assert "fk-indexes=disabled" in text
     # Migration-history helper found the bootstrap table and inspected
     # the single fixture script — count is 1 (the ``_rollback.sql``
     # filter and subdir exclusion are exercised by other tests).

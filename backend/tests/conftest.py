@@ -63,3 +63,30 @@ def unmanaged_schema(django_db_setup, django_db_blocker):
                     WHERE processed IS TRUE;
                     """
                 )
+
+            # FK-index backfill: production (Neon) carries a covering btree
+            # index on every foreign-key column (enforced by the drift-guard
+            # job against a real fork). schema_editor.create_model does not
+            # reproduce all of these on the ephemeral test DB, so mirror the
+            # invariant here — create idx_<table>_<column> for any FK column
+            # that lacks a covering index. Keeps check_schema_drift
+            # --check-fk-indexes green in CI without hardcoding the list.
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT tc.table_name, kcu.column_name
+                    FROM information_schema.table_constraints tc
+                    JOIN information_schema.key_column_usage kcu
+                      ON tc.constraint_name = kcu.constraint_name
+                     AND tc.table_schema = kcu.table_schema
+                    WHERE tc.constraint_type = 'FOREIGN KEY'
+                      AND tc.table_schema = current_schema()
+                    """
+                )
+                fk_columns = cursor.fetchall()
+                for table_name, column_name in fk_columns:
+                    index_name = f"idx_{table_name}_{column_name}"[:63]
+                    cursor.execute(
+                        f'CREATE INDEX IF NOT EXISTS "{index_name}" '
+                        f'ON "{table_name}" ("{column_name}");'
+                    )
