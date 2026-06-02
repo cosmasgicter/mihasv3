@@ -80,8 +80,11 @@ jobs:
       - name: Production-fix regression tests (2026-05-19)
         run: python -m pytest tests/integration/test_cors_idempotency_headers.py -v
         working-directory: backend
-      - name: Run tests
-        run: python -m pytest tests/unit/ tests/property/ -x -q --tb=short
+      - name: Run unit tests
+        run: python -m pytest tests/unit/ -q --tb=short
+        working-directory: backend
+      - name: Run property tests
+        run: python -m pytest tests/property/ -q --tb=short
         working-directory: backend
       - name: API quality gate (schema lint + breaking-change vs baseline)
         if: always()
