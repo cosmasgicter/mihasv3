@@ -277,9 +277,9 @@ class TestApplicationAPIContractsPreservation:
         application.status = "draft"  # Ensure student can mutate
 
         # Mock the queryset chain and serializer to avoid DB writes
-        with patch("apps.applications.student_views._with_payment_summary", side_effect=lambda qs: qs), \
-             patch("apps.applications.student_views.Application.objects") as mock_qs, \
-             patch("apps.applications.student_views.ApplicationSerializer") as mock_ser_cls:
+        with patch("apps.applications.student_draft_views._with_payment_summary", side_effect=lambda qs: qs), \
+             patch("apps.applications.student_draft_views.Application.objects") as mock_qs, \
+             patch("apps.applications.student_draft_views.ApplicationSerializer") as mock_ser_cls:
             mock_chain = MagicMock()
             mock_chain.get.return_value = application
             mock_qs.select_related.return_value.prefetch_related.return_value = mock_chain
