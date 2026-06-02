@@ -107,7 +107,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
     services:
       postgres:
         image: postgres:16
@@ -143,9 +143,9 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
         working-directory: backend
-      - name: Run property tests (shard ${{ matrix.shard }} of 6)
+      - name: Run property tests (shard ${{ matrix.shard }} of 8)
         run: |
-          mapfile -t files < <(python scripts/select_property_shard.py --shard "${{ matrix.shard }}" --total 6)
+          mapfile -t files < <(python scripts/select_property_shard.py --shard "${{ matrix.shard }}" --total 8)
           printf 'Selected property files for shard %s:\n' "${{ matrix.shard }}"
           printf '  %s\n' "${files[@]}"
           python -u -m pytest "${files[@]}" -q --tb=short --durations=25 -p no:cacheprovider
