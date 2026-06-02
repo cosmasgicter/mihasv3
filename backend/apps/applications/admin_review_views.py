@@ -460,12 +460,12 @@ class ApplicationReviewView(APIView):
                         },
                         status=status.HTTP_409_CONFLICT,
                     )
-                if code == "TERMINAL_PAYMENT_IMMUTABLE":
+                if code == "INVALID_STATUS_TRANSITION":
                     return Response(
                         {
                             "success": False,
                             "error": {
-                                "code": "TERMINAL_PAYMENT_IMMUTABLE",
+                                "code": "INVALID_STATUS_TRANSITION",
                                 "message": "This payment is in a terminal state and cannot be changed.",
                             },
                         },
