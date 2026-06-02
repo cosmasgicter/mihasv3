@@ -136,8 +136,53 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
         working-directory: backend
-      - name: Run property tests
-        run: python -u -m pytest tests/property/ -x -q --tb=short -p no:cacheprovider
+      - name: Run property tests (first half)
+        run: |
+          mapfile -t files < <(ls tests/property/test_*.py | sort | head -n 66)
+          python -u -m pytest "${files[@]}" -q --tb=short -p no:cacheprovider
+        working-directory: backend
+
+  backend-property-2:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: test_mihas
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mihas
+      REDIS_URL: redis://localhost:6379/0
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      JWT_SIGNING_KEY: ci-test-key-not-for-production
+      SECRET_KEY: ci-test-secret-not-for-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+        working-directory: backend
+      - name: Run property tests (second half)
+        run: |
+          mapfile -t files < <(ls tests/property/test_*.py | sort | tail -n +67)
+          python -u -m pytest "${files[@]}" -q --tb=short -p no:cacheprovider
         working-directory: backend
 
   admissions:
