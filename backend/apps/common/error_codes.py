@@ -13,8 +13,6 @@ from __future__ import annotations
 
 from rest_framework import status
 
-from apps.documents.payment_error_codes import PAYMENT_ERROR_CODES
-
 # ---------------------------------------------------------------------------
 # Canonical catalogue
 # ---------------------------------------------------------------------------
@@ -23,12 +21,20 @@ ERROR_CODES: dict[str, dict] = {}
 
 # Re-export payment codes (preserves payment_error_codes.py as the
 # payment-specific catalog - we just merge into the unified map).
-for code, entry in PAYMENT_ERROR_CODES.items():
-    ERROR_CODES[code] = {
-        "http_status": entry.http_status,
-        "message": entry.message,
-        "category": "payment",
-    }
+# Imported lazily inside the function to avoid a module-level
+# apps.common → apps.documents import cycle (see scripts/check_circular_imports.py).
+def _merge_payment_codes() -> None:
+    from apps.documents.payment_error_codes import PAYMENT_ERROR_CODES
+
+    for code, entry in PAYMENT_ERROR_CODES.items():
+        ERROR_CODES[code] = {
+            "http_status": entry.http_status,
+            "message": entry.message,
+            "category": "payment",
+        }
+
+
+_merge_payment_codes()
 
 # --- Common ---
 ERROR_CODES.update({

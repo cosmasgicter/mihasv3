@@ -48,6 +48,14 @@ function runDetector(target: string): { findings: DetectorFinding[]; raw: string
   })
   const raw = (result.stdout ?? '') + (result.stderr ?? '')
   if (result.error) {
+    const err = result.error as NodeJS.ErrnoException
+    if (err.code === 'ENOENT') {
+      // impeccable not installed in this environment (e.g. the `admissions`
+      // unit-test job or a local run). The dedicated `design-audit` CI job
+      // installs impeccable and enforces this gate, so skip rather than fail.
+      console.warn(`design-audit-gate skipped: impeccable not on PATH for ${target}`)
+      return { findings: [], raw }
+    }
     console.error(`Failed to run impeccable on ${target}:`, result.error)
     process.exit(2)
   }

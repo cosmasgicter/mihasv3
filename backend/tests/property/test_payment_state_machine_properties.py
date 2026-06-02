@@ -495,6 +495,20 @@ def test_property_2_terminal_stability(
         assert application.payment_status == "verified"
         return
 
+    # Admin "Reopen Review" is an intentional, money-safe exception: a
+    # failed/expired payment (no funds collected) may be reopened to
+    # ``pending`` so it can be re-reviewed. See the production regression in
+    # tests/unit/test_payment_review_reopen.py. Every OTHER admin target on a
+    # terminal row is still refused by _review_application_payment_impl.
+    if (
+        terminal in ("failed", "expired")
+        and channel == "admin"
+        and payload["status"] == "pending"
+    ):
+        payment.refresh_from_db()
+        assert payment.status == "pending"
+        return
+
     # --- Assert all four fields unchanged ---
     payment.refresh_from_db()
     application.refresh_from_db()

@@ -1,12 +1,12 @@
 {
   "summary": {
-    "total_endpoints": 178,
-    "endpoints_with_issues": 99,
-    "total_issues": 657,
+    "total_endpoints": 180,
+    "endpoints_with_issues": 101,
+    "total_issues": 669,
     "errors": 1,
-    "warnings": 561,
+    "warnings": 573,
     "info": 95,
-    "score": 89.96
+    "score": 89.87
   },
   "issues": [
     {
@@ -1560,6 +1560,20 @@
       "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'payment_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/payments/{payment_id}/correct/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'payment_id' should use camelCase or kebab-case in POST /api/v1/payments/{payment_id}/correct/",
+      "path": "/paths//api/v1/payments/{payment_id}/correct//post/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'payment_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/payments/{payment_id}/receipt/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
@@ -1603,6 +1617,13 @@
       "category": "naming",
       "message": "Query parameter 'program_code' should use camelCase or kebab-case in GET /api/v1/payments/resolve-fee/",
       "path": "/paths//api/v1/payments/resolve-fee//get/parameters[2]/name",
+      "suggestion": "Use camelCase (e.g., 'pageSize') or kebab-case (e.g., 'page-size')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Query parameter 'page_size' should use camelCase or kebab-case in GET /api/v1/payments/risk-flags/",
+      "path": "/paths//api/v1/payments/risk-flags//get/parameters[1]/name",
       "suggestion": "Use camelCase (e.g., 'pageSize') or kebab-case (e.g., 'page-size')"
     },
     {
@@ -2016,6 +2037,13 @@
       "category": "naming",
       "message": "Property 'payment_verified_by_email' in schema 'Application' should use camelCase",
       "path": "/components/schemas/Application/properties/payment_verified_by_email",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'payment_currency' in schema 'Application' should use camelCase",
+      "path": "/components/schemas/Application/properties/payment_currency",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {
@@ -2567,6 +2595,13 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'payment_currency' in schema 'ApplicationList' should use camelCase",
+      "path": "/components/schemas/ApplicationList/properties/payment_currency",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'submitted_at' in schema 'ApplicationList' should use camelCase",
       "path": "/components/schemas/ApplicationList/properties/submitted_at",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -3059,6 +3094,20 @@
       "category": "naming",
       "message": "Property 'extracted_text' in schema 'Document' should use camelCase",
       "path": "/components/schemas/Document/properties/extracted_text",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'ecz_exam_number' in schema 'Document' should use camelCase",
+      "path": "/components/schemas/Document/properties/ecz_exam_number",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'ecz_exam_year' in schema 'Document' should use camelCase",
+      "path": "/components/schemas/Document/properties/ecz_exam_year",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {
@@ -3757,6 +3806,13 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'payment_currency' in schema 'PatchedApplication' should use camelCase",
+      "path": "/components/schemas/PatchedApplication/properties/payment_currency",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'eligibility_status' in schema 'PatchedApplication' should use camelCase",
       "path": "/components/schemas/PatchedApplication/properties/eligibility_status",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -4408,6 +4464,27 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'payment_id' in schema 'RiskFlagItem' should use camelCase",
+      "path": "/components/schemas/RiskFlagItem/properties/payment_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'application_id' in schema 'RiskFlagItem' should use camelCase",
+      "path": "/components/schemas/RiskFlagItem/properties/application_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'recorded_at' in schema 'RiskFlagItem' should use camelCase",
+      "path": "/components/schemas/RiskFlagItem/properties/recorded_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'first_name' in schema 'Session' should use camelCase",
       "path": "/components/schemas/Session/properties/first_name",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -4536,6 +4613,13 @@
       "category": "naming",
       "message": "Property 'created_at' in schema 'Subject' should use camelCase",
       "path": "/components/schemas/Subject/properties/created_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'target_status' in schema 'SuperAdminPaymentCorrectionRequest' should use camelCase",
+      "path": "/components/schemas/SuperAdminPaymentCorrectionRequest/properties/target_status",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {

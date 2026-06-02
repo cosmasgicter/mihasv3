@@ -31,7 +31,6 @@ from apps.accounts.permissions import IsAdmin, ROLE_HIERARCHY, is_super_admin
 from apps.accounts.services import hash_password
 from apps.common.audit_network import build_audit_network_fields, decrypt_network_value
 from apps.common.models import AuditLog, Setting
-from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
 from apps.common.openapi_helpers import (
     ErrorResponseSerializer,
     MessageSerializer,
@@ -277,6 +276,7 @@ class AdminDashboardView(APIView):
             try:
                 from apps.applications.models import ApplicationStatusHistory
                 from apps.documents.models import Payment
+                from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
 
                 status_entries = (
                     ApplicationStatusHistory.objects

@@ -570,13 +570,21 @@ def _review_application_payment_impl(
                 and not synthetic_payment_created
             ):
                 return application
-            # NOTE: ``failed``/``expired`` are intentionally NOT immutable on
-            # this legacy admin path. Admins reopen a rejected/failed or
-            # deferred payment back to ``pending`` ("Reopen Review" in
-            # ApplicationApprovalActions). No money was collected, so this
-            # is a safe, reversible correction. The strict forward-only
-            # matrix still applies to webhook/verify mutations via
-            # PaymentService._transition().
+            # ``failed``/``expired`` are NOT fully immutable on this legacy
+            # admin path: admins may *reopen* a rejected/failed/deferred row
+            # back to ``pending`` ("Reopen Review"). No money was collected, so
+            # that one reversal is safe. Any other target (e.g. marking a
+            # failed payment ``successful``/``verified`` with no funds collected)
+            # must be refused — terminal rows only move to ``pending``.
+            if latest_payment.status in ('failed', 'expired'):
+                if target_payment_status == latest_payment.status:
+                    # No-op: same terminal status — do not touch payment or
+                    # the application summary.
+                    return application
+                if target_payment_status != 'pending':
+                    raise ValueError("INVALID_STATUS_TRANSITION")
+            # The strict forward-only matrix still applies to webhook/verify
+            # mutations via PaymentService._transition().
 
             metadata = latest_payment.metadata or {}
             metadata['admin_review'] = {

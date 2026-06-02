@@ -615,7 +615,7 @@ paths:
   /api/v1/admin/templates/:
     get:
       operationId: api_v1_admin_templates_retrieve
-      description: GET /api/v1/admin/templates/ — list all communication templates
+      description: GET /api/v1/admin/templates/ - list all communication templates
         (admin only).
       summary: List communication templates
       tags:
@@ -658,7 +658,7 @@ paths:
   /api/v1/admin/templates/{key}/:
     put:
       operationId: api_v1_admin_templates_update
-      description: PUT /api/v1/admin/templates/{key}/ — update a template by key (admin
+      description: PUT /api/v1/admin/templates/{key}/ - update a template by key (admin
         only).
       summary: Update a communication template
       parameters:
@@ -717,8 +717,8 @@ paths:
     get:
       operationId: admin_users_list
       description: |-
-        GET /api/v1/admin/users/ — paginated user listing.
-        POST /api/v1/admin/users/ — create user with role assignment.
+        GET /api/v1/admin/users/ - paginated user listing.
+        POST /api/v1/admin/users/ - create user with role assignment.
 
         Role filtering, search by name/email, include inactive option. Admin only.
       parameters:
@@ -3019,7 +3019,7 @@ paths:
         GET /api/v1/applications/{id}/preview-summary/
 
         Returns a personalized AI-generated summary for the student's review step.
-        Cached for 10 minutes per application. Best-effort — returns a template
+        Cached for 10 minutes per application. Best-effort - returns a template
         fallback if AI is unavailable or slow.
       summary: Get AI-generated application summary (student preview)
       parameters:
@@ -3442,7 +3442,7 @@ paths:
         Student-initiated application withdrawal.
 
         POST /api/v1/applications/{id}/withdraw/
-        Owner only — admins use the review endpoint for rejection.
+        Owner only - admins use the review endpoint for rejection.
         Supports idempotency via ``Idempotency-Key`` header.
 
         Requirements: 1.9, 1.10
@@ -3974,7 +3974,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthLoginResponse'
+                $ref: '#/components/schemas/LoginResponse'
           description: Authenticates the user, sets access and refresh cookies, and
             returns the current user summary.
         '401':
@@ -4365,7 +4365,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthRegisterResponse'
+                $ref: '#/components/schemas/RegisterResponse'
           description: Creates a student profile. Existing emails still return a success-shaped
             response to avoid account enumeration.
         '400':
@@ -4412,7 +4412,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthSessionResponse'
+                $ref: '#/components/schemas/SessionResponse'
           description: ''
         '401':
           description: Authentication required — missing or invalid credentials.
@@ -4829,8 +4829,8 @@ paths:
     get:
       operationId: catalog_institutions_list
       description: |-
-        GET /api/v1/catalog/institutions/ — list institutions
-        POST /api/v1/catalog/institutions/ — create institution (admin)
+        GET /api/v1/catalog/institutions/ - list institutions
+        POST /api/v1/catalog/institutions/ - create institution (admin)
       tags:
       - catalog
       responses:
@@ -4869,8 +4869,8 @@ paths:
     post:
       operationId: catalog_institutions_create
       description: |-
-        GET /api/v1/catalog/institutions/ — list institutions
-        POST /api/v1/catalog/institutions/ — create institution (admin)
+        GET /api/v1/catalog/institutions/ - list institutions
+        POST /api/v1/catalog/institutions/ - create institution (admin)
       tags:
       - catalog
       requestBody:
@@ -5102,8 +5102,8 @@ paths:
     get:
       operationId: catalog_intakes_list
       description: |-
-        GET /api/v1/catalog/intakes/ — list intakes
-        POST /api/v1/catalog/intakes/ — create intake (admin)
+        GET /api/v1/catalog/intakes/ - list intakes
+        POST /api/v1/catalog/intakes/ - create intake (admin)
       tags:
       - catalog
       responses:
@@ -5142,8 +5142,8 @@ paths:
     post:
       operationId: catalog_intakes_create
       description: |-
-        GET /api/v1/catalog/intakes/ — list intakes
-        POST /api/v1/catalog/intakes/ — create intake (admin)
+        GET /api/v1/catalog/intakes/ - list intakes
+        POST /api/v1/catalog/intakes/ - create intake (admin)
       tags:
       - catalog
       requestBody:
@@ -5369,8 +5369,8 @@ paths:
     get:
       operationId: catalog_programs_list
       description: |-
-        GET /api/v1/catalog/programs/ — list programs (public + admin)
-        POST /api/v1/catalog/programs/ — create program (admin only)
+        GET /api/v1/catalog/programs/ - list programs (public + admin)
+        POST /api/v1/catalog/programs/ - create program (admin only)
       parameters:
       - in: query
         name: page
@@ -5420,8 +5420,8 @@ paths:
     post:
       operationId: catalog_programs_create
       description: |-
-        GET /api/v1/catalog/programs/ — list programs (public + admin)
-        POST /api/v1/catalog/programs/ — create program (admin only)
+        GET /api/v1/catalog/programs/ - list programs (public + admin)
+        POST /api/v1/catalog/programs/ - create program (admin only)
       tags:
       - catalog
       requestBody:
@@ -5646,7 +5646,7 @@ paths:
   /api/v1/catalog/subjects/:
     get:
       operationId: catalog_subjects_list
-      description: GET /api/v1/catalog/subjects/ — list subjects (public)
+      description: GET /api/v1/catalog/subjects/ - list subjects (public)
       tags:
       - catalog
       responses:
@@ -5686,7 +5686,7 @@ paths:
     delete:
       operationId: api_v1_documents_delete_destroy
       description: |-
-        DELETE /api/v1/documents/{id}/delete/ — soft-delete a document record.
+        DELETE /api/v1/documents/{id}/delete/ - soft-delete a document record.
 
         Sets verification_status to 'deleted' as a soft-delete marker.
         Requires authentication.
@@ -5738,7 +5738,7 @@ paths:
     get:
       operationId: api_v1_documents_download_retrieve
       description: |-
-        GET /api/v1/documents/{id}/download/ — redirect to signed download URL.
+        GET /api/v1/documents/{id}/download/ - redirect to signed download URL.
 
         Generates a signed URL and returns HTTP 302 redirect.
         Requires authentication.
@@ -5786,7 +5786,7 @@ paths:
   /api/v1/documents/{document_id}/extract/:
     post:
       operationId: documents_extract
-      description: POST /api/v1/documents/{id}/extract/ — enqueue OCR Celery task.
+      description: POST /api/v1/documents/{id}/extract/ - enqueue OCR Celery task.
       parameters:
       - in: path
         name: document_id
@@ -5843,7 +5843,7 @@ paths:
     get:
       operationId: api_v1_documents_info_retrieve
       description: |-
-        GET /api/v1/documents/{id}/info/ — return document metadata.
+        GET /api/v1/documents/{id}/info/ - return document metadata.
 
         Returns document_name, document_type, verification_status,
         uploaded_at, file_size, and mime_type.
@@ -5896,7 +5896,7 @@ paths:
     get:
       operationId: api_v1_documents_signed_url_retrieve
       description: |-
-        GET /api/v1/documents/{id}/signed-url/ — generate a time-limited signed URL.
+        GET /api/v1/documents/{id}/signed-url/ - generate a time-limited signed URL.
 
         Returns {"url": "https://..."} for the document's file in R2/S3.
         Requires authentication.
@@ -6217,7 +6217,7 @@ paths:
     post:
       operationId: documents_upload
       description: |-
-        POST /api/v1/documents/upload/ — upload a document.
+        POST /api/v1/documents/upload/ - upload a document.
 
         Validates magic bytes, stores in S3/R2, creates ApplicationDocument record.
       tags:
@@ -7828,8 +7828,8 @@ paths:
     get:
       operationId: notifications_list
       description: |-
-        GET /api/v1/notifications/ — list notifications for current user.
-        POST /api/v1/notifications/ — admin send notification (delegates to NotificationSendView).
+        GET /api/v1/notifications/ - list notifications for current user.
+        POST /api/v1/notifications/ - admin send notification (delegates to NotificationSendView).
 
         Supports pagination (?page=1&pageSize=20) and filtering (?type=info&is_read=true).
         Without params, returns all notifications in the paginated envelope for backward compatibility.
@@ -7873,7 +7873,7 @@ paths:
       summary: List notifications
     post:
       operationId: notifications_send_create
-      description: Delegate to NotificationSendView for admin send.
+      description: Admin send notification via the shared notification service.
       tags:
       - notifications
       requestBody:
@@ -9084,7 +9084,7 @@ paths:
     get:
       operationId: payments_list
       description: |-
-        GET /api/v1/payments/ — list payments for the authenticated user.
+        GET /api/v1/payments/ - list payments for the authenticated user.
 
         Students see their own payments. Admins see all payments.
         Supports optional ?application_id= filter.
@@ -9133,11 +9133,101 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: List payments
+  /api/v1/payments/{payment_id}/correct/:
+    post:
+      operationId: payments_super_admin_correct
+      description: |-
+        POST /api/v1/payments/<uuid:payment_id>/correct/ - super-admin override.
+
+        Super_Admin_Correction_Path (design § State Machine): allows a
+        super-admin to move a Payment to any canonical status, including
+        from a terminal state. The audit row is emitted **before** the
+        transition persists so the governance trail survives a rollback
+        (R1.5). The action ``payment.super_admin_corrected`` auto-promotes
+        to the 365-day security retention window via
+        ``SECURITY_RETENTION_ACTION_PREFIXES`` (R2.6).
+
+        Permission: ``IsAuthenticated`` + ``IsSuperAdmin`` (R17.5 analogue -
+        actor role must equal ``super_admin``). Dev-bypass vectors are
+        locked out in production via ``require_not_dev_bypass_in_production``
+        (R16.1). Per-user rate limit of ``3/min`` via the ``payment_correct``
+        scope on ``PaymentUserScopedRateThrottle`` (R19.1, R19.2).
+
+        Requirements: R2.5, R2.6, R17.1.
+      summary: Super-admin correction — move a Payment to any canonical status.
+      parameters:
+      - in: path
+        name: payment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuperAdminPaymentCorrectionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SuperAdminPaymentCorrectionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SuperAdminPaymentCorrectionRequest'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/payments/{payment_id}/receipt/:
     get:
       operationId: payments_receipt
       description: |-
-        GET /api/v1/payments/{id}/receipt/ — generate receipt data.
+        GET /api/v1/payments/{id}/receipt/ - generate receipt data.
 
         Auth required. Ownership check: student sees own, admin sees all.
       parameters:
@@ -9189,7 +9279,7 @@ paths:
     post:
       operationId: payments_verify
       description: |-
-        POST /api/v1/payments/{id}/verify/ — verify payment via Lenco API.
+        POST /api/v1/payments/{id}/verify/ - verify payment via Lenco API.
 
         Authenticated. Students can only verify their own payments.
         Admins can verify any payment.
@@ -9249,7 +9339,7 @@ paths:
   /api/v1/payments/defer/:
     post:
       operationId: api_v1_payments_defer_create
-      description: POST /api/v1/payments/defer/ — create a deferred payment record.
+      description: POST /api/v1/payments/defer/ - create a deferred payment record.
       summary: Defer payment — submit application without paying upfront
       tags:
       - payments
@@ -9309,7 +9399,7 @@ paths:
     post:
       operationId: api_v1_payments_dev_bypass_create
       description: |-
-        POST /api/v1/payments/dev-bypass/ — simulate payment in local development.
+        POST /api/v1/payments/dev-bypass/ - simulate payment in local development.
 
         This endpoint is intentionally unavailable unless DEBUG is true and
         PAYMENT_DEV_BYPASS is enabled. It exists only to unblock end-to-end
@@ -9370,7 +9460,7 @@ paths:
     post:
       operationId: api_v1_payments_initiate_create
       description: |-
-        POST /api/v1/payments/initiate/ — create a pending payment record.
+        POST /api/v1/payments/initiate/ - create a pending payment record.
 
         Authenticated. Creates a Payment via PaymentService and returns the
         reference, amount, currency, and Lenco public key so the frontend can
@@ -9438,7 +9528,7 @@ paths:
     post:
       operationId: api_v1_payments_mobile_money_create
       description: |-
-        POST /api/v1/payments/mobile-money/ — initiate mobile money collection.
+        POST /api/v1/payments/mobile-money/ - initiate mobile money collection.
 
         Creates a pending Payment record then calls the Lenco mobile money API.
         The student authorizes the payment on their phone (pay-offline flow).
@@ -9513,7 +9603,7 @@ paths:
     get:
       operationId: api_v1_payments_resolve_fee_retrieve
       description: |-
-        GET /api/v1/payments/resolve-fee/ — resolve application fee.
+        GET /api/v1/payments/resolve-fee/ - resolve application fee.
 
         Authenticated. Returns the resolved fee amount and currency for a
         given program code and student residency.
@@ -9571,14 +9661,96 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Retrieve api v1 payments resolve fee
+  /api/v1/payments/risk-flags/:
+    get:
+      operationId: payment_risk_flags_list
+      description: |-
+        ``GET /api/v1/payments/risk-flags/`` - super-admin risk-flag review.
+
+        See module docstring for the full contract. The view uses raw SQL to
+        unnest ``payments.metadata->'risk_flags'`` via ``jsonb_array_elements``
+        because the ``payments`` table is ``managed=False`` and the risk-flag
+        schema lives entirely inside jsonb.
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: 1-based page number.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Page size, clamped to 100.
+      - in: query
+        name: since
+        schema:
+          type: string
+          format: date-time
+        description: Inclusive lower bound for risk flag recorded_at.
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - amount_mismatch
+          - currency_mismatch
+          - invalid_amount
+          - missing_provider_reference
+        description: Filter by canonical payment risk flag type.
+      - in: query
+        name: until
+        schema:
+          type: string
+          format: date-time
+        description: Inclusive upper bound for risk flag recorded_at.
+      tags:
+      - payments
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiskFlagsResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: List payment risk flags
   /api/v1/payments/webhook/lenco/:
     post:
       operationId: api_v1_payments_webhook_lenco_create
       description: |-
-        POST /api/v1/payments/webhook/lenco/ — receive Lenco webhook events.
+        POST /api/v1/payments/webhook/lenco/ - receive Lenco webhook events.
 
         Unauthenticated (AllowAny). Validates X-Lenco-Signature header via
-        WebhookProcessor. Returns 401 for invalid signature, 200 for valid events.
+        WebhookProcessor. Returns 200 for every syntactically valid delivery so
+        Lenco does not retry aggressively; invalid signatures are logged and ignored.
 
         Requirements: 4.1, 4.2, 4.7, 10.1
       tags:
@@ -9623,7 +9795,7 @@ paths:
     get:
       operationId: api_v1_programs_fees_list
       description: |-
-        CRUD for /api/v1/programs/:id/fees/ — admin only.
+        CRUD for /api/v1/programs/:id/fees/ - admin only.
 
         - GET: list active fees for a program
         - POST: create a new fee
@@ -9694,7 +9866,7 @@ paths:
     post:
       operationId: api_v1_programs_fees_create
       description: |-
-        CRUD for /api/v1/programs/:id/fees/ — admin only.
+        CRUD for /api/v1/programs/:id/fees/ - admin only.
 
         - GET: list active fees for a program
         - POST: create a new fee
@@ -9773,7 +9945,7 @@ paths:
     get:
       operationId: api_v1_programs_fees_retrieve
       description: |-
-        CRUD for /api/v1/programs/:id/fees/ — admin only.
+        CRUD for /api/v1/programs/:id/fees/ - admin only.
 
         - GET: list active fees for a program
         - POST: create a new fee
@@ -9838,7 +10010,7 @@ paths:
     put:
       operationId: api_v1_programs_fees_update
       description: |-
-        CRUD for /api/v1/programs/:id/fees/ — admin only.
+        CRUD for /api/v1/programs/:id/fees/ - admin only.
 
         - GET: list active fees for a program
         - POST: create a new fee
@@ -9922,7 +10094,7 @@ paths:
     patch:
       operationId: api_v1_programs_fees_partial_update
       description: |-
-        CRUD for /api/v1/programs/:id/fees/ — admin only.
+        CRUD for /api/v1/programs/:id/fees/ - admin only.
 
         - GET: list active fees for a program
         - POST: create a new fee
@@ -10276,7 +10448,7 @@ paths:
   /health/live/:
     get:
       operationId: health_liveness
-      description: Liveness probe — returns HTTP 200 with no external dependencies.
+      description: Liveness probe - returns HTTP 200 with no external dependencies.
       tags:
       - health
       responses:
@@ -10302,7 +10474,7 @@ paths:
   /health/ready/:
     get:
       operationId: health_readiness
-      description: Readiness probe — verifies Neon Postgres and Redis connectivity.
+      description: Readiness probe - verifies Neon Postgres and Redis connectivity.
       tags:
       - health
       responses:
@@ -10777,7 +10949,7 @@ components:
           maxLength: 255
         status:
           type: string
-          maxLength: 20
+          maxLength: 32
         version:
           type: integer
           readOnly: true
@@ -10794,6 +10966,7 @@ components:
           format: decimal
           pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
           nullable: true
+          readOnly: true
         payment_method:
           type: string
           nullable: true
@@ -10835,6 +11008,10 @@ components:
           nullable: true
           readOnly: true
         payment_verified_by_email:
+          type: string
+          nullable: true
+          readOnly: true
+        payment_currency:
           type: string
           nullable: true
           readOnly: true
@@ -10894,6 +11071,7 @@ components:
           readOnly: true
           nullable: true
       required:
+      - application_fee
       - application_number
       - created_at
       - date_of_birth
@@ -10906,6 +11084,7 @@ components:
       - last_payment_reference
       - paid_amount
       - paid_at
+      - payment_currency
       - payment_method
       - payment_reference
       - payment_verified_by_email
@@ -10954,16 +11133,34 @@ components:
       description: POST /api/v1/applications/{id}/amendments/ request body.
       properties:
         field_name:
+          enum:
+          - phone
+          - email
+          - address_line_1
+          - address_line_2
+          - residence_town
+          - next_of_kin_name
+          - next_of_kin_phone
           type: string
-          description: Name of the application field being amended (e.g. phone, email,
-            address)
-          maxLength: 100
+          x-spec-enum-id: c332cf35d701e91b
+          description: |-
+            Name of the application field being amended
+
+            * `phone` - Phone
+            * `email` - Email
+            * `address_line_1` - Address line 1
+            * `address_line_2` - Address line 2
+            * `residence_town` - Residence town
+            * `next_of_kin_name` - Next of kin name
+            * `next_of_kin_phone` - Next of kin phone
         new_value:
           type: string
           description: Proposed new value for the field
+          maxLength: 255
         reason:
           type: string
           description: Student-provided explanation for the amendment
+          maxLength: 1000
       required:
       - field_name
       - new_value
@@ -11118,14 +11315,8 @@ components:
           type: string
           format: date
         sex:
-          enum:
-          - male
-          - female
           type: string
-          description: |-
-            * `male` - male
-            * `female` - female
-          x-spec-enum-id: 7aacb3649292f369
+          maxLength: 10
         phone:
           type: string
           maxLength: 20
@@ -11539,7 +11730,7 @@ components:
           maxLength: 255
         status:
           type: string
-          maxLength: 20
+          maxLength: 32
         payment_status:
           type: string
           nullable: true
@@ -11580,6 +11771,10 @@ components:
           type: string
           nullable: true
           readOnly: true
+        payment_currency:
+          type: string
+          nullable: true
+          readOnly: true
         submitted_at:
           type: string
           format: date-time
@@ -11603,6 +11798,7 @@ components:
           format: decimal
           pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
           nullable: true
+          readOnly: true
         grades_summary:
           type: string
           readOnly: true
@@ -11628,6 +11824,7 @@ components:
           nullable: true
       required:
       - age
+      - application_fee
       - application_number
       - days_since_submission
       - email
@@ -11640,6 +11837,7 @@ components:
       - last_payment_reference
       - paid_amount
       - paid_at
+      - payment_currency
       - payment_method
       - payment_reference
       - payment_verified_by_email
@@ -11701,7 +11899,7 @@ components:
       - data
     ApplicationReview:
       type: object
-      description: Admin review — status update.
+      description: Admin review - status update.
       properties:
         new_status:
           type: string
@@ -11780,7 +11978,7 @@ components:
     ApplicationTracking:
       type: object
       description: |-
-        Public tracking serializer — no auth required.
+        Public tracking serializer - no auth required.
 
         Keep this response intentionally small: it is exposed to anyone who knows
         an application number or tracking code.
@@ -11794,7 +11992,7 @@ components:
           maxLength: 50
         status:
           type: string
-          maxLength: 20
+          maxLength: 32
         program:
           type: string
           maxLength: 255
@@ -11914,16 +12112,6 @@ components:
       - request_user_agent
       - retention_category
       - user_agent_hash
-    AuthLoginResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/AuthUserPayload'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
     AuthMessageResponse:
       type: object
       properties:
@@ -11934,33 +12122,6 @@ components:
           default: true
       required:
       - data
-    AuthRegisterResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/RegisterPayload'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    AuthSessionResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Session'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    AuthUserPayload:
-      type: object
-      properties:
-        user:
-          $ref: '#/components/schemas/Session'
-      required:
-      - user
     AutomationAction:
       type: object
       properties:
@@ -12150,15 +12311,15 @@ components:
           maxLength: 20
         role:
           enum:
-          - reviewer
           - super_admin
           - admin
+          - reviewer
           - student
           type: string
           description: |-
-            * `reviewer` - reviewer
             * `super_admin` - super_admin
             * `admin` - admin
+            * `reviewer` - reviewer
             * `student` - student
           x-spec-enum-id: 1a3817a8a61ce783
         password:
@@ -12316,7 +12477,7 @@ components:
       - updated_at
     CommunicationTemplateListResponse:
       type: object
-      description: Envelope for GET /api/v1/admin/templates/ — returns a list of templates.
+      description: Envelope for GET /api/v1/admin/templates/ - returns a list of templates.
       properties:
         success:
           type: boolean
@@ -12332,7 +12493,7 @@ components:
       description: |-
         PUT /api/v1/admin/templates/{key}/ request body.
 
-        All fields optional — updating subject_template and/or body_template is the
+        All fields optional - updating subject_template and/or body_template is the
         common case. Use is_active=false to soft-disable a template.
       properties:
         subject_template:
@@ -12530,6 +12691,14 @@ components:
           type: string
           readOnly: true
           nullable: true
+        ecz_exam_number:
+          type: string
+          readOnly: true
+          nullable: true
+        ecz_exam_year:
+          type: integer
+          readOnly: true
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -12545,6 +12714,8 @@ components:
       - created_at
       - document_name
       - document_type
+      - ecz_exam_number
+      - ecz_exam_year
       - extracted_text
       - file_size
       - file_url
@@ -13346,12 +13517,24 @@ components:
         email:
           type: string
           format: email
+          maxLength: 320
         password:
           type: string
           writeOnly: true
+          maxLength: 128
       required:
       - email
       - password
+    LoginResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Session'
+        success:
+          type: boolean
+          default: true
+      required:
+      - data
     Message:
       type: object
       properties:
@@ -13409,6 +13592,7 @@ components:
           enum:
           - airtel
           - mtn
+          - ''
           type: string
           x-spec-enum-id: 47997ed24c4cfd47
           description: |-
@@ -13418,7 +13602,6 @@ components:
             * `mtn` - MTN
       required:
       - application_id
-      - operator
       - phone
     MobileMoneyInitiateResponse:
       type: object
@@ -13857,9 +14040,11 @@ components:
       properties:
         token:
           type: string
+          maxLength: 256
         new_password:
           type: string
           writeOnly: true
+          maxLength: 128
           minLength: 8
       required:
       - new_password
@@ -13871,6 +14056,7 @@ components:
         email:
           type: string
           format: email
+          maxLength: 320
       required:
       - email
     PatchedAdminUserUpdate:
@@ -13989,7 +14175,7 @@ components:
         status:
           type: string
           readOnly: true
-          maxLength: 20
+          maxLength: 32
         version:
           type: integer
           readOnly: true
@@ -14005,8 +14191,8 @@ components:
           type: string
           format: decimal
           pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
-          readOnly: true
           nullable: true
+          readOnly: true
         payment_method:
           type: string
           nullable: true
@@ -14051,6 +14237,10 @@ components:
           nullable: true
           readOnly: true
         payment_verified_by_email:
+          type: string
+          nullable: true
+          readOnly: true
+        payment_currency:
           type: string
           nullable: true
           readOnly: true
@@ -14135,7 +14325,7 @@ components:
           type: string
     PatchedApplicationReview:
       type: object
-      description: Admin review — status update.
+      description: Admin review - status update.
       properties:
         new_status:
           type: string
@@ -14288,15 +14478,8 @@ components:
           format: date
           nullable: true
         sex:
-          enum:
-          - Male
-          - Female
-          - ''
           type: string
-          description: |-
-            * `Male` - Male
-            * `Female` - Female
-          x-spec-enum-id: adbd591c97cf9b98
+          maxLength: 10
         residence_town:
           type: string
           maxLength: 255
@@ -14785,9 +14968,11 @@ components:
         email:
           type: string
           format: email
+          maxLength: 320
         password:
           type: string
           writeOnly: true
+          maxLength: 128
           minLength: 8
         first_name:
           type: string
@@ -14806,15 +14991,16 @@ components:
       - first_name
       - last_name
       - password
-    RegisterPayload:
+    RegisterResponse:
       type: object
       properties:
-        message:
-          type: string
-        user:
+        data:
           $ref: '#/components/schemas/Session'
+        success:
+          type: boolean
+          default: true
       required:
-      - message
+      - data
     ResumeAsset:
       type: object
       properties:
@@ -14851,6 +15037,68 @@ components:
           default: true
       required:
       - data
+    RiskFlagItem:
+      type: object
+      properties:
+        payment_id:
+          type: string
+          format: uuid
+        application_id:
+          type: string
+          format: uuid
+          nullable: true
+        type:
+          enum:
+          - amount_mismatch
+          - currency_mismatch
+          - invalid_amount
+          - missing_provider_reference
+          type: string
+          description: |-
+            * `amount_mismatch` - amount_mismatch
+            * `currency_mismatch` - currency_mismatch
+            * `invalid_amount` - invalid_amount
+            * `missing_provider_reference` - missing_provider_reference
+          x-spec-enum-id: c7c3c14ab97a7fe8
+        details: {}
+        recorded_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - application_id
+      - details
+      - payment_id
+      - recorded_at
+      - type
+    RiskFlagsData:
+      type: object
+      properties:
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalCount:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RiskFlagItem'
+      required:
+      - page
+      - pageSize
+      - results
+      - totalCount
+    RiskFlagsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/RiskFlagsData'
+      required:
+      - data
+      - success
     Session:
       type: object
       description: Read-only serializer for current user session info.
@@ -14915,6 +15163,18 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Message'
+        success:
+          type: boolean
+          default: true
+      required:
+      - data
+    SessionResponse:
+      type: object
+      properties:
+        data:
+          allOf:
+          - $ref: '#/components/schemas/Session'
+          nullable: true
         success:
           type: boolean
           default: true
@@ -15046,6 +15306,40 @@ components:
       - created_at
       - id
       - name
+    SuperAdminPaymentCorrectionRequest:
+      type: object
+      description: |-
+        Request body for ``POST /api/v1/payments/<uuid>/correct/``.
+
+        The serializer enforces the reason-length guard at the boundary so a
+        short reason never reaches the service layer. Field-level errors are
+        mapped to stable codes (``OVERRIDE_REASON_REQUIRED`` /
+        ``VALIDATION_ERROR``) by the view on validation failure.
+      properties:
+        target_status:
+          enum:
+          - pending
+          - deferred
+          - successful
+          - failed
+          - expired
+          - force_approved
+          type: string
+          description: |-
+            * `pending` - pending
+            * `deferred` - deferred
+            * `successful` - successful
+            * `failed` - failed
+            * `expired` - expired
+            * `force_approved` - force_approved
+          x-spec-enum-id: 777242c2fa5814f3
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 10
+      required:
+      - reason
+      - target_status
     TaskQueued:
       type: object
       properties:
