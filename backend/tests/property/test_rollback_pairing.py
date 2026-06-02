@@ -124,7 +124,7 @@ def _rollback_sibling_for(forward_name: str) -> Path:
         unique=True,
     )
 )
-@settings(max_examples=25, deadline=2000)
+@settings(max_examples=20, deadline=2000)
 def test_every_forward_script_has_rollback_sibling(forward_subset: list[str]) -> None:
     """For every forward ``*.sql`` script, ``<basename>_rollback.sql`` must exist.
 

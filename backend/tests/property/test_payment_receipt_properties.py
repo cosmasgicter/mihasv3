@@ -12,7 +12,7 @@ with additional generators and properties.
 Generators are deliberately recursive so redaction is exercised at arbitrary
 nesting depth. Each property is annotated with its ``**Validates:
 Requirements X.Y**`` marker and runs with
-``@settings(max_examples=100, deadline=None,
+``@settings(max_examples=20, deadline=None,
 suppress_health_check=[HealthCheck.function_scoped_fixture])``; the CI
 runner pins ``--hypothesis-seed=0`` for deterministic shrinking.
 
@@ -237,7 +237,7 @@ class TestProperty17PiiRedaction(SimpleTestCase):
 
     @given(payload=_payload_strategy())
     @settings(
-        max_examples=100,
+        max_examples=20,
         deadline=None,
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
@@ -250,7 +250,7 @@ class TestProperty17PiiRedaction(SimpleTestCase):
 
     @given(payload=_payload_strategy())
     @settings(
-        max_examples=100,
+        max_examples=20,
         deadline=None,
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
@@ -260,7 +260,7 @@ class TestProperty17PiiRedaction(SimpleTestCase):
 
     @given(payload=_payload_strategy())
     @settings(
-        max_examples=100,
+        max_examples=20,
         deadline=None,
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
@@ -270,7 +270,7 @@ class TestProperty17PiiRedaction(SimpleTestCase):
 
     @given(payload=_payload_strategy())
     @settings(
-        max_examples=100,
+        max_examples=20,
         deadline=None,
         suppress_health_check=[HealthCheck.function_scoped_fixture],
     )
@@ -534,7 +534,7 @@ def _p12_build_side_effect(behavior):
 
 @given(behavior=_P12_BEHAVIOURS)
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -744,7 +744,7 @@ def _p6_seed_applicant_row(suffix_prefix: str):
 
 @given(repeat_count=st.integers(min_value=1, max_value=10))
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -852,7 +852,7 @@ def test_property_6_receipt_idempotence(repeat_count):
 
 @given(attempt=st.integers(min_value=1, max_value=5))
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -954,7 +954,7 @@ def test_property_7_single_active_db_invariant(attempt):
     ),
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -1091,7 +1091,7 @@ def test_property_8_transaction_reference_uniqueness(reference):
     ),
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,

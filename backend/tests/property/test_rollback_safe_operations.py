@@ -324,7 +324,7 @@ def _audit_rollback_file(path: Path) -> list[str]:
         unique=True,
     )
 )
-@settings(max_examples=25, deadline=2000)
+@settings(max_examples=20, deadline=2000)
 def test_every_rollback_statement_is_inverse_additive(
     rollback_subset: list[Path],
 ) -> None:

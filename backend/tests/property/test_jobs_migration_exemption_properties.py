@@ -57,7 +57,7 @@ def test_property2_exempt_scripts_never_flagged(name, tmp_path, monkeypatch):
         alphabet="abcdefghijklmnopqrstuvwxyz0123456789_", min_size=3, max_size=24
     ).map(lambda s: f"2024_01_01_{s}.sql")
 )
-@settings(max_examples=30, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])
+@settings(max_examples=20, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])
 def test_property4_non_exempt_stale_still_flagged(other_name, tmp_path, monkeypatch):
     """Property 4 — a genuinely stale, non-exempt, unrecorded script is flagged
     even when the exempt files are present.

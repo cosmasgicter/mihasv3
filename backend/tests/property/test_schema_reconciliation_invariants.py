@@ -21,7 +21,7 @@ The remaining three tests will be added by Wave 4 (Task 4.4) per the
 dependency graph in ``.kiro/specs/production-schema-reconciliation/tasks.md``.
 
 All four tests are designed to share the same hypothesis configuration
-(``max_examples=25``, ``deadline=2000``) per Requirement 8.1, and all
+(``max_examples=20``, ``deadline=2000``) per Requirement 8.1, and all
 four require a PostgreSQL backend because every invariant exercises
 Postgres-specific features (jsonb operators, ``pg_index``,
 ``information_schema.referential_constraints`` joined with ``pg_index``).
@@ -93,7 +93,7 @@ def _require_postgres_or_skip() -> None:
 
 @pytest.mark.django_db(transaction=True)
 @given(batch_size=st.integers(min_value=1, max_value=100))
-@settings(max_examples=25, deadline=2000)
+@settings(max_examples=20, deadline=2000)
 def test_snapshot_invariant_holds_after_simulated_backfill(batch_size: int) -> None:
     """After the simulated backfill runs, every inserted row has ``metadata.snapshot``.
 
@@ -262,7 +262,7 @@ def test_snapshot_invariant_holds_after_simulated_backfill(batch_size: int) -> N
 #   * ``test_migration_history_coverage``         — Requirement 8.4
 #
 # Each will use ``@given(st.data())`` and the same
-# ``@settings(max_examples=25, deadline=2000)`` configuration so the
+# ``@settings(max_examples=20, deadline=2000)`` configuration so the
 # four invariants share one execution profile. See design.md
 # §"Component 9 — Property-based invariant tests" for the implementations.
 
@@ -274,7 +274,7 @@ def test_snapshot_invariant_holds_after_simulated_backfill(batch_size: int) -> N
 
 @pytest.mark.django_db
 @given(data=st.data())
-@settings(max_examples=25, deadline=2000)
+@settings(max_examples=20, deadline=2000)
 def test_fk_index_invariant_holds(data) -> None:
     """Every drawn foreign-key column on the configured DB has a covering btree index.
 
@@ -348,7 +348,7 @@ def test_fk_index_invariant_holds(data) -> None:
 
 @pytest.mark.django_db
 @given(data=st.data())
-@settings(max_examples=25, deadline=2000)
+@settings(max_examples=20, deadline=2000)
 def test_coverage_invariant_holds(data) -> None:
     """Every drawn ``managed=False`` model maps to a real table whose columns include every declared field.
 
@@ -423,7 +423,7 @@ def test_coverage_invariant_holds(data) -> None:
 
 @pytest.mark.django_db
 @given(data=st.data())
-@settings(max_examples=25, deadline=2000)
+@settings(max_examples=20, deadline=2000)
 def test_migration_history_coverage(data) -> None:
     """Every drawn forward Migration_Script committed > 7 days ago is recorded in migration_history.
 

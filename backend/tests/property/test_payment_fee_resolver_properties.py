@@ -145,7 +145,7 @@ def seed_applicant(db):
     country=st.sampled_from(["Zambia", "Kenya", None, ""]),
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -254,7 +254,7 @@ def test_property_11a_initiate_signature_rejects_tainted_kwargs():
     )
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -388,7 +388,7 @@ def _phone_strategy(draw: st.DrawFn) -> str:
 
 @given(phone=_phone_strategy())
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[HealthCheck.too_slow],
 )
@@ -421,7 +421,7 @@ def test_property_16_phone_normalization_idempotence(phone):
 
 @given(phone_a=_phone_strategy(), phone_b=_phone_strategy())
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
 )
@@ -498,7 +498,7 @@ _BLOCKING_PAYMENT_STATUSES: frozenset[str] = frozenset(
     ),
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,

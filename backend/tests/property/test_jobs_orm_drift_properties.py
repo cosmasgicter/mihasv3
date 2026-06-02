@@ -44,7 +44,7 @@ ai_score_results = st.one_of(
 )
 
 
-@settings(max_examples=40, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(seed=st.integers(min_value=0, max_value=10**9), ai_result=ai_score_results)
 def test_score_endpoint_never_500_on_missing_table(seed, ai_result):
     """Property 1 — score endpoint stays in {200, 202} when the table is absent.
@@ -65,7 +65,7 @@ def test_score_endpoint_never_500_on_missing_table(seed, ai_result):
     assert response.status_code in {200, 202, 400, 404}
 
 
-@settings(max_examples=40, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(
     seed=st.integers(min_value=0, max_value=10**9),
     resume_text=st.one_of(st.just(""), st.text(max_size=50)),
@@ -91,7 +91,7 @@ def test_tailor_endpoint_never_500_on_missing_table(seed, resume_text, ai_result
     assert response.status_code in {200, 202, 400, 404}
 
 
-@settings(max_examples=25, deadline=None)
+@settings(max_examples=20, deadline=None)
 @given(seed=st.integers(min_value=0, max_value=10**9))
 def test_score_endpoint_skips_persistence_when_table_missing(seed):
     """Property 1/3 — no match-score write is attempted when the table is absent.

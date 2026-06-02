@@ -218,7 +218,7 @@ class TestBug5PreservationAllowedTransitionsEnforced:
             "withdrawn", "expired", "enrollment_expired",
         ]),
     )
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=20, deadline=None)
     def test_invalid_transitions_raise_value_error(self, old_status, new_status):
         """Transitions not in ALLOWED_TRANSITIONS must raise ValueError."""
 

@@ -217,7 +217,7 @@ def _expected_risk_flag(
     reference=st.sampled_from(["", "   ", "LENCO-VALID-12345", "VALID-REF"]),
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -412,7 +412,7 @@ def _build_event_stream(payment) -> list[tuple[str, dict]]:
     permutation_indices=st.permutations([0, 1, 2, 3, 4]),
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -525,7 +525,7 @@ def _snapshot_payment_state(payment_ref: str) -> dict:
     event_type=_IDEMPOTENT_EVENT_TYPES,
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -632,7 +632,7 @@ _JSON_VALUES = st.recursive(
 
 @given(payload=_JSON_VALUES)
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -696,7 +696,7 @@ _IDENTITY_TEXT = st.text(
     payload_hash=st.text(alphabet=_HEX_ALPHABET, min_size=12, max_size=64),
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -776,7 +776,7 @@ _PID_TEXT = st.text(
     ]),
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,

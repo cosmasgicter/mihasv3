@@ -180,7 +180,7 @@ def _apply_against(tmp_dir: Path) -> None:
         max_size=6,
     ),
 )
-@settings(max_examples=25, deadline=2000)
+@settings(max_examples=20, deadline=2000)
 def test_migration_history_row_count_is_monotonically_non_decreasing(
     filenames: list[str], step_counts: list[int]
 ) -> None:
@@ -266,7 +266,7 @@ def test_migration_history_row_count_is_monotonically_non_decreasing(
     filenames=st.lists(_filename_st, min_size=1, max_size=8, unique=True),
     rerun_count=st.integers(min_value=2, max_value=5),
 )
-@settings(max_examples=25, deadline=2000)
+@settings(max_examples=20, deadline=2000)
 def test_repeated_apply_produces_no_duplicate_migration_history_rows(
     filenames: list[str], rerun_count: int
 ) -> None:

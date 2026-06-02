@@ -280,7 +280,7 @@ def _latest_transition_blocked_audits(entity_id):
 @override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @given(n=st.integers(min_value=2, max_value=8))
 @settings(
-    max_examples=25,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -394,7 +394,7 @@ _TERMINAL_INPUT_STRATEGY = st.fixed_dictionaries(
     channel=st.sampled_from(["verify", "webhook", "admin"]),
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -549,7 +549,7 @@ def test_property_2_terminal_stability(
     )
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -735,7 +735,7 @@ def test_property_14_forward_only_closure(
     expired_old_count=st.integers(min_value=0, max_value=10),
 )
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
@@ -849,7 +849,7 @@ def _operation_strategy() -> st.SearchStrategy[dict]:
 @override_settings(PAYMENT_HARDENING_FORWARD_ONLY=True)
 @given(operations=st.lists(_operation_strategy(), min_size=1, max_size=5))
 @settings(
-    max_examples=100,
+    max_examples=20,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,

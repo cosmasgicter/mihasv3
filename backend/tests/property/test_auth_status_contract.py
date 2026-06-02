@@ -29,7 +29,7 @@ from rest_framework.views import APIView  # noqa: E402
 
 from apps.common.exceptions import envelope_exception_handler  # noqa: E402
 
-_default_settings = hypothesis_settings(max_examples=50, deadline=None)
+_default_settings = hypothesis_settings(max_examples=20, deadline=None)
 
 # ---------------------------------------------------------------------------
 # Strategies

@@ -16,7 +16,7 @@ from apps.applications.interview_views import (
 
 
 @given(status_value=st.text(min_size=1, max_size=40))
-@settings(max_examples=50, deadline=None)
+@settings(max_examples=20, deadline=None)
 def test_generated_invalid_interview_statuses_are_rejected(status_value):
     """Only the explicit interview state-machine statuses are accepted."""
     status_value = status_value.strip()

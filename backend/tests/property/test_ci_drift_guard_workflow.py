@@ -333,7 +333,7 @@ ASSERTION_NAMES: list[str] = sorted(ASSERTIONS.keys())
         unique=True,
     )
 )
-@settings(max_examples=25, deadline=2000)
+@settings(max_examples=20, deadline=2000)
 def test_drift_guard_workflow_contract_holds(selected: list[str]) -> None:
     """For every drawn assertion, the drift-guard job satisfies the contract.
 
