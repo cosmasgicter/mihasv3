@@ -239,6 +239,7 @@ class LoginView(APIView):
             refresh_payload = jwt.decode(refresh_token, options={"verify_signature": False})
             refresh_jti = refresh_payload.get("jti", "")
         except Exception:
+            logger.debug("Could not decode refresh token JTI (non-fatal)", exc_info=True)
             refresh_jti = ""
 
         from django.utils import timezone as tz
@@ -549,6 +550,7 @@ class RefreshView(APIView):
             new_refresh_payload = jwt.decode(new_refresh, options={"verify_signature": False})
             new_refresh_jti = new_refresh_payload.get("jti", "")
         except Exception:
+            logger.debug("Could not decode rotated refresh token JTI (non-fatal)", exc_info=True)
             new_refresh_jti = ""
 
         from django.utils import timezone as tz
