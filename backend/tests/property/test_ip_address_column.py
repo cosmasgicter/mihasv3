@@ -118,10 +118,11 @@ class TestIPAddressColumnWidth(SimpleTestCase):
                 """
                 INSERT INTO applications
                     (id, application_number, user_id, full_name, date_of_birth,
-                     sex, phone, email, residence_town, program, intake, institution)
+                     sex, phone, email, residence_town, program, intake, institution,
+                     status)
                 VALUES (%s, %s, %s, 'Test', '2000-01-01',
                         'M', '0000000000', 't@t.local', 'Test',
-                        'test-prog', 'test-int', 'MIH')
+                        'test-prog', 'test-int', 'MIH', 'draft')
                 """,
                 (str(cls._app_id), app_number, str(cls._profile_id)),
             )
