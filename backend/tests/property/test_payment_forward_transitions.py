@@ -79,7 +79,7 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
         mock_payment.lenco_reference = "REF-123"
         mock_payment.payment_method = "card"
 
-        with patch("apps.documents.payment_service.Payment.objects") as mock_qs:
+        with patch("apps.documents.payment_service_mixins._verification.Payment.objects") as mock_qs:
             mock_qs.get.return_value = mock_payment
 
             service = PaymentService()
@@ -106,7 +106,7 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
         mock_payment.lenco_reference = "REF-456"
         mock_payment.payment_method = "card"
 
-        with patch("apps.documents.payment_service.Payment.objects") as mock_qs:
+        with patch("apps.documents.payment_service_mixins._verification.Payment.objects") as mock_qs:
             mock_qs.get.return_value = mock_payment
 
             service = PaymentService()
@@ -175,15 +175,23 @@ class TestPaymentForwardOnlyTransitions(SimpleTestCase):
         }
 
         with (
-            patch("apps.documents.payment_service.Payment.objects") as mock_qs,
-            patch("apps.documents.payment_service.http_requests.get") as mock_get,
-            patch("apps.documents.payment_service.settings") as mock_settings,
+            patch("apps.documents.payment_service_mixins._verification.Payment.objects") as mock_qs,
+            patch("apps.documents.payment_service_mixins._verification._call_lenco_collection_status") as mock_lenco,
+            patch("apps.documents.payment_service_mixins._verification.settings") as mock_settings,
             patch.object(PaymentService, "_update_payment_status") as mock_update,
         ):
             mock_settings.LENCO_API_SECRET_KEY = "test-secret"
             mock_settings.LENCO_API_BASE_URL = "https://api.lenco.co"
             mock_qs.get.return_value = mock_payment
-            mock_get.return_value = mock_response
+            mock_lenco.return_value = (
+                {
+                    "status": lenco_status,
+                    "amount": str(amount),
+                    "lencoReference": "LENCO-REF",
+                    "type": "card",
+                },
+                None,
+            )
             mock_payment.refresh_from_db = MagicMock()
 
             service = PaymentService()

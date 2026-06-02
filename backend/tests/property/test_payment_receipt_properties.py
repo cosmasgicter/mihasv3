@@ -569,7 +569,7 @@ def test_property_12_provider_uncertainty_keeps_pending(seed_applicant, behavior
     side_effect = _p12_build_side_effect(behavior)
 
     with patch(
-        "apps.documents.payment_service.http_requests.post"
+        "requests.post"
     ) as mock_post:
         if isinstance(side_effect, BaseException):
             mock_post.side_effect = side_effect

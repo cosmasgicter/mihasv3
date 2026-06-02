@@ -111,13 +111,16 @@ class TestTerminalPaymentsNotReVerified(SimpleTestCase):
         )
 
         with (
-            patch("apps.documents.payment_service.Payment.objects") as mock_payment_qs,
-            patch("apps.documents.payment_service.http_requests") as mock_http,
+            patch("apps.documents.payment_service_mixins._verification.Payment.objects") as mock_payment_qs,
+            patch("apps.documents.payment_service_mixins._verification._call_lenco_collection_status") as mock_lenco,
         ):
             mock_payment_qs.get.return_value = payment
 
             service = PaymentService()
             result = service.verify_payment(payment_id)
+
+        # Terminal payments must NOT hit Lenco at all.
+        mock_lenco.assert_not_called()
 
         # Assert returned status matches the terminal state
         self.assertIsInstance(result, PaymentVerificationResult)
@@ -132,6 +135,3 @@ class TestTerminalPaymentsNotReVerified(SimpleTestCase):
         self.assertEqual(result.lenco_reference, lenco_ref)
         self.assertEqual(result.payment_method, payment_method)
         self.assertIsNone(result.error)
-
-        # Assert no HTTP request was made to Lenco
-        mock_http.get.assert_not_called()

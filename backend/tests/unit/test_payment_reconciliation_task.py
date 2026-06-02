@@ -635,11 +635,20 @@ def test_amount_mismatch_during_reconcile_triggers_risk_flag(seed_owner, _clear_
                 },
             }
 
-    # Patch the HTTP call and let ``verify`` run through the
+    # Patch the Lenco status helper and let ``verify`` run through the
     # real integrity gate in ``_transition``.
     with patch(
-        "apps.documents.payment_service.http_requests.get",
-        return_value=_FakeResp(),
+        "apps.documents.payment_service_mixins._verification._call_lenco_collection_status",
+        return_value=(
+            {
+                "status": "successful",
+                "amount": "100.00",
+                "currency": "ZMW",
+                "lencoReference": f"LENCO-{uuid.uuid4().hex[:12]}",
+                "type": "mobile-money",
+            },
+            None,
+        ),
     ):
         documents_tasks.poll_pending_payments_task()
 
