@@ -352,9 +352,11 @@ class TestApplicationAPIContractsPreservation:
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status="submitted")
 
-        with patch("apps.applications.admin_views.Application.objects") as mock_qs, \
-             patch("apps.applications.admin_views.transition_application_status") as mock_transition:
+        with patch("apps.applications.admin_review_views.Application.objects") as mock_qs, \
+             patch("apps.applications.admin_review_views.transition_application_status") as mock_transition, \
+             patch("apps.applications.admin_review_views.transaction.atomic"):
             mock_qs.get.return_value = application
+            mock_qs.select_for_update.return_value.get.return_value = application
             mock_transition.return_value = "submitted"  # old_status
 
             request = _auth_request(
@@ -391,9 +393,11 @@ class TestApplicationAPIContractsPreservation:
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status="submitted")
 
-        with patch("apps.applications.admin_views.Application.objects") as mock_qs, \
-             patch("apps.applications.admin_views.transition_application_status") as mock_transition:
+        with patch("apps.applications.admin_review_views.Application.objects") as mock_qs, \
+             patch("apps.applications.admin_review_views.transition_application_status") as mock_transition, \
+             patch("apps.applications.admin_review_views.transaction.atomic"):
             mock_qs.get.return_value = application
+            mock_qs.select_for_update.return_value.get.return_value = application
             mock_transition.return_value = "submitted"
 
             # Send legacy payload with 'status' instead of 'new_status'
@@ -517,7 +521,7 @@ class TestPaymentPreservation:
         mock_payment.user_id = str(user.id)
         mock_payment.amount = 153
         mock_payment.currency = "ZMW"
-        mock_payment.status = "verified"
+        mock_payment.status = "successful"
         mock_payment.created_at = timezone.now()
         mock_payment.application_id = uuid.uuid4()
 
@@ -526,7 +530,7 @@ class TestPaymentPreservation:
         mock_application.program = "Computer Science"
         mock_application.full_name = "Test Student"
 
-        with patch("apps.documents.views.Payment.objects") as mock_payment_qs, \
+        with patch("apps.documents.payment_query_views.Payment.objects") as mock_payment_qs, \
              patch("apps.applications.models.Application.objects") as mock_app_qs:
             mock_payment_qs.get.return_value = mock_payment
             mock_app_qs.get.return_value = mock_application
@@ -537,9 +541,10 @@ class TestPaymentPreservation:
         assert response.status_code == 200, (
             f"Expected 200 from payment receipt, got {response.status_code}"
         )
-        assert "payment_id" in response.data
-        assert "amount" in response.data
-        assert "currency" in response.data
+        receipt = response.data.get("data", response.data)
+        assert "payment_id" in receipt
+        assert "amount" in receipt
+        assert "currency" in receipt
 
     @given(
         role=st.sampled_from(["student", "admin", "super_admin"]),
