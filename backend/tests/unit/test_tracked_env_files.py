@@ -27,6 +27,7 @@ class TrackedEnvFilesTests(SimpleTestCase):
             ".env.scripts.example",
             "apps/admissions/.env.example",
             "backend/.env.example",
+            "deploy/.env.prod.example",
         ])
 
         self.assertEqual(tracked_env_files, allowed)
