@@ -10,8 +10,14 @@ from pathlib import Path
 HEAVY_FILE_WEIGHTS = {
     "test_payment_state_machine_properties.py": 10,
     "test_payment_webhook_properties.py": 8,
+    "test_admissions_canonicalization.py": 8,
+    "test_payment_receipt_properties.py": 7,
+    "test_payment_fee_resolver_properties.py": 6,
     "test_migration_history_forward_only.py": 6,
+    "test_schema_reconciliation_invariants.py": 5,
+    "test_application_hardening.py": 4,
     "test_approval_flow_preservation.py": 4,
+    "test_production_readiness_csrf.py": 4,
     "test_production_readiness_test_isolation.py": 3,
 }
 
