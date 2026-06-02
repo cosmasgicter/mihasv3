@@ -19,6 +19,7 @@ x-backend-env: &backend-env
   environment:
     DJANGO_SETTINGS_MODULE: config.settings.prod
     DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    DB_SSL_REQUIRE: "false"
     REDIS_URL: redis://redis:6379/0
     CELERY_BROKER_URL: redis://redis:6379/0
 

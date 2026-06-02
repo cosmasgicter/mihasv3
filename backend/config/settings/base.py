@@ -148,7 +148,10 @@ DATABASES = {
         default=os.environ.get("DATABASE_URL", ""),
         conn_max_age=300,
         conn_health_checks=True,
-        ssl_require=True,
+        # SSL is required for managed Postgres (Neon) but not for a
+        # same-host container DB. Controlled via DB_SSL_REQUIRE
+        # (default True preserves the managed-DB contract).
+        ssl_require=os.environ.get("DB_SSL_REQUIRE", "true").lower() != "false",
     )
 }
 
