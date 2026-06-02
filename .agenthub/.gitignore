@@ -5,6 +5,9 @@ board/results/*.md
 !board/dispatch/.gitkeep
 !board/progress/.gitkeep
 !board/results/.gitkeep
-sessions/
-worktrees/
-archives/
+sessions/*
+worktrees/*
+archives/*
+!sessions/.gitkeep
+!worktrees/.gitkeep
+!archives/.gitkeep
