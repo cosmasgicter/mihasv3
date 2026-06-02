@@ -128,21 +128,22 @@ class TestVerifyPaymentReturnsDBConsistentStatus(SimpleTestCase):
             p.lenco_reference = data.get("lencoReference")
             p.payment_method = data.get("type")
 
+        _VER = "apps.documents.payment_service_mixins._verification"
         with (
-            patch("apps.documents.payment_service.Payment.objects") as mock_payment_qs,
-            patch("apps.documents.payment_service.http_requests") as mock_http,
+            patch(f"{_VER}.Payment.objects") as mock_payment_qs,
+            patch(f"{_VER}._call_lenco_collection_status") as mock_lenco,
             patch.object(
                 PaymentService,
                 "_update_payment_status",
                 side_effect=simulate_db_write_and_refresh,
             ),
-            patch("apps.documents.payment_service.settings") as mock_settings,
+            patch(f"{_VER}.settings") as mock_settings,
         ):
             mock_settings.LENCO_API_SECRET_KEY = "test-secret"
             mock_settings.LENCO_API_BASE_URL = "https://api.lenco.test"
             mock_payment_qs.get.return_value = payment
-            mock_http.get.return_value = mock_http_response
-            mock_http.RequestException = Exception
+            # _call_lenco_collection_status returns a ``(data, error)`` tuple.
+            mock_lenco.return_value = (lenco_response_data, None)
 
             service = PaymentService()
             result = service.verify_payment(payment_id)
