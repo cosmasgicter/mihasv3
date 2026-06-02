@@ -242,14 +242,8 @@ const SubmitStep = ({
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-wide text-primary/70">Application Preview</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-foreground" role="status">
-                  {fallbackSummary}
+                  {aiSummary || fallbackSummary}
                 </p>
-                {aiSummary && (
-                  <div className="mt-3 rounded-md border border-primary/15 bg-background/60 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-primary/70">Personalized note</p>
-                    <p className="mt-1 text-sm leading-relaxed text-foreground">{aiSummary}</p>
-                  </div>
-                )}
                 {aiLoading && (
                   <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                     <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary/40 border-t-primary" />
@@ -314,6 +308,37 @@ const SubmitStep = ({
                 </li>
               ))}
             </ul>
+
+            {wizardReadiness && !wizardReadiness.canSubmit && wizardReadiness.missingItems.length > 0 && (
+              <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3.5">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <p className="text-sm font-semibold text-foreground">
+                      Complete these {wizardReadiness.missingItems.length} item{wizardReadiness.missingItems.length === 1 ? '' : 's'} to enable submission
+                    </p>
+                    <ul className="space-y-1.5">
+                      {wizardReadiness.missingItems.map(item => (
+                        <li key={`${item.stepKey}-${item.field}`} className="flex items-start justify-between gap-3 text-sm">
+                          <span className="text-muted-foreground">
+                            <span className="font-medium text-foreground">{item.label}:</span> {item.message}
+                          </span>
+                          {onNavigateToStep && (
+                            <button
+                              type="button"
+                              onClick={() => onNavigateToStep(item.stepKey)}
+                              className="shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning-foreground transition-colors hover:bg-warning/20 min-h-touch flex items-center"
+                            >
+                              Fix
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
 
           <section className="space-y-4" aria-labelledby="submit-summary-heading">

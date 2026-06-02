@@ -176,7 +176,6 @@ const ApplicationWizardContent = () => {
   })
 
   const progressPercent = overallProgress.percentage
-  const currentStepReadiness = wizardReadiness.stepProgressByKey[currentStepConfig.key]
   const paymentChecklistLabel = paymentStatus === 'deferred'
     ? 'Payment deferred for later'
     : paymentStatus === 'successful'
@@ -557,7 +556,7 @@ const ApplicationWizardContent = () => {
         {
           label: 'Completion',
           value: `${progressPercent}%`,
-          helper: currentStepReadiness.isComplete ? 'Step ready to advance' : `${currentStepReadiness.completed}/${currentStepReadiness.total} checks complete`,
+          helper: wizardReadiness.canSubmit ? 'Ready to submit' : `${wizardReadiness.completedItems}/${wizardReadiness.totalItems} requirements complete`,
         },
         {
           label: 'Estimated time',
@@ -637,21 +636,21 @@ const ApplicationWizardContent = () => {
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="flex items-center gap-1.5">
-                    {currentStepReadiness.isComplete ? (
+                    {wizardReadiness.canSubmit ? (
                       <CheckCircle className="h-3.5 w-3.5 text-success" />
                     ) : (
                       <div className="h-3.5 w-3.5 rounded-full border-2 border-muted-foreground" />
                     )}
                     <span className={`min-w-0 break-words font-medium ${
-                      currentStepReadiness.isComplete ? 'text-success' : 'text-foreground/80'
+                      wizardReadiness.canSubmit ? 'text-success' : 'text-foreground/80'
                     }`}>
-                      {currentStepReadiness.completed}/{currentStepReadiness.total} requirements complete
+                      {wizardReadiness.completedItems}/{wizardReadiness.totalItems} requirements complete
                     </span>
                   </div>
-                  {!currentStepReadiness.isComplete && currentStepReadiness.missingItems.length > 0 && (
+                  {!wizardReadiness.canSubmit && wizardReadiness.missingItems.length > 0 && (
                     <span className="text-foreground/75">
-                      {WIZARD_COPY.missingFieldsPrefix} {currentStepReadiness.missingItems.slice(0, 2).map(item => item.label).join(', ')}
-                      {currentStepReadiness.missingItems.length > 2 && ` +${currentStepReadiness.missingItems.length - 2} more`}
+                      {WIZARD_COPY.missingFieldsPrefix} {wizardReadiness.missingItems.slice(0, 2).map(item => item.label).join(', ')}
+                      {wizardReadiness.missingItems.length > 2 && ` +${wizardReadiness.missingItems.length - 2} more`}
                     </span>
                   )}
                 </div>
