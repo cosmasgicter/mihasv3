@@ -86,7 +86,13 @@ def _new_code(prefix: str) -> str:
 
 
 def _seed_payment(*, with_snapshot: bool, user, application):
-    """Create a single Payment row with or without ``metadata.snapshot``."""
+    """Create a single Payment row with or without ``metadata.snapshot``.
+
+    Each payment gets a unique ``transaction_reference`` and a non-active
+    status so multiple rows can share one application without tripping the
+    ``uq_payments_one_active_per_application`` partial unique index (which
+    permits only one ``pending``/``deferred`` payment per application).
+    """
     from apps.documents.models import Payment
 
     metadata: dict | None
@@ -108,7 +114,8 @@ def _seed_payment(*, with_snapshot: bool, user, application):
         user=user,
         amount=Decimal("153.00"),
         currency="ZMW",
-        status="pending",
+        status="failed",
+        transaction_reference=_new_code("TXN"),
         metadata=metadata,
         created_at=now,
         updated_at=now,
