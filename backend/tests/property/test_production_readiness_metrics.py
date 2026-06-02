@@ -265,13 +265,13 @@ class TestPaymentCompletionBusinessMetric(SimpleTestCase):
 
         # Capture logs from the payment_service logger
         handler = _LogCapture()
-        ps_logger = logging.getLogger("apps.documents.payment_service")
+        ps_logger = logging.getLogger("apps.documents.payment_service_mixins._verification")
         ps_logger.addHandler(handler)
         ps_logger.setLevel(logging.DEBUG)
 
         try:
             # Mock the DB layer and run _update_payment_status
-            with patch("apps.documents.payment_service.Payment.objects") as mock_qs, \
+            with patch("apps.documents.payment_service_mixins._verification.Payment.objects") as mock_qs, \
                  patch("apps.applications.models.Application.objects") as mock_app_qs, \
                  patch("django.db.transaction.atomic") as mock_atomic:
                 # Make atomic() work as a simple context manager

@@ -223,6 +223,13 @@ def _classify_statement(stmt: str) -> tuple[bool, str]:
     """
     normalised = _normalise_whitespace(stmt)
 
+    # 0. Transaction-control statements (BEGIN/COMMIT/ROLLBACK/START
+    #    TRANSACTION/END) are inert wrappers — they move no data and are
+    #    safe inside a rollback script. Allow them so a transactional
+    #    rollback file is not flagged for its BEGIN/COMMIT envelope.
+    if re.match(r"^(BEGIN|COMMIT|ROLLBACK|END|START\s+TRANSACTION)\b", normalised, re.IGNORECASE):
+        return True, "transaction-control"
+
     # 1. Reject the forbidden tokens first. Order matters: we want the
     #    earliest match to win so the failure message points at the most
     #    specific violation (a TRUNCATE in a statement that also happens
