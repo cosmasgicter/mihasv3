@@ -137,7 +137,7 @@ jobs:
       - run: pip install -r requirements.txt
         working-directory: backend
       - name: Run property tests
-        run: python -m pytest tests/property/ -q --tb=short -n 4 --dist loadscope -x
+        run: python -u -m pytest tests/property/ -x -q --tb=short -p no:cacheprovider
         working-directory: backend
 
   admissions:
