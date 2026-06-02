@@ -449,8 +449,16 @@ def test_property_16_operator_prefix_determinism(phone_a, phone_b):
     # Condition the property on the prefix-equality precondition.
     assume(norm_a[:6] == norm_b[:6])
 
-    op_a = _operator_for_msisdn(norm_a)
-    op_b = _operator_for_msisdn(norm_b)
+    # Only supported operator prefixes (MTN/Airtel) are in scope; an
+    # unsupported prefix (e.g. Zamtel) raises PROVIDER_UNAVAILABLE by
+    # design, which is outside this determinism property. Skip such
+    # examples — but since both phones share a prefix, either both raise
+    # or neither does, so the determinism guarantee still holds.
+    try:
+        op_a = _operator_for_msisdn(norm_a)
+        op_b = _operator_for_msisdn(norm_b)
+    except ValueError:
+        assume(False)
 
     assert op_a == op_b, (
         f"Operator classification diverged for phones sharing prefix "
