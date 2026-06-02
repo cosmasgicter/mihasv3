@@ -116,8 +116,8 @@ class TestUniqueConstraintsRejectDuplicates(SimpleTestCase):
         cls._profile_id = uuid.uuid4()
         with cls._conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO profiles (id, email) VALUES (%s, %s)",
-                (str(cls._profile_id), f"p6-{uuid.uuid4().hex[:6]}@test.local"),
+                "INSERT INTO profiles (id, email, role) VALUES (%s, %s, %s)",
+                (str(cls._profile_id), f"p6-{uuid.uuid4().hex[:6]}@test.local", "student"),
             )
         cls._conn.commit()
 
@@ -151,11 +151,13 @@ class TestUniqueConstraintsRejectDuplicates(SimpleTestCase):
                     """
                     INSERT INTO applications
                         (id, application_number, user_id, full_name,
-                         date_of_birth, sex, phone, email, residence_town,
-                         program, intake, institution, public_tracking_code)
+                          date_of_birth, sex, phone, email, residence_town,
+                          program, intake, institution, public_tracking_code,
+                          status, version, is_late_submission)
                     VALUES (%s, %s, %s, 'Test', '2000-01-01',
                             'M', '0000000000', 't@t.local', 'Test',
-                            'test-prog', 'test-int', 'MIH', %s)
+                            'test-prog', 'test-int', 'MIH', %s,
+                            'draft', 1, false)
                     """,
                     (str(app_id_1), app_num_1, str(self._profile_id), tracking_code),
                 )
@@ -166,11 +168,13 @@ class TestUniqueConstraintsRejectDuplicates(SimpleTestCase):
                         """
                         INSERT INTO applications
                             (id, application_number, user_id, full_name,
-                             date_of_birth, sex, phone, email, residence_town,
-                             program, intake, institution, public_tracking_code)
+                              date_of_birth, sex, phone, email, residence_town,
+                              program, intake, institution, public_tracking_code,
+                              status, version, is_late_submission)
                         VALUES (%s, %s, %s, 'Test', '2000-01-01',
                                 'M', '0000000000', 't@t.local', 'Test',
-                                'test-prog', 'test-int', 'MIH', %s)
+                                'test-prog', 'test-int', 'MIH', %s,
+                                'draft', 1, false)
                         """,
                         (str(app_id_2), app_num_2, str(self._profile_id), tracking_code),
                     )
