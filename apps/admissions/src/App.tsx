@@ -12,6 +12,9 @@ import { LazyLoadErrorBoundary } from '@/components/LazyLoadErrorBoundary'
 import { isMarketingPublicRoute } from '@/lib/publicRouteMode'
 import { useDeferredHydration } from '@/hooks/useDeferredHydration'
 const LandingPage = lazy(() => import('@/pages/LandingPage'))
+const MaintenancePage = lazy(() => import('@/pages/MaintenancePage'))
+
+const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === 'true'
 
 const Analytics = lazy(() => import('@vercel/analytics/react').then((mod) => ({ default: mod.Analytics })))
 const SpeedInsights = lazy(() => import('@vercel/speed-insights/react').then((mod) => ({ default: mod.SpeedInsights })))
@@ -30,7 +33,18 @@ function App() {
     sessionStorage.removeItem('mihas_chunk_reload')
     sessionStorage.removeItem('mihas_chunk_reload_ts')
     sessionStorage.removeItem('mihas_chunk_reload_count')
+    if (MAINTENANCE_MODE) {
+      window.__dismissPreloader?.()
+    }
   }, []);
+
+  if (MAINTENANCE_MODE) {
+    return (
+      <Suspense fallback={null}>
+        <MaintenancePage />
+      </Suspense>
+    )
+  }
 
   return (
     <ErrorBoundary>
