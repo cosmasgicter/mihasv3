@@ -63,7 +63,7 @@ function simulateAdminRouteAccess(
 const emailArb = fc.oneof(
   fc.emailAddress(),
   fc.constant('cosmas@beanola.com'),       // The previously-bypassed email
-  fc.constant('***REMOVED***'),
+  fc.constant('admin@mihas.edu.zm'),
   fc.constant('student@example.com'),
   fc.constant(''),
   fc.string({ minLength: 1, maxLength: 50 }).map(s => `${s.replace(/[@\s]/g, 'x')}@test.com`)

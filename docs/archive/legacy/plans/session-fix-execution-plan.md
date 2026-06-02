@@ -44,7 +44,7 @@ Every "fix" so far has been a patch on top of this split:
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "***REMOVED***/api/:path*"
+      "destination": "https://api.mihas.edu.zm/api/:path*"
     },
     {
       "source": "/((?!assets/|images/|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)",
@@ -78,7 +78,7 @@ export function getApiBaseUrl(): string {
 
 ### 1.3 Backend CORS — Allow same-origin (already works, just verify)
 
-The backend already has `access-control-allow-origin: ***REMOVED***`. Same-origin requests won't even need CORS headers.
+The backend already has `access-control-allow-origin: https://apply.mihas.edu.zm`. Same-origin requests won't even need CORS headers.
 
 ### 1.4 Cookie domain — Keep `.mihas.edu.zm` for now
 

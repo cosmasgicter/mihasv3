@@ -691,7 +691,7 @@
 
 We welcome feedback and suggestions for enhancements:
 
-- **Technical**: ***REMOVED***
+- **Technical**: admin@mihas.edu.zm
 - **Feature Requests**: Submit via GitHub Issues
 - **Bug Reports**: Use the issue tracker
 

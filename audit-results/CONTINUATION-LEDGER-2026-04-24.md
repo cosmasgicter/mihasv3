@@ -20,7 +20,7 @@ The remaining runtime-relevant files stay unresolved for the next passes.
 
 ## Per-File Classification
 
-- `./.env.example` | `improve` | `confirmed-bug` | `VITE_API_BASE_URL` points to `***REMOVED***` while the production template uses `***REMOVED***`; this is config drift in a shared template.
+- `./.env.example` | `improve` | `confirmed-bug` | `VITE_API_BASE_URL` points to `https://apply.mihas.edu.zm` while the production template uses `https://api.mihas.edu.zm`; this is config drift in a shared template.
 - `./.env.development` | `ignore-as-correct` | `none` | Development template intentionally uses sandbox widget URL and explicit dev bypass flags with clear comments.
 - `./.env.production` | `ignore-as-correct` | `none` | Production template uses placeholders for secrets and clearly separates frontend Vercel variables from backend Koyeb variables.
 - `./.github/workflows/ci.yml` | `ignore-as-correct` | `none` | CI covers backend checks, contract tests, admissions build/test/lint, and jobs-ops build/type-check; no immediate drift found in the inspected workflow.

@@ -123,7 +123,7 @@ async function main() {
     paymentReference: 'LENCO-XZQ29481',
     paymentDate: '2026-05-09T15:30:00Z',
     verifiedDate: '2026-05-10T08:15:00Z',
-    verifiedBy: '***REMOVED***',
+    verifiedBy: 'admin@mihas.edu.zm',
   })
   await fs.writeFile('/tmp/mihas-sample-receipt-zmw.pdf', Buffer.from(await receiptBlob.arrayBuffer()))
   console.log('✓ /tmp/mihas-sample-receipt-zmw.pdf')
@@ -142,7 +142,7 @@ async function main() {
     paymentMethod: 'Card',
     paymentDate: '2026-05-09T15:30:00Z',
     verifiedDate: '2026-05-10T08:15:00Z',
-    verifiedBy: '***REMOVED***',
+    verifiedBy: 'admin@mihas.edu.zm',
   })
   await fs.writeFile('/tmp/mihas-sample-receipt-usd.pdf', Buffer.from(await receiptUsdBlob.arrayBuffer()))
   console.log('✓ /tmp/mihas-sample-receipt-usd.pdf')

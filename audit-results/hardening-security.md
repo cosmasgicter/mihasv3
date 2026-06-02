@@ -69,7 +69,7 @@ Real production user credentials (email + password) are hardcoded in a committed
 - A real admin account email and password
 - Both share the same password (`Beanola2025`), indicating password reuse
 
-This is a **credential exposure** — anyone with repo access has admin credentials. The script is used for E2E testing against the production URL (`***REMOVED***`).
+This is a **credential exposure** — anyone with repo access has admin credentials. The script is used for E2E testing against the production URL (`https://apply.mihas.edu.zm`).
 
 Immediate actions required:
 1. Rotate both passwords immediately

@@ -383,8 +383,8 @@ export default function InterviewPage() {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Contact the admissions office at{' '}
-                  <a href="mailto:***REMOVED***" className="text-primary hover:underline">
-                    ***REMOVED***
+                  <a href="mailto:admissions@mihas.edu.zm" className="text-primary hover:underline">
+                    admissions@mihas.edu.zm
                   </a>
                 </p>
               </div>

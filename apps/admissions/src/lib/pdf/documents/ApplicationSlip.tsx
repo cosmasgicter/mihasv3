@@ -199,7 +199,7 @@ const NEXT_STEPS = [
   'Keep this slip in a safe place — you will need the tracking code to check your status.',
   'Check your email regularly. All decisions and updates are sent there first.',
   `Pay any outstanding application fee via the portal to complete your submission.`,
-  `Contact ***REMOVED*** if any of your details change before the decision.`,
+  `Contact admissions@mihas.edu.zm if any of your details change before the decision.`,
 ]
 
 /**

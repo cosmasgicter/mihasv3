@@ -384,7 +384,7 @@ Dashboard shows:
 ## Support & Escalation
 
 ### Technical Issues
-**Email**: ***REMOVED***
+**Email**: admin@mihas.edu.zm
 **Phone**: +260-XXX-XXX-XXX
 
 ### Policy Questions
@@ -392,7 +392,7 @@ Dashboard shows:
 **Email**: director@mihas.edu.zm
 
 ### System Bugs
-**Report**: GitHub Issues or ***REMOVED***
+**Report**: GitHub Issues or admin@mihas.edu.zm
 **Include**: 
 - What you were doing
 - Error message
@@ -457,7 +457,7 @@ Track your performance:
 
 ---
 
-**Questions?** Contact ***REMOVED***
+**Questions?** Contact admin@mihas.edu.zm
 
 **Version**: 3.0  
 **Last Updated**: January 2025

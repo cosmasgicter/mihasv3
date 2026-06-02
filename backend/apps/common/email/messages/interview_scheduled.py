@@ -29,7 +29,7 @@ def render(context: dict) -> tuple[str, str]:
     location = context.get("interview_location") or "—"
     mode = context.get("interview_mode") or "In person"
     interviewer = context.get("interviewer_name") or "A member of our admissions panel"
-    portal = context.get("portal_url") or "***REMOVED***"
+    portal = context.get("portal_url") or "https://apply.mihas.edu.zm"
 
     subject = f"Interview scheduled — {date} at {time}"
 

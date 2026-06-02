@@ -460,7 +460,7 @@ describe('Payment page verification', () => {
     await renderAndWait()
 
     const text = container.textContent || ''
-    expect(text).toContain('***REMOVED***')
+    expect(text).toContain('admissions@mihas.edu.zm')
   })
 
   // ── queryFn correctly maps Django response ──────────────────────────

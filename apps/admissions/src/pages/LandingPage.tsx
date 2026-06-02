@@ -27,8 +27,8 @@ const landingStructuredData = [
     '@type': 'Organization',
     name: 'MIHAS-KATC Admissions',
     alternateName: 'Mukuba Institute of Health and Applied Sciences & Kalulushi Training Centre',
-    url: '***REMOVED***',
-    logo: '***REMOVED***/images/logos/mihas-logo.png',
+    url: 'https://apply.mihas.edu.zm',
+    logo: 'https://apply.mihas.edu.zm/images/logos/mihas-logo.png',
     email: 'info@mihas.edu.zm',
     telephone: '+260961515151',
     address: {
@@ -48,7 +48,7 @@ const landingStructuredData = [
     '@context': 'https://schema.org',
     '@type': 'EducationalOrganization',
     name: 'MIHAS-KATC Admissions',
-    url: '***REMOVED***',
+    url: 'https://apply.mihas.edu.zm',
     educationalCredentialAwarded: [
       'Diploma in Registered Nursing',
       'Diploma in Clinical Medicine',
@@ -89,10 +89,10 @@ const landingStructuredData = [
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'MIHAS-KATC Admissions',
-    url: '***REMOVED***',
+    url: 'https://apply.mihas.edu.zm',
     potentialAction: {
       '@type': 'SearchAction',
-      target: '***REMOVED***/track-application?q={search_term_string}',
+      target: 'https://apply.mihas.edu.zm/track-application?q={search_term_string}',
       'query-input': 'required name=search_term_string'
     }
   }

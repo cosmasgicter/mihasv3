@@ -143,7 +143,7 @@ const MOCK_DJANGO_SETTINGS = [
   {
     id: 'set-003',
     key: 'contact_email',
-    value: '***REMOVED***',
+    value: 'admissions@mihas.edu.zm',
     description: 'Primary email used for admissions contact.',
     category: 'contact',
     is_public: true,

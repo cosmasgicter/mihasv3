@@ -343,7 +343,7 @@ A student just wants to paste their tracking code and see the result.
 ### P2-9: Interview page help card email link has no `min-h-[44px]` touch target
 
 **File:** `apps/admissions/src/pages/student/Interview.tsx`
-**What:** The "Contact the admissions office at ***REMOVED***" link is an inline `<a>` with no minimum touch target sizing.
+**What:** The "Contact the admissions office at admissions@mihas.edu.zm" link is an inline `<a>` with no minimum touch target sizing.
 
 **Why it matters:** On mobile, the email link is a small text target that's hard to tap accurately.
 

@@ -89,7 +89,7 @@ const receiptFixture: PaymentReceiptData = {
   paymentReference: 'LENCO-1',
   paymentDate: '2026-05-09T15:30:00Z',
   verifiedDate: '2026-05-10T08:00:00Z',
-  verifiedBy: '***REMOVED***',
+  verifiedBy: 'admin@mihas.edu.zm',
 }
 
 const acceptanceUnconditionalFixture: AcceptanceLetterData = {

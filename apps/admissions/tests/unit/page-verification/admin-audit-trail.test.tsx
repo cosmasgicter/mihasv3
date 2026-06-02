@@ -103,7 +103,7 @@ const MOCK_DJANGO_AUDIT_RESPONSE = {
     {
       id: 'audit-001',
       actorId: 'user-001',
-      actorEmail: '***REMOVED***',
+      actorEmail: 'admin@mihas.edu.zm',
       actorName: 'Admin User',
       actorRoles: ['admin'],
       action: 'Updated application status',

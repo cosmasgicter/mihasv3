@@ -111,8 +111,8 @@ print(f"  ProgramIntake links: {len(programs) * len(intakes)}")
 # --- 4. Test users ---
 USERS = [
     ('student@mihas.edu.zm', 'Student!2026', 'student', 'Test', 'Student'),
-    ('***REMOVED***', 'Admin!2026', 'admin', 'Test', 'Admin'),
-    ('super***REMOVED***', 'SuperAdmin!2026', 'super_admin', 'Test', 'SuperAdmin'),
+    ('admin@mihas.edu.zm', 'Admin!2026', 'admin', 'Test', 'Admin'),
+    ('superadmin@mihas.edu.zm', 'SuperAdmin!2026', 'super_admin', 'Test', 'SuperAdmin'),
 ]
 
 for email, password, role, first, last in USERS:

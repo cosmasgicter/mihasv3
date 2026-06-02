@@ -64,7 +64,7 @@ Record the first complete evidence bundle here or link to the external incident/
 
 | Monitor | Target | Threshold | Owner |
 | --- | --- | --- | --- |
-| Frontend availability | `***REMOVED***/` | 2 failures over 5 minutes | Admissions ops |
+| Frontend availability | `https://apply.mihas.edu.zm/` | 2 failures over 5 minutes | Admissions ops |
 | API liveness | `/health/live/` | 2 failures over 5 minutes | Backend ops |
 | API readiness | `/health/ready/` | 1 failure over 5 minutes | Backend ops |
 | Redis health | `/health/redis/` | 1 failure over 5 minutes | Backend ops |

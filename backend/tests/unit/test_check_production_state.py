@@ -24,7 +24,7 @@ PROD_SETTINGS = {
     "SECRET_KEY": "real-production-secret-key-abc123",
     "SIMPLE_JWT": SIMPLE_JWT_SETTINGS,
     "ALLOWED_HOSTS": ["api.mihas.edu.zm"],
-    "CORS_ALLOWED_ORIGINS": ["***REMOVED***"],
+    "CORS_ALLOWED_ORIGINS": ["https://apply.mihas.edu.zm"],
     "LENCO_API_SECRET_KEY": "sk_live_xxx",
     "LENCO_PUBLIC_KEY": "pk_live_xxx",
     "AUDIT_LOG_ENCRYPTION_KEY": "enc-key-xxx",

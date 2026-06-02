@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "***REMOVED***/api/:path*"
+      "destination": "https://api.mihas.edu.zm/api/:path*"
     },
     {
       "source": "/((?!assets/|images/|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)",
@@ -21,7 +21,7 @@
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; worker-src 'self' blob:; child-src 'self' blob:; style-src 'self' 'unsafe-inline'; style-src-elem 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ***REMOVED*** https://app.glitchtip.com; frame-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; report-uri https://app.glitchtip.com/api/22431/security/?glitchtip_key=8a2c416ba7464b6bb50a194b32b12832" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; worker-src 'self' blob:; child-src 'self' blob:; style-src 'self' 'unsafe-inline'; style-src-elem 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://api.mihas.edu.zm https://app.glitchtip.com; frame-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; report-uri https://app.glitchtip.com/api/22431/security/?glitchtip_key=8a2c416ba7464b6bb50a194b32b12832" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "X-Permitted-Cross-Domain-Policies", "value": "none" },

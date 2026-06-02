@@ -440,7 +440,7 @@ Protected endpoints accept either:
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SERVERS": [
-        {"url": "***REMOVED***", "description": "Production"},
+        {"url": "https://api.mihas.edu.zm", "description": "Production"},
         {"url": "http://localhost:8000", "description": "Local development"},
     ],
     "TAGS": [
@@ -467,7 +467,7 @@ Protected endpoints accept either:
     # Contact / license metadata (fixes linter `Missing recommended info field: contact`)
     "CONTACT": {
         "name": "MIHAS Admissions Platform Team",
-        "email": "***REMOVED***",
+        "email": "admissions@mihas.edu.zm",
         "url": "https://mihas.edu.zm",
     },
     "LICENSE": {
@@ -511,23 +511,23 @@ EMAIL_HOST_USER = os.environ.get('ZOHO_SMTP_USERNAME', '')
 EMAIL_HOST_PASSWORD = os.environ.get('ZOHO_SMTP_PASSWORD', '')
 EMAIL_USE_SSL = True  # Port 465 uses SSL
 EMAIL_USE_TLS = False
-DEFAULT_FROM_EMAIL = os.environ.get('ZOHO_FROM_EMAIL', os.environ.get('EMAIL_FROM', '***REMOVED***'))
+DEFAULT_FROM_EMAIL = os.environ.get('ZOHO_FROM_EMAIL', os.environ.get('EMAIL_FROM', 'admin@mihas.edu.zm'))
 
 # Resend (fallback)
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 EMAIL_FROM = os.environ.get("EMAIL_FROM", "noreply@mihas.edu.zm")
-ERROR_ALERT_EMAIL = os.environ.get("ERROR_ALERT_EMAIL", "***REMOVED***")
+ERROR_ALERT_EMAIL = os.environ.get("ERROR_ALERT_EMAIL", "admin@mihas.edu.zm")
 
 # ---------------------------------------------------------------------------
 # Uptime monitoring — internal health check URL
 # ---------------------------------------------------------------------------
 
 HEALTH_CHECK_URL = os.environ.get(
-    "HEALTH_CHECK_URL", "***REMOVED***"
+    "HEALTH_CHECK_URL", "https://api.mihas.edu.zm/health/ready/"
 )
 
 KEEP_ALIVE_URL = os.environ.get(
-    "KEEP_ALIVE_URL", "***REMOVED***/health/live/"
+    "KEEP_ALIVE_URL", "https://api.mihas.edu.zm/health/live/"
 )
 
 # ---------------------------------------------------------------------------
@@ -618,7 +618,7 @@ AI_MODEL_FAST = os.environ.get("AI_MODEL_FAST", "google/gemini-2.5-flash")  # ch
 AI_MODEL_VISION = os.environ.get("AI_MODEL_VISION", "google/gemini-2.5-flash")  # document OCR
 AI_MODEL_ANALYSIS = os.environ.get("AI_MODEL_ANALYSIS", "openai/gpt-4o-mini")  # structured JSON extraction (cheapest)
 AI_MODEL_SMART = os.environ.get("AI_MODEL_SMART", "deepseek/deepseek-v3")  # complex reasoning (cheapest: $0.28/M input)
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "***REMOVED***")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://apply.mihas.edu.zm")
 PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
     "1",
     "true",

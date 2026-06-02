@@ -54,7 +54,7 @@ const baseData: PaymentReceiptData = {
   paymentReference: 'LENCO-ABC123',
   paymentDate: '2026-05-09T15:30:00Z',
   verifiedDate: '2026-05-10T08:00:00Z',
-  verifiedBy: '***REMOVED***',
+  verifiedBy: 'admin@mihas.edu.zm',
 }
 
 describe('generatePaymentReceipt', () => {

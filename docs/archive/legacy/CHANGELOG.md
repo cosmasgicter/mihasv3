@@ -208,7 +208,7 @@ Major schema changes - backup data first
 
 ## Support
 
-- **Email**: ***REMOVED***
+- **Email**: admin@mihas.edu.zm
 - **Documentation**: `/docs` folder
 - **Issues**: GitHub Issues
 

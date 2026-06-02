@@ -236,7 +236,7 @@ describe('Student interview page verification', () => {
     await renderAndWait()
     const text = container.textContent || ''
     expect(text).toContain('Need to reschedule your interview?')
-    expect(text).toContain('***REMOVED***')
+    expect(text).toContain('admissions@mihas.edu.zm')
   })
 
   // ── Empty state ─────────────────────────────────────────────────────

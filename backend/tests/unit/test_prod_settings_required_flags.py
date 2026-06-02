@@ -36,7 +36,7 @@ def test_prod_cors_defaults_are_exact_origin_without_regex_wildcards():
     """Production CORS defaults must stay narrow unless regexes are env-supplied."""
     source = (SETTINGS_DIR / "prod.py").read_text()
 
-    assert "***REMOVED***" in source
+    assert "https://apply.mihas.edu.zm" in source
     assert "CORS_ALLOWED_ORIGIN_REGEXES = []" in source
     assert "beanola\\.com" not in source
     assert "katc\\.edu\\.zm" not in source

@@ -64,7 +64,7 @@
 ✅ **Review or sync delay**
 - Refresh the application status page
 - Re-open the payment step in the wizard
-- Contact ***REMOVED***
+- Contact admin@mihas.edu.zm
 - Include your application number and payment reference if available
 
 **Check Status**:
@@ -315,7 +315,7 @@ window.location.reload(true)
 **Check via API**:
 ```bash
 # Check database connectivity
-curl ***REMOVED***/api/health?action=db
+curl https://apply.mihas.edu.zm/api/health?action=db
 ```
 
 ## Error Codes
@@ -385,7 +385,7 @@ bun add -d @types/node
 
 ```bash
 # Test Neon Postgres connection
-curl ***REMOVED***/api/health?action=db
+curl https://apply.mihas.edu.zm/api/health?action=db
 ```
 
 ### Port Already in Use
@@ -417,7 +417,7 @@ bun run dev -- --port 3000
 - [ ] Can reproduce the issue
 - [ ] Have screenshots ready
 
-**Email**: ***REMOVED***
+**Email**: admin@mihas.edu.zm
 
 **Include**:
 1. What you were trying to do
@@ -484,9 +484,9 @@ Check if services are down:
 **Health Endpoints**:
 ```bash
 # Quick system check
-curl ***REMOVED***/api/health?action=ping
-curl ***REMOVED***/api/health?action=db
-curl ***REMOVED***/api/health?action=env
+curl https://apply.mihas.edu.zm/api/health?action=ping
+curl https://apply.mihas.edu.zm/api/health?action=db
+curl https://apply.mihas.edu.zm/api/health?action=env
 ```
 
 ### Monitor Performance
@@ -513,14 +513,14 @@ A: Contact admissions office for refund policy.
 A: Check you're logged into correct account. Contact support with application number.
 
 **Q: Can I edit after submission?**
-A: No. Contact ***REMOVED*** for changes.
+A: No. Contact admin@mihas.edu.zm for changes.
 
 **Q: System says I'm not eligible but I am?**
 A: System checks are automatic. You can still submit - admissions reviews manually.
 
 ---
 
-**Still stuck?** Email ***REMOVED*** with details.
+**Still stuck?** Email admin@mihas.edu.zm with details.
 
 **Version**: 3.0  
 **Last Updated**: January 2025

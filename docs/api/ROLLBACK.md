@@ -59,7 +59,7 @@ gh pr create --title "revert: API Phase 3 serializers due to <reason>" --body "S
 python backend/scripts/staging_smoke.py --base-url https://staging.mihas.edu.zm --token $TOKEN
 
 # 2. Then production
-curl -sf ***REMOVED***/api/v1/payments/mobile-money/ -X POST \
+curl -sf https://api.mihas.edu.zm/api/v1/payments/mobile-money/ -X POST \
     -H "Content-Type: application/json" -d '{}' | jq .
 # Should return the legacy error shape: {"success": false, "error": "...", "code": "VALIDATION_ERROR"}
 

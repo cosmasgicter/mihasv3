@@ -134,7 +134,7 @@ DEFAULT_GUIDED_SETTINGS = [
     },
     {
         "key": "contact_email",
-        "value": "***REMOVED***",
+        "value": "admissions@mihas.edu.zm",
         "description": "Primary email used for admissions contact, slip delivery, and public support messaging.",
         "category": "contact",
         "is_public": True,

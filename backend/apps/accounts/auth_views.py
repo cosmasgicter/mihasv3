@@ -405,8 +405,8 @@ class RegisterView(APIView):
                     subject="MIHAS Account — Sign-in Attempt",
                     message=(
                         "Someone tried to create an account with this email address. "
-                        "If this was you, try signing in instead at ***REMOVED***/signin. "
-                        "If you forgot your password, reset it at ***REMOVED***/forgot-password."
+                        "If this was you, try signing in instead at https://apply.mihas.edu.zm/signin. "
+                        "If you forgot your password, reset it at https://apply.mihas.edu.zm/forgot-password."
                     ),
                     from_email=None,
                     recipient_list=[data["email"]],

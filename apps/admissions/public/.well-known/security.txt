@@ -1,21 +1,21 @@
 # Security Policy for MIHAS Application System
-# ***REMOVED***
+# https://apply.mihas.edu.zm
 
 # Contact Information
 Contact: mailto:security@mihas.edu.zm
-Contact: mailto:***REMOVED***
+Contact: mailto:admin@mihas.edu.zm
 
 # Acknowledgments
-Acknowledgments: ***REMOVED***/security-hall-of-fame
+Acknowledgments: https://apply.mihas.edu.zm/security-hall-of-fame
 
 # Preferred Languages
 Preferred-Languages: en
 
 # Canonical URL
-Canonical: ***REMOVED***/.well-known/security.txt
+Canonical: https://apply.mihas.edu.zm/.well-known/security.txt
 
 # Policy URL
-Policy: ***REMOVED***/security-policy
+Policy: https://apply.mihas.edu.zm/security-policy
 
 # Expiration Date (ISO 8601)
 Expires: 2027-01-30T00:00:00.000Z

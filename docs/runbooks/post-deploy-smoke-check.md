@@ -44,7 +44,7 @@ stay outside so they're never auto-applied.
 Optional overrides:
 
 ```bash
-APP_URL=***REMOVED*** API_URL=***REMOVED*** ./scripts/smoke-production.sh
+APP_URL=https://apply.mihas.edu.zm API_URL=https://api.mihas.edu.zm ./scripts/smoke-production.sh
 ```
 
 This verifies:

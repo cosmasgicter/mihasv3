@@ -326,7 +326,7 @@ def keep_alive_task(self):
     """
     import requests as http_requests
 
-    live_url = getattr(settings, "KEEP_ALIVE_URL", "***REMOVED***/health/live/")
+    live_url = getattr(settings, "KEEP_ALIVE_URL", "https://api.mihas.edu.zm/health/live/")
 
     try:
         resp = http_requests.get(live_url, timeout=10)
@@ -355,7 +355,7 @@ def check_uptime_task(self):
     """
     from apps.common.outbox import queue_email
 
-    health_url = getattr(settings, "HEALTH_CHECK_URL", "***REMOVED***")
+    health_url = getattr(settings, "HEALTH_CHECK_URL", "https://api.mihas.edu.zm/health/ready/")
     alert_email = settings.ERROR_ALERT_EMAIL
     email_from = getattr(settings, "EMAIL_FROM", "noreply@mihas.edu.zm")
 

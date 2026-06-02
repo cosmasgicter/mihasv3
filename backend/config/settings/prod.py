@@ -66,7 +66,7 @@ _os.environ.setdefault("REQUEST_METRIC_SAMPLE_RATE", "0.1")
 # CORS — production frontend only (explicit origins, no regexes)
 CORS_ALLOWED_ORIGINS = split_csv_env(  # noqa: F405
     "CORS_ALLOWED_ORIGINS",
-    "***REMOVED***,***REMOVED***,https://jobs.mihas.edu.zm,https://mihas.edu.zm,https://www.mihas.edu.zm,https://katc.edu.zm,https://www.katc.edu.zm,https://beanola.com,https://www.beanola.com",
+    "https://apply.mihas.edu.zm,https://api.mihas.edu.zm,https://jobs.mihas.edu.zm,https://mihas.edu.zm,https://www.mihas.edu.zm,https://katc.edu.zm,https://www.katc.edu.zm,https://beanola.com,https://www.beanola.com",
 )
 CORS_ALLOWED_ORIGIN_REGEXES = []
 CORS_ALLOW_ALL_ORIGINS = False

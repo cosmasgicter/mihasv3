@@ -80,7 +80,7 @@ describe('Feature: website-quality-remediation, Security Headers (Req 5)', () =>
       // connect-src starts with 'self' + allows data: (for @react-pdf's
       // base64-embedded yoga-layout wasm binary), then the API origins.
       expect(csp.value).toMatch(/connect-src 'self' data:/);
-      expect(csp.value).toContain('***REMOVED***');
+      expect(csp.value).toContain('https://api.mihas.edu.zm');
       expect(csp.value).toContain('https://pay.lenco.co');
       expect(csp.value).toContain('https://*.r2.cloudflarestorage.com');
     });

@@ -102,8 +102,8 @@ koyeb service redeploy --service mihas-api --branch main
 
 **Post-deploy verification (repeat staging checks, production URLs):**
 
-- [ ] `curl -sf ***REMOVED***` → 200
-- [ ] `curl -sI -X PUT ***REMOVED***/api/v1/notifications/mark-all-read/` → `Deprecation: true` in headers
+- [ ] `curl -sf https://api.mihas.edu.zm/health/ready/` → 200
+- [ ] `curl -sI -X PUT https://api.mihas.edu.zm/api/v1/notifications/mark-all-read/` → `Deprecation: true` in headers
 - [ ] `/api/v1/schema/` returns the new schema with `info.contact` populated
 - [ ] `/api/v1/docs/` shows the updated tag grouping (admin, payments, applications each contain the previously-untagged ops)
 - [ ] 15-minute GlitchTip observation window passes without new error classes

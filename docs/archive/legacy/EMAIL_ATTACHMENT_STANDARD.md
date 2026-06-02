@@ -183,4 +183,4 @@ When updating existing email functions:
 
 - Resend Docs: https://resend.com/docs
 - Resend Dashboard: https://resend.com/emails
-- MIHAS Support: ***REMOVED***
+- MIHAS Support: admin@mihas.edu.zm

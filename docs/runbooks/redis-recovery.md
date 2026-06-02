@@ -28,7 +28,7 @@ print('OK' if cache.get('_recovery_test') == '1' else 'FAIL')
 "
 
 # Check health endpoint:
-curl -s ***REMOVED*** | python3 -m json.tool
+curl -s https://api.mihas.edu.zm/health/ready/ | python3 -m json.tool
 # Look for: "redis": "ok"
 ```
 

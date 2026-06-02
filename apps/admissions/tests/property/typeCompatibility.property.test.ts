@@ -141,7 +141,7 @@ const intakeResponseArb = fc.record({
 
 const userProfileResponseArb = fc.record({
   id: fc.uuid(),
-  email: fc.constantFrom('***REMOVED***', 'student@example.com', 'reviewer@test.org'),
+  email: fc.constantFrom('admin@mihas.edu.zm', 'student@example.com', 'reviewer@test.org'),
   role: fc.constantFrom('student', 'admin', 'reviewer', 'super_admin'),
   full_name: fc.option(fc.string({ minLength: 1, maxLength: 100 }), { nil: undefined }),
   phone: fc.option(fc.string({ minLength: 10, maxLength: 15 }), { nil: undefined }),

@@ -89,17 +89,17 @@ Set these in both Koyeb services unless noted otherwise. The same list is captur
 | `JWT_SIGNING_KEY` | yes | Separate long random signing key |
 | `AUDIT_LOG_ENCRYPTION_KEY` | yes | Fernet key for encrypted raw audit network context. Generate with `python - <<'PY'\nfrom cryptography.fernet import Fernet\nprint(Fernet.generate_key().decode())\nPY` |
 | `ALLOWED_HOSTS` | yes | `.beanola.com,.mihas.edu.zm,.katc.edu.zm` |
-| `CORS_ALLOWED_ORIGINS` | yes | `***REMOVED***` |
-| `CORS_ALLOWED_ORIGIN_REGEXES` | recommended | `***REMOVED***` |
+| `CORS_ALLOWED_ORIGINS` | yes | `https://apply.mihas.edu.zm` |
+| `CORS_ALLOWED_ORIGIN_REGEXES` | recommended | `^https://([A-Za-z0-9-]+\.)*beanola\.com$,^https://([A-Za-z0-9-]+\.)*mihas\.edu\.zm$,^https://([A-Za-z0-9-]+\.)*katc\.edu\.zm$` |
 | `RESEND_API_KEY` | yes | Resend production API key |
-| `EMAIL_FROM` | recommended | `***REMOVED***` |
+| `EMAIL_FROM` | recommended | `admissions@mihas.edu.zm` |
 | `S3_ENDPOINT_URL` | yes | Cloudflare R2 S3 endpoint |
 | `S3_BUCKET` | yes | R2 bucket name |
 | `S3_ACCESS_KEY` | yes | R2 access key |
 | `S3_SECRET_KEY` | yes | R2 secret key |
 | `PORT` | optional | `8000` |
 | `WEB_CONCURRENCY` | optional | `3` — recommended starting value |
-| `ERROR_ALERT_EMAIL` | optional | `***REMOVED***` — recipient for error alert emails |
+| `ERROR_ALERT_EMAIL` | optional | `admin@mihas.edu.zm` — recipient for error alert emails |
 | `READ_ONLY_MODE` | optional | `false` |
 
 `CSRF_TRUSTED_ORIGINS` is not used by the current settings module, so do not add it unless the backend is changed to read it.
@@ -154,10 +154,10 @@ Use [UptimeRobot](https://uptimerobot.com/) (free tier) as the primary external 
 | --- | --- |
 | Monitor type | HTTP(s) |
 | Friendly name | `MIHAS API` |
-| URL | `***REMOVED***` |
+| URL | `https://api.mihas.edu.zm/health/ready/` |
 | Monitoring interval | 5 minutes |
 
-3. Under "Alert Contacts", add the operations team email (e.g. `***REMOVED***`).
+3. Under "Alert Contacts", add the operations team email (e.g. `admin@mihas.edu.zm`).
 4. Save the monitor.
 
 UptimeRobot will send an email alert when `/health/ready/` returns a non-200 status or becomes unreachable, and a recovery email when it comes back up.
@@ -185,7 +185,7 @@ To alert on Redis-only outages without changing the current readiness contract, 
 | --- | --- |
 | Monitor type | HTTP(s) |
 | Friendly name | `MIHAS Redis` |
-| URL | `***REMOVED***/health/redis/` |
+| URL | `https://api.mihas.edu.zm/health/redis/` |
 | Monitoring interval | 5 minutes |
 
 This endpoint returns:
@@ -229,9 +229,9 @@ Set these in the Vercel project. The example file lives at [apps/admissions/.env
 
 | Variable | Required | Example / Notes |
 | --- | --- | --- |
-| `VITE_API_BASE_URL` | recommended | `***REMOVED***` |
-| `VITE_APP_BASE_URL` | recommended | `***REMOVED***` |
-| `VITE_SITE_URL` | recommended | `***REMOVED***` |
+| `VITE_API_BASE_URL` | recommended | `https://api.mihas.edu.zm` |
+| `VITE_APP_BASE_URL` | recommended | `https://apply.mihas.edu.zm` |
+| `VITE_SITE_URL` | recommended | `https://apply.mihas.edu.zm` |
 | `VITE_APP_VERSION` | recommended | release tag or commit SHA |
 | `VITE_ENABLE_AUTO_RELOAD` | optional | `false` in production |
 | `VITE_ENABLE_LOADER_TELEMETRY` | optional | `false` in production |

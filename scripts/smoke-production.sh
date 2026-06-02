@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_URL="${APP_URL:-***REMOVED***}"
-API_URL="${API_URL:-***REMOVED***}"
+APP_URL="${APP_URL:-https://apply.mihas.edu.zm}"
+API_URL="${API_URL:-https://api.mihas.edu.zm}"
 
 check_200() {
   local label="$1"

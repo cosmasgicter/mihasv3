@@ -26,7 +26,7 @@ Reference policy:
 ## Detection
 
 Primary signals:
-- external monitor on `***REMOVED***/health/redis/`
+- external monitor on `https://api.mihas.edu.zm/health/redis/`
 - Koyeb worker logs showing broker/connectivity errors
 - web logs showing Redis cache or broker failures
 - increased forced re-login complaints during refresh flows
@@ -39,9 +39,9 @@ Secondary signals:
 ## Immediate triage
 
 1. Confirm scope.
-   - Check `***REMOVED***/health/live/`
-   - Check `***REMOVED***`
-   - Check `***REMOVED***/health/redis/`
+   - Check `https://api.mihas.edu.zm/health/live/`
+   - Check `https://api.mihas.edu.zm/health/ready/`
+   - Check `https://api.mihas.edu.zm/health/redis/`
 
 2. Confirm whether Postgres is healthy.
    - If Postgres is also unhealthy, treat as broader platform incident.

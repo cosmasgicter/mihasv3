@@ -263,7 +263,7 @@ const NEXT_STEPS = [
   'Confirm your acceptance through the admissions portal within 14 days.',
   'Complete registration and pay the tuition deposit by the stated deadline.',
   'Attend the orientation programme in the first week of the intake.',
-  'Contact ***REMOVED*** if you have any questions or need support.',
+  'Contact admissions@mihas.edu.zm if you have any questions or need support.',
 ]
 
 /**

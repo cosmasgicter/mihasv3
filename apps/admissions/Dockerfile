@@ -2,8 +2,8 @@
 #
 # Build context is the REPO ROOT (monorepo workspace). Built in CI:
 #   docker build -f apps/admissions/Dockerfile \
-#     --build-arg VITE_API_BASE_URL=***REMOVED*** \
-#     --build-arg VITE_APP_BASE_URL=***REMOVED*** \
+#     --build-arg VITE_API_BASE_URL=https://api.mihas.edu.zm \
+#     --build-arg VITE_APP_BASE_URL=https://apply.mihas.edu.zm \
 #     --build-arg VITE_APP_VERSION=$GIT_SHA \
 #     --build-arg VITE_GLITCHTIP_DSN=... \
 #     -t ghcr.io/<owner>/mihas-frontend:<sha> .
@@ -15,9 +15,14 @@
 FROM oven/bun:1.3-alpine AS build
 WORKDIR /repo
 
-# Workspace install: copy root manifests + the app's manifest for cached deps.
+# Workspace install: copy root manifests + ALL workspace member manifests so
+# bun's frozen lockfile resolves (root package.json globs apps/* + shared).
 COPY package.json bun.lock ./
 COPY apps/admissions/package.json apps/admissions/package.json
+COPY apps/jobs-ops/package.json apps/jobs-ops/package.json
+COPY apps/student-portal/package.json apps/student-portal/package.json
+COPY apps/website/package.json apps/website/package.json
+COPY shared/package.json shared/package.json
 RUN bun install --frozen-lockfile
 
 # App source (+ shared scaffold, referenced by the workspace).

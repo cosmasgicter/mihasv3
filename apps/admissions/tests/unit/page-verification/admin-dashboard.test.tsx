@@ -43,7 +43,7 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
     user: {
       id: 'admin-001',
-      email: '***REMOVED***',
+      email: 'admin@mihas.edu.zm',
       role: 'admin',
       full_name: 'Admin User',
     },
@@ -61,7 +61,7 @@ vi.mock('@/hooks/auth/useProfileQuery', () => ({
   useProfileQuery: () => ({
     profile: {
       id: 'admin-001',
-      email: '***REMOVED***',
+      email: 'admin@mihas.edu.zm',
       role: 'admin',
       full_name: 'Admin User',
       phone: '+260971000000',

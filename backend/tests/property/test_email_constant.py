@@ -3,7 +3,7 @@
 # Feature: tech-debt-remediation, Property 6: Fallback email from settings
 
 Uses source inspection to verify that the 3 backend files that previously
-hardcoded `***REMOVED***` now reference `settings.ERROR_ALERT_EMAIL`
+hardcoded `admin@mihas.edu.zm` now reference `settings.ERROR_ALERT_EMAIL`
 instead.
 
 **Validates: Requirements 12.1, 12.2**
@@ -44,7 +44,7 @@ FILES_USING_ALERT_EMAIL = [
     BACKEND_ROOT / "apps" / "common" / "tasks.py",
 ]
 
-HARDCODED_EMAIL = "***REMOVED***"
+HARDCODED_EMAIL = "admin@mihas.edu.zm"
 SETTINGS_REFERENCE = "settings.ERROR_ALERT_EMAIL"
 
 
@@ -81,7 +81,7 @@ class TestFallbackEmailFromSettings(SimpleTestCase):
     """Property 6: Fallback email from settings, not hardcoded.
 
     All alert email paths SHALL use settings.ERROR_ALERT_EMAIL,
-    not the hardcoded string '***REMOVED***'.
+    not the hardcoded string 'admin@mihas.edu.zm'.
 
     **Validates: Requirements 12.1, 12.2**
     """

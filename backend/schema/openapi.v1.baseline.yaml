@@ -34,7 +34,7 @@ info:
     - or the `access_token` cookie issued by the login flow
   contact:
     name: MIHAS Admissions Platform Team
-    email: ***REMOVED***
+    email: admissions@mihas.edu.zm
     url: https://mihas.edu.zm
   license:
     name: Proprietary
@@ -15205,7 +15205,7 @@ components:
       description: Optional session cookie. If present and valid, the request is authenticated;
         otherwise it is treated as anonymous.
 servers:
-- url: ***REMOVED***
+- url: https://api.mihas.edu.zm
   description: Production
 - url: http://localhost:8000
   description: Local development

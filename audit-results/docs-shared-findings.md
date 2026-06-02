@@ -65,7 +65,7 @@
 
 ### docs/API_REFERENCE.md — improve
 **Tag:** suspicious-stale-path
-**Issue:** Lists base URL as `***REMOVED***` (frontend) and `http://localhost:5173` (dev). The API base is `***REMOVED***`. References `Authorization: Bearer <jwt_token>` header auth — the current system uses cookie-based auth. Rate limit headers described don't match current DRF throttling.
+**Issue:** Lists base URL as `https://apply.mihas.edu.zm` (frontend) and `http://localhost:5173` (dev). The API base is `https://api.mihas.edu.zm`. References `Authorization: Bearer <jwt_token>` header auth — the current system uses cookie-based auth. Rate limit headers described don't match current DRF throttling.
 **Recommendation:** Remove. The canonical API docs are served by drf-spectacular at `/api/v1/docs/`.
 
 ### docs/DEVELOPER_ONBOARDING.md — improve

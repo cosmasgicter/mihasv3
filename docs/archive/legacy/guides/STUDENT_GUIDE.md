@@ -170,7 +170,7 @@ Track without logging in:
 ## Frequently Asked Questions
 
 ### Can I edit my application after submission?
-No. Once submitted, you cannot edit. Contact ***REMOVED*** if you need changes.
+No. Once submitted, you cannot edit. Contact admin@mihas.edu.zm if you need changes.
 
 ### How long does review take?
 Typically 5-7 business days after submission and payment confirmation.
@@ -185,10 +185,10 @@ You can still submit. Admissions committee reviews each case individually.
 If the wizard still shows pending payment, wait briefly and refresh the payment step. If it remains unresolved, check the Payment page and contact support with your application number.
 
 ### Can I withdraw my application?
-Yes. Email ***REMOVED*** with your application number.
+Yes. Email admin@mihas.edu.zm with your application number.
 
 ### What if I uploaded wrong document?
-Contact ***REMOVED*** immediately with correct document.
+Contact admin@mihas.edu.zm immediately with correct document.
 
 ### How do I know if I'm accepted?
 You'll receive email notification and can check your dashboard.
@@ -207,7 +207,7 @@ You'll receive email notification and can check your dashboard.
 
 ### Contact Support
 
-**Email**: ***REMOVED***
+**Email**: admissions@mihas.edu.zm
 **Phone**: +260-XXX-XXX-XXX
 **Hours**: Monday-Friday, 8:00 AM - 5:00 PM
 

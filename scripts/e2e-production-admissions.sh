@@ -2,8 +2,8 @@
 set -euo pipefail
 
 MODE="${1:-smoke}"
-API_URL="${API_URL:-***REMOVED***}"
-APP_URL="${APP_URL:-***REMOVED***}"
+API_URL="${API_URL:-https://api.mihas.edu.zm}"
+APP_URL="${APP_URL:-https://apply.mihas.edu.zm}"
 COOKIE_DIR="$(mktemp -d)"
 STUDENT_COOKIE="${COOKIE_DIR}/student.cookies"
 ADMIN_COOKIE="${COOKIE_DIR}/admin.cookies"

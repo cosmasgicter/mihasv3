@@ -39,7 +39,7 @@ def _make_user(user_id=None, role="admin"):
     uid = user_id or uuid.uuid4()
     return JWTUser({
         "user_id": str(uid),
-        "email": "***REMOVED***",
+        "email": "admin@mihas.edu.zm",
         "role": role,
         "first_name": "Admin",
         "last_name": "User",

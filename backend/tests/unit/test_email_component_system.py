@@ -79,9 +79,9 @@ def test_section_heading_escapes_html():
 
 
 def test_cta_button_contains_href_and_label():
-    html = cta_button("Open Application", "***REMOVED***/student")
+    html = cta_button("Open Application", "https://apply.mihas.edu.zm/student")
     assert "Open Application" in html
-    assert "***REMOVED***/student" in html
+    assert "https://apply.mihas.edu.zm/student" in html
     # Outlook VML fallback
     assert "mso" in html
 

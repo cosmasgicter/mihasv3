@@ -63,7 +63,7 @@ class SecurityHeadersMiddleware:
             "style-src 'self' 'unsafe-inline'; "
             "style-src-elem 'self' 'unsafe-inline'; "
             "img-src 'self' data: blob: https://pay.lenco.co https://pay.sandbox.lenco.co https://*.r2.cloudflarestorage.com; "
-            "connect-src 'self' ***REMOVED*** https://api.lenco.co https://api.sandbox.lenco.co https://cdn.jsdelivr.net; "
+            "connect-src 'self' https://api.mihas.edu.zm https://api.lenco.co https://api.sandbox.lenco.co https://cdn.jsdelivr.net; "
             "frame-src 'self' https://pay.lenco.co https://pay.sandbox.lenco.co; "
             "font-src 'self'; "
             "object-src 'none'; "

@@ -8,7 +8,7 @@ Six core flows on `apply.mihas.edu.zm` broke after the 2026-05-17/18 "production
 
 ### Bug 1 — Application submission CORS preflight failure
 
-**Symptom**: `Access to fetch at '***REMOVED***/api/v1/applications/{id}/submit/' from origin '***REMOVED***' has been blocked by CORS policy: Request header field x-idempotency-key is not allowed by Access-Control-Allow-Headers in preflight response.` The wizard's Submit button silently failed.
+**Symptom**: `Access to fetch at 'https://api.mihas.edu.zm/api/v1/applications/{id}/submit/' from origin 'https://apply.mihas.edu.zm' has been blocked by CORS policy: Request header field x-idempotency-key is not allowed by Access-Control-Allow-Headers in preflight response.` The wizard's Submit button silently failed.
 
 **Root cause**: The frontend sent two headers — `Idempotency-Key` AND `X-Idempotency-Key` — but the backend's `CORS_ALLOW_HEADERS` (in `backend/config/settings/base.py`) only included `idempotency-key`. The `X-Idempotency-Key` was a redundant defensive duplicate that never had an allow-list entry.
 

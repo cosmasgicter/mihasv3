@@ -29,7 +29,7 @@
  *   PLAYWRIGHT_BASE_URL=http://127.0.0.1:4173 bun x playwright test tests/e2e/styling-smoke.spec.ts
  *
  *   # against production:
- *   PLAYWRIGHT_BASE_URL=***REMOVED*** bun x playwright test tests/e2e/styling-smoke.spec.ts
+ *   PLAYWRIGHT_BASE_URL=https://apply.mihas.edu.zm bun x playwright test tests/e2e/styling-smoke.spec.ts
  */
 import { test, expect } from '@playwright/test'
 
@@ -46,7 +46,7 @@ const PRODUCTION_CSP = [
   "style-src-elem 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  "connect-src 'self' data: ***REMOVED*** https://pay.lenco.co https://pay.sandbox.lenco.co https://api.lenco.co https://api.sandbox.lenco.co https://app.glitchtip.com",
+  "connect-src 'self' data: https://api.mihas.edu.zm https://pay.lenco.co https://pay.sandbox.lenco.co https://api.lenco.co https://api.sandbox.lenco.co https://app.glitchtip.com",
   "frame-src 'self' https://pay.lenco.co https://pay.sandbox.lenco.co",
   "frame-ancestors 'none'",
   "base-uri 'self'",

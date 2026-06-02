@@ -10,7 +10,7 @@
  *   cd apps/admissions && bun x playwright test tests/e2e/applicationFlow.spec.ts --headed
  *
  * Run against production:
- *   PLAYWRIGHT_BASE_URL=***REMOVED*** bun x playwright test tests/e2e/applicationFlow.spec.ts --headed
+ *   PLAYWRIGHT_BASE_URL=https://apply.mihas.edu.zm bun x playwright test tests/e2e/applicationFlow.spec.ts --headed
  */
 
 import { test, expect, type Page } from '@playwright/test';

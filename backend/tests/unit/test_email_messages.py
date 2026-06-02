@@ -343,12 +343,12 @@ def test_password_reset_contains_link_and_expiry():
         "password_reset",
         {
             "student_name": "Bwalya",
-            "reset_url": "***REMOVED***/auth/reset?token=abc123",
+            "reset_url": "https://apply.mihas.edu.zm/auth/reset?token=abc123",
             "expires_in_minutes": 45,
         },
     )
     assert "Reset your MIHAS admissions password" in subject
-    assert "***REMOVED***/auth/reset?token=abc123" in html
+    assert "https://apply.mihas.edu.zm/auth/reset?token=abc123" in html
     assert "45 minutes" in html
 
 

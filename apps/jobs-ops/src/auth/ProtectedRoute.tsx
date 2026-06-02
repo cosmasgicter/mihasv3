@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useAuth } from '@/auth/AuthContext'
 
-const SIGN_IN_URL = import.meta.env.VITE_SIGN_IN_URL || '***REMOVED***/auth/signin'
+const SIGN_IN_URL = import.meta.env.VITE_SIGN_IN_URL || 'https://apply.mihas.edu.zm/auth/signin'
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isLoading, isAuthenticated } = useAuth()

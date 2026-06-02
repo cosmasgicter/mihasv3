@@ -14,7 +14,7 @@ Multiple users have **DUPLICATE ROLES** in `user_roles` table:
 | User | Email | Role Count | Roles |
 |------|-------|------------|-------|
 | cosmas@beanola.com | fc6a1536... | **5** | 4x super_admin, 1x admin |
-| ***REMOVED*** | 03b946d8... | **2** | admin, student |
+| admin@mihas.edu.zm | 03b946d8... | **2** | admin, student |
 | Unknown | f9b1eede... | **2** | admin, student |
 | Unknown | c267debc... | **2** | admin, student |
 
@@ -35,7 +35,7 @@ No unique constraint on `user_roles(user_id)` - allows multiple role entries per
 
 | User | profiles.role | user_roles.role | Status |
 |------|---------------|-----------------|--------|
-| ***REMOVED*** | **student** | **admin** | ❌ MISMATCH |
+| admin@mihas.edu.zm | **student** | **admin** | ❌ MISMATCH |
 
 ### Impact:
 - `AuthContext` checks `profiles.role` → returns "student"

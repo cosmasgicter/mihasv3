@@ -14,7 +14,7 @@ describe('isSafeNavigationUrl', () => {
 
   beforeEach(() => {
     Object.defineProperty(window, 'location', {
-      value: { ...originalLocation, origin: '***REMOVED***' },
+      value: { ...originalLocation, origin: 'https://apply.mihas.edu.zm' },
       writable: true,
       configurable: true,
     });
@@ -57,8 +57,8 @@ describe('isSafeNavigationUrl', () => {
 
   describe('same-origin absolute URLs', () => {
     it('allows same-origin HTTPS URLs', () => {
-      expect(isSafeNavigationUrl('***REMOVED***/dashboard')).toBe(true);
-      expect(isSafeNavigationUrl('***REMOVED***/')).toBe(true);
+      expect(isSafeNavigationUrl('https://apply.mihas.edu.zm/dashboard')).toBe(true);
+      expect(isSafeNavigationUrl('https://apply.mihas.edu.zm/')).toBe(true);
     });
   });
 
@@ -130,8 +130,8 @@ describe('isSafeActionUrl', () => {
 
   describe('absolute URLs', () => {
     it('allows HTTPS URLs on the application domain', () => {
-      expect(isSafeActionUrl('***REMOVED***/applications/123')).toBe(true);
-      expect(isSafeActionUrl('***REMOVED***/')).toBe(true);
+      expect(isSafeActionUrl('https://apply.mihas.edu.zm/applications/123')).toBe(true);
+      expect(isSafeActionUrl('https://apply.mihas.edu.zm/')).toBe(true);
     });
 
     it('rejects HTTP URLs on the application domain', () => {

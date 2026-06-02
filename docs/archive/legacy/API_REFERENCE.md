@@ -3,7 +3,7 @@
 ## Base URL
 
 ```
-Production: ***REMOVED***
+Production: https://apply.mihas.edu.zm
 Development: http://localhost:5173
 ```
 
@@ -232,7 +232,7 @@ POST /applications/:id/verify-payment
   "data": {
     "payment_status": "verified",
     "payment_verified_at": "2025-01-20T10:00:00Z",
-    "payment_verified_by": "***REMOVED***"
+    "payment_verified_by": "admin@mihas.edu.zm"
   }
 }
 ```
@@ -537,7 +537,7 @@ PATCH /users/profile
     "application_id": "uuid",
     "old_status": "submitted",
     "new_status": "approved",
-    "changed_by": "***REMOVED***",
+    "changed_by": "admin@mihas.edu.zm",
     "timestamp": "2025-01-20T10:00:00Z"
   }
 }
@@ -550,7 +550,7 @@ PATCH /users/profile
   "data": {
     "application_id": "uuid",
     "amount": 153,
-    "verified_by": "***REMOVED***",
+    "verified_by": "admin@mihas.edu.zm",
     "timestamp": "2025-01-20T10:00:00Z"
   }
 }
@@ -578,7 +578,7 @@ const result = await api.post('/api/applications?action=review', {
 ### Using fetch directly
 ```typescript
 // Get applications
-const response = await fetch('***REMOVED***/api/applications', {
+const response = await fetch('https://apply.mihas.edu.zm/api/applications', {
   credentials: 'include', // Include HTTP-only cookies
   headers: { 'Content-Type': 'application/json' }
 })
@@ -586,7 +586,7 @@ const data = await response.json()
 // data = { success: true, data: [...] }
 
 // Create application
-const response = await fetch('***REMOVED***/api/applications', {
+const response = await fetch('https://apply.mihas.edu.zm/api/applications', {
   method: 'POST',
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
@@ -597,11 +597,11 @@ const response = await fetch('***REMOVED***/api/applications', {
 ### cURL
 ```bash
 # Get applications (with cookie auth)
-curl -X GET ***REMOVED***/api/applications \
+curl -X GET https://apply.mihas.edu.zm/api/applications \
   -H "Authorization: Bearer <token>"
 
 # Create application
-curl -X POST ***REMOVED***/api/applications \
+curl -X POST https://apply.mihas.edu.zm/api/applications \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"full_name":"John Doe","email":"john@example.com"}'
@@ -618,13 +618,13 @@ headers = {
 
 # Get applications
 response = requests.get(
-    '***REMOVED***/api/applications',
+    'https://apply.mihas.edu.zm/api/applications',
     headers=headers
 )
 
 # Create application
 response = requests.post(
-    '***REMOVED***/api/applications',
+    'https://apply.mihas.edu.zm/api/applications',
     headers=headers,
     json={'full_name': 'John Doe', 'email': 'john@example.com'}
 )

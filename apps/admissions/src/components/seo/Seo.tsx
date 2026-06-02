@@ -14,7 +14,7 @@ const resolveSiteUrl = () => {
     return window.location.origin
   }
 
-  return '***REMOVED***'
+  return 'https://apply.mihas.edu.zm'
 }
 
 const buildAbsoluteUrl = (value: string, siteUrl: string) => {

@@ -38,7 +38,7 @@ class TestErrorReportValidPayload(SimpleTestCase):
             {
                 "message": "Uncaught TypeError: Cannot read properties of undefined",
                 "stack_trace": "at Object.<anonymous> (app.js:42:15)",
-                "url": "***REMOVED***/apply",
+                "url": "https://apply.mihas.edu.zm/apply",
                 "user_agent": "Mozilla/5.0",
             },
             format="json",
@@ -66,7 +66,7 @@ class TestErrorReportMissingMessage(SimpleTestCase):
             "/api/v1/errors/report/",
             {
                 "stack_trace": "at Object.<anonymous> (app.js:42:15)",
-                "url": "***REMOVED***/apply",
+                "url": "https://apply.mihas.edu.zm/apply",
             },
             format="json",
         )
@@ -113,12 +113,12 @@ class TestErrorReportBatchPayload(SimpleTestCase):
                     {
                         "message": "First client error",
                         "stack_trace": "at first.js:1:1",
-                        "url": "***REMOVED***/apply",
+                        "url": "https://apply.mihas.edu.zm/apply",
                     },
                     {
                         "message": "Second client error",
                         "stack_trace": "at second.js:2:2",
-                        "url": "***REMOVED***/apply",
+                        "url": "https://apply.mihas.edu.zm/apply",
                     },
                 ],
             },

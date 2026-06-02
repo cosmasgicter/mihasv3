@@ -4,8 +4,8 @@
 
 Your email system is **already configured** with:
 - ✅ Resend API Key: `re_cT8PNR7g_***`
-- ✅ From Email: `***REMOVED***`
-- ✅ Admin Email: `***REMOVED***`
+- ✅ From Email: `admissions@mihas.edu.zm`
+- ✅ Admin Email: `admissions@mihas.edu.zm`
 
 ---
 
@@ -59,7 +59,7 @@ curl -X POST https://your-domain.com/test-email \
 
 ### Status Change Email Example:
 ```
-From: MIHAS Admissions <***REMOVED***>
+From: MIHAS Admissions <admissions@mihas.edu.zm>
 To: student@example.com
 Subject: 🎉 Application Approved!
 
@@ -73,7 +73,7 @@ Note: [Admin's note if provided]
 
 ### Payment Verification Email Example:
 ```
-From: MIHAS Admissions <***REMOVED***>
+From: MIHAS Admissions <admissions@mihas.edu.zm>
 To: student@example.com
 Subject: ✅ Payment Verified
 
@@ -195,7 +195,7 @@ Both use:
 
 2. **Check from email**:
    ```bash
-   RESEND_FROM_EMAIL="MIHAS Admissions <***REMOVED***>"
+   RESEND_FROM_EMAIL="MIHAS Admissions <admissions@mihas.edu.zm>"
    ```
 
 3. **Check domain verification**:
@@ -220,7 +220,7 @@ Both use:
 |---------|--------|-------|
 | Email Service | ✅ Ready | Resend configured |
 | API Key | ✅ Active | Already set |
-| From Email | ✅ Set | ***REMOVED*** |
+| From Email | ✅ Set | admissions@mihas.edu.zm |
 | Status Emails | ✅ Working | Auto-sent on status change |
 | Payment Emails | ✅ Working | Auto-sent on verification |
 | Templates | ✅ Ready | Professional HTML |

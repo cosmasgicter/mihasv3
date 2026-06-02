@@ -38,9 +38,9 @@ Secrets:
 - `GHCR_PAT` — a Personal Access Token with `read:packages` (the box uses it to pull private images)
 
 Variables (public, baked into the frontend bundle at build time):
-- `VITE_API_BASE_URL` = `***REMOVED***`
-- `VITE_APP_BASE_URL` = `***REMOVED***`
-- `VITE_SITE_URL` = `***REMOVED***`
+- `VITE_API_BASE_URL` = `https://api.mihas.edu.zm`
+- `VITE_APP_BASE_URL` = `https://apply.mihas.edu.zm`
+- `VITE_SITE_URL` = `https://apply.mihas.edu.zm`
 - `VITE_GLITCHTIP_DSN` = your frontend DSN
 - `VITE_LENCO_PUBLIC_KEY` = your Lenco public key
 - `VITE_LENCO_WIDGET_URL` = your Lenco widget URL
@@ -90,7 +90,7 @@ Key values for the self-hosted stack (differs from Koyeb):
   `postgres` container, **not** Neon. Just set `POSTGRES_DB`, `POSTGRES_USER`,
   `POSTGRES_PASSWORD` (use a strong password).
 - `ALLOWED_HOSTS=api.mihas.edu.zm`
-- `CORS_ALLOWED_ORIGINS=***REMOVED***,***REMOVED***`
+- `CORS_ALLOWED_ORIGINS=https://apply.mihas.edu.zm,https://api.mihas.edu.zm`
 - `APP_HOST=apply.mihas.edu.zm`, `API_HOST=api.mihas.edu.zm`, `ADMIN_EMAIL=<you>@mihas.edu.zm`
 - Keep all the integration secrets you already use on Koyeb (Lenco, Zoho,
   GlitchTip, R2/S3, AUDIT_LOG_ENCRYPTION_KEY, JWT_SIGNING_KEY, AI gateway).
@@ -149,9 +149,9 @@ Trigger the pipeline so images exist in GHCR, then start the stack:
 cd ~/mihas
 docker compose -f docker-compose.prod.yml ps          # all healthy/up
 # API liveness through Caddy (cert will be self-signed until DNS+ACME; -k ok):
-curl -k --resolve api.mihas.edu.zm:443:127.0.0.1 ***REMOVED***
+curl -k --resolve api.mihas.edu.zm:443:127.0.0.1 https://api.mihas.edu.zm/health/ready/
 # SPA shell:
-curl -k --resolve apply.mihas.edu.zm:443:127.0.0.1 ***REMOVED***/ | head
+curl -k --resolve apply.mihas.edu.zm:443:127.0.0.1 https://apply.mihas.edu.zm/ | head
 ```
 
 `/health/ready/` returning `200` means Postgres + Redis are reachable. If it
@@ -177,8 +177,8 @@ points at this box. Lower TTL a day ahead for a fast rollback.
    ```
 4. From your laptop, confirm real HTTPS:
    ```bash
-   curl ***REMOVED***
-   curl -I ***REMOVED***/
+   curl https://api.mihas.edu.zm/health/ready/
+   curl -I https://apply.mihas.edu.zm/
    ```
 5. Smoke test in a browser: sign in, open the wizard, the admin dashboard, and
    run one payment in Lenco sandbox. Cookies should work because both names are
