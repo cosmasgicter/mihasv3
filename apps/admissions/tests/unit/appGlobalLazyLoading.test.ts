@@ -7,8 +7,8 @@ describe('App global utility bundle splitting', () => {
 
   it('keeps heavy global utilities behind lazy imports', () => {
     const lazySpecifiers = [
-      "import('@vercel/analytics/react')",
-      "import('@vercel/speed-insights/react')",
+      "import('@/components/DeferredGlobalFeedback')",
+      "import('@/components/AuthenticatedRouteShell')",
     ]
 
     for (const specifier of lazySpecifiers) {
@@ -20,6 +20,7 @@ describe('App global utility bundle splitting', () => {
     const eagerImports = [
       "from '@vercel/analytics/react'",
       "from '@vercel/speed-insights/react'",
+      "from '@/components/DeferredGlobalFeedback'",
     ]
 
     for (const importFragment of eagerImports) {

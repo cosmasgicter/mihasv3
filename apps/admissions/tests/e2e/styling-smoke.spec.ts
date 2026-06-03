@@ -39,7 +39,7 @@ import { test, expect } from '@playwright/test'
 // deliberate, reviewed action.
 const PRODUCTION_CSP = [
   "default-src 'self'",
-  "script-src 'self' 'wasm-unsafe-eval' blob: https://va.vercel-scripts.com https://pay.lenco.co https://pay.sandbox.lenco.co",
+  "script-src 'self' 'wasm-unsafe-eval' blob: https://pay.lenco.co https://pay.sandbox.lenco.co",
   "worker-src 'self' blob:",
   "child-src 'self' blob:",
   "style-src 'self' 'unsafe-inline'",

@@ -25,7 +25,6 @@ EXPECTED_SCRIPT_SRC_SOURCES = {
     "'self'",
     "'wasm-unsafe-eval'",
     "blob:",
-    "https://va.vercel-scripts.com",
     "https://pay.lenco.co",
     "https://pay.sandbox.lenco.co",
 }
@@ -44,7 +43,7 @@ EXPECTED_NON_CSP_HEADERS = {
 # Expected CSP directives and their values (order-independent per directive)
 EXPECTED_CSP_DIRECTIVES = {
     "default-src": {"'self'"},
-    "script-src": {"'self'", "'wasm-unsafe-eval'", "blob:", "https://va.vercel-scripts.com", "https://pay.lenco.co", "https://pay.sandbox.lenco.co"},
+    "script-src": {"'self'", "'wasm-unsafe-eval'", "blob:", "https://pay.lenco.co", "https://pay.sandbox.lenco.co"},
     "style-src": {"'self'", "'unsafe-inline'"},
     "style-src-elem": {"'self'", "'unsafe-inline'"},
     "img-src": {"'self'", "data:", "blob:"},
@@ -146,14 +145,6 @@ class TestCSPScriptSrcPreservation:
         directives = _parse_csp_directives(csp)
         assert "script-src" in directives, "script-src directive not found in CSP"
         assert "'self'" in directives["script-src"]
-
-    def test_script_src_contains_vercel_scripts(self):
-        """script-src must include https://va.vercel-scripts.com."""
-        data = _load_vercel_json()
-        block = _get_main_headers_block(data)
-        csp = _find_header_value(block["headers"], "Content-Security-Policy")
-        directives = _parse_csp_directives(csp)
-        assert "https://va.vercel-scripts.com" in directives["script-src"]
 
     def test_script_src_contains_lenco_pay(self):
         """script-src must include https://pay.lenco.co."""
