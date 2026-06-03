@@ -16,8 +16,6 @@ const MaintenancePage = lazy(() => import('@/pages/MaintenancePage'))
 
 const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === 'true'
 
-const Analytics = lazy(() => import('@vercel/analytics/react').then((mod) => ({ default: mod.Analytics })))
-const SpeedInsights = lazy(() => import('@vercel/speed-insights/react').then((mod) => ({ default: mod.SpeedInsights })))
 const DeferredGlobalFeedback = lazy(() => import('@/components/DeferredGlobalFeedback').then((mod) => ({ default: mod.DeferredGlobalFeedback })))
 const AuthenticatedRouteShell = lazy(() => import('@/components/AuthenticatedRouteShell').then((mod) => ({ default: mod.AuthenticatedRouteShell })))
 const PublicApplicationTracker = lazy(() => import('@/pages/public/tracker/index'))
@@ -73,25 +71,6 @@ function DeferredGlobalUi({
   )
 }
 
-function DeferredTelemetry({
-  delayMs,
-}: {
-  delayMs: number
-}) {
-  const hydrated = useDeferredHydration(true, delayMs)
-
-  if (!hydrated) {
-    return null
-  }
-
-  return (
-    <Suspense fallback={null}>
-      <Analytics />
-      <SpeedInsights />
-    </Suspense>
-  )
-}
-
 function getShellFallback(pathname: string): React.ReactNode {
   if (pathname === '/dashboard' || pathname.startsWith('/admin')) {
     return <DashboardSkeleton />
@@ -140,7 +119,6 @@ function RouteAwareApp() {
   const marketingRoute = isMarketingPublicRoute(location.pathname)
   const isLandingRoute = location.pathname === '/'
   const globalUiDelayMs = isLandingRoute ? 2800 : marketingRoute ? 900 : 350
-  const telemetryDelayMs = isLandingRoute ? 6000 : marketingRoute ? 2500 : 1200
 
   // Dismiss preloader once the route shell renders
   useEffect(() => {
@@ -175,7 +153,6 @@ function RouteAwareApp() {
         </Suspense>
       )}
       <DeferredGlobalUi delayMs={globalUiDelayMs} />
-      <DeferredTelemetry delayMs={telemetryDelayMs} />
       <RoutePrefetcher isMarketingRoute={marketingRoute} />
     </>
   )
