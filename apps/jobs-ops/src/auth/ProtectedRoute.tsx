@@ -1,23 +1,12 @@
 import type { ReactNode } from 'react'
-import { useAuth } from '@/auth/AuthContext'
 
-const SIGN_IN_URL = import.meta.env.VITE_SIGN_IN_URL || 'https://apply.mihas.edu.zm/auth/signin'
-
+/**
+ * jobs-ops renders standalone. Its read endpoints are public scaffold routes
+ * (AllowAny on the backend) and write actions stay backend-policy-gated, so the
+ * dashboard UI must always render — it must never hard-redirect to the
+ * admissions sign-in page. Auth state still drives in-app affordances via
+ * useAuth(); this wrapper just stops gating the whole shell.
+ */
 export function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { isLoading, isAuthenticated } = useAuth()
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-muted-foreground text-sm">Loading…</div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    window.location.href = `${SIGN_IN_URL}?redirect=${encodeURIComponent(window.location.pathname)}`
-    return null
-  }
-
   return <>{children}</>
 }

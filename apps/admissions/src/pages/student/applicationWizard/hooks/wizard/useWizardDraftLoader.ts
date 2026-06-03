@@ -170,11 +170,36 @@ export function useWizardDraftLoader({
         if (useLocalDraft && localDraft) {
           let localApplicationId = typeof localDraft.applicationId === 'string' ? localDraft.applicationId : null
 
+          // Backfill any identity field the local snapshot is missing/blank from
+          // the server draft (the authoritative persisted record). A partial
+          // local autosave (e.g. saved before profile auto-populate finished)
+          // must never strip fields that were already saved server-side.
+          if (serverApp) {
+            const fd = localDraft.formData
+            const fillFromServer = (key: keyof ServerDraftShape) => {
+              const local = fd[key]
+              const hasLocal = typeof local === 'string' ? local.trim() !== '' : local != null
+              const serverVal = serverApp?.[key]
+              if (!hasLocal && typeof serverVal === 'string' && serverVal.trim() !== '') {
+                fd[key] = serverVal
+              }
+            }
+            ;([
+              'full_name', 'nrc_number', 'passport_number', 'date_of_birth', 'sex',
+              'phone', 'email', 'residence_town', 'country', 'nationality',
+              'next_of_kin_name', 'next_of_kin_phone', 'program', 'intake',
+            ] as (keyof ServerDraftShape)[]).forEach(fillFromServer)
+          }
+
           Object.keys(localDraft.formData).forEach(key => {
             const rawValue = localDraft.formData[key]
             const value = key === 'date_of_birth'
               ? normalizeDateInputValue(rawValue)
-              : rawValue
+              : key === 'sex'
+                ? normalizeSexForWizard(rawValue as string)
+                : key === 'residence_town'
+                  ? normalizeResidenceTown(String(rawValue ?? ''))
+                  : rawValue
             if (value !== undefined && value !== null && value !== '') {
               setValue(key as keyof WizardFormData, value as WizardFormData[keyof WizardFormData], { shouldValidate: false })
             }
