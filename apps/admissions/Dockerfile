@@ -27,6 +27,7 @@ RUN bun install --frozen-lockfile
 
 # App source (+ shared scaffold, referenced by the workspace).
 COPY apps/admissions apps/admissions
+COPY apps/jobs-ops apps/jobs-ops
 COPY shared shared
 
 ARG VITE_API_BASE_URL
@@ -36,18 +37,25 @@ ARG VITE_APP_VERSION
 ARG VITE_GLITCHTIP_DSN
 ARG VITE_LENCO_PUBLIC_KEY
 ARG VITE_LENCO_WIDGET_URL
+ARG VITE_SIGN_IN_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
     VITE_APP_BASE_URL=$VITE_APP_BASE_URL \
     VITE_SITE_URL=$VITE_SITE_URL \
     VITE_APP_VERSION=$VITE_APP_VERSION \
     VITE_GLITCHTIP_DSN=$VITE_GLITCHTIP_DSN \
     VITE_LENCO_PUBLIC_KEY=$VITE_LENCO_PUBLIC_KEY \
-    VITE_LENCO_WIDGET_URL=$VITE_LENCO_WIDGET_URL
+    VITE_LENCO_WIDGET_URL=$VITE_LENCO_WIDGET_URL \
+    VITE_SIGN_IN_URL=$VITE_SIGN_IN_URL
 
 WORKDIR /repo/apps/admissions
+RUN bun run build
+
+# jobs-ops operator dashboard — same image, served by Caddy at jobs.<domain>.
+WORKDIR /repo/apps/jobs-ops
 RUN bun run build
 
 # ---- serve stage ----
 FROM caddy:2-alpine
 COPY apps/admissions/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /repo/apps/admissions/dist /srv/www
+COPY --from=build /repo/apps/jobs-ops/dist /srv/jobs

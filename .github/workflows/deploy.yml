@@ -70,6 +70,7 @@ jobs:
             VITE_GLITCHTIP_DSN=${{ vars.VITE_GLITCHTIP_DSN }}
             VITE_LENCO_PUBLIC_KEY=${{ vars.VITE_LENCO_PUBLIC_KEY }}
             VITE_LENCO_WIDGET_URL=${{ vars.VITE_LENCO_WIDGET_URL }}
+            VITE_SIGN_IN_URL=${{ vars.VITE_SIGN_IN_URL }}
           tags: |
             ${{ env.IMAGE_BASE }}-frontend:${{ steps.vars.outputs.sha }}
             ${{ env.IMAGE_BASE }}-frontend:latest
@@ -106,6 +107,9 @@ jobs:
             # Pin both images to this exact build in .env (idempotent upsert).
             grep -q '^BACKEND_IMAGE=' .env && sed -i "s|^BACKEND_IMAGE=.*|BACKEND_IMAGE=${{ env.IMAGE_BASE }}-backend:${{ needs.build-and-push.outputs.sha }}|" .env || echo "BACKEND_IMAGE=${{ env.IMAGE_BASE }}-backend:${{ needs.build-and-push.outputs.sha }}" >> .env
             grep -q '^FRONTEND_IMAGE=' .env && sed -i "s|^FRONTEND_IMAGE=.*|FRONTEND_IMAGE=${{ env.IMAGE_BASE }}-frontend:${{ needs.build-and-push.outputs.sha }}|" .env || echo "FRONTEND_IMAGE=${{ env.IMAGE_BASE }}-frontend:${{ needs.build-and-push.outputs.sha }}" >> .env
+            # JOBS_HOST is a new required var (compose has a :? guard); upsert a
+            # default so the caddy container starts even before manual edits.
+            grep -q '^JOBS_HOST=' .env || echo "JOBS_HOST=jobs.mihas.edu.zm" >> .env
             docker compose -f docker-compose.prod.yml --env-file .env pull
             docker compose -f docker-compose.prod.yml --env-file .env up -d
             docker image prune -f
