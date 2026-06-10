@@ -229,8 +229,8 @@ export default function InterviewPage() {
     return (
       <>
       <Seo
-        title="My Interview | MIHAS-KATC Admissions"
-        description="View your scheduled interviews and prepare for your MIHAS-KATC admission process."
+        title="My Interview | Beanola Admissions"
+        description="View your scheduled interviews and prepare for your Beanola admission process."
         path="/student/interview"
         noindex
       />
@@ -268,8 +268,8 @@ export default function InterviewPage() {
   return (
     <>
       <Seo
-        title="My Interview | MIHAS-KATC Admissions"
-        description="View your scheduled interviews and prepare for your MIHAS-KATC admission process."
+        title="My Interview | Beanola Admissions"
+        description="View your scheduled interviews and prepare for your Beanola admission process."
         path="/student/interview"
         noindex
       />

@@ -40,6 +40,172 @@ info:
     name: Proprietary
     url: https://mihas.edu.zm
 paths:
+  /api/v1/admin/access-grants/:
+    get:
+      operationId: api_v1_admin_access_grants_retrieve
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAccessGrant'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve api v1 admin access grants
+    post:
+      operationId: api_v1_admin_access_grants_create
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminAccessGrant'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminAccessGrant'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminAccessGrant'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAccessGrant'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create api v1 admin access grants
+  /api/v1/admin/access-grants/{grant_id}/:
+    patch:
+      operationId: api_v1_admin_access_grants_partial_update
+      parameters:
+      - in: path
+        name: grant_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminAccessGrant'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminAccessGrant'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminAccessGrant'
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAccessGrant'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update api v1 admin access grants partial
   /api/v1/admin/audit-logs/:
     get:
       operationId: admin_audit_logs_list
@@ -170,6 +336,1326 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Retrieve admin dashboard
+  /api/v1/admin/institutions/:
+    get:
+      operationId: admin_tenant_institutions_list
+      parameters:
+      - in: query
+        name: active
+        schema:
+          type: boolean
+      - in: query
+        name: search
+        schema:
+          type: string
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminInstitution'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: List admin tenant institutions
+    post:
+      operationId: admin_tenant_institutions_create
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminInstitution'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminInstitution'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminInstitution'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInstitution'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create admin tenant institutions
+  /api/v1/admin/institutions/{institution_id}/:
+    get:
+      operationId: api_v1_admin_institutions_retrieve
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInstitution'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve api v1 admin institutions
+    patch:
+      operationId: api_v1_admin_institutions_partial_update
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminInstitution'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminInstitution'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminInstitution'
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInstitution'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update api v1 admin institutions partial
+  /api/v1/admin/institutions/{institution_id}/assets/:
+    get:
+      operationId: api_v1_admin_institutions_assets_retrieve
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInstitutionAsset'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve api v1 admin institutions assets
+    post:
+      operationId: api_v1_admin_institutions_assets_create
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminInstitutionAsset'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminInstitutionAsset'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminInstitutionAsset'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInstitutionAsset'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create api v1 admin institutions assets
+  /api/v1/admin/institutions/{institution_id}/assets/{item_id}/:
+    patch:
+      operationId: api_v1_admin_institutions_assets_partial_update
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminInstitutionAsset'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminInstitutionAsset'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminInstitutionAsset'
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInstitutionAsset'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update api v1 admin institutions assets partial
+  /api/v1/admin/institutions/{institution_id}/assets/upload/:
+    post:
+      operationId: api_v1_admin_institutions_assets_upload_create
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          description: No response body
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create api v1 admin institutions assets upload
+  /api/v1/admin/institutions/{institution_id}/audit/:
+    get:
+      operationId: admin_institution_audit_list
+      description: |-
+        GET /api/v1/admin/institutions/<id>/audit/ — scoped per-institution feed (R13.5).
+
+        Returns tenant Audit_Events for a single institution. A non-super-admin
+        School_Staff caller may only read audit events for an institution within
+        their membership/grant scope; an out-of-scope institution is masked as
+        not-found (no leakage of another school's existence or activity). Events
+        are matched on ``changes.institution_id`` (always recorded by
+        :class:`TenantAuditService`).
+      parameters:
+      - in: query
+        name: action
+        schema:
+          type: string
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TenantAuditLog'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: List admin institution audit
+  /api/v1/admin/institutions/{institution_id}/domains/:
+    get:
+      operationId: api_v1_admin_institutions_domains_retrieve
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInstitutionDomain'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve api v1 admin institutions domains
+    post:
+      operationId: api_v1_admin_institutions_domains_create
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminInstitutionDomain'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminInstitutionDomain'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminInstitutionDomain'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInstitutionDomain'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create api v1 admin institutions domains
+  /api/v1/admin/institutions/{institution_id}/domains/{item_id}/:
+    patch:
+      operationId: api_v1_admin_institutions_domains_partial_update
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminInstitutionDomain'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminInstitutionDomain'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminInstitutionDomain'
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInstitutionDomain'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update api v1 admin institutions domains partial
+  /api/v1/admin/institutions/{institution_id}/required-documents/:
+    get:
+      operationId: api_v1_admin_institutions_required_documents_retrieve
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminRequiredDocument'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve api v1 admin institutions required documents
+    post:
+      operationId: api_v1_admin_institutions_required_documents_create
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminRequiredDocument'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminRequiredDocument'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminRequiredDocument'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminRequiredDocument'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create api v1 admin institutions required documents
+  /api/v1/admin/institutions/{institution_id}/required-documents/{item_id}/:
+    patch:
+      operationId: api_v1_admin_institutions_required_documents_partial_update
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminRequiredDocument'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminRequiredDocument'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminRequiredDocument'
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminRequiredDocument'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update api v1 admin institutions required documents partial
+  /api/v1/admin/institutions/{institution_id}/templates/:
+    get:
+      operationId: api_v1_admin_institutions_templates_retrieve
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDocumentTemplate'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve api v1 admin institutions templates
+    post:
+      operationId: api_v1_admin_institutions_templates_create
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminDocumentTemplate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminDocumentTemplate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminDocumentTemplate'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDocumentTemplate'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create api v1 admin institutions templates
+  /api/v1/admin/institutions/{institution_id}/templates/{item_id}/:
+    patch:
+      operationId: api_v1_admin_institutions_templates_partial_update
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminDocumentTemplate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminDocumentTemplate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminDocumentTemplate'
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDocumentTemplate'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update api v1 admin institutions templates partial
+  /api/v1/admin/memberships/:
+    get:
+      operationId: api_v1_admin_memberships_retrieve
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminMembership'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve api v1 admin memberships
+    post:
+      operationId: api_v1_admin_memberships_create
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminMembership'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminMembership'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminMembership'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminMembership'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create api v1 admin memberships
+  /api/v1/admin/memberships/{membership_id}/:
+    patch:
+      operationId: api_v1_admin_memberships_partial_update
+      parameters:
+      - in: path
+        name: membership_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminMembership'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminMembership'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminMembership'
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminMembership'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update api v1 admin memberships partial
+  /api/v1/admin/routing/simulate/:
+    post:
+      operationId: admin_routing_simulate
+      description: |-
+        POST /api/v1/admin/routing/simulate/ - dry-run the real assignment service.
+
+        Tenant onboarding "Test routing" simulator (R11.3): given a canonical
+        ``program_id`` + ``intake_id`` (plus optional ``country``/``nationality``
+        and white-label ``institution_id``), this re-runs the canonical
+        :class:`OfferingAssignmentService` and returns *exactly* the offering it
+        would assign for the same inputs — it never reimplements the routing logic.
+        The result is read-only (no application row is created) and carries enough
+        detail for an operator to understand *why* an offering was (or was not)
+        chosen.
+
+        Super-admin gated: routing config spans every school, so only a global
+        actor may probe arbitrary canonical-program/intake/institution combinations.
+        Non-super-admins receive the same FORBIDDEN response used by every other
+        tenant write surface.
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminRoutingSimulation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminRoutingSimulation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminRoutingSimulation'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          description: Assignment result or NO_ELIGIBLE_OFFERING failure detail.
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Submit admin routing simulate
   /api/v1/admin/settings/:
     get:
       operationId: admin_settings_list
@@ -713,6 +2199,70 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/admin/tenant-audit/:
+    get:
+      operationId: admin_tenant_audit_list
+      description: |-
+        GET /api/v1/admin/tenant-audit/ — Super_Admin operational-review feed (R13.2).
+
+        Returns recent **tenant configuration changes** (``tenant.*`` actions) and
+        **routing failures** (``assignment.failed``) so a Super_Admin can review
+        coverage gaps and config drift in one place. Super-admin only: it spans
+        every school, so it is never exposed to school staff (who use the scoped
+        per-institution view below).
+
+        Optional ``action`` query param filters to an exact action; ``category``
+        (``config`` | ``routing_failure``) narrows to one of the two feeds.
+      parameters:
+      - in: query
+        name: action
+        schema:
+          type: string
+      - in: query
+        name: category
+        schema:
+          type: string
+        description: config | routing_failure
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TenantAuditLog'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: List admin tenant audit
   /api/v1/admin/users/:
     get:
       operationId: admin_users_list
@@ -1845,6 +3395,68 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/applications/{application_id}/application-slip/:
+    post:
+      operationId: applications_generate_application_slip
+      description: POST /api/v1/applications/{id}/application-slip/
+      parameters:
+      - in: path
+        name: application_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - applications
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationAsyncTaskResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Submit applications generate application slip
   /api/v1/applications/{application_id}/assign/:
     post:
       operationId: api_v1_applications_assign_create
@@ -1918,6 +3530,67 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/applications/{application_id}/conditional-offer/:
+    post:
+      operationId: applications_generate_conditional_offer
+      description: POST /api/v1/applications/{id}/conditional-offer/
+      parameters:
+      - in: path
+        name: application_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - applications
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationAsyncTaskResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Submit applications generate conditional offer
   /api/v1/applications/{application_id}/conditions/:
     get:
       operationId: api_v1_applications_conditions_retrieve
@@ -3012,6 +4685,67 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Delete applications interviews delete latest
+  /api/v1/applications/{application_id}/payment-receipt/:
+    post:
+      operationId: applications_generate_payment_receipt
+      description: POST /api/v1/applications/{id}/payment-receipt/
+      parameters:
+      - in: path
+        name: application_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - applications
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationAsyncTaskResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Submit applications generate payment receipt
   /api/v1/applications/{application_id}/preview-summary/:
     get:
       operationId: api_v1_applications_preview_summary_retrieve
@@ -4825,6 +6559,201 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Submit automation runs cancel
+  /api/v1/catalog/assignment-preview/:
+    get:
+      operationId: catalog_assignment_preview
+      description: |-
+        GET /api/v1/catalog/assignment-preview/ - resolve the assigned school.
+
+        Program-first wizard (R10.2): given a canonical ``program_id`` + ``intake_id``
+        (plus optional residency inputs and white-label ``institution`` context),
+        re-run the canonical :class:`OfferingAssignmentService` and return the
+        assigned school, resolved fee, required documents, and school contact so the
+        student can review them *before* payment. This is a read-only preview that
+        creates no application row; the authoritative assignment still runs at
+        application create/submit. It mirrors the assignment surfaced in the
+        application-create response so the wizard's assigned-school checkpoint
+        matches the eventual create result for the same inputs.
+      parameters:
+      - in: query
+        name: country
+        schema:
+          type: string
+        description: Student residence country, used for residency-based fee + rule
+          evaluation.
+      - in: query
+        name: institution
+        schema:
+          type: string
+          format: uuid
+        description: White-label school context; restricts candidate offerings to
+          this institution.
+      - in: query
+        name: intake_id
+        schema:
+          type: string
+          format: uuid
+        description: Intake UUID the student chose.
+        required: true
+      - in: query
+        name: nationality
+        schema:
+          type: string
+        description: Student nationality, used for residency-based fee + rule evaluation.
+      - in: query
+        name: program_id
+        schema:
+          type: string
+          format: uuid
+        description: Canonical program UUID the student chose.
+        required: true
+      tags:
+      - catalog
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get catalog assignment preview
+  /api/v1/catalog/canonical-programs/:
+    get:
+      operationId: catalog_canonical_programs_list
+      description: GET /api/v1/catalog/canonical-programs/ - shared program-first
+        choices.
+      parameters:
+      - in: query
+        name: institution
+        schema:
+          type: string
+          format: uuid
+        description: White-label school context; only include this school's offerings.
+      - in: query
+        name: intake
+        schema:
+          type: string
+          format: uuid
+        description: Only include canonical programs with an active offering for this
+          intake.
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Page number.
+      - in: query
+        name: pageSize
+        schema:
+          type: integer
+        description: Page size.
+      tags:
+      - catalog
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogCanonicalProgramListResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: List catalog canonical programs
+  /api/v1/catalog/context/:
+    get:
+      operationId: catalog_context
+      description: GET /api/v1/catalog/context/ - resolve shared vs white-label portal
+        context.
+      tags:
+      - catalog
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get catalog context
   /api/v1/catalog/institutions/:
     get:
       operationId: catalog_institutions_list
@@ -9742,6 +11671,74 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: List payment risk flags
+  /api/v1/payments/settlements/:
+    get:
+      operationId: payments_settlement_summary
+      description: |-
+        GET /api/v1/payments/settlements/ - settlement grouping by school/offering.
+
+        Returns the tenant-scoped settlement grouping as JSON by default. Pass
+        ``?export=csv`` to download the same grouping as a ``text/csv`` attachment
+        for operations teams that need files rather than JSON. The CSV variant is
+        identically tenant-scoped (it reuses the exact same scope + grouping path),
+        so School_Staff only ever see their own schools' rows and no-scope staff get
+        a header-only file (R7.4).
+      parameters:
+      - in: query
+        name: end_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: export
+        schema:
+          type: string
+        description: Pass 'csv' to download the grouping as a CSV file instead of
+          JSON.
+      - in: query
+        name: start_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: status
+        schema:
+          type: string
+      tags:
+      - payments
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          description: Settlement totals grouped by institution, offering, and currency
+            (JSON, or CSV download when export=csv).
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get payments settlement summary
   /api/v1/payments/webhook/lenco/:
     post:
       operationId: api_v1_payments_webhook_lenco_create
@@ -10537,6 +12534,55 @@ paths:
       summary: Get health redis
 components:
   schemas:
+    AdminAccessGrant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_id:
+          type: string
+          format: uuid
+        scope_type:
+          type: string
+          maxLength: 40
+        institution_id:
+          type: string
+          format: uuid
+          nullable: true
+        program_id:
+          type: string
+          format: uuid
+          nullable: true
+        application_id:
+          type: string
+          format: uuid
+          nullable: true
+        permissions:
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+      required:
+      - created_at
+      - created_by_id
+      - id
+      - scope_type
+      - user_id
     AdminAuditLogListResponse:
       type: object
       properties:
@@ -10568,6 +12614,12 @@ components:
     AdminDashboard:
       type: object
       properties:
+        no_school_access:
+          type: boolean
+          default: false
+          description: True when the caller is a non-super-admin with no school membership
+            or grant. Frontend renders an explicit 'No school access assigned' state
+            instead of treating the zero counts as platform-wide totals (R4.6).
         applications:
           $ref: '#/components/schemas/AdminDashboardApplicationStats'
         users:
@@ -10670,6 +12722,264 @@ components:
       required:
       - active
       - total
+    AdminDocumentTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+        document_type:
+          type: string
+          maxLength: 60
+        name:
+          type: string
+          maxLength: 255
+        version:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        sections: {}
+        tokens:
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+      required:
+      - created_at
+      - created_by_id
+      - document_type
+      - id
+      - institution_id
+      - name
+      - updated_at
+    AdminInstitution:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 50
+        slug:
+          type: string
+          nullable: true
+          maxLength: 80
+        full_name:
+          type: string
+          nullable: true
+          maxLength: 500
+        brand_name:
+          type: string
+          nullable: true
+          maxLength: 255
+        type:
+          type: string
+          nullable: true
+          maxLength: 100
+        address:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+        email:
+          type: string
+          nullable: true
+          maxLength: 255
+        support_email:
+          type: string
+          nullable: true
+          maxLength: 255
+        admissions_email:
+          type: string
+          nullable: true
+          maxLength: 255
+        website:
+          type: string
+          nullable: true
+          maxLength: 255
+        primary_color:
+          type: string
+          nullable: true
+          maxLength: 20
+        secondary_color:
+          type: string
+          nullable: true
+          maxLength: 20
+        accreditation_status:
+          type: string
+          nullable: true
+          maxLength: 50
+        is_active:
+          type: boolean
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - code
+      - created_at
+      - id
+      - name
+      - updated_at
+    AdminInstitutionAsset:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+        asset_type:
+          type: string
+          maxLength: 40
+        storage_key:
+          type: string
+          maxLength: 500
+        public_url:
+          type: string
+          nullable: true
+          maxLength: 500
+        mime_type:
+          type: string
+          maxLength: 100
+        checksum_sha256:
+          type: string
+          maxLength: 64
+        version:
+          type: integer
+          readOnly: true
+        is_active:
+          type: boolean
+        metadata:
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+      required:
+      - asset_type
+      - checksum_sha256
+      - created_at
+      - created_by_id
+      - id
+      - institution_id
+      - mime_type
+      - storage_key
+      - version
+    AdminInstitutionDomain:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+          maxLength: 255
+        is_primary:
+          type: boolean
+        is_active:
+          type: boolean
+        verified_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - created_at
+      - hostname
+      - id
+      - institution_id
+      - verified_at
+    AdminMembership:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_id:
+          type: string
+          format: uuid
+        institution_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          maxLength: 50
+        permissions:
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+      required:
+      - created_at
+      - created_by_id
+      - id
+      - institution_id
+      - role
+      - user_id
     AdminMessageResponse:
       type: object
       properties:
@@ -10708,6 +13018,78 @@ components:
           default: true
       required:
       - data
+    AdminRequiredDocument:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+        program_id:
+          type: string
+          format: uuid
+          nullable: true
+        canonical_program_id:
+          type: string
+          format: uuid
+          nullable: true
+        document_type:
+          type: string
+          maxLength: 80
+        label:
+          type: string
+          maxLength: 255
+        is_required:
+          type: boolean
+        rules:
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - created_at
+      - document_type
+      - id
+      - institution_id
+      - label
+    AdminRoutingSimulation:
+      type: object
+      description: |-
+        Validate inputs for the tenant "Test routing" simulator (R11.3).
+
+        Mirrors the exact inputs accepted by ``OfferingAssignmentService.assign``:
+        a canonical ``program_id`` + ``intake_id`` (required), optional residency
+        inputs, and an optional white-label ``institution_id`` filter. No model is
+        bound because the simulator never creates a row.
+      properties:
+        program_id:
+          type: string
+          format: uuid
+        intake_id:
+          type: string
+          format: uuid
+        country:
+          type: string
+          nullable: true
+          maxLength: 128
+        nationality:
+          type: string
+          nullable: true
+          maxLength: 128
+        institution_id:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - intake_id
+      - program_id
     AdminSettingListResponse:
       type: object
       properties:
@@ -10938,6 +13320,22 @@ components:
           type: string
           nullable: true
           maxLength: 20
+        institution_id:
+          type: string
+          format: uuid
+          readOnly: true
+        program_id:
+          type: string
+          format: uuid
+          readOnly: true
+        program_offering_id:
+          type: string
+          format: uuid
+          readOnly: true
+        intake_id:
+          type: string
+          format: uuid
+          readOnly: true
         program:
           type: string
           maxLength: 255
@@ -11079,7 +13477,9 @@ components:
       - full_name
       - id
       - institution
+      - institution_id
       - intake
+      - intake_id
       - last_payment_audit_notes
       - last_payment_reference
       - paid_amount
@@ -11091,6 +13491,8 @@ components:
       - payment_verified_by_name
       - phone
       - program
+      - program_id
+      - program_offering_id
       - public_tracking_code
       - receipt_number
       - residence_town
@@ -11345,6 +13747,15 @@ components:
           nullable: true
           default: ''
           maxLength: 20
+        program_id:
+          type: string
+          format: uuid
+        intake_id:
+          type: string
+          format: uuid
+        institution_id:
+          type: string
+          format: uuid
         program:
           type: string
           maxLength: 255
@@ -11362,10 +13773,7 @@ components:
       - date_of_birth
       - email
       - full_name
-      - institution
-      - intake
       - phone
-      - program
       - residence_town
       - sex
     ApplicationDocumentMutationResponse:
@@ -11728,6 +14136,22 @@ components:
         institution:
           type: string
           maxLength: 255
+        institution_id:
+          type: string
+          format: uuid
+          readOnly: true
+        program_id:
+          type: string
+          format: uuid
+          readOnly: true
+        program_offering_id:
+          type: string
+          format: uuid
+          readOnly: true
+        intake_id:
+          type: string
+          format: uuid
+          readOnly: true
         status:
           type: string
           maxLength: 32
@@ -11832,7 +14256,9 @@ components:
       - grades_summary
       - id
       - institution
+      - institution_id
       - intake
+      - intake_id
       - last_payment_audit_notes
       - last_payment_reference
       - paid_amount
@@ -11845,6 +14271,8 @@ components:
       - phone
       - points
       - program
+      - program_id
+      - program_offering_id
       - receipt_number
       - total_subjects
       - tracking_code
@@ -12311,16 +14739,16 @@ components:
           maxLength: 20
         role:
           enum:
-          - super_admin
-          - admin
           - reviewer
           - student
+          - super_admin
+          - admin
           type: string
           description: |-
-            * `super_admin` - super_admin
-            * `admin` - admin
             * `reviewer` - reviewer
             * `student` - student
+            * `super_admin` - super_admin
+            * `admin` - admin
           x-spec-enum-id: 1a3817a8a61ce783
         password:
           type: string
@@ -12331,6 +14759,84 @@ components:
       - first_name
       - last_name
       - role
+    CanonicalProgram:
+      type: object
+      description: Public shared program option with available school offerings.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 80
+        description:
+          type: string
+          nullable: true
+        duration_months:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+        regulatory_body:
+          type: string
+          nullable: true
+          maxLength: 100
+        is_active:
+          type: boolean
+          nullable: true
+        available_offerings:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - available_offerings
+      - code
+      - created_at
+      - id
+      - name
+      - updated_at
+    CatalogCanonicalProgramListResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CatalogCanonicalProgramPage'
+        success:
+          type: boolean
+          default: true
+      required:
+      - data
+    CatalogCanonicalProgramPage:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CanonicalProgram'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalCount:
+          type: integer
+      required:
+      - page
+      - pageSize
+      - results
+      - totalCount
     CatalogInstitutionListResponse:
       type: object
       properties:
@@ -14059,6 +16565,305 @@ components:
           maxLength: 320
       required:
       - email
+    PatchedAdminAccessGrant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_id:
+          type: string
+          format: uuid
+        scope_type:
+          type: string
+          maxLength: 40
+        institution_id:
+          type: string
+          format: uuid
+          nullable: true
+        program_id:
+          type: string
+          format: uuid
+          nullable: true
+        application_id:
+          type: string
+          format: uuid
+          nullable: true
+        permissions:
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+    PatchedAdminDocumentTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+        document_type:
+          type: string
+          maxLength: 60
+        name:
+          type: string
+          maxLength: 255
+        version:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        sections: {}
+        tokens:
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+    PatchedAdminInstitution:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 50
+        slug:
+          type: string
+          nullable: true
+          maxLength: 80
+        full_name:
+          type: string
+          nullable: true
+          maxLength: 500
+        brand_name:
+          type: string
+          nullable: true
+          maxLength: 255
+        type:
+          type: string
+          nullable: true
+          maxLength: 100
+        address:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+        email:
+          type: string
+          nullable: true
+          maxLength: 255
+        support_email:
+          type: string
+          nullable: true
+          maxLength: 255
+        admissions_email:
+          type: string
+          nullable: true
+          maxLength: 255
+        website:
+          type: string
+          nullable: true
+          maxLength: 255
+        primary_color:
+          type: string
+          nullable: true
+          maxLength: 20
+        secondary_color:
+          type: string
+          nullable: true
+          maxLength: 20
+        accreditation_status:
+          type: string
+          nullable: true
+          maxLength: 50
+        is_active:
+          type: boolean
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+    PatchedAdminInstitutionAsset:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+        asset_type:
+          type: string
+          maxLength: 40
+        storage_key:
+          type: string
+          maxLength: 500
+        public_url:
+          type: string
+          nullable: true
+          maxLength: 500
+        mime_type:
+          type: string
+          maxLength: 100
+        checksum_sha256:
+          type: string
+          maxLength: 64
+        version:
+          type: integer
+          readOnly: true
+        is_active:
+          type: boolean
+        metadata:
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+    PatchedAdminInstitutionDomain:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+          maxLength: 255
+        is_primary:
+          type: boolean
+        is_active:
+          type: boolean
+        verified_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+    PatchedAdminMembership:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_id:
+          type: string
+          format: uuid
+        institution_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          maxLength: 50
+        permissions:
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+    PatchedAdminRequiredDocument:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+        program_id:
+          type: string
+          format: uuid
+          nullable: true
+        canonical_program_id:
+          type: string
+          format: uuid
+          nullable: true
+        document_type:
+          type: string
+          maxLength: 80
+        label:
+          type: string
+          maxLength: 255
+        is_required:
+          type: boolean
+        rules:
+          nullable: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
     PatchedAdminUserUpdate:
       type: object
       properties:
@@ -14163,6 +16968,22 @@ components:
           type: string
           nullable: true
           maxLength: 20
+        institution_id:
+          type: string
+          format: uuid
+          readOnly: true
+        program_id:
+          type: string
+          format: uuid
+          readOnly: true
+        program_offering_id:
+          type: string
+          format: uuid
+          readOnly: true
+        intake_id:
+          type: string
+          format: uuid
+          readOnly: true
         program:
           type: string
           maxLength: 255
@@ -14519,6 +17340,22 @@ components:
           minimum: -9223372036854775808
           format: int64
           nullable: true
+        canonical_program_id:
+          type: string
+          format: uuid
+          nullable: true
+        assignment_priority:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+        offering_status:
+          type: string
+          nullable: true
+          maxLength: 32
+        assignment_rules:
+          nullable: true
         application_fee:
           type: string
           format: decimal
@@ -14830,6 +17667,20 @@ components:
           minimum: -9223372036854775808
           format: int64
           nullable: true
+        canonical_program_id:
+          type: string
+          format: uuid
+          readOnly: true
+        assignment_priority:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+        offering_status:
+          type: string
+          nullable: true
+          maxLength: 32
         application_fee:
           type: string
           format: decimal
@@ -14864,6 +17715,7 @@ components:
           readOnly: true
           nullable: true
       required:
+      - canonical_program_id
       - code
       - created_at
       - id
@@ -14888,6 +17740,22 @@ components:
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
+          nullable: true
+        canonical_program_id:
+          type: string
+          format: uuid
+          nullable: true
+        assignment_priority:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+        offering_status:
+          type: string
+          nullable: true
+          maxLength: 32
+        assignment_rules:
           nullable: true
         application_fee:
           type: string
@@ -15381,6 +18249,55 @@ components:
           default: true
       required:
       - data
+    TenantAuditLog:
+      type: object
+      description: |-
+        Read serializer for tenant observability Audit_Events (R13.2 / R13.5).
+
+        Surfaces only non-PII columns of an ``audit_logs`` row. The ``changes``
+        payload is already redacted at write time by
+        :class:`apps.catalog.tenant_audit_service.TenantAuditService`, so it is safe
+        to return verbatim here. Network hashes are intentionally omitted from this
+        operational-review surface.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        actor_id:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        action:
+          type: string
+          readOnly: true
+        entity_type:
+          type: string
+          readOnly: true
+        entity_id:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        changes:
+          readOnly: true
+        retention_category:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - action
+      - actor_id
+      - changes
+      - created_at
+      - entity_id
+      - entity_type
+      - id
+      - retention_category
     TimelineHistoryItem:
       type: object
       properties:

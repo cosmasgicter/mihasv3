@@ -26,6 +26,7 @@
  */
 
 import { Document, StyleSheet, Text, View } from '@react-pdf/renderer'
+import type { ReactElement } from 'react'
 
 import { formatDate } from '../../dateFormat'
 
@@ -42,6 +43,7 @@ import {
   colors,
   getInstitution,
   radius,
+  registerPdfFonts,
   semantic,
   space,
   spacing,
@@ -131,8 +133,8 @@ function PaymentReceiptDocument({ data, qrDataUrl, generatedLabel }: Props) {
       title={`Payment Receipt — ${data.receiptNumber}`}
       author={institution.fullName}
       subject="Official payment receipt"
-      creator="MIHAS-KATC Admissions"
-      producer="MIHAS-KATC Admissions Platform"
+      creator="Beanola Admissions"
+      producer="Beanola Admissions Platform"
     >
       <PageFrame
         institution={institution}
@@ -203,15 +205,17 @@ function PaymentReceiptDocument({ data, qrDataUrl, generatedLabel }: Props) {
 }
 
 /**
- * Public function — replaces the old jsPDF-based generatePaymentReceipt.
- * Signature preserved for backward compatibility.
+ * Build the PaymentReceipt <Document> element (async — QR is async). Shared
+ * by the public generator and the dev-only in-browser preview.
  */
-export async function generatePaymentReceipt(
+export async function buildPaymentReceiptElement(
   data: PaymentReceiptData,
-): Promise<Blob> {
+): Promise<ReactElement> {
   if (!data || !data.receiptNumber || !data.applicationNumber) {
     throw new Error('Missing payment data for receipt generation')
   }
+
+  registerPdfFonts()
 
   const qrDataUrl = await buildQrDataUrl({
     type: 'payment_receipt',
@@ -226,11 +230,22 @@ export async function generatePaymentReceipt(
 
   const generatedLabel = `Generated ${formatDate(new Date().toISOString())}`
 
-  return renderToBlob(
+  return (
     <PaymentReceiptDocument
       data={data}
       qrDataUrl={qrDataUrl}
       generatedLabel={generatedLabel}
-    />,
+    />
   )
+}
+
+/**
+ * Public function — replaces the old jsPDF-based generatePaymentReceipt.
+ * Signature preserved for backward compatibility.
+ */
+export async function generatePaymentReceipt(
+  data: PaymentReceiptData,
+): Promise<Blob> {
+  const element = await buildPaymentReceiptElement(data)
+  return renderToBlob(element as ReactElement<import('@react-pdf/renderer').DocumentProps>)
 }

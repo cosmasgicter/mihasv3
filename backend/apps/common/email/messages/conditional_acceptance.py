@@ -26,7 +26,7 @@ def render(context: dict) -> tuple[str, str]:
     program = context.get("program_name") or "your selected programme"
     intake = context.get("intake_name") or "the upcoming intake"
     start = context.get("start_date") or "the programme start date"
-    portal = context.get("portal_url") or "https://apply.mihas.edu.zm"
+    portal = context.get("portal_url") or "https://apply.beanola.com"
     conditions = context.get("conditions") or []
 
     # Build a formatted list of conditions with optional deadlines.

@@ -28,6 +28,7 @@ from apps.documents.payment_helpers import (
     _check_retry_limit,
     _classify_mobile_money_response,
     _forward_only_enabled,
+    _build_tenant_payment_metadata,
     _normalize_phone_e164,
     _operator_for_msisdn,
     _resolve_fee_for_application,
@@ -112,6 +113,7 @@ class PaymentInitiationMixin:
                 transaction_reference=reference,
                 payment_method=None,
                 metadata={
+                    **_build_tenant_payment_metadata(application),
                     'residency_category': resolved.residency_category,
                     'fee_source': resolved.source,
                     'original_amount': str(resolved.amount),
@@ -206,6 +208,7 @@ class PaymentInitiationMixin:
                 status='deferred',
                 transaction_reference=reference,
                 metadata={
+                    **_build_tenant_payment_metadata(application),
                     'residency_category': resolved.residency_category,
                     'fee_source': resolved.source,
                     'deferred': True,
@@ -375,6 +378,7 @@ class PaymentInitiationMixin:
                         transaction_reference=reference,
                         payment_method=None,
                         metadata={
+                            **_build_tenant_payment_metadata(application),
                             "residency_category": resolved.residency_category,
                             "fee_source": resolved.source,
                             "original_amount": str(resolved.amount),

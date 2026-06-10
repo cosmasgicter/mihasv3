@@ -100,6 +100,37 @@ before merging. If it has a frontend mirror, a drift-guard test is required.
 | Sanitizer | `apps/admissions/src/lib/security.ts:sanitizeInput` | wizard, services |
 | Payment recovery | `apps/admissions/src/stores/paymentRecoveryStore.ts` | `PaymentStep` |
 
+## Multi-Tenant (Beanola)
+
+Spec: `.kiro/specs/multi-tenant-beanola-admissions/`. The Beanola conversion
+makes canonical IDs the **sole** sources of truth for routing, scoping, payment
+tagging, and document generation. The legacy `applications.institution /
+program / intake` strings are **display snapshots only** — read-only mirrors,
+never the authority for new business logic (R1.2, R1.3).
+
+| Concept | Source of truth | Consumers / display snapshot (read-only) |
+|---------|-----------------|-------------------------------------------|
+| Canonical program | `backend/apps/catalog/models.py:CanonicalProgram` (`canonical_programs.id`, unique `code`) | `applications.canonical_program` (db_column `program_id`); display snapshot `applications.program` |
+| School offering | `backend/apps/catalog/models.py:Program` (`programs.id` = `program_offering_id`, linked via `canonical_program_id`) | `applications.program_offering` (db_column `program_offering_id`); `OfferingAssignmentService.assign` |
+| Institution scope | `backend/apps/catalog/models.py:Institution` (`institutions.id`) | `applications.institution_ref` (db_column `institution_id`); display snapshot `applications.institution` |
+| Intake | `backend/apps/catalog/models.py:Intake` (`intakes.id`) | `applications.intake_ref` (db_column `intake_id`); display snapshot `applications.intake` |
+| Assignment authority | `backend/apps/catalog/services.py:OfferingAssignmentService` | wizard create + `submit_application` revalidation |
+| Institution context (white-label vs shared) | `backend/apps/catalog/services.py:InstitutionContextService` | host resolution; `GET /api/v1/catalog/context/` |
+| Staff membership scope | `backend/apps/catalog/models.py:UserInstitutionMembership` (`user_institution_memberships`, partial-unique active `(user_id, institution_id)`) | `AccessScopeService.filters_for_user` |
+| Access grant scope | `backend/apps/catalog/models.py:AccessGrant` (`access_grants`, scope_type institution/offering/application, time-boundable) | `AccessScopeService.filters_for_user` |
+| Scope computation | `backend/apps/catalog/services.py:AccessScopeService` (`ScopeFilters`) | every scoped queryset (applications, payments, documents, analytics) |
+| Application uniqueness | `(student identity, canonical program, intake)` keyed on canonical IDs | `backend/apps/applications/duplicate_checker.py:DuplicateChecker` (legacy string fallback only when canonical IDs absent) |
+| Payment settlement reporting | `payments.metadata` settlement snapshot (Beanola collector + institution/canonical/offering/intake IDs) | tenant-scoped settlement summary; "Unassigned" bucket on missing metadata |
+| Official document provenance | `verification_notes.official_document` (template id+version, asset ids) | `DocumentTemplateService` + `tasks/pdf_generation.py` |
+| Drift guard | `backend/tests/unit/test_canonical_tenant_drift_guard.py` (no new runtime logic matches `applications.institution/program/intake` legacy strings outside migration/legacy-fallback) |
+
+**Legacy-string fallback allowlist (R1.3):** the only runtime modules permitted
+to match on the `applications.program / intake / institution` legacy strings are
+the explicitly-labelled legacy-fallback / pre-canonical branches in
+`duplicate_checker.py`, `waitlist_manager.py`, `intake_enforcer.py`, and the
+pre-existing admin display-string filter in `analytics/admissions_analytics.py`.
+The drift guard fails on any unlisted new occurrence.
+
 ## Backend Module Decomposition
 
 The following original modules are now thin re-export shims; the real
@@ -141,6 +172,7 @@ CI-blocking tests that fail when canonical truth diverges:
 - `backend/tests/unit/test_submission_gates.py`
 - `backend/tests/unit/test_withdrawal_eligibility.py`
 - `backend/tests/integration/test_system_actor_transitions.py`
+- `backend/tests/unit/test_canonical_tenant_drift_guard.py`
 
 ## How To Add A New Domain Concept
 

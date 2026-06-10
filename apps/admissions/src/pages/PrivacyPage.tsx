@@ -15,8 +15,8 @@ export default function PrivacyPage() {
   return (
     <PublicLayout>
       <Seo
-        title="Privacy Policy | MIHAS-KATC Admissions"
-        description="Learn how MIHAS-KATC collects, uses, and protects applicant information submitted through the admissions portal."
+        title="Privacy Policy | Beanola Admissions"
+        description="Learn how Beanola collects, uses, and protects applicant information submitted through the admissions portal."
         path="/privacy"
       />
 

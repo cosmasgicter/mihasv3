@@ -156,9 +156,9 @@ jobs:
     env:
       # Build-time public VITE_* values (baked into the bundle; no secrets).
       # Repo Variables override these defaults when set.
-      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'https://api.mihas.edu.zm' }}
-      VITE_APP_BASE_URL: ${{ vars.VITE_APP_BASE_URL || 'https://apply.mihas.edu.zm' }}
-      VITE_SITE_URL: ${{ vars.VITE_SITE_URL || 'https://apply.mihas.edu.zm' }}
+      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'https://api.beanola.com' }}
+      VITE_APP_BASE_URL: ${{ vars.VITE_APP_BASE_URL || 'https://apply.beanola.com' }}
+      VITE_SITE_URL: ${{ vars.VITE_SITE_URL || 'https://apply.beanola.com' }}
       VITE_APP_VERSION: ${{ github.sha }}
       VITE_GLITCHTIP_DSN: ${{ vars.VITE_GLITCHTIP_DSN || 'https://placeholder@app.glitchtip.com/0' }}
     steps:

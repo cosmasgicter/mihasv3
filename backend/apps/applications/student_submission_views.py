@@ -158,10 +158,12 @@ class ApplicationSubmitView(APIView):
                 current_app = _with_payment_summary(Application.objects.select_related("user")).get(id=application_id)
                 if current_app.status == "submitted" and IsOwnerOrAdmin().has_object_permission(request, self, current_app):
                     return Response({"success": True, "data": ApplicationSerializer(current_app).data}, status=status.HTTP_200_OK)
-            return Response(
-                {"success": False, "error": exc.message, "code": exc.code},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            error_status = getattr(exc, "status_code", None) or status.HTTP_400_BAD_REQUEST
+            payload = {"success": False, "error": exc.message, "code": exc.code}
+            next_action = getattr(exc, "next_action", None)
+            if next_action:
+                payload["next_action"] = next_action
+            return Response(payload, status=error_status)
 
         response_data = ApplicationSerializer(submitted_app).data
         return Response({"success": True, "data": response_data})

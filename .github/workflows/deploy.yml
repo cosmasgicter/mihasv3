@@ -109,7 +109,7 @@ jobs:
             grep -q '^FRONTEND_IMAGE=' .env && sed -i "s|^FRONTEND_IMAGE=.*|FRONTEND_IMAGE=${{ env.IMAGE_BASE }}-frontend:${{ needs.build-and-push.outputs.sha }}|" .env || echo "FRONTEND_IMAGE=${{ env.IMAGE_BASE }}-frontend:${{ needs.build-and-push.outputs.sha }}" >> .env
             # JOBS_HOST is a new required var (compose has a :? guard); upsert a
             # default so the caddy container starts even before manual edits.
-            grep -q '^JOBS_HOST=' .env || echo "JOBS_HOST=jobs.mihas.edu.zm" >> .env
+            grep -q '^JOBS_HOST=' .env || echo "JOBS_HOST=jobs.beanola.com" >> .env
             docker compose -f docker-compose.prod.yml --env-file .env pull
             docker compose -f docker-compose.prod.yml --env-file .env up -d
             docker image prune -f

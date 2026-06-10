@@ -22,6 +22,7 @@ from apps.documents.views import (
     PaymentInitiateView,
     PaymentListView,
     PaymentReceiptView,
+    PaymentSettlementSummaryView,
     PaymentVerifyView,
     ProgramFeeViewSet,
     SuperAdminPaymentCorrectionView,
@@ -116,6 +117,11 @@ payment_urlpatterns = [
         "risk-flags/",
         RiskFlagsListView.as_view(),
         name="payment-risk-flags",
+    ),
+    path(
+        "settlements/",
+        PaymentSettlementSummaryView.as_view(),
+        name="payment-settlement-summary",
     ),
     path(
         "<uuid:payment_id>/receipt/",

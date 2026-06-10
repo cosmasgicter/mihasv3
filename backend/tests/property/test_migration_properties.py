@@ -54,6 +54,16 @@ EXPECTED_TABLE_MAPPING: dict[str, set[str]] = {
         "subjects",
         "course_requirements",
         "academic_calendar_events",
+        # Multi-tenant Beanola foundation (spec multi-tenant-beanola-admissions):
+        # 7 managed=False models backed by tables created in
+        # backend/scripts/2026_06_08_01_multi_tenant_beanola_admissions.sql.
+        "canonical_programs",
+        "institution_assets",
+        "institution_document_templates",
+        "institution_required_documents",
+        "institution_domains",
+        "user_institution_memberships",
+        "access_grants",
     },
     "common": {
         "audit_logs",

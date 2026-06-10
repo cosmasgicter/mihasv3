@@ -414,7 +414,7 @@ export default function AuditTrailPage() {
   return (
     <>
       <Seo
-        title="Audit Trail | MIHAS-KATC Admissions"
+        title="Audit Trail | Beanola Admissions"
         description="Review operational history across authentication, data changes, and staff actions."
         path="/admin/audit"
         noindex

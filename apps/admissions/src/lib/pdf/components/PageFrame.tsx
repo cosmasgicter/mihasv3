@@ -30,7 +30,13 @@ import { BRAND_HEADER_HEIGHT, BrandHeader } from './BrandHeader'
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: space.pageMarginTop,
+    // Reserve space for the fixed BrandHeader on EVERY page (not just the
+    // first). The header is position:absolute/fixed, so it does not reserve
+    // space in the flow — without this top padding, content that flows onto
+    // continuation pages (or after a manual `break`) slides underneath the
+    // repeating header. Applying the offset here (Page padding applies to
+    // every page) fixes the overlap for all multi-page documents.
+    paddingTop: space.pageMarginTop + BRAND_HEADER_HEIGHT,
     paddingBottom: space.pageMarginBottom + 16, // extra room for fixed footer
     paddingHorizontal: space.pageMarginX,
     fontFamily: textStyles.body.fontFamily,
@@ -45,11 +51,8 @@ const styles = StyleSheet.create({
     right: space.pageMarginX,
   },
   body: {
-    // Body content starts directly under the fixed BrandHeader. We import
-    // BRAND_HEADER_HEIGHT from BrandHeader so a future logo resize or
-    // padding change propagates automatically instead of silently
-    // overlapping body text.
-    paddingTop: BRAND_HEADER_HEIGHT,
+    // Header clearance is handled by page.paddingTop (applies to every page),
+    // so the body itself needs no extra top offset.
   },
   footer: {
     position: 'absolute',

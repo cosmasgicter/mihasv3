@@ -50,11 +50,13 @@ export interface DashboardState {
   errorIsNetwork: boolean
   lastUpdated: Date | null
   hasLoadedOnce: boolean
+  /** R11.6: backend signal that the caller has no school scope. */
+  noSchoolAccess: boolean
 }
 
 type Action =
   | { type: 'load-start'; isRefresh: boolean }
-  | { type: 'load-success'; stats: AdminDashboardStats; activity: AdminDashboardActivity[]; emptyPayload: boolean }
+  | { type: 'load-success'; stats: AdminDashboardStats; activity: AdminDashboardActivity[]; emptyPayload: boolean; noSchoolAccess: boolean }
   | { type: 'load-error'; message: string; isNetwork: boolean }
   | { type: 'patch-stats'; patch: Partial<AdminDashboardStats> }
   | { type: 'patch-activity'; activity: AdminDashboardActivity[] }
@@ -67,6 +69,7 @@ const initialState: DashboardState = {
   errorIsNetwork: false,
   lastUpdated: null,
   hasLoadedOnce: false,
+  noSchoolAccess: false,
 }
 
 function reducer(state: DashboardState, action: Action): DashboardState {
@@ -86,6 +89,7 @@ function reducer(state: DashboardState, action: Action): DashboardState {
         recentActivity: action.activity,
         lastUpdated: new Date(),
         hasLoadedOnce: true,
+        noSchoolAccess: action.noSchoolAccess,
         error: action.emptyPayload
           ? 'Dashboard API returned an empty payload. Data is available but currently empty, not crashed.'
           : null,
@@ -166,6 +170,7 @@ export function useAdminDashboardLoader(user: MinimalUser | null | undefined): U
       stats: result.data.stats,
       activity: result.data.recentActivity ?? [],
       emptyPayload: result.diagnostics.responseShape === 'empty',
+      noSchoolAccess: result.data.noSchoolAccess,
     })
   }, [])
 

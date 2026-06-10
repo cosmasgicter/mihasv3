@@ -1,0 +1,86 @@
+# MIHAS — PRODUCTION-REALISTIC local stack (throwaway DB, Lenco sandbox).
+#
+# Mirrors the production service topology (web + celery worker + celery beat +
+# postgres + redis) and runs the production-parity settings module
+# (config.settings.local_real: prod security + payment/AI hardening ON).
+#
+# Still safe: local throwaway DB, Lenco SANDBOX only, no production contact.
+#
+# Usage (from backend/):
+#   docker compose -p mihas-localreal -f docker-compose.local-real.yml --env-file .env.local.real up -d --build
+#   docker compose -p mihas-localreal -f docker-compose.local-real.yml down -v   # wipe
+#
+# See LOCAL-TESTING.md (Part R) for the full realistic-mode runbook.
+
+x-app-env: &app-env
+  env_file:
+    - .env.local.real
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      POSTGRES_DB: mihas_localtest
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-localreal-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mihas_localtest"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+    <<: *app-env
+    ports:
+      - "127.0.0.1:8000:8000"
+    command: uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery:
+    build:
+      context: .
+    <<: *app-env
+    # Real worker (NOT eager) — exercises the production task queue, retries,
+    # payment polling, email sending, OCR, etc.
+    command: celery -A config worker -l info --concurrency=2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  beat:
+    build:
+      context: .
+    <<: *app-env
+    # Exactly one beat (matches production) — periodic tasks: payment polling,
+    # email sweep, SLA reminders, intake manager, etc.
+    command: celery -A config beat -l info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres-localreal-data:

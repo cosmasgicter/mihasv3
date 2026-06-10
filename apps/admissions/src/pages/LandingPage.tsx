@@ -25,74 +25,32 @@ const landingStructuredData = [
   {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'MIHAS-KATC Admissions',
-    alternateName: 'Mukuba Institute of Health and Applied Sciences & Kalulushi Training Centre',
-    url: 'https://apply.mihas.edu.zm',
-    logo: 'https://apply.mihas.edu.zm/images/logos/mihas-logo.png',
-    email: 'info@mihas.edu.zm',
-    telephone: '+260961515151',
+    name: 'Beanola Admissions',
+    alternateName: 'Beanola Technologies Admissions Platform',
+    url: 'https://apply.beanola.com',
+    logo: 'https://apply.beanola.com/images/logos/beanola-logo.svg',
+    email: 'admissions@beanola.com',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: 'Plot 3375 Off President Avenue',
-      addressLocality: 'Kalulushi',
-      addressRegion: 'Copperbelt',
       addressCountry: 'ZM',
     },
-    sameAs: [
-      'https://www.facebook.com/mihaskatc',
-      'https://x.com/mihaskatc',
-      'https://www.linkedin.com/company/mihaskatc'
-    ]
   },
   {
     '@context': 'https://schema.org',
-    '@type': 'EducationalOrganization',
-    name: 'MIHAS-KATC Admissions',
-    url: 'https://apply.mihas.edu.zm',
-    educationalCredentialAwarded: [
-      'Diploma in Registered Nursing',
-      'Diploma in Clinical Medicine',
-      'Diploma in Environmental Health'
-    ],
-    hasOfferCatalog: {
-      '@type': 'OfferCatalog',
-      name: 'Health Sciences Programs',
-      itemListElement: [
-        {
-          '@type': 'Offer',
-          itemOffered: {
-            '@type': 'Course',
-            name: 'Diploma in Registered Nursing',
-            provider: { '@type': 'EducationalOrganization', name: 'Mukuba Institute of Health and Applied Sciences' }
-          }
-        },
-        {
-          '@type': 'Offer',
-          itemOffered: {
-            '@type': 'Course',
-            name: 'Diploma in Clinical Medicine',
-            provider: { '@type': 'EducationalOrganization', name: 'Kalulushi Training Centre' }
-          }
-        },
-        {
-          '@type': 'Offer',
-          itemOffered: {
-            '@type': 'Course',
-            name: 'Diploma in Environmental Health',
-            provider: { '@type': 'EducationalOrganization', name: 'Kalulushi Training Centre' }
-          }
-        }
-      ]
-    }
+    '@type': 'WebApplication',
+    name: 'Beanola Admissions',
+    url: 'https://apply.beanola.com',
+    applicationCategory: 'EducationalApplication',
+    operatingSystem: 'Web',
   },
   {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'MIHAS-KATC Admissions',
-    url: 'https://apply.mihas.edu.zm',
+    name: 'Beanola Admissions',
+    url: 'https://apply.beanola.com',
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://apply.mihas.edu.zm/track-application?q={search_term_string}',
+      target: 'https://apply.beanola.com/track-application?q={search_term_string}',
       'query-input': 'required name=search_term_string'
     }
   }
@@ -168,14 +126,14 @@ export default function LandingPage() {
   return (
     <PublicLayout>
       <Seo
-        title="MIHAS-KATC Admissions | Apply to Accredited Health Science Programs"
-        description="Become a nurse, clinical officer, or environmental health inspector. Apply online to MIHAS-KATC. K150 for Zambians, USD 20 for international students. Mobile money accepted."
+        title="Beanola Admissions | Apply to Accredited Health Science Programs"
+        description="Apply online through Beanola Admissions. Choose a program and intake first, then Beanola routes your application to the right school."
         path="/"
         structuredData={landingStructuredData}
       />
       <ShapeLandingHero
-        headline="Become a nurse, clinical officer, or environmental health inspector."
-        description="MIHAS-KATC has trained Zambia's frontline health workers for 6+ years. 92% of our graduates are working within a year of finishing. Applications for the current intake are open now."
+        headline="Apply to the right school from one admissions portal."
+        description="Beanola lets students choose a program and intake first, then routes the application to the configured school before payment and submission."
         rotatingPhrases={heroRotatingPhrases}
         primaryCta={{
           label: 'Start Your Application',
@@ -188,15 +146,15 @@ export default function LandingPage() {
           icon: <BookOpen className="w-5 h-5" />,
         }}
         proofPanel={{
-          eyebrow: 'One application. Three diplomas. Real jobs.',
-          title: 'Start tonight. Finish when your documents are ready.',
-          description: 'K150 for Zambians, USD 20 for international students. Pay by Airtel, MTN, or card. Save your progress and come back. No office visits until your interview.',
-          badges: ['NMCZ', 'HPCZ', 'ECZ', 'UNZA'],
+          eyebrow: 'Program first. School assigned clearly.',
+          title: 'Start now. Finish when your documents are ready.',
+          description: 'Save your progress, upload documents, confirm payment, and review the assigned school before submission.',
+          badges: ['Schools', 'Programs', 'Payments', 'Documents'],
           highlights: [...PROOF_HIGHLIGHTS],
           checklist: [
-            'Mukuba Institute (Nursing) and Kalulushi Training Centre (Clinical Medicine, Environmental Health) — both in Kalulushi.',
-            'One application form for all three programs — pick the one that fits you best.',
-            'On-campus accommodation available. Book through the portal after admission.',
+            'One shared application form across configured schools and offerings.',
+            'White-label school portals can filter choices to that school.',
+            'Beanola tags every payment by school and offering for reporting.',
           ],
         }}
       />

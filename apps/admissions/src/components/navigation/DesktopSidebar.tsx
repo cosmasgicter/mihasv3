@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { Home, FileText, Bell, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, Settings, FileSearch, CreditCard, DollarSign, MessageSquare, Clock, Sparkles } from 'lucide-react'
+import { Home, FileText, Bell, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, Settings, FileSearch, CreditCard, DollarSign, MessageSquare, Clock, Sparkles, Building2 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
@@ -33,6 +33,7 @@ const adminSections: NavSection[] = [
     title: 'Management',
     items: [
       { to: '/admin/users', icon: Users, label: 'Users' },
+      { to: '/admin/tenants', icon: Building2, label: 'Tenants' },
       { to: '/admin/programs', icon: GraduationCap, label: 'Programs' },
       { to: '/admin/intakes', icon: Calendar, label: 'Intakes' },
       { to: '/admin/program-fees', icon: DollarSign, label: 'Program Fees' },
@@ -106,16 +107,16 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
         <div className={cn(
           'relative flex items-center rounded-lg border border-white/10 bg-card/5 shadow-sm transition-all duration-200',
           collapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-3'
-        )} role="img" aria-label="Mukuba Institute of Health and Applied Sciences logo">
+        )} role="img" aria-label="Beanola Admissions">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm" aria-hidden="true">
-            <span className="text-sm font-black tracking-tight">MI</span>
+            <span className="text-sm font-black tracking-tight">BA</span>
           </div>
 
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70">Admissions</p>
               <span className="block truncate text-base font-bold text-white transition-opacity duration-200 motion-reduce:transition-none">
-                {isAdmin ? 'MIHAS Admin' : 'MIHAS Student'}
+                {isAdmin ? 'Beanola Admin' : 'Beanola Student'}
               </span>
             </div>
           )}

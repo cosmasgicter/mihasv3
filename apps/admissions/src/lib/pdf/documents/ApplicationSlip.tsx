@@ -26,6 +26,7 @@
  */
 
 import { Document, StyleSheet, Text, View } from '@react-pdf/renderer'
+import type { ReactElement } from 'react'
 
 import { formatTimestamp } from '../../dateFormat'
 import {
@@ -45,6 +46,7 @@ import { renderToBlob } from '../render'
 import {
   colors,
   getInstitution,
+  registerPdfFonts,
   semantic,
   space,
   spacing,
@@ -124,8 +126,8 @@ function ApplicationSlipDocument({ data, qrDataUrl, generatedLabel }: Props) {
       title={`Application Slip — ${data.application_number}`}
       author={institution.fullName}
       subject="Official application confirmation"
-      creator="MIHAS-KATC Admissions"
-      producer="MIHAS-KATC Admissions Platform"
+      creator="Beanola Admissions"
+      producer="Beanola Admissions Platform"
     >
       <PageFrame
         institution={institution}
@@ -178,7 +180,7 @@ function ApplicationSlipDocument({ data, qrDataUrl, generatedLabel }: Props) {
         <View style={styles.section}>
           <SectionHeading accent>What Happens Next</SectionHeading>
           <View style={styles.nextStepsList}>
-            {NEXT_STEPS.map((step, i) => (
+            {buildNextSteps(institution.email).map((step, i) => (
               <View key={i} style={styles.nextStepRow}>
                 <Text style={styles.nextStepBullet}>{i + 1}.</Text>
                 <Text style={styles.nextStepText}>{step}</Text>
@@ -195,23 +197,25 @@ function ApplicationSlipDocument({ data, qrDataUrl, generatedLabel }: Props) {
   )
 }
 
-const NEXT_STEPS = [
+const buildNextSteps = (contactEmail: string): string[] => [
   'Keep this slip in a safe place — you will need the tracking code to check your status.',
   'Check your email regularly. All decisions and updates are sent there first.',
-  `Pay any outstanding application fee via the portal to complete your submission.`,
-  `Contact admissions@mihas.edu.zm if any of your details change before the decision.`,
+  'Pay any outstanding application fee via the portal to complete your submission.',
+  `Contact ${contactEmail} if any of your details change before the decision.`,
 ]
 
 /**
- * Public function — replaces the old jsPDF-based generateApplicationSlip.
- * Signature preserved for backward compatibility.
+ * Build the ApplicationSlip <Document> element (async — QR is async). Shared
+ * by the public generator and the dev-only in-browser preview.
  */
-export async function generateApplicationSlip(
+export async function buildApplicationSlipElement(
   data: ApplicationSlipData,
-): Promise<Blob> {
+): Promise<ReactElement> {
   if (!data || !data.application_number || !data.public_tracking_code) {
     throw new Error('Missing application data for slip generation')
   }
+
+  registerPdfFonts()
 
   const qrDataUrl = await buildQrDataUrl({
     type: 'application_slip',
@@ -222,11 +226,22 @@ export async function generateApplicationSlip(
 
   const generatedLabel = `Generated ${formatTimestamp(new Date().toISOString())}`
 
-  return renderToBlob(
+  return (
     <ApplicationSlipDocument
       data={data}
       qrDataUrl={qrDataUrl}
       generatedLabel={generatedLabel}
-    />,
+    />
   )
+}
+
+/**
+ * Public function — replaces the old jsPDF-based generateApplicationSlip.
+ * Signature preserved for backward compatibility.
+ */
+export async function generateApplicationSlip(
+  data: ApplicationSlipData,
+): Promise<Blob> {
+  const element = await buildApplicationSlipElement(data)
+  return renderToBlob(element as ReactElement<import('@react-pdf/renderer').DocumentProps>)
 }

@@ -39,6 +39,8 @@ type ApplicationPayload = {
   full_name?: string;
   email?: string;
   phone?: string;
+  residence_town?: string;
+  student_number?: string;
   start_date?: string;
   conditions?: Array<{ description: string; deadline?: string }>;
 };
@@ -158,7 +160,7 @@ function buildReceiptData(application: ApplicationPayload, payment: PaymentRecor
     email: application.email || 'Not provided',
     phone: application.phone || 'Not provided',
     program: application.program || 'Not specified',
-    institution: application.institution || 'MIHAS',
+    institution: application.institution || 'Beanola Admissions',
     amount: payment ? normalizeAmount(payment.amount) : normalizeAmount(application.application_fee),
     currency: payment?.currency === 'USD' ? 'USD' as const : 'ZMW' as const,
     paymentMethod: payment?.payment_method || 'Online Payment',
@@ -196,7 +198,7 @@ function buildReceiptFromBackend(receipt: BackendReceiptData, payment: PaymentRe
     email: application.email || '',
     phone: application.phone || '',
     program: receipt.program || application.program || 'Not specified',
-    institution: application.institution || 'MIHAS',
+    institution: application.institution || 'Beanola Admissions',
     amount: Number(receipt.amount) || 0,
     currency: receipt.currency === 'USD' ? 'USD' as const : 'ZMW' as const,
     paymentMethod: payment.payment_method || 'Online Payment',
@@ -262,10 +264,12 @@ export function useDocumentGeneration() {
             applicationNumber: application.application_number ?? '',
             studentName: application.full_name ?? '',
             program: application.program ?? '',
-            institution: application.institution ?? 'MIHAS',
+            institution: application.institution ?? 'Beanola Admissions',
             intake: application.intake ?? '',
             approvedDate: application.updated_at ?? '',
             startDate: application.start_date,
+            studentAddress: application.residence_town,
+            studentNumber: application.student_number,
           });
           filename = `acceptance_letter_${application.application_number}.pdf`;
           break;
@@ -278,10 +282,12 @@ export function useDocumentGeneration() {
             applicationNumber: application.application_number ?? '',
             studentName: application.full_name ?? '',
             program: application.program ?? '',
-            institution: application.institution ?? 'MIHAS',
+            institution: application.institution ?? 'Beanola Admissions',
             intake: application.intake ?? '',
             approvedDate: application.updated_at ?? '',
             startDate: application.start_date,
+            studentAddress: application.residence_town,
+            studentNumber: application.student_number,
             conditional: true,
             conditions: application.conditions,
           });

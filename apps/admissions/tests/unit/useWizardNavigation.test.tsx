@@ -15,9 +15,9 @@ describe('useWizardNavigation', () => {
     expect(typeof useWizardNavigation).toBe('function')
   })
 
-  it('wizardSteps has 4 entries (basicKyc, education, payment, submit)', () => {
-    expect(wizardSteps).toHaveLength(4)
-    expect(wizardSteps.map(s => s.key)).toEqual(['basicKyc', 'education', 'payment', 'submit'])
+  it('wizardSteps has 6 entries (program, assignedSchool, personal, education, payment, submit)', () => {
+    expect(wizardSteps).toHaveLength(6)
+    expect(wizardSteps.map(s => s.key)).toEqual(['program', 'assignedSchool', 'personal', 'education', 'payment', 'submit'])
   })
 
   it('last step key is "submit" (isLastStep detection)', () => {
@@ -32,8 +32,8 @@ describe('useWizardNavigation', () => {
     expect(clamp(-5)).toBe(0)
     expect(clamp(0)).toBe(0)
     expect(clamp(2)).toBe(2)
-    expect(clamp(3)).toBe(3)
-    expect(clamp(99)).toBe(3)
+    expect(clamp(5)).toBe(5)
+    expect(clamp(99)).toBe(5)
   })
 
   it('currentStepConfig resolves correctly for each index', () => {

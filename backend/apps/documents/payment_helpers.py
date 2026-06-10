@@ -56,6 +56,26 @@ def _parse_amount(value) -> Decimal | None:
         return None
 
 
+def _build_tenant_payment_metadata(application) -> dict[str, str | None]:
+    """Snapshot Beanola tenant routing metadata onto a payment row."""
+    institution = getattr(application, "institution_ref", None)
+    offering = getattr(application, "program_offering", None)
+    canonical = getattr(application, "canonical_program", None)
+    intake = getattr(application, "intake_ref", None)
+    return {
+        "collector": "beanola",
+        "institution_id": str(getattr(application, "institution_ref_id", "") or "") or None,
+        "institution_code": getattr(institution, "code", None),
+        "institution_name": getattr(institution, "name", None) or getattr(application, "institution", None),
+        "program_id": str(getattr(application, "canonical_program_id", "") or "") or None,
+        "program_name": getattr(canonical, "name", None) or getattr(application, "program", None),
+        "program_offering_id": str(getattr(application, "program_offering_id", "") or "") or None,
+        "program_offering_code": getattr(offering, "code", None),
+        "intake_id": str(getattr(application, "intake_ref_id", "") or "") or None,
+        "intake_name": getattr(intake, "name", None) or getattr(application, "intake", None),
+    }
+
+
 # ---------------------------------------------------------------------------
 # MSISDN helpers - shared between mobile-money initiation and validators
 # ---------------------------------------------------------------------------
@@ -533,6 +553,7 @@ def _review_application_payment_impl(
                     verified_by_id=reviewed_by_id if payment_status == 'verified' else None,
                     verified_at=_tz.now() if payment_status == 'verified' else None,
                     metadata={
+                        **_build_tenant_payment_metadata(application),
                         'admin_review': {
                             'status': payment_status,
                             'reviewed_by': reviewed_by_id,

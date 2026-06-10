@@ -53,11 +53,17 @@ def _make_mock_document(doc_id=None, owner_id=None, file_url="documents/app123/a
     doc.file_size = 102400
     doc.mime_type = "application/pdf"
     doc.verification_status = "pending"
+    # An uploaded document is not system-generated, so it is not subject to the
+    # official-document immutability gate (R4.1).
+    doc.system_generated = False
     doc.uploaded_at = MagicMock()
     doc.uploaded_at.isoformat.return_value = "2025-01-15T10:00:00Z"
     doc.save = MagicMock()
     doc.application = MagicMock()
     doc.application.user_id = owner_id or uuid.uuid4()
+    # A student may soft-delete their own document only while the application is
+    # still editable (draft) per the existing editability policy (R4.2).
+    doc.application.status = "draft"
     return doc
 
 
@@ -124,7 +130,9 @@ class TestDocumentSignedUrlEndpoint(SimpleTestCase):
             view = DocumentSignedUrlView.as_view()
             response = view(request, document_id=doc_id)
 
-        self.assertEqual(response.status_code, 403)
+        # Out-of-scope reads are masked as a byte-identical 404 not-found so
+        # document existence cannot be inferred (R3.6, R4.3, Property 13).
+        self.assertEqual(response.status_code, 404)
 
     def test_signed_url_passes_object_key_not_full_url(self):
         factory = APIRequestFactory()
@@ -321,7 +329,9 @@ class TestDocumentDeleteEndpoint(SimpleTestCase):
             view = DocumentDeleteView.as_view()
             response = view(request, document_id=doc_id)
 
-        self.assertEqual(response.status_code, 403)
+        # Out-of-scope reads are masked as a byte-identical 404 not-found so
+        # document existence cannot be inferred (R3.6, R4.3, Property 13).
+        self.assertEqual(response.status_code, 404)
         mock_doc.save.assert_not_called()
 
     def test_delete_requires_authentication(self):

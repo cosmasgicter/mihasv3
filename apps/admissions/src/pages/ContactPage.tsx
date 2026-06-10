@@ -48,8 +48,8 @@ export default function ContactPage() {
   return (
     <PublicLayout>
       <Seo
-        title="Contact Admissions | MIHAS-KATC"
-        description="Reach the MIHAS-KATC admissions team for application help, program guidance, payment questions, and international student support. WhatsApp is fastest."
+        title="Contact Admissions | Beanola"
+        description="Reach the Beanola admissions team for application help, program guidance, payment questions, and international student support. WhatsApp is fastest."
         path="/contact"
       />
       <div className="bg-muted">
@@ -103,7 +103,7 @@ export default function ContactPage() {
                   <Phone className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Call KATC</p>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Call admissions</p>
                   <p className="font-medium text-foreground">{contactInfo.katcPhone}</p>
                 </div>
               </a>
@@ -116,7 +116,7 @@ export default function ContactPage() {
                   <Phone className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Call MIHAS</p>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Call support</p>
                   <p className="font-medium text-foreground">{contactInfo.mihasPhone}</p>
                 </div>
               </a>
@@ -139,7 +139,7 @@ export default function ContactPage() {
                   <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">MIHAS campus</p>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Admissions office</p>
                   <p className="text-sm text-foreground leading-5">{contactInfo.mihasAddress}</p>
                 </div>
               </div>
@@ -149,7 +149,7 @@ export default function ContactPage() {
                   <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">KATC campus</p>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Student support office</p>
                   <p className="text-sm text-foreground leading-5">{contactInfo.katcAddress}</p>
                 </div>
               </div>

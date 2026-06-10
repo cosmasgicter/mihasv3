@@ -1,5 +1,3 @@
-import { useMemo } from 'react'
-
 import { CheckCircle } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 
@@ -7,12 +5,11 @@ import { AnimatedInput } from '@/components/smoothui/animated-input'
 import { FormSelect } from '@/components/ui/form-select'
 import { ProfileCompletionBadge } from '@/components/ui/ProfileAutoPopulationIndicator'
 import { animateClasses, staggerChild } from '@/lib/animations'
-import { formatDate } from '@/lib/dateFormat'
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
 
 import { NATIONALITY_OPTIONS } from '@/lib/nationalityOptions'
 
-import type { WizardFormData, WizardProgram, WizardIntake } from '../types'
+import type { WizardFormData } from '../types'
 import { ResidenceLocationFields } from '../components/ResidenceLocationFields'
 
 interface BasicKycStepProps {
@@ -20,24 +17,22 @@ interface BasicKycStepProps {
   hasAutoPopulatedData: boolean
   completionPercentage: number
   missingFields?: { key: string; label: string }[]
-  selectedProgram?: WizardFormData['program']
-  programs: WizardProgram[]
-  programsLoading?: boolean
-  intakes: WizardIntake[]
   title: string
   /** Returns an aria-describedby value linking a field to its wizard-level error message (Req 17.2) */
   getFieldAriaDescribedBy?: (fieldName: string) => string | undefined
 }
 
+/**
+ * Step 3 of the program-first wizard (R10.1): personal and contact details.
+ * Programme + intake selection now lives on the first step (ProgramStep) and
+ * the assigned school is reviewed on step 2 (AssignedSchoolStep), so this step
+ * collects only the applicant's personal information.
+ */
 const BasicKycStep = ({
   form,
   hasAutoPopulatedData,
   completionPercentage,
   missingFields,
-  selectedProgram,
-  programs,
-  programsLoading,
-  intakes,
   title,
   getFieldAriaDescribedBy
 }: BasicKycStepProps) => {
@@ -49,24 +44,9 @@ const BasicKycStep = ({
   } = form
   const { shouldAnimate } = useOptimizedAnimation()
 
-  const selectedProgramDetails = useMemo(
-    () => programs.find(program => program.id === selectedProgram),
-    [programs, selectedProgram]
-  )
-
-  const selectedInstitutionLabel = useMemo(() => {
-    if (!selectedProgramDetails?.institutions) return undefined
-    return selectedProgramDetails.institutions.full_name || selectedProgramDetails.institutions.name || undefined
-  }, [selectedProgramDetails])
-
-  const formatDeadline = (date: string | undefined) => {
-    if (!date) return ''
-    return formatDate(date)
-  }
-
   return (
     <div
-      key="step1"
+      key="step-personal"
       className={`overflow-visible bg-card rounded-lg shadow-sm ring-1 ring-border/50 p-5 sm:p-8 ${shouldAnimate ? animateClasses.fadeIn : ''}`}
       data-testid="basic-kyc-step"
     >
@@ -219,78 +199,8 @@ const BasicKycStep = ({
               error={errors.next_of_kin_phone?.message}
             />
           </div>
-
-          <div className="md:col-span-2 my-1">
-            <div className="h-px bg-border/40" />
-          </div>
-
-          <div className="md:col-span-2" style={shouldAnimate ? staggerChild(12) : undefined}>
-            <FormSelect
-              name="program"
-              control={control}
-              label="Program"
-              options={
-                [...programs]
-                  .sort((a, b) => {
-                    const instA = a.institutions?.name || ''
-                    const instB = b.institutions?.name || ''
-                    const cmp = instA.localeCompare(instB)
-                    return cmp !== 0 ? cmp : (a.name || '').localeCompare(b.name || '')
-                  })
-                  .map(program => {
-                    const institutionName = program.institutions?.full_name || program.institutions?.name
-                    return {
-                      value: program.id,
-                      label: program.name,
-                      description: institutionName,
-                    }
-                  })
-              }
-              placeholder="Select programme"
-              error={errors.program?.message}
-              disabled={programs.length === 0}
-              helperText={programs.length === 0 && !programsLoading ? 'No programmes available for the current intake' : undefined}
-              triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
-              required
-              extraDescribedBy={getFieldAriaDescribedBy?.('program')}
-            />
-          </div>
-
-          <div className="md:col-span-2" style={shouldAnimate ? staggerChild(13) : undefined}>
-            <FormSelect
-              name="intake"
-              control={control}
-              label="Intake"
-              options={intakes.map(intake => {
-                const deadline = formatDeadline(intake.application_deadline)
-                return {
-                  value: intake.id,
-                  label: intake.displayName,
-                  description: deadline ? `Apply by ${deadline}` : undefined,
-                }
-              })}
-              placeholder="Select intake"
-              disabled={intakes.length === 0}
-              error={errors.intake?.message}
-              helperText={intakes.length === 0 ? 'Intakes will appear here once enrollment periods are announced.' : undefined}
-              triggerClassName="min-h-[56px] py-3 [&>span]:max-w-[calc(100%-1.75rem)] [&>span]:line-clamp-2 [&>span]:whitespace-normal [&>span]:leading-snug"
-              required
-              extraDescribedBy={getFieldAriaDescribedBy?.('intake')}
-            />
-          </div>
         </div>
       </fieldset>
-
-      {selectedProgramDetails && (
-        <div
-          className={`mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20 ${shouldAnimate ? animateClasses.scaleIn : ''}`}
-        >
-          <p className="text-sm text-foreground font-medium">
-            <strong>Institution:</strong>{' '}
-            {selectedInstitutionLabel || 'MIHAS'}
-          </p>
-        </div>
-      )}
     </div>
   )
 }

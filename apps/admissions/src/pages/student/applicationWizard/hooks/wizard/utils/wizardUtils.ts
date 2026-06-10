@@ -54,9 +54,15 @@ export function deriveInstitutionLabel(institution?: WizardProgram['institutions
 }
 
 export function resolveInstitutionCode(institutionLabel: string): string {
-  const normalized = institutionLabel.trim().toLowerCase()
-  if (normalized.includes('kalulushi') || normalized.includes('katc')) {
-    return 'KATC'
-  }
-  return 'MIHAS'
+  const words = institutionLabel
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  const acronym = words
+    .map(word => word[0])
+    .join('')
+    .replace(/[^a-z0-9]/gi, '')
+    .toUpperCase()
+    .slice(0, 8)
+  return acronym || 'BEANOLA'
 }

@@ -9,7 +9,7 @@
  */
 
 /** The canonical application domain used for server-side validation. */
-export const APPLICATION_DOMAIN = 'apply.mihas.edu.zm';
+export const APPLICATION_DOMAIN = 'apply.beanola.com';
 
 /**
  * Check whether a URL is safe to navigate to from the frontend.

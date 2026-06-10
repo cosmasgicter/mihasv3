@@ -178,11 +178,11 @@ class APIHomeView(View):
         <div class="meta">
           <div class="meta-item">
             <p class="meta-label">Base URL</p>
-            <p class="meta-value">api.mihas.edu.zm</p>
+            <p class="meta-value">api.beanola.com</p>
           </div>
           <div class="meta-item">
             <p class="meta-label">Frontend Surface</p>
-            <p class="meta-value">apply.mihas.edu.zm</p>
+            <p class="meta-value">apply.beanola.com</p>
           </div>
           <div class="meta-item">
             <p class="meta-label">Runtime</p>

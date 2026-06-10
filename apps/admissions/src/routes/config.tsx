@@ -33,6 +33,7 @@ const StudentHistory = React.lazy(() => import('@/pages/student/History'))
 const AdminDashboard = React.lazy(() => import('@/pages/admin/Dashboard'))
 const AdminApplications = React.lazy(() => import('@/pages/admin/Applications'))
 const AdminPrograms = React.lazy(() => import('@/pages/admin/Programs'))
+const AdminTenants = React.lazy(() => import('@/pages/admin/Tenants'))
 const AdminIntakes = React.lazy(() => import('@/pages/admin/Intakes'))
 const AdminUsers = React.lazy(() => import('@/pages/admin/Users'))
 const AdminSettings = React.lazy(() => import('@/pages/admin/Settings'))
@@ -105,6 +106,7 @@ export const routes: RouteConfig[] = [
   { path: '/admin/profile', element: AdminSettings, guard: 'admin', lazy: true, skeletonType: 'detail' },
   { path: '/admin/applications', element: AdminApplications, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
   { path: '/admin/programs', element: AdminPrograms, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
+  { path: '/admin/tenants', element: AdminTenants, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
   { path: '/admin/intakes', element: AdminIntakes, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
   { path: '/admin/users', element: AdminUsers, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
   { path: '/admin/audit', element: AuditTrail, guard: 'admin', lazy: true, skeletonType: 'admin-table' },

@@ -521,7 +521,7 @@ class TestEmailExistenceNeverRevealed(SimpleTestCase):
 
 # Production cookie settings for testing
 _PROD_COOKIE_SETTINGS = {
-    "AUTH_COOKIE_DOMAIN": ".mihas.edu.zm",
+    "AUTH_COOKIE_DOMAIN": ".beanola.com",
     "AUTH_COOKIE_SAMESITE": "Lax",
     "AUTH_COOKIE_SECURE": True,
     "AUTH_COOKIE_HTTPONLY": True,
@@ -531,7 +531,7 @@ _PROD_COOKIE_SETTINGS = {
 class TestAuthCookieAttributes(SimpleTestCase):
     """Property 33: Auth cookie attributes.
 
-    Verify cookie settings: Domain=.mihas.edu.zm, SameSite=Lax,
+    Verify cookie settings: Domain=.beanola.com, SameSite=Lax,
     Secure=True, HttpOnly=True from settings.
 
     **Validates: Requirements 18.2**
@@ -539,10 +539,10 @@ class TestAuthCookieAttributes(SimpleTestCase):
 
     @override_settings(**_PROD_COOKIE_SETTINGS)
     def test_cookie_domain_is_mihas_subdomain(self):
-        """AUTH_COOKIE_DOMAIN must be .mihas.edu.zm for subdomain sharing."""
+        """AUTH_COOKIE_DOMAIN must be .beanola.com for subdomain sharing."""
         from django.conf import settings as s
 
-        self.assertEqual(s.AUTH_COOKIE_DOMAIN, ".mihas.edu.zm")
+        self.assertEqual(s.AUTH_COOKIE_DOMAIN, ".beanola.com")
 
     @override_settings(**_PROD_COOKIE_SETTINGS)
     def test_cookie_samesite_is_lax(self):
@@ -585,7 +585,7 @@ class TestAuthCookieAttributes(SimpleTestCase):
         self.assertEqual(len(cookie_calls), 2)
 
         for call in cookie_calls:
-            self.assertEqual(call["domain"], ".mihas.edu.zm")
+            self.assertEqual(call["domain"], ".beanola.com")
             self.assertEqual(call["samesite"], "Lax")
             self.assertTrue(call["secure"])
             self.assertTrue(call["httponly"])
@@ -837,7 +837,7 @@ class TestPreservationCookieAndDockerfile(SimpleTestCase):
         self.assertEqual(len(cookie_calls), 2)
 
         for call in cookie_calls:
-            self.assertEqual(call["domain"], ".mihas.edu.zm")
+            self.assertEqual(call["domain"], ".beanola.com")
             self.assertEqual(call["samesite"], "Lax")
             self.assertTrue(call["secure"])
             self.assertTrue(call["httponly"])

@@ -364,7 +364,8 @@ class TestPaymentPageDiscovery:
         view = PaymentListView.as_view()
         user = _make_user(role=role)
 
-        with patch("apps.documents.payment_query_views.Payment.objects") as mock_qs:
+        with patch("apps.documents.payment_query_views.Payment.objects") as mock_qs, \
+             patch("apps.documents.payment_query_views.AccessScopeService") as mock_scope_cls:
             mock_base = MagicMock()
             mock_qs.select_related.return_value = mock_base
             mock_all = MagicMock()
@@ -374,6 +375,16 @@ class TestPaymentPageDiscovery:
             mock_filter = MagicMock()
             mock_filter.order_by.return_value = mock_filter
             mock_base.filter.return_value = mock_filter
+
+            # Tenant scoping is a separate concern from the user-vs-admin
+            # branch this test asserts. ``filter_payments`` is a pass-through
+            # for scope purposes here — its own behaviour is covered by the
+            # multi-tenant isolation suites. Isolate the new seam the same
+            # way the Payment.objects queryset chain is isolated above so
+            # the test exercises only the role-based branch.
+            mock_scope = MagicMock()
+            mock_scope.filter_payments.side_effect = lambda qs, _user: qs
+            mock_scope_cls.return_value = mock_scope
 
             with patch("apps.documents.payment_query_views.StandardPagination") as mock_pag_cls:
                 mock_paginator = MagicMock()

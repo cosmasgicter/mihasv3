@@ -318,7 +318,7 @@ export default function ApplicationStatus() {
   if (loading) {
     return (
       <>
-      <Seo title="Application Status | MIHAS-KATC Admissions" description="Track the status and progress of your MIHAS-KATC admissions application." path={`/student/application/${id}/status`} noindex />
+      <Seo title="Application Status | Beanola Admissions" description="Track the status and progress of your Beanola admissions application." path={`/student/application/${id}/status`} noindex />
       <PageShell title="Application Status" subtitle="Loading...">
         <div className="space-y-6 sm:space-y-8" role="status" aria-label="Loading application status">
           <Skeleton className="h-8 w-40 rounded-full" />
@@ -343,7 +343,7 @@ export default function ApplicationStatus() {
   if (error || !application) {
     return (
       <>
-      <Seo title="Application Status | MIHAS-KATC Admissions" description="Track the status and progress of your MIHAS-KATC admissions application." path={`/student/application/${id}/status`} noindex />
+      <Seo title="Application Status | Beanola Admissions" description="Track the status and progress of your Beanola admissions application." path={`/student/application/${id}/status`} noindex />
       <PageShell title="Application Status">
         <ErrorDisplay variant="section" title="Application Not Found" message={error || 'Application not found or access denied'} onRetry={() => loadApplicationDetails()} className="max-w-2xl" />
       </PageShell>
@@ -393,7 +393,7 @@ export default function ApplicationStatus() {
 
   return (
     <>
-      <Seo title="Application Status | MIHAS-KATC Admissions" description="Track the status and progress of your MIHAS-KATC admissions application." path={`/student/application/${id}/status`} noindex />
+      <Seo title="Application Status | Beanola Admissions" description="Track the status and progress of your Beanola admissions application." path={`/student/application/${id}/status`} noindex />
     <PageShell
       title={applicationTitle}
       eyebrow="Application Status"

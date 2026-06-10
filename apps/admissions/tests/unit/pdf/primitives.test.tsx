@@ -259,16 +259,20 @@ describe('SignatureBlock', () => {
   })
   it('constrains the signature image to a fixed numeric width (no overflow/overlap)', () => {
     // Regression: width:'auto' let @react-pdf render the image at its
-    // intrinsic 1344px width, overflowing the 260pt wrapper and overlapping
-    // the verification/QR block. The image style must use a bounded numeric
-    // width so it stays inside the signature column.
+    // intrinsic pixel width, overflowing the 260pt wrapper and overlapping
+    // the verification/QR block. The image must be sized with a bounded
+    // numeric width. The new transparent director signature (1227×77,
+    // ~15.94:1) is sized via prop defaults applied as an array style on the
+    // <Image>, so assert the bounded numeric defaults exist and that
+    // width:'auto' is never used anywhere in the component.
     const src = readFileSync(
       resolve(__dirname, '../../../src/lib/pdf/components/SignatureBlock.tsx'),
       'utf8',
     )
-    const styleBlock = src.slice(src.indexOf('signatureImage:'), src.indexOf('signatureImage:') + 700)
-    expect(styleBlock).not.toContain("width: 'auto'")
-    expect(styleBlock).toMatch(/width:\s*\d+/)
+    expect(src).not.toContain("width: 'auto'")
+    // Bounded numeric default width + height for the signature image.
+    expect(src).toMatch(/signatureWidth\s*=\s*\d+/)
+    expect(src).toMatch(/signatureHeight\s*=\s*\d+/)
   })
 })
 

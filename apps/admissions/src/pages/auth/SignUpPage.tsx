@@ -135,8 +135,8 @@ export default function SignUpPage() {
     return (
       <>
         <Seo
-          title="Create Account | MIHAS-KATC Admissions"
-          description="Create your MIHAS-KATC admissions account."
+          title="Create Account | Beanola Admissions"
+          description="Create your Beanola admissions account."
           path="/auth/signup"
         />
         <AuthShell title="Account created" description="Opening your dashboard…">
@@ -158,15 +158,15 @@ export default function SignUpPage() {
   return (
     <>
       <Seo
-        title="Create Account | MIHAS-KATC Admissions"
-        description="Create your MIHAS-KATC admissions account to start your application."
+        title="Create Account | Beanola Admissions"
+        description="Create your Beanola admissions account to start your application."
         path="/auth/signup"
       />
       <AuthShell
         title="Create your application account"
         description={
           <>
-            Start your journey with MIHAS-KATC.{' '}
+            Start your journey with Beanola.{' '}
             <Link
               to="/auth/signin"
               className="font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"

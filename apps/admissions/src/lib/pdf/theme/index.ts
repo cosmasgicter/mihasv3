@@ -57,13 +57,14 @@ export const institutions = {
     logoMark: logos.mihas,
     logoFull: logos.mihasFull,
     // Short form used in the PDF header — narrow column, must fit on one line.
-    address: 'Plot 3375 Off President Avenue, Kalulushi, Zambia',
+    address: 'Plot 3375 President Avenue, P.O. Box 260218, Kalulushi, Zambia',
     // Full descriptive address with landmarks — suitable for letters, emails,
     // and the contact page where the extra detail helps applicants find us.
     detailedAddress:
       'Plot 3375 Off President Avenue, Kalulushi — next to the Civic Centre, opposite Kalulushi General Hospital',
-    phone: '+260 961 515 151',
+    phone: '+260 961 515151',
     email: 'info@mihas.edu.zm',
+    website: 'www.mihas.edu.zm',
   },
   KATC: {
     code: 'KATC',
@@ -71,11 +72,12 @@ export const institutions = {
     fullName: 'Kalulushi Training Centre',
     logoMark: logos.katc,
     logoFull: logos.katcFull,
-    address: 'Plot 110206 Dag Hammarskjöld Road, Kalulushi 10101, Zambia',
+    address: 'Plot 110206 Dag Hammarskjöld Street, P.O. Box 23597, Kalulushi, Zambia',
     detailedAddress:
-      'Plot 110206 Dag Hammarskjöld Road, Kalulushi 10101, Zambia',
-    phone: '+260 966 992 299',
+      'Plot 110206 Dag Hammarskjöld Street, P.O. Box 23597, Kalulushi, Zambia',
+    phone: '+260 966 992299',
     email: 'info@katc.edu.zm',
+    website: 'www.katc.edu.zm',
   },
 } as const
 
@@ -96,13 +98,22 @@ export type Institution = (typeof institutions)[InstitutionCode]
  */
 export function getInstitution(code: string | null | undefined): Institution {
   if (!code) return institutions.MIHAS
-  const upper = code.toUpperCase() as InstitutionCode
-  const match = institutions[upper]
-  if (match) return match
+  const value = code.trim()
+  if (!value) return institutions.MIHAS
 
-  // Intentional surface — silent fallback for unknown codes caused real
-  // bugs (e.g. a KATC acceptance letter rendering with the MIHAS header
-  // when the code shape drifted). Log so it's visible in error monitoring.
+  // 1. Exact short-code match (case-insensitive): "MIHAS" / "KATC".
+  const upper = value.toUpperCase() as InstitutionCode
+  if (institutions[upper]) return institutions[upper]
+
+  // 2. Full-name / alias match. The backend stores `application.institution`
+  //    as the full institution NAME (e.g. "Kalulushi Training Centre"), not
+  //    the short code — so a KATC acceptance letter would otherwise silently
+  //    render with the MIHAS letterhead. Match known names/aliases here.
+  const lower = value.toLowerCase()
+  if (lower.includes('katc') || lower.includes('kalulushi')) return institutions.KATC
+  if (lower.includes('mihas') || lower.includes('mukuba')) return institutions.MIHAS
+
+  // 3. Unknown code — surface it (real bugs hid behind the silent fallback).
   if (typeof console !== 'undefined' && typeof console.warn === 'function') {
     console.warn(
       `[pdf/theme] Unknown institution code "${code}" — falling back to MIHAS. ` +

@@ -17,8 +17,12 @@ import { PageShell } from '@/components/ui/PageShell'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { MetricTile, NeedsAttentionGrid } from '@/components/ui/MetricTile'
 import { reportError } from '@/lib/errorReporter'
+import { resolveDashboardScope } from '@/pages/admin/lib/dashboardScope'
+import { usePortalBrand } from '@/hooks/usePortalBrand'
+import { Building2 } from 'lucide-react'
 
 import { DashboardActivityFeed } from '@/components/admin/dashboard/DashboardActivityFeed'
 import { DashboardQuickActions } from '@/components/admin/dashboard/DashboardQuickActions'
@@ -43,10 +47,14 @@ export default function AdminDashboard() {
     hasLoadedOnce,
     isInitialLoading,
     isRefreshing,
+    noSchoolAccess,
     load: loadDashboardStats,
     patchStats,
     patchActivity,
   } = loader
+
+  const portalBrand = usePortalBrand()
+  const scope = resolveDashboardScope({ user, noSchoolAccess })
 
   const [authRecoveryFailed, setAuthRecoveryFailed] = useState(false)
   useEffect(() => {
@@ -109,8 +117,8 @@ export default function AdminDashboard() {
     return (
       <>
         <Seo
-          title="Admin Dashboard | MIHAS-KATC Admissions"
-          description="Manage MIHAS-KATC admissions, monitor application metrics, and review operational alerts from the admin dashboard."
+          title="Admin Dashboard | Beanola Admissions"
+          description="Manage Beanola admissions, monitor application metrics, and review operational alerts from the admin dashboard."
           path="/admin/dashboard"
           noindex
         />
@@ -125,8 +133,8 @@ export default function AdminDashboard() {
     return (
       <>
         <Seo
-          title="Admin Dashboard Unavailable | MIHAS-KATC Admissions"
-          description="The MIHAS-KATC admin dashboard could not load. Reconnect and retry to continue admissions administration."
+          title="Admin Dashboard Unavailable | Beanola Admissions"
+          description="The Beanola admin dashboard could not load. Reconnect and retry to continue admissions administration."
           path="/admin/dashboard"
           noindex
         />
@@ -152,8 +160,8 @@ export default function AdminDashboard() {
     return (
       <>
         <Seo
-          title="Admin Sign In Required | MIHAS-KATC Admissions"
-          description="Sign in with an authorized admin account to access MIHAS-KATC admissions operations."
+          title="Admin Sign In Required | Beanola Admissions"
+          description="Sign in with an authorized admin account to access Beanola admissions operations."
           path="/admin/dashboard"
           noindex
         />
@@ -174,18 +182,62 @@ export default function AdminDashboard() {
       ? <AlertTriangle className="h-4 w-4 text-warning" aria-hidden="true" />
       : <XCircle className="h-4 w-4 text-destructive" aria-hidden="true" />
 
+  // R11.6: a non-super-admin caller with no membership/grant scope must see an
+  // explicit "No school access assigned" state with a support path — never the
+  // (correct-but-misleading) zero counts the backend returns for an empty scope.
+  if (scope === 'no-scope') {
+    const supportEmail = portalBrand.supportEmail || 'admissions@mihas.edu.zm'
+    return (
+      <>
+        <Seo
+          title="No School Access | Beanola Admissions"
+          description="Your account is not yet linked to a school. Contact a super administrator to be granted admissions access."
+          path="/admin/dashboard"
+          noindex
+        />
+        <PageShell
+          title="Admin dashboard"
+          eyebrow="Operations Overview"
+          subtitle="Your account is not yet linked to a school."
+          maxWidth="4xl"
+          tone="admin"
+        >
+          <SectionCard>
+            <EmptyState
+              icon={<Building2 />}
+              heading="No school access assigned"
+              description="Your account is not linked to any school yet, so there is no admissions data to show. Contact a super administrator to be granted access."
+              action={{
+                label: 'Contact support',
+                onClick: () => {
+                  window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent('Request for school access')}`
+                },
+                variant: 'primary',
+              }}
+            />
+          </SectionCard>
+        </PageShell>
+      </>
+    )
+  }
+
+  const isGlobal = scope === 'global'
+  const overviewSubtitle = isGlobal
+    ? 'Admissions volume, queue pressure, and live operational health across every school.'
+    : 'Applications, queue pressure, and operational health for your school.'
+
   return (
     <>
       <Seo
-        title="Admin Dashboard | MIHAS-KATC Admissions"
-        description="Manage MIHAS-KATC admissions, monitor application metrics, and review operational alerts from the admin dashboard."
+        title="Admin Dashboard | Beanola Admissions"
+        description="Manage Beanola admissions, monitor application metrics, and review operational alerts from the admin dashboard."
         path="/admin/dashboard"
         noindex
       />
       <PageShell
         title={`Welcome back, ${adminFirstName}`}
-        eyebrow="Operations Overview"
-        subtitle="Admissions volume, queue pressure, and live operational health in one control surface."
+        eyebrow={isGlobal ? 'Cross-school Overview' : 'Your School Overview'}
+        subtitle={overviewSubtitle}
         maxWidth="7xl"
         tone="admin"
         metrics={[
@@ -400,6 +452,26 @@ export default function AdminDashboard() {
             </div>
           </div>
         </ErrorBoundary>
+
+        {/* Cross-school control surfaces — Super_Admin only (R11.4) */}
+        {isGlobal && (
+          <ErrorBoundary level="section" onError={(err, info) => reportError(err, { component: 'AdminDashboard.CrossSchool', ...info })}>
+            <SectionCard
+              className="mt-8"
+              title="Cross-school operations"
+              icon={<Building2 className="h-5 w-5" />}
+            >
+              <p className="text-sm text-muted-foreground mb-4">
+                Per-institution settlement, routing, branding, and tenant configuration across every school.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Button asChild variant="outline" size="sm" className="min-h-[44px]">
+                  <Link to="/admin/tenants">Manage schools</Link>
+                </Button>
+              </div>
+            </SectionCard>
+          </ErrorBoundary>
+        )}
 
         {/* Weekly Overview */}
         <ErrorBoundary level="section" onError={(err, info) => reportError(err, { component: 'AdminDashboard.WeeklyOverview', ...info })}>

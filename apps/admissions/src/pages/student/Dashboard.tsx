@@ -361,8 +361,8 @@ export default function StudentDashboard() {
   return (
     <>
       <Seo
-        title="Student Dashboard | MIHAS-KATC Admissions"
-        description="View your MIHAS-KATC application progress, pending actions, interview updates, and key admission milestones."
+        title="Student Dashboard | Beanola Admissions"
+        description="View your Beanola application progress, pending actions, interview updates, and key admission milestones."
         path="/student/dashboard"
         noindex
       />

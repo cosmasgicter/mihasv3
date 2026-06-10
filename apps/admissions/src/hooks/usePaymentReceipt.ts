@@ -70,7 +70,7 @@ export function usePaymentReceipt() {
         email: '',
         phone: '',
         program: receipt.program || 'Not specified',
-        institution: 'MIHAS',
+        institution: 'Beanola Admissions',
         amount: Number(receipt.amount) || 0,
         currency: receipt.currency === 'USD' ? 'USD' as const : 'ZMW' as const,
         paymentMethod: 'Online Payment',

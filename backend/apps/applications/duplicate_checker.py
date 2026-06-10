@@ -75,20 +75,43 @@ class DuplicateChecker:
         intake: str,
         nrc_number: str | None = None,
         passport_number: str | None = None,
+        program_id: str | None = None,
+        intake_id: str | None = None,
     ) -> DuplicateCheckResult:
         # Check multi_intake_policy (Req 15.1, 15.2)
         policy = _load_multi_intake_policy()
 
         if policy == "single_active":
-            candidates = Application.objects.filter(
-                user_id=user_id, program=program,
-                status__in=NON_TERMINAL_STATUSES,
-            )
+            if program_id:
+                # Canonical-only keying (R8.1): when the canonical program id is
+                # present, key on it alone — never OR the legacy display string,
+                # so two distinct canonical programs sharing a name don't collide.
+                candidates = Application.objects.filter(
+                    user_id=user_id, status__in=NON_TERMINAL_STATUSES
+                ).filter(canonical_program_id=program_id)
+            else:
+                candidates = Application.objects.filter(
+                    user_id=user_id,
+                    program=program,
+                    status__in=NON_TERMINAL_STATUSES,
+                )
         else:
-            candidates = Application.objects.filter(
-                user_id=user_id, program=program, intake=intake,
-                status__in=NON_TERMINAL_STATUSES,
-            )
+            if program_id or intake_id:
+                # Canonical-only keying (R8.1) for each id that is present; fall
+                # back to the legacy string only for an id that is absent (R8.5).
+                program_query = Q(canonical_program_id=program_id) if program_id else Q(program=program)
+                intake_query = Q(intake_ref_id=intake_id) if intake_id else Q(intake=intake)
+                candidates = Application.objects.filter(user_id=user_id, status__in=NON_TERMINAL_STATUSES).filter(
+                    program_query,
+                    intake_query,
+                )
+            else:
+                candidates = Application.objects.filter(
+                    user_id=user_id,
+                    program=program,
+                    intake=intake,
+                    status__in=NON_TERMINAL_STATUSES,
+                )
 
         # Filter to same-identity applicants only
         for existing in candidates:
@@ -99,7 +122,14 @@ class DuplicateChecker:
         return DuplicateCheckResult(False)
 
     @staticmethod
-    def check_at_submit(user_id: str, program: str, intake: str, exclude_id: str) -> DuplicateCheckResult:
+    def check_at_submit(
+        user_id: str,
+        program: str,
+        intake: str,
+        exclude_id: str,
+        program_id: str | None = None,
+        intake_id: str | None = None,
+    ) -> DuplicateCheckResult:
         # At submit time, compare the submitting application's identity against others
         try:
             submitting = Application.objects.get(id=exclude_id)
@@ -109,15 +139,34 @@ class DuplicateChecker:
         policy = _load_multi_intake_policy()
 
         if policy == "single_active":
-            candidates = Application.objects.filter(
-                user_id=user_id, program=program,
-                status__in=SUBMITTED_STATUSES,
-            ).exclude(id=exclude_id)
+            if program_id:
+                # Canonical-only keying (R8.1).
+                candidates = Application.objects.filter(
+                    user_id=user_id, status__in=SUBMITTED_STATUSES
+                ).filter(canonical_program_id=program_id).exclude(id=exclude_id)
+            else:
+                candidates = Application.objects.filter(
+                    user_id=user_id,
+                    program=program,
+                    status__in=SUBMITTED_STATUSES,
+                ).exclude(id=exclude_id)
         else:
-            candidates = Application.objects.filter(
-                user_id=user_id, program=program, intake=intake,
-                status__in=SUBMITTED_STATUSES,
-            ).exclude(id=exclude_id)
+            if program_id or intake_id:
+                # Canonical-only keying (R8.1) per present id; legacy fallback
+                # only for an absent id (R8.5).
+                program_query = Q(canonical_program_id=program_id) if program_id else Q(program=program)
+                intake_query = Q(intake_ref_id=intake_id) if intake_id else Q(intake=intake)
+                candidates = Application.objects.filter(user_id=user_id, status__in=SUBMITTED_STATUSES).filter(
+                    program_query,
+                    intake_query,
+                ).exclude(id=exclude_id)
+            else:
+                candidates = Application.objects.filter(
+                    user_id=user_id,
+                    program=program,
+                    intake=intake,
+                    status__in=SUBMITTED_STATUSES,
+                ).exclude(id=exclude_id)
 
         for existing in candidates:
             if _identity_matches(existing, submitting.nrc_number, submitting.passport_number):

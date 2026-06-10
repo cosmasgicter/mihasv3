@@ -1,8 +1,14 @@
-"""PDF generation tasks (acceptance letter, finance receipt)."""
+"""Tenant-aware official PDF generation tasks."""
 
+from __future__ import annotations
+
+import hashlib
 import io
+import json
 import logging
+import textwrap
 import uuid
+from typing import Any
 
 from celery import shared_task
 from django.utils import timezone
@@ -10,238 +16,664 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
+# Document types for which the payment id + receipt number participate in the
+# Document_Fingerprint (R6.1 "payment/receipt identifiers for receipts"). Every
+# other document type ignores the payment inputs entirely.
+_RECEIPT_DOCUMENT_TYPES = {"payment_receipt", "finance_receipt"}
+
+
+DOCUMENT_CONFIG = {
+    "application_slip": {
+        "title": "APPLICATION SLIP",
+        "folder": "application-slips",
+        "name": "Application Slip",
+        "status_required": None,
+    },
+    "acceptance_letter": {
+        "title": "ACCEPTANCE LETTER",
+        "folder": "acceptance-letters",
+        "name": "Acceptance Letter",
+        "status_required": "approved",
+    },
+    "conditional_offer": {
+        "title": "CONDITIONAL OFFER",
+        "folder": "conditional-offers",
+        "name": "Conditional Offer",
+        "status_required": None,
+    },
+    "finance_receipt": {
+        "title": "FINANCE RECEIPT",
+        "folder": "finance-receipts",
+        "name": "Finance Receipt",
+        "status_required": None,
+    },
+    "payment_receipt": {
+        "title": "PAYMENT RECEIPT",
+        "folder": "payment-receipts",
+        "name": "Payment Receipt",
+        "status_required": None,
+    },
+}
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def generate_application_slip_task(self, application_id):
+    return _generate_official_document_task(self, application_id, "application_slip")
+
+
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def generate_acceptance_letter_task(self, application_id):
-    """Generate acceptance letter PDF, store in R2, create ApplicationDocument.
+    return _generate_official_document_task(self, application_id, "acceptance_letter")
 
-    Retry delays: 60s, 120s, 240s (exponential backoff).
-    """
-    from apps.applications.models import Application
-    from apps.documents.models import ApplicationDocument
 
-    try:
-        application = Application.objects.get(id=application_id)
-    except Application.DoesNotExist:
-        logger.error("Application %s not found", application_id)
-        return
-
-    try:
-        from apps.common.storage import MediaStorage
-
-        pdf_buffer = _generate_acceptance_letter_pdf(application)
-
-        storage = MediaStorage()
-        filename = f"acceptance-letters/{application_id}/{uuid.uuid4().hex}.pdf"
-        stored_name = storage.save(filename, pdf_buffer)
-        file_url = storage.url(stored_name)
-
-        ApplicationDocument.objects.create(
-            application=application,
-            document_type="acceptance_letter",
-            document_name=f"Acceptance Letter - {application.full_name}.pdf",
-            file_url=file_url,
-            file_size=pdf_buffer.getbuffer().nbytes,
-            mime_type="application/pdf",
-            system_generated=True,
-            verification_status="verified",
-            uploaded_at=timezone.now(),
-        )
-
-        logger.info(
-            "Acceptance letter generated for application %s", application_id
-        )
-
-    except Exception as exc:
-        logger.warning(
-            "Acceptance letter generation failed for application %s (attempt %d/%d): %s",
-            application_id,
-            self.request.retries + 1,
-            self.max_retries + 1,
-            str(exc),
-        )
-
-        if self.request.retries >= self.max_retries:
-            logger.error(
-                "Acceptance letter generation permanently failed for application %s",
-                application_id,
-            )
-            return
-
-        backoff = 60 * (2 ** self.request.retries)
-        raise self.retry(exc=exc, countdown=backoff)
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def generate_conditional_offer_task(self, application_id):
+    return _generate_official_document_task(self, application_id, "conditional_offer")
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def generate_finance_receipt_task(self, application_id):
-    """Generate finance receipt PDF, store in R2, create ApplicationDocument.
+    return _generate_official_document_task(self, application_id, "finance_receipt")
 
-    Retry delays: 60s, 120s, 240s (exponential backoff).
-    """
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def generate_payment_receipt_task(self, application_id):
+    return _generate_official_document_task(self, application_id, "payment_receipt")
+
+
+def _generate_official_document_task(task, application_id, document_type: str):
     from apps.applications.models import Application
     from apps.documents.models import ApplicationDocument, Payment
     from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
 
+    config = DOCUMENT_CONFIG[document_type]
     try:
         application = Application.objects.get(id=application_id)
     except Application.DoesNotExist:
         logger.error("Application %s not found", application_id)
         return
 
+    if config["status_required"] and application.status != config["status_required"]:
+        logger.warning("Skipped %s for application %s in status %s", document_type, application_id, application.status)
+        return
+
     try:
         from apps.common.storage import MediaStorage
 
-        payment = Payment.objects.filter(
-            application_id=application.id, status__in=RECEIPT_ELIGIBLE_STATUSES
-        ).first()
+        payment = None
+        if document_type in {"finance_receipt", "payment_receipt"}:
+            payment = (
+                Payment.objects.filter(application_id=application.id, status__in=RECEIPT_ELIGIBLE_STATUSES)
+                .order_by("-verified_at", "-created_at")
+                .first()
+            )
+            if document_type == "payment_receipt" and not payment:
+                logger.warning("Skipped payment receipt for application %s without successful payment", application_id)
+                return
 
-        pdf_buffer = _generate_finance_receipt_pdf(application, payment)
+        # R6.1: gather the render inputs once and derive the Document_Fingerprint
+        # from them *before* rendering, so reuse/supersede is decided by inputs
+        # rather than a wall-clock window.
+        tenant, template, logo_asset, signature_asset = _gather_render_inputs(
+            application, document_type, payment
+        )
+        fingerprint = _compute_document_fingerprint(
+            application,
+            document_type,
+            tenant,
+            template,
+            logo_asset,
+            signature_asset,
+            payment,
+        )
 
+        # R6.2 / R6.7: the Current_Official_Version is the latest non-deleted
+        # ``system_generated`` document for ``(application, document_type)`` by
+        # ``uploaded_at`` desc. An unchanged fingerprint reuses it and creates
+        # no new row.
+        current = _current_official_version(ApplicationDocument, application, document_type)
+        if current is not None and _stored_fingerprint(current) == fingerprint:
+            logger.info(
+                "%s reuse current version for application %s (fingerprint unchanged)",
+                document_type,
+                application_id,
+            )
+            return
+
+        # R6.3 / R6.4: no current version or a changed fingerprint → render a new
+        # Official_Document, store the fingerprint in
+        # ``verification_notes.official_document``, and supersede by virtue of the
+        # latest-non-deleted ordering. Prior documents are never mutated.
+        pdf_buffer, metadata = _render_official_pdf(
+            application,
+            document_type,
+            payment=payment,
+            tenant=tenant,
+            template=template,
+            logo_asset=logo_asset,
+            signature_asset=signature_asset,
+        )
+        metadata["fingerprint"] = fingerprint
         storage = MediaStorage()
-        filename = f"finance-receipts/{application_id}/{uuid.uuid4().hex}.pdf"
+        filename = f"{config['folder']}/{application_id}/{uuid.uuid4().hex}.pdf"
         stored_name = storage.save(filename, pdf_buffer)
         file_url = storage.url(stored_name)
 
         ApplicationDocument.objects.create(
             application=application,
-            document_type="finance_receipt",
-            document_name=f"Finance Receipt - {application.full_name}.pdf",
+            document_type=document_type,
+            document_name=f"{config['name']} - {application.full_name}.pdf",
             file_url=file_url,
             file_size=pdf_buffer.getbuffer().nbytes,
             mime_type="application/pdf",
             system_generated=True,
             verification_status="verified",
+            verification_notes=json.dumps({"official_document": metadata}),
             uploaded_at=timezone.now(),
         )
-
-        logger.info(
-            "Finance receipt generated for application %s", application_id
-        )
-
+        logger.info("%s generated for application %s", document_type, application_id)
+        _audit_document_generated(application, document_type, metadata)
     except Exception as exc:
         logger.warning(
-            "Finance receipt generation failed for application %s (attempt %d/%d): %s",
+            "%s generation failed for application %s (attempt %d/%d): %s",
+            document_type,
             application_id,
-            self.request.retries + 1,
-            self.max_retries + 1,
+            task.request.retries + 1,
+            task.max_retries + 1,
             str(exc),
         )
-
-        if self.request.retries >= self.max_retries:
-            logger.error(
-                "Finance receipt generation permanently failed for application %s",
-                application_id,
-            )
+        if task.request.retries >= task.max_retries:
+            logger.error("%s generation permanently failed for application %s", document_type, application_id)
+            # R6.8: a permanently failed Official_Document render is recorded in
+            # an auditable form so operators can recover (re-trigger generation)
+            # instead of the failure vanishing into worker logs. Best-effort:
+            # auditing never masks or replaces the underlying failure.
+            _audit_render_failure(application, document_type, exc, attempts=task.request.retries + 1)
             return
+        raise task.retry(exc=exc, countdown=60 * (2 ** task.request.retries))
 
-        backoff = 60 * (2 ** self.request.retries)
-        raise self.retry(exc=exc, countdown=backoff)
+
+def _audit_document_generated(application, document_type: str, metadata: dict) -> None:
+    """Record a successful official-document generation as an Audit_Event (R13.1).
+
+    Routes through :class:`TenantAuditService` so the success counterpart of
+    ``official_document_render_failed`` is observable alongside tenant config
+    changes and routing failures. Best-effort: never blocks the task.
+    """
+    try:
+        from apps.catalog.tenant_audit_service import TenantAuditService
+
+        TenantAuditService.record_official_document_generated(
+            application_id=getattr(application, "id", None),
+            institution_id=getattr(application, "institution_ref_id", None),
+            document_type=document_type,
+            template_id=metadata.get("template_id"),
+            template_version=metadata.get("template_version"),
+        )
+    except Exception:  # pragma: no cover - audit must never block the task
+        logger.warning(
+            "Unable to record official-document generation audit for application %s",
+            getattr(application, "id", None),
+            exc_info=True,
+        )
+
+
+def _audit_render_failure(application, document_type: str, exc: Exception, *, attempts: int) -> None:
+    """Record a permanently failed official-document render as an Audit_Event (R6.8).
+
+    Writes a non-PII ``AuditLog`` row (``action="official_document_render_failed"``)
+    keyed on the application id so a Super_Admin can review and re-trigger
+    generation. Only the exception *class name* is stored — never the exception
+    message, template text, or document contents — to honour the platform rule
+    against logging PII/secrets/document bodies. Best-effort: any failure to
+    write the audit row is swallowed so it never shadows the render failure.
+    """
+    try:
+        from apps.common.models import AuditLog
+
+        institution_id = getattr(application, "institution_ref_id", None)
+        AuditLog.objects.create(
+            actor_id=None,  # system-generated background render, no human actor
+            action="official_document_render_failed",
+            entity_type="application_document",
+            entity_id=getattr(application, "id", None),
+            changes={
+                "document_type": document_type,
+                "institution_id": str(institution_id) if _is_valid_uuid(institution_id) else None,
+                "error_type": type(exc).__name__,
+                "attempts": attempts,
+                "recoverable": True,
+            },
+            retention_category="standard",
+        )
+    except Exception:  # pragma: no cover - audit must never block the task
+        logger.warning(
+            "Unable to record official-document render-failure audit for application %s",
+            getattr(application, "id", None),
+            exc_info=True,
+        )
+
+
+def _gather_render_inputs(application, document_type: str, payment=None):
+    """Resolve the tenant context, template, and active assets for a render.
+
+    Centralises the four inputs that both the Document_Fingerprint (R6.1) and the
+    PDF renderer consume, so the fingerprint is computed over *exactly* the
+    inputs the render will use — no drift between "what we hashed" and "what we
+    drew". Returns ``(tenant, template, logo_asset, signature_asset)``.
+    """
+    tenant = _tenant_context(application)
+    template = _render_template(application, document_type, tenant, payment)
+    logo_asset = _active_asset(application, "logo")
+    signature_asset = _active_asset(application, "signature")
+    return tenant, template, logo_asset, signature_asset
+
+
+def _current_official_version(ApplicationDocument, application, document_type: str):
+    """Return the Current_Official_Version for ``(application, document_type)``.
+
+    The latest non-deleted ``system_generated`` ``ApplicationDocument`` by
+    ``uploaded_at`` desc (R6.7 — documents with ``verification_status="deleted"``
+    are never selected, even when their ``uploaded_at`` is the most recent).
+    Returns ``None`` when no current version exists.
+    """
+    return (
+        ApplicationDocument.objects.filter(
+            application=application,
+            document_type=document_type,
+            system_generated=True,
+        )
+        .exclude(verification_status="deleted")
+        .order_by("-uploaded_at")
+        .first()
+    )
+
+
+def _stored_fingerprint(document) -> str | None:
+    """Extract the stored Document_Fingerprint from a document's provenance.
+
+    Reads ``verification_notes.official_document.fingerprint`` from the existing
+    ``ApplicationDocument.verification_notes`` text column (stored as JSON).
+    Returns ``None`` when the notes are absent, not JSON, or carry no
+    fingerprint — which forces a regenerate (treated as "changed").
+    """
+    raw = getattr(document, "verification_notes", None)
+    if not raw:
+        return None
+    try:
+        parsed = json.loads(raw)
+    except (TypeError, ValueError):
+        return None
+    if not isinstance(parsed, dict):
+        return None
+    official = parsed.get("official_document")
+    if not isinstance(official, dict):
+        return None
+    fingerprint = official.get("fingerprint")
+    return fingerprint if isinstance(fingerprint, str) else None
+
+
+def _render_official_pdf(
+    application,
+    document_type: str,
+    *,
+    payment=None,
+    tenant=None,
+    template=None,
+    logo_asset=None,
+    signature_asset=None,
+):
+    from reportlab.lib.colors import HexColor
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import cm
+    from reportlab.pdfgen import canvas
+
+    if tenant is None:
+        tenant = _tenant_context(application)
+    if template is None:
+        template = _render_template(application, document_type, tenant, payment)
+    if logo_asset is None:
+        logo_asset = _active_asset(application, "logo")
+    if signature_asset is None:
+        signature_asset = _active_asset(application, "signature")
+
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    primary = _safe_hex(tenant["primary_color"])
+
+    c.setFillColor(primary)
+    c.rect(0, height - 1.2 * cm, width, 1.2 * cm, fill=True, stroke=False)
+    c.setFillColor(HexColor("#111827"))
+    logo_render = _draw_asset(c, logo_asset, 2 * cm, height - 3.2 * cm, max_width=3.2 * cm, max_height=1.7 * cm)
+
+    c.setFont("Helvetica-Bold", 17)
+    c.drawCentredString(width / 2, height - 2.25 * cm, DOCUMENT_CONFIG[document_type]["title"])
+    c.setFont("Helvetica", 10)
+    c.drawCentredString(width / 2, height - 2.85 * cm, tenant["name"])
+    contact = " | ".join(v for v in [tenant.get("admissions_email"), tenant.get("phone"), tenant.get("website")] if v)
+    if contact:
+        c.drawCentredString(width / 2, height - 3.35 * cm, contact)
+
+    y = height - 4.6 * cm
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(2 * cm, y, f"Generated: {timezone.now().strftime('%d %B %Y')}")
+    y -= 0.7 * cm
+
+    details = _document_details(application, payment)
+    for label, value in details:
+        c.setFont("Helvetica-Bold", 9.5)
+        c.drawString(2 * cm, y, f"{label}:")
+        c.setFont("Helvetica", 9.5)
+        c.drawString(6 * cm, y, str(value or "N/A"))
+        y -= 0.55 * cm
+
+    y -= 0.55 * cm
+    c.setFont("Helvetica", 10.5)
+    body = template["sections"].get("body") or _default_body(document_type, application, payment)
+    y = _draw_wrapped(c, str(body), 2 * cm, y, width - 4 * cm, line_height=0.55 * cm)
+
+    if y < 5 * cm:
+        c.showPage()
+        y = height - 2.5 * cm
+
+    signature_render = _draw_asset(c, signature_asset, 2 * cm, y - 1.6 * cm, max_width=4 * cm, max_height=1.4 * cm)
+    c.line(2 * cm, y - 1.9 * cm, 7 * cm, y - 1.9 * cm)
+    c.setFont("Helvetica", 9)
+    c.drawString(2 * cm, y - 2.35 * cm, template["sections"].get("signatory") or "Admissions Office")
+
+    c.setFont("Helvetica", 7.5)
+    c.setFillColor(HexColor("#6B7280"))
+    footer = f"Official Beanola admissions document"
+    if template["template_version"]:
+        footer += f" | Template v{template['template_version']}"
+    c.drawCentredString(width / 2, 1.3 * cm, footer)
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    metadata = {
+        "document_type": document_type,
+        "institution_id": tenant.get("institution_id"),
+        "institution_name": tenant.get("name"),
+        "template_id": template.get("template_id"),
+        "template_version": template.get("template_version"),
+        "logo_asset_id": str(logo_asset.id) if logo_asset else None,
+        "signature_asset_id": str(signature_asset.id) if signature_asset else None,
+        # R6.7: record how each asset was handled so an SVG (or otherwise
+        # undrawable) asset is explicitly marked "unsupported" in provenance
+        # rather than silently dropped. Values: "drawn" | "unsupported" |
+        # "error" | "none".
+        "logo_render": logo_render,
+        "signature_render": signature_render,
+    }
+    return buffer, metadata
+
+
+def _tenant_context(application) -> dict[str, Any]:
+    institution = getattr(application, "institution_ref", None)
+    institution_id = getattr(institution, "id", "") if institution else ""
+    if not _is_valid_uuid(institution_id):
+        institution_id = getattr(application, "institution_ref_id", "")
+    if not _is_valid_uuid(institution_id):
+        institution_id = ""
+    return {
+        "institution_id": str(institution_id),
+        "name": _plain_text(getattr(institution, "brand_name", None))
+        or _plain_text(getattr(institution, "name", None))
+        or _plain_text(getattr(application, "institution", None)),
+        "primary_color": _plain_text(getattr(institution, "primary_color", None)) or "#0F766E",
+        "admissions_email": _plain_text(getattr(institution, "admissions_email", None))
+        or _plain_text(getattr(institution, "email", None)),
+        "phone": _plain_text(getattr(institution, "phone", None)),
+        "website": _plain_text(getattr(institution, "website", None)),
+    }
+
+
+def _render_template(application, document_type: str, tenant: dict[str, Any], payment=None) -> dict[str, Any]:
+    from apps.catalog.services import DocumentTemplateService
+
+    institution_id = tenant.get("institution_id")
+    if not institution_id:
+        return {"template_id": None, "template_version": None, "sections": {}}
+    return DocumentTemplateService().render(
+        institution_id=institution_id,
+        document_type=document_type,
+        context={
+            "student_name": application.full_name,
+            "application_number": application.application_number,
+            "program": application.program,
+            "intake": application.intake,
+            "institution": tenant.get("name"),
+            "receipt_number": getattr(payment, "receipt_number", "") if payment else "",
+            "amount": getattr(payment, "amount", "") if payment else "",
+            "currency": getattr(payment, "currency", "") if payment else "",
+            "date": timezone.now().strftime("%d %B %Y"),
+        },
+    )
+
+
+def _active_asset(application, asset_type: str):
+    institution_id = getattr(application, "institution_ref_id", None)
+    if not _is_valid_uuid(institution_id):
+        return None
+    from apps.catalog.models import InstitutionAsset
+
+    return (
+        InstitutionAsset.objects.filter(institution_id=institution_id, asset_type=asset_type, is_active=True)
+        .order_by("-version", "-created_at")
+        .first()
+    )
+
+
+def _asset_fingerprint_parts(asset) -> dict[str, Any]:
+    """Canonical (id, checksum) pair for a logo/signature asset, or nulls.
+
+    An asset version bump or swap changes either the id or the checksum, so both
+    participate in the fingerprint (R6.6). ``None`` (no active asset configured)
+    collapses to a stable null pair. Pure: only reads attributes already loaded
+    on the passed object.
+    """
+    if asset is None:
+        return {"id": None, "checksum_sha256": None}
+    asset_id = getattr(asset, "id", None)
+    return {
+        "id": str(asset_id) if asset_id is not None else None,
+        "checksum_sha256": getattr(asset, "checksum_sha256", None),
+    }
+
+
+def _canonical_fingerprint_value(value) -> Any:
+    """Render a fingerprint input as a JSON-stable scalar.
+
+    Datetimes serialise via ``isoformat`` (date *and* time precision), other
+    non-primitive values via ``str``; ``None`` and JSON primitives pass through
+    unchanged. Keeps the canonical JSON deterministic across Python sessions.
+    """
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    isoformat = getattr(value, "isoformat", None)
+    if callable(isoformat):
+        return isoformat()
+    return str(value)
+
+
+def _compute_document_fingerprint(
+    application,
+    document_type: str,
+    tenant: dict[str, Any],
+    template: dict[str, Any],
+    logo_asset,
+    signature_asset,
+    payment,
+) -> str:
+    """Deterministic, input-sensitive fingerprint for an Official_Document (R6.1).
+
+    Returns a hex SHA-256 over the canonical JSON of every input that must
+    influence whether a regeneration produces a new Current_Official_Version:
+
+      * application id,
+      * document type,
+      * application ``status`` + ``updated_at``,
+      * institution id (from the tenant context),
+      * template/profile id + version,
+      * logo asset id + checksum, signature asset id + checksum,
+      * and — **for receipt document types only** — payment id + receipt number.
+
+    For non-receipt document types the payment inputs are ignored entirely, so a
+    payment change never invalidates e.g. an acceptance letter. The function is
+    pure (no DB / storage / network access): it reads only attributes already
+    present on the passed-in objects, which keeps it cheaply unit-testable in
+    isolation.
+    """
+    application_id = getattr(application, "id", None)
+    payload: dict[str, Any] = {
+        "application_id": str(application_id) if application_id is not None else None,
+        "document_type": document_type,
+        "status": _canonical_fingerprint_value(getattr(application, "status", None)),
+        "updated_at": _canonical_fingerprint_value(getattr(application, "updated_at", None)),
+        "institution_id": (tenant or {}).get("institution_id"),
+        "template_id": (template or {}).get("template_id"),
+        "template_version": (template or {}).get("template_version"),
+        "logo_asset": _asset_fingerprint_parts(logo_asset),
+        "signature_asset": _asset_fingerprint_parts(signature_asset),
+    }
+
+    # R6.1: payment/receipt identifiers participate only for receipts; every
+    # other document type ignores the payment inputs entirely.
+    if document_type in _RECEIPT_DOCUMENT_TYPES:
+        payment_id = getattr(payment, "id", None) if payment is not None else None
+        payload["payment_id"] = str(payment_id) if payment_id is not None else None
+        payload["receipt_number"] = (
+            getattr(payment, "receipt_number", None) if payment is not None else None
+        )
+
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _is_valid_uuid(value) -> bool:
+    try:
+        uuid.UUID(str(value))
+    except (TypeError, ValueError, AttributeError):
+        return False
+    return True
+
+
+def _plain_text(value) -> str:
+    if isinstance(value, str):
+        return value
+    return ""
+
+
+def _draw_asset(c, asset, x, y, *, max_width, max_height) -> str:
+    """Draw a tenant image asset, returning a provenance status string (R6.7).
+
+    Returns one of:
+      - ``"none"`` — no asset configured.
+      - ``"unsupported"`` — the asset type cannot be safely rasterised into the
+        PDF (e.g. SVG). Untrusted SVG is NEVER executed/parsed here; it is
+        treated as unsupported and skipped, and the caller records that fact in
+        the provenance snapshot so the omission is explicit, not silent.
+      - ``"drawn"`` — the raster image was embedded successfully.
+      - ``"error"`` — a configured raster asset failed to load/draw.
+    """
+    if not asset:
+        return "none"
+    # R6.7: SVG is vector markup that can carry active/script content. The
+    # renderer does not execute or parse it — it marks the type unsupported and
+    # skips drawing. (Upload-time validation also rejects active SVG, but the
+    # renderer stays defensive and never feeds untrusted SVG to a rasteriser.)
+    if asset.mime_type == "image/svg+xml":
+        logger.info(
+            "Official document: SVG asset %s treated as unsupported (not rendered)",
+            getattr(asset, "id", None),
+        )
+        return "unsupported"
+    try:
+        from reportlab.lib.utils import ImageReader
+        from apps.common.storage import MediaStorage
+
+        storage = MediaStorage()
+        with storage.open(asset.storage_key, "rb") as handle:
+            image_data = io.BytesIO(handle.read())
+        image = ImageReader(image_data)
+        width, height = image.getSize()
+        scale = min(max_width / width, max_height / height)
+        c.drawImage(image, x, y, width=width * scale, height=height * scale, preserveAspectRatio=True, mask="auto")
+        return "drawn"
+    except Exception:
+        logger.warning("Unable to draw tenant asset %s", getattr(asset, "id", None), exc_info=True)
+        return "error"
+
+
+def _safe_hex(value: str):
+    from reportlab.lib.colors import HexColor
+
+    try:
+        return HexColor(value or "#0F766E")
+    except Exception:
+        return HexColor("#0F766E")
+
+
+def _document_details(application, payment=None):
+    details = [
+        ("Application Number", application.application_number),
+        ("Applicant", application.full_name),
+        ("Program", application.program),
+        ("Intake", application.intake),
+        ("School", application.institution),
+        ("Status", application.status.title()),
+    ]
+    if payment:
+        details.extend([
+            ("Amount", f"{payment.amount} {payment.currency}"),
+            ("Payment Method", payment.payment_method or "N/A"),
+            ("Transaction Reference", payment.transaction_reference or "N/A"),
+            ("Receipt Number", payment.receipt_number or "N/A"),
+            ("Payment Date", payment.verified_at.strftime("%d %B %Y") if payment.verified_at else "N/A"),
+        ])
+    return details
+
+
+def _default_body(document_type: str, application, payment=None):
+    if document_type == "application_slip":
+        return (
+            f"This slip confirms that {application.full_name}'s application has been received "
+            f"for {application.program} in the {application.intake} intake."
+        )
+    if document_type == "acceptance_letter":
+        return (
+            f"Dear {application.full_name},\n\n"
+            f"We are pleased to inform you that your application for {application.program} has been accepted. "
+            "Please complete any remaining admission requirements before the commencement of the academic session."
+        )
+    if document_type == "conditional_offer":
+        return (
+            f"Dear {application.full_name},\n\n"
+            f"You have received a conditional offer for {application.program}. "
+            "This offer remains subject to the conditions recorded in your admissions portal."
+        )
+    if document_type in {"finance_receipt", "payment_receipt"}:
+        amount = f"{payment.amount} {payment.currency}" if payment else "the recorded amount"
+        return f"This is an official receipt confirming payment of {amount} for application {application.application_number}."
+    return ""
+
+
+def _draw_wrapped(c, text: str, x, y, width, *, line_height):
+    for paragraph in text.splitlines() or [""]:
+        if not paragraph:
+            y -= line_height
+            continue
+        for line in textwrap.wrap(paragraph, width=92):
+            c.drawString(x, y, line)
+            y -= line_height
+    return y
 
 
 def _generate_acceptance_letter_pdf(application):
-    """Render a simple single-page acceptance letter PDF using reportlab."""
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.units import cm
-    from reportlab.pdfgen import canvas
-
-    buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-
-    c.setFont("Helvetica-Bold", 18)
-    c.drawCentredString(width / 2, height - 3 * cm, "ACCEPTANCE LETTER")
-
-    c.setFont("Helvetica", 12)
-    c.drawCentredString(width / 2, height - 4.2 * cm, application.institution)
-
-    c.setFont("Helvetica", 10)
-    c.drawString(2 * cm, height - 6 * cm, f"Date: {timezone.now().strftime('%d %B %Y')}")
-
-    y = height - 7.5 * cm
-    c.setFont("Helvetica", 11)
-    details = [
-        f"Application Number: {application.application_number}",
-        f"Applicant Name: {application.full_name}",
-        f"Program: {application.program}",
-        f"Intake: {application.intake}",
-        f"Status: {application.status.title()}",
-    ]
-    for line in details:
-        c.drawString(2 * cm, y, line)
-        y -= 0.7 * cm
-
-    y -= 1 * cm
-    c.setFont("Helvetica", 11)
-    body_lines = [
-        f"Dear {application.full_name},",
-        "",
-        "We are pleased to inform you that your application has been accepted.",
-        f"You have been offered a place in the {application.program} program",
-        f"for the {application.intake} intake at {application.institution}.",
-        "",
-        "Please ensure all required documents are submitted and fees are paid",
-        "before the commencement of the academic session.",
-        "",
-        "Congratulations and welcome!",
-    ]
-    for line in body_lines:
-        c.drawString(2 * cm, y, line)
-        y -= 0.6 * cm
-
-    c.showPage()
-    c.save()
-    buffer.seek(0)
-    return buffer
+    return _render_official_pdf(application, "acceptance_letter")[0]
 
 
 def _generate_finance_receipt_pdf(application, payment):
-    """Render a simple single-page finance receipt PDF using reportlab."""
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.units import cm
-    from reportlab.pdfgen import canvas
-
-    buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-
-    c.setFont("Helvetica-Bold", 18)
-    c.drawCentredString(width / 2, height - 3 * cm, "FINANCE RECEIPT")
-
-    c.setFont("Helvetica", 12)
-    c.drawCentredString(width / 2, height - 4.2 * cm, application.institution)
-
-    c.setFont("Helvetica", 10)
-    c.drawString(2 * cm, height - 6 * cm, f"Date: {timezone.now().strftime('%d %B %Y')}")
-
-    y = height - 7.5 * cm
-    c.setFont("Helvetica", 11)
-    details = [
-        f"Application Number: {application.application_number}",
-        f"Applicant Name: {application.full_name}",
-        f"Program: {application.program}",
-    ]
-
-    if payment:
-        details.extend([
-            f"Amount Paid: {payment.amount} {payment.currency}",
-            f"Payment Method: {payment.payment_method or 'N/A'}",
-            f"Transaction Reference: {payment.transaction_reference or 'N/A'}",
-            f"Receipt Number: {payment.receipt_number or 'N/A'}",
-            f"Payment Date: {payment.verified_at.strftime('%d %B %Y') if payment.verified_at else 'N/A'}",
-        ])
-    else:
-        details.append("Payment: Details not available")
-
-    for line in details:
-        c.drawString(2 * cm, y, line)
-        y -= 0.7 * cm
-
-    y -= 1 * cm
-    c.setFont("Helvetica", 10)
-    c.drawString(2 * cm, y, "This is a system-generated receipt.")
-    y -= 0.5 * cm
-    c.drawString(2 * cm, y, "For queries, contact the finance office.")
-
-    c.showPage()
-    c.save()
-    buffer.seek(0)
-    return buffer
+    return _render_official_pdf(application, "finance_receipt", payment=payment)[0]

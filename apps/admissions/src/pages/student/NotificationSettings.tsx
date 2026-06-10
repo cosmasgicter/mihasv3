@@ -141,8 +141,8 @@ export default function NotificationSettings() {
   return (
     <>
       <Seo
-        title="Notification Settings | MIHAS-KATC Admissions"
-        description="Manage your notification preferences for your MIHAS-KATC admissions portal."
+        title="Notification Settings | Beanola Admissions"
+        description="Manage your notification preferences for your Beanola admissions portal."
         path="/student/notifications"
         noindex
       />

@@ -23,7 +23,7 @@ _FULL_CONTEXTS: dict[str, dict] = {
         "tracking_code": "TRK-ABC123XYZ",
         "program_name": "Diploma in Nursing",
         "intake_name": "January 2027",
-        "portal_url": "https://apply.mihas.edu.zm",
+        "portal_url": "https://apply.beanola.com",
     },
     "payment_received": {
         "student_name": "John Banda",
@@ -32,7 +32,7 @@ _FULL_CONTEXTS: dict[str, dict] = {
         "amount": "1500.00",
         "currency": "ZMW",
         "payment_method": "Mobile Money (Airtel)",
-        "portal_url": "https://apply.mihas.edu.zm",
+        "portal_url": "https://apply.beanola.com",
     },
     "interview_scheduled": {
         "student_name": "Mary Phiri",
@@ -43,7 +43,7 @@ _FULL_CONTEXTS: dict[str, dict] = {
         "interview_location": "Main Campus, Room 204",
         "interview_mode": "In person",
         "interviewer_name": "Dr Musonda",
-        "portal_url": "https://apply.mihas.edu.zm",
+        "portal_url": "https://apply.beanola.com",
     },
     "acceptance": {
         "student_name": "Peter Mulenga",
@@ -51,7 +51,7 @@ _FULL_CONTEXTS: dict[str, dict] = {
         "program_name": "Diploma in Pharmacy",
         "intake_name": "July 2027",
         "start_date": "2027-07-14",
-        "portal_url": "https://apply.mihas.edu.zm",
+        "portal_url": "https://apply.beanola.com",
     },
     "conditional_acceptance": {
         "student_name": "Grace Tembo",
@@ -63,7 +63,7 @@ _FULL_CONTEXTS: dict[str, dict] = {
             {"description": "Submit original Grade 12 certificate", "deadline": "2027-01-01"},
             {"description": "Pass medical fitness assessment"},
         ],
-        "portal_url": "https://apply.mihas.edu.zm",
+        "portal_url": "https://apply.beanola.com",
     },
     "rejection": {
         "student_name": "David Chanda",
@@ -71,11 +71,11 @@ _FULL_CONTEXTS: dict[str, dict] = {
         "program_name": "Certificate in Biomedical Engineering",
         "intake_name": "July 2027",
         "reviewer_note": "Minimum grade requirements not met.",
-        "portal_url": "https://apply.mihas.edu.zm",
+        "portal_url": "https://apply.beanola.com",
     },
     "password_reset": {
         "student_name": "Alice Zulu",
-        "reset_url": "https://apply.mihas.edu.zm/reset?token=abc123",
+        "reset_url": "https://apply.beanola.com/reset?token=abc123",
         "expires_in_minutes": 30,
     },
 }

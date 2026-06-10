@@ -33,6 +33,7 @@ import {
   LogOut,
   UserCircle2,
   BriefcaseBusiness,
+  Building2,
 } from 'lucide-react'
 import { toError } from '@/lib/toError'
 
@@ -53,6 +54,7 @@ const pageTitles: Record<string, string> = {
   '/admin/dashboard': 'Admin Dashboard',
   '/admin/applications': 'Applications',
   '/admin/users': 'Users',
+  '/admin/tenants': 'Tenants',
   '/admin/programs': 'Programs',
   '/admin/intakes': 'Intakes',
   '/admin/audit': 'Audit Trail',
@@ -69,6 +71,7 @@ const backRoutes = new Set([
   '/student/status',
   '/admin/applications',
   '/admin/users',
+  '/admin/tenants',
   '/admin/programs',
   '/admin/intakes',
   '/admin/audit',
@@ -82,6 +85,7 @@ const adminNavItems = [
   { href: '/admin/programs', label: 'Programs', icon: GraduationCap },
   { href: '/admin/intakes', label: 'Intakes', icon: Calendar },
   { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/tenants', label: 'Tenants', icon: Building2 },
   { href: '/admin/program-fees', label: 'Fees', icon: DollarSign },
   { href: '/admin/audit', label: 'Audit', icon: FileSearch },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
@@ -125,7 +129,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
     const nestedMatch = Object.entries(pageTitles).find(([path]) =>
       pathname.startsWith(`${path}/`)
     )?.[1]
-    return nestedMatch || 'MIHAS'
+    return nestedMatch || 'Beanola'
   }
 
   // Determine mobile header props from current route

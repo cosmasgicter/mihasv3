@@ -460,6 +460,28 @@ export default function Applications() {
     }
   }, [selectedApplication, showSuccess, showError])
 
+  const handleGenerateApplicationSlip = useCallback(async () => {
+    if (!selectedApplication) return
+    try {
+      await applicationService.generateApplicationSlip(selectedApplication)
+      showSuccess('Application slip generated', 'The official application slip has been queued.')
+    } catch (error) {
+      logApiError('admin-applications', `/applications/${selectedApplication}/application-slip/`, error)
+      showError('Failed to generate slip', toError(error).message || 'Unable to generate application slip.')
+    }
+  }, [selectedApplication, showSuccess, showError])
+
+  const handleGenerateConditionalOffer = useCallback(async () => {
+    if (!selectedApplication) return
+    try {
+      await applicationService.generateConditionalOffer(selectedApplication)
+      showSuccess('Conditional offer generated', 'The conditional offer has been queued.')
+    } catch (error) {
+      logApiError('admin-applications', `/applications/${selectedApplication}/conditional-offer/`, error)
+      showError('Failed to generate offer', toError(error).message || 'Unable to generate conditional offer.')
+    }
+  }, [selectedApplication, showSuccess, showError])
+
   const handleGenerateFinanceReceipt = useCallback(async () => {
     if (!selectedApplication) return
     
@@ -472,6 +494,17 @@ export default function Applications() {
       showError('Failed to generate receipt', toError(error).message || 'Unable to generate finance receipt.')
     } finally {
       setModalLoading(prev => ({ ...prev, receipt: false }))
+    }
+  }, [selectedApplication, showSuccess, showError])
+
+  const handleGeneratePaymentReceipt = useCallback(async () => {
+    if (!selectedApplication) return
+    try {
+      await applicationService.generatePaymentReceipt(selectedApplication)
+      showSuccess('Payment receipt generated', 'The official payment receipt has been queued.')
+    } catch (error) {
+      logApiError('admin-applications', `/applications/${selectedApplication}/payment-receipt/`, error)
+      showError('Failed to generate receipt', toError(error).message || 'Unable to generate payment receipt.')
     }
   }, [selectedApplication, showSuccess, showError])
 
@@ -634,7 +667,7 @@ export default function Applications() {
   return (
     <>
       <Seo
-        title="Applications | MIHAS-KATC Admissions"
+        title="Applications | Beanola Admissions"
         description="Review, filter, and manage all student admissions applications."
         path="/admin/applications"
         noindex
@@ -911,7 +944,10 @@ export default function Applications() {
           onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<unknown>}
           onPaymentStatusUpdate={handlePaymentStatusUpdate}
           onGenerateAcceptanceLetter={handleGenerateAcceptanceLetter}
+          onGenerateApplicationSlip={handleGenerateApplicationSlip}
+          onGenerateConditionalOffer={handleGenerateConditionalOffer}
           onGenerateFinanceReceipt={handleGenerateFinanceReceipt}
+          onGeneratePaymentReceipt={handleGeneratePaymentReceipt}
         />
       </div>
     </PageShell>

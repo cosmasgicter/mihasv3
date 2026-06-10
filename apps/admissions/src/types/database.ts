@@ -12,8 +12,13 @@ export interface Application {
   application_number?: string;
   tracking_code?: string;
   status: string;
+  institution_id?: string | null;
+  program_id?: string | null;
+  program_offering_id?: string | null;
+  intake_id?: string | null;
   program?: string;
   intake?: string;
+  institution?: string;
   full_name?: string;
   email?: string;
   phone?: string;
@@ -87,8 +92,12 @@ export interface Program {
   application_fee?: number;
   tuition_fee?: number;
   institution_id?: string;
+  canonical_program_id?: string | null;
+  assignment_priority?: number | null;
+  offering_status?: string | null;
   institutions?: Institution | null;
   requirements?: Record<string, unknown> | null;
+  available_offerings?: Program[];
   regulatory_body?: string;
   accreditation_status?: string;
   is_active?: boolean;

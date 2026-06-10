@@ -159,8 +159,8 @@ describe('Contact page verification', () => {
   it('renders contact phone numbers', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('KATC')
-    expect(text).toContain('MIHAS')
+    expect(text).toContain('Call admissions')
+    expect(text).toContain('Call support')
     expect(text).toContain('+260 966 992 299')
     expect(text).toContain('+260 961 515 151')
   })

@@ -64,8 +64,8 @@ export default function ForgotPasswordPage() {
     return (
       <>
         <Seo
-          title="Check Your Email | MIHAS-KATC Password Reset"
-          description="Password reset requested. Check your email for instructions to regain access to your MIHAS-KATC admissions account."
+          title="Check Your Email | Beanola Password Reset"
+          description="Password reset requested. Check your email for instructions to regain access to your Beanola admissions account."
           path="/auth/forgot-password"
         />
         <AuthShell
@@ -110,8 +110,8 @@ export default function ForgotPasswordPage() {
   return (
     <>
       <Seo
-        title="Forgot Password | MIHAS-KATC Admissions Portal"
-        description="Request a secure password reset link to recover access to your MIHAS-KATC admissions account."
+        title="Forgot Password | Beanola Admissions Portal"
+        description="Request a secure password reset link to recover access to your Beanola admissions account."
         path="/auth/forgot-password"
       />
       <AuthShell

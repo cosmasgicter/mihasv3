@@ -139,7 +139,7 @@ export default function Communications() {
   return (
     <>
       <Seo
-        title="Communications | MIHAS-KATC Admissions"
+        title="Communications | Beanola Admissions"
         description="View all your notifications and messages in one place."
         path="/student/communications"
         noindex

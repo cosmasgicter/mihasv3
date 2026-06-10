@@ -38,6 +38,8 @@ export interface BuildWizardReadinessInput {
   hasIdentityFile?: boolean
   paymentStatus?: 'pending' | 'successful' | 'failed' | 'deferred' | null
   confirmSubmission?: boolean
+  /** True once the backend has resolved the assigned school + fee (R10.2/R10.3). */
+  assignmentResolved?: boolean
 }
 
 const isCompleteValue = (value: unknown): boolean => {
@@ -90,6 +92,7 @@ export const buildWizardReadiness = ({
   hasIdentityFile = false,
   paymentStatus = null,
   confirmSubmission = false,
+  assignmentResolved = false,
 }: BuildWizardReadinessInput): WizardReadiness => {
   const validGrades = selectedGrades.filter(isValidGrade)
   const validGradeCount = new Set(validGrades.map(grade => grade.subject_id)).size
@@ -98,17 +101,30 @@ export const buildWizardReadiness = ({
   const hasResultSlip = hasResultSlipFile || uploadedFiles.result_slip === true
   const hasIdentityDocument = hasIdentityFile || uploadedFiles.extra_kyc === true
 
-  const basicItems = [
-    createItem('basicKyc', 'program', 'Programme', isCompleteValue(values.program), 'Select a programme.'),
-    createItem('basicKyc', 'intake', 'Intake', isCompleteValue(values.intake), 'Select an intake.'),
-    createItem('basicKyc', 'full_name', 'Full name', isCompleteValue(values.full_name), 'Enter your full name.'),
-    createItem('basicKyc', 'email', 'Email', isCompleteValue(values.email), 'Enter a valid email address.'),
-    createItem('basicKyc', 'phone', 'Phone number', isCompleteValue(values.phone), 'Enter your phone number.'),
-    createItem('basicKyc', 'nrc_number', 'NRC or passport', hasNrcOrPassport, 'Enter either your NRC or passport number.'),
-    createItem('basicKyc', 'date_of_birth', 'Date of birth', isCompleteValue(values.date_of_birth), 'Enter your date of birth.'),
-    createItem('basicKyc', 'sex', 'Sex', isCompleteValue(values.sex), 'Select your sex.'),
+  const programItems = [
+    createItem('program', 'program', 'Programme', isCompleteValue(values.program), 'Select a programme.'),
+    createItem('program', 'intake', 'Intake', isCompleteValue(values.intake), 'Select an intake.'),
+  ]
+
+  const assignedSchoolItems = [
     createItem(
-      'basicKyc',
+      'assignedSchool',
+      'assignedSchool',
+      'Assigned school',
+      assignmentResolved,
+      'Confirm your assigned school and fee before continuing.'
+    ),
+  ]
+
+  const personalItems = [
+    createItem('personal', 'full_name', 'Full name', isCompleteValue(values.full_name), 'Enter your full name.'),
+    createItem('personal', 'email', 'Email', isCompleteValue(values.email), 'Enter a valid email address.'),
+    createItem('personal', 'phone', 'Phone number', isCompleteValue(values.phone), 'Enter your phone number.'),
+    createItem('personal', 'nrc_number', 'NRC or passport', hasNrcOrPassport, 'Enter either your NRC or passport number.'),
+    createItem('personal', 'date_of_birth', 'Date of birth', isCompleteValue(values.date_of_birth), 'Enter your date of birth.'),
+    createItem('personal', 'sex', 'Sex', isCompleteValue(values.sex), 'Select your sex.'),
+    createItem(
+      'personal',
       'residence_town',
       'Residence town',
       normalizeResidenceTown(String(values.residence_town ?? '')).length >= 2,
@@ -145,7 +161,9 @@ export const buildWizardReadiness = ({
   ]
 
   const stepProgress = [
-    buildStep('basicKyc', basicItems),
+    buildStep('program', programItems),
+    buildStep('assignedSchool', assignedSchoolItems),
+    buildStep('personal', personalItems),
     buildStep('education', educationItems),
     buildStep('payment', paymentItems),
     buildStep('submit', submitItems),

@@ -92,6 +92,13 @@ export interface AdminDashboardResponse {
   processingMetrics: AdminDashboardProcessingMetrics
   recentActivity: AdminDashboardActivity[]
   generatedAt: string | null
+  /**
+   * R11.6: true when a non-super-admin caller has no membership/grant scope.
+   * The backend (`AdminDashboardView`) computes every aggregate over an empty
+   * scope in this case, so the UI must render an explicit "No school access
+   * assigned" state rather than the (correct-but-misleading) zero counts.
+   */
+  noSchoolAccess: boolean
 }
 
 export interface AdminDashboardDiagnostics {
@@ -187,6 +194,8 @@ type RawDashboardResponse = {
   recent_activity?: unknown
   generatedAt?: unknown
   generated_at?: unknown
+  no_school_access?: unknown
+  noSchoolAccess?: unknown
 }
 
 const toNumber = (value: unknown): number => {
@@ -434,7 +443,8 @@ export const createEmptyDashboardResponse = (): AdminDashboardResponse => ({
   totalsSnapshot: {},
   processingMetrics: { ...DEFAULT_PROCESSING_METRICS },
   recentActivity: [],
-  generatedAt: null
+  generatedAt: null,
+  noSchoolAccess: false
 })
 
 export const adminDashboardService = {
@@ -529,6 +539,8 @@ export const adminDashboardService = {
         toIsoString((raw.stats as Record<string, unknown> | undefined)?.generatedAt) ??
         toIsoString((raw.stats as Record<string, unknown> | undefined)?.generated_at)
 
+      const noSchoolAccess = raw.no_school_access === true || raw.noSchoolAccess === true
+
       const isEmptyPayload =
         Object.keys(statusBreakdown).length === 0 &&
         Object.keys(periodTotals).length === 0 &&
@@ -545,7 +557,8 @@ export const adminDashboardService = {
           totalsSnapshot,
           processingMetrics,
           recentActivity,
-          generatedAt
+          generatedAt,
+          noSchoolAccess
         },
         diagnostics: {
           endpoint: '/admin/dashboard/',

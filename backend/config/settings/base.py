@@ -39,9 +39,9 @@ ALLOWED_HOSTS: list[str] = []
 
 def validate_debug_not_serving_production_hosts() -> None:
     """Prevent DEBUG=True from serving production API hostnames."""
-    if DEBUG and "api.mihas.edu.zm" in ALLOWED_HOSTS:
+    if DEBUG and "api.beanola.com" in ALLOWED_HOSTS:
         raise ImproperlyConfigured(
-            "DEBUG=True must not be used with api.mihas.edu.zm in ALLOWED_HOSTS."
+            "DEBUG=True must not be used with api.beanola.com in ALLOWED_HOSTS."
         )
 
 # ---------------------------------------------------------------------------
@@ -321,8 +321,8 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB for file uploads
 # Auth cookie settings (subdomain strategy)
 # ---------------------------------------------------------------------------
 
-AUTH_COOKIE_DOMAIN = ".mihas.edu.zm"
-AUTH_COOKIE_SAMESITE = "Lax"  # Same-site subdomains: apply.mihas.edu.zm -> api.mihas.edu.zm
+AUTH_COOKIE_DOMAIN = ".beanola.com"
+AUTH_COOKIE_SAMESITE = "Lax"  # Same-site subdomains: apply.beanola.com -> api.beanola.com
 AUTH_COOKIE_SECURE = True
 AUTH_COOKIE_HTTPONLY = True
 
@@ -443,7 +443,7 @@ Protected endpoints accept either:
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SERVERS": [
-        {"url": "https://api.mihas.edu.zm", "description": "Production"},
+        {"url": "https://api.beanola.com", "description": "Production"},
         {"url": "http://localhost:8000", "description": "Local development"},
     ],
     "TAGS": [
@@ -526,11 +526,11 @@ ERROR_ALERT_EMAIL = os.environ.get("ERROR_ALERT_EMAIL", "admin@mihas.edu.zm")
 # ---------------------------------------------------------------------------
 
 HEALTH_CHECK_URL = os.environ.get(
-    "HEALTH_CHECK_URL", "https://api.mihas.edu.zm/health/ready/"
+    "HEALTH_CHECK_URL", "https://api.beanola.com/health/ready/"
 )
 
 KEEP_ALIVE_URL = os.environ.get(
-    "KEEP_ALIVE_URL", "https://api.mihas.edu.zm/health/live/"
+    "KEEP_ALIVE_URL", "https://api.beanola.com/health/live/"
 )
 
 # ---------------------------------------------------------------------------
@@ -621,7 +621,7 @@ AI_MODEL_FAST = os.environ.get("AI_MODEL_FAST", "google/gemini-2.5-flash")  # ch
 AI_MODEL_VISION = os.environ.get("AI_MODEL_VISION", "google/gemini-2.5-flash")  # document OCR
 AI_MODEL_ANALYSIS = os.environ.get("AI_MODEL_ANALYSIS", "openai/gpt-4o-mini")  # structured JSON extraction (cheapest)
 AI_MODEL_SMART = os.environ.get("AI_MODEL_SMART", "deepseek/deepseek-v3")  # complex reasoning (cheapest: $0.28/M input)
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://apply.mihas.edu.zm")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://apply.beanola.com")
 PAYMENT_DEV_BYPASS = os.environ.get("PAYMENT_DEV_BYPASS", "").lower() in (
     "1",
     "true",

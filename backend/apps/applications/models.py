@@ -41,6 +41,38 @@ class Application(models.Model):
     postal_code = models.CharField(max_length=20, null=True, blank=True)
     next_of_kin_name = models.CharField(max_length=255, null=True, blank=True)
     next_of_kin_phone = models.CharField(max_length=20, null=True, blank=True)
+    institution_ref = models.ForeignKey(
+        'catalog.Institution',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='institution_id',
+        related_name='applications',
+    )
+    canonical_program = models.ForeignKey(
+        'catalog.CanonicalProgram',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='program_id',
+        related_name='applications',
+    )
+    program_offering = models.ForeignKey(
+        'catalog.Program',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='program_offering_id',
+        related_name='offering_applications',
+    )
+    intake_ref = models.ForeignKey(
+        'catalog.Intake',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='intake_id',
+        related_name='applications',
+    )
     program = models.CharField(max_length=255)
     intake = models.CharField(max_length=100, db_index=True)
     institution = models.CharField(max_length=255)
@@ -101,6 +133,11 @@ class Application(models.Model):
         db_column='assigned_reviewer_id',
     )
     enrollment_confirmation_deadline = models.DateTimeField(null=True, blank=True)
+
+    # Assigned on full acceptance (status -> 'enrolled'). Format:
+    # "{INSTCODE}/{YY}/{SEQ5}" e.g. "MIHAS/26/00001". See
+    # backend/scripts/2026_06_08_student_number.sql.
+    student_number = models.CharField(max_length=30, null=True, blank=True, unique=True)
 
     class Meta:
         managed = False

@@ -14,7 +14,7 @@ describe('isSafeNavigationUrl', () => {
 
   beforeEach(() => {
     Object.defineProperty(window, 'location', {
-      value: { ...originalLocation, origin: 'https://apply.mihas.edu.zm' },
+      value: { ...originalLocation, origin: 'https://apply.beanola.com' },
       writable: true,
       configurable: true,
     });
@@ -57,8 +57,8 @@ describe('isSafeNavigationUrl', () => {
 
   describe('same-origin absolute URLs', () => {
     it('allows same-origin HTTPS URLs', () => {
-      expect(isSafeNavigationUrl('https://apply.mihas.edu.zm/dashboard')).toBe(true);
-      expect(isSafeNavigationUrl('https://apply.mihas.edu.zm/')).toBe(true);
+      expect(isSafeNavigationUrl('https://apply.beanola.com/dashboard')).toBe(true);
+      expect(isSafeNavigationUrl('https://apply.beanola.com/')).toBe(true);
     });
   });
 
@@ -69,11 +69,11 @@ describe('isSafeNavigationUrl', () => {
     });
 
     it('rejects HTTP URLs to same domain (different origin)', () => {
-      expect(isSafeNavigationUrl('http://apply.mihas.edu.zm/dashboard')).toBe(false);
+      expect(isSafeNavigationUrl('http://apply.beanola.com/dashboard')).toBe(false);
     });
 
     it('rejects subdomain variations', () => {
-      expect(isSafeNavigationUrl('https://evil.apply.mihas.edu.zm/path')).toBe(false);
+      expect(isSafeNavigationUrl('https://evil.apply.beanola.com/path')).toBe(false);
     });
   });
 
@@ -113,7 +113,7 @@ describe('isSafeNavigationUrl', () => {
 
 describe('isSafeActionUrl', () => {
   it('exports APPLICATION_DOMAIN constant', () => {
-    expect(APPLICATION_DOMAIN).toBe('apply.mihas.edu.zm');
+    expect(APPLICATION_DOMAIN).toBe('apply.beanola.com');
   });
 
   describe('relative paths', () => {
@@ -130,12 +130,12 @@ describe('isSafeActionUrl', () => {
 
   describe('absolute URLs', () => {
     it('allows HTTPS URLs on the application domain', () => {
-      expect(isSafeActionUrl('https://apply.mihas.edu.zm/applications/123')).toBe(true);
-      expect(isSafeActionUrl('https://apply.mihas.edu.zm/')).toBe(true);
+      expect(isSafeActionUrl('https://apply.beanola.com/applications/123')).toBe(true);
+      expect(isSafeActionUrl('https://apply.beanola.com/')).toBe(true);
     });
 
     it('rejects HTTP URLs on the application domain', () => {
-      expect(isSafeActionUrl('http://apply.mihas.edu.zm/dashboard')).toBe(false);
+      expect(isSafeActionUrl('http://apply.beanola.com/dashboard')).toBe(false);
     });
 
     it('rejects HTTPS URLs on different domains', () => {
@@ -144,7 +144,7 @@ describe('isSafeActionUrl', () => {
     });
 
     it('rejects subdomain variations of the application domain', () => {
-      expect(isSafeActionUrl('https://evil.apply.mihas.edu.zm/path')).toBe(false);
+      expect(isSafeActionUrl('https://evil.apply.beanola.com/path')).toBe(false);
     });
   });
 

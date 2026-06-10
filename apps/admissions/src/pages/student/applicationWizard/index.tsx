@@ -24,6 +24,8 @@ import { AnalyticsDashboard } from './components/AnalyticsDashboard'
 import { EnhancedProgressIndicator } from './components/EnhancedProgressIndicator'
 import { WizardErrorSummary, type WizardValidationError } from './components/WizardErrorSummary'
 import BasicKycStep from './steps/BasicKycStep'
+import ProgramStep from './steps/ProgramStep'
+import AssignedSchoolStep from './steps/AssignedSchoolStep'
 import EducationStep from './steps/EducationStep'
 import PaymentStep from './steps/PaymentStep'
 import SubmitStep from './steps/SubmitStep'
@@ -32,10 +34,11 @@ import { useStepValidation } from './hooks/useStepValidation'
 import { useOverallProgress } from './hooks/useOverallProgress'
 import { useSmartAutoSave } from './hooks/useSmartAutoSave'
 import { useEstimatedTime } from './hooks/useEstimatedTime'
-import { previousButtonLabel, saveNowLabel, wizardSteps } from './steps/config'
+import { previousButtonLabel, saveNowLabel, wizardSteps, getStepIndexByKey } from './steps/config'
 import type { StepKey } from './steps/config'
 import type { SubjectGrade } from './types'
 import { WIZARD_COPY } from './constants'
+import { usePortalBrand } from '@/hooks/usePortalBrand'
 
 // --- Lightweight online/offline hook ---
 const onlineSubscribe = (cb: () => void) => {
@@ -128,7 +131,16 @@ const ApplicationWizardContent = () => {
     watchValues,
     goToStep,
     refetchPaymentStatus,
-    setPaymentStatus
+    setPaymentStatus,
+    assignmentPreview,
+    assignmentPreviewLoading,
+    assignmentPreviewError,
+    assignmentResolved,
+    refetchAssignmentPreview,
+    assignmentRecovery,
+    assignmentContactMailto,
+    assignmentInterestRecorded,
+    joinAssignmentInterestList
   } = useWizardController()
 
   const navigate = useNavigate()
@@ -140,6 +152,7 @@ const ApplicationWizardContent = () => {
     hasResultSlip: Boolean(resultSlipFile || uploadedFiles.result_slip),
     hasIdentityDocument: Boolean(extraKycFile || uploadedFiles.extra_kyc),
     uploading,
+    assignmentResolved,
   })
   const overallProgress = useOverallProgress(form, {
     selectedGrades,
@@ -153,6 +166,7 @@ const ApplicationWizardContent = () => {
   const { shouldAnimate } = useOptimizedAnimation()
   const isOnline = useIsOnline()
   const keyboardOpen = useKeyboardOpen()
+  const { brandName: portalBrandName } = usePortalBrand()
 
   // Pause auto-save during critical operations (Req 9.1, 9.2):
   // - Payment step with payment in progress (initiating or pending)
@@ -198,10 +212,21 @@ const ApplicationWizardContent = () => {
     const formData = form.watch()
     const errors: WizardValidationError[] = []
 
-    if (currentStepConfig.key === 'basicKyc') {
+    if (currentStepConfig.key === 'program') {
+      if (!formData.program) {
+        errors.push({ field: 'program', label: 'Program', message: 'Please select a program' })
+      }
+      if (!formData.intake) {
+        errors.push({ field: 'intake', label: 'Intake', message: 'Please select an intake' })
+      }
+    }
+
+    if (currentStepConfig.key === 'assignedSchool' && !assignmentResolved) {
+      errors.push({ field: 'assignedSchool', label: 'Assigned school', message: 'Confirm your assigned school and fee before continuing' })
+    }
+
+    if (currentStepConfig.key === 'personal') {
       const fieldChecks: Array<{ field: string; label: string; check: () => boolean; message: string }> = [
-        { field: 'program', label: 'Program', check: () => !!formData.program, message: 'Please select a program' },
-        { field: 'intake', label: 'Intake', check: () => !!formData.intake, message: 'Please select an intake' },
         { field: 'full_name', label: 'Full Name', check: () => !!formData.full_name, message: 'Full name is required' },
         { field: 'date_of_birth', label: 'Date of Birth', check: () => !!formData.date_of_birth, message: 'Date of birth is required' },
         { field: 'sex', label: 'Sex', check: () => !!formData.sex, message: 'Please select your sex' },
@@ -259,7 +284,7 @@ const ApplicationWizardContent = () => {
     }
 
     return errors
-  }, [form, currentStepConfig.key, confirmSubmission, resultSlipFile, extraKycFile, uploadedFiles, uploading, paymentStatus, selectedGrades, gradesHydrating])
+  }, [form, currentStepConfig.key, confirmSubmission, resultSlipFile, extraKycFile, uploadedFiles, uploading, paymentStatus, selectedGrades, gradesHydrating, assignmentResolved])
 
   // Aria-live region announcement for screen readers on step transition (Req 14.1, 14.2, 14.3)
   const [stepAnnouncement, setStepAnnouncement] = useState(
@@ -441,22 +466,30 @@ const ApplicationWizardContent = () => {
       case 0:
         return [
           { label: 'Program selected', completed: !!values.program },
-          { label: 'Intake selected', completed: !!values.intake },
-          { label: 'Personal details complete', completed: !!(values.full_name && values.date_of_birth && values.sex) },
-          { label: 'Contact information provided', completed: !!(values.phone && values.email) },
-          { label: 'Address details added', completed: !!values.residence_town }
+          { label: 'Intake selected', completed: !!values.intake }
         ]
       case 1:
+        return [
+          { label: 'Assigned school confirmed', completed: assignmentResolved }
+        ]
+      case 2:
+        return [
+          { label: 'Personal details complete', completed: !!(values.full_name && values.date_of_birth && values.sex) },
+          { label: 'Contact information provided', completed: !!(values.phone && values.email) },
+          { label: 'NRC or Passport provided', completed: !!(values.nrc_number || values.passport_number) },
+          { label: 'Address details added', completed: !!values.residence_town }
+        ]
+      case 3:
         return [
           { label: `${uniqueGradeCount} unique subjects added (min 5)`, completed: uniqueGradeCount >= 5 },
           { label: 'Result slip uploaded', completed: !!resultSlipFile || !!uploadedFiles.result_slip },
           { label: 'Identity document uploaded (NRC or Passport)', completed: !!extraKycFile || !!uploadedFiles.extra_kyc }
         ]
-      case 2:
+      case 4:
         return [
           { label: paymentChecklistLabel, completed: isPaymentResolvedForProgress(paymentStatus) }
         ]
-      case 3:
+      case 5:
         return [
           { label: submitPaymentChecklistLabel, completed: isPaymentResolvedForProgress(paymentStatus) },
           { label: 'Terms accepted', completed: confirmSubmission }
@@ -536,15 +569,15 @@ const ApplicationWizardContent = () => {
   return (
     <>
       <Seo
-        title="Application Wizard | MIHAS-KATC Admissions"
-        description="Complete your MIHAS-KATC admissions application step by step."
+        title={`Application Wizard | ${portalBrandName}`}
+        description={`Complete your ${portalBrandName} application step by step.`}
         path="/student/application-wizard"
         noindex
       />
     <PageShell
       title="Student Application"
       eyebrow="Application Flow"
-      subtitle={`Complete ${totalSteps} steps with autosave, upload status, payment confirmation, and review before submission.`}
+      subtitle={`Complete ${totalSteps} steps for ${portalBrandName} with autosave, upload status, payment confirmation, and review before submission.`}
       maxWidth="full"
       tone="application"
       metrics={[
@@ -774,17 +807,43 @@ const ApplicationWizardContent = () => {
                 <span>Your documents are uploading in the background. You can keep going.</span>
               </div>
             )}
-            {currentStepConfig.key === 'basicKyc' && (
-              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'basicKyc' })}>
+            {currentStepConfig.key === 'program' && (
+              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'program' })}>
+              <ProgramStep
+                form={form}
+                programs={programs}
+                programsLoading={programsLoading}
+                intakes={intakes}
+                title={currentStepConfig.title}
+                getFieldAriaDescribedBy={getFieldAriaDescribedBy}
+              />
+              </ErrorBoundary>
+            )}
+
+            {currentStepConfig.key === 'assignedSchool' && (
+              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'assignedSchool' })}>
+              <AssignedSchoolStep
+                title={currentStepConfig.title}
+                preview={assignmentPreview ?? null}
+                isLoading={assignmentPreviewLoading}
+                error={assignmentPreviewError}
+                recovery={assignmentRecovery}
+                onRetry={refetchAssignmentPreview}
+                onChangeSelection={() => goToStep(getStepIndexByKey('program'))}
+                onJoinInterestList={joinAssignmentInterestList}
+                interestRecorded={assignmentInterestRecorded}
+                contactMailto={assignmentContactMailto}
+              />
+              </ErrorBoundary>
+            )}
+
+            {currentStepConfig.key === 'personal' && (
+              <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'personal' })}>
               <BasicKycStep
                 form={form}
                 hasAutoPopulatedData={hasAutoPopulatedData}
                 completionPercentage={completionPercentage}
                 missingFields={missingFields}
-                selectedProgram={selectedProgram}
-                programs={programs}
-                programsLoading={programsLoading}
-                intakes={intakes}
                 title={currentStepConfig.title}
                 getFieldAriaDescribedBy={getFieldAriaDescribedBy}
               />
@@ -822,6 +881,18 @@ const ApplicationWizardContent = () => {
 
             {currentStepConfig.key === 'payment' && (
               <ErrorBoundary level="section" onError={(error) => reportError(error, { step: 'payment' })}>
+              {(assignmentPreview?.assigned_school?.full_name || assignmentPreview?.assigned_school?.name || submittedApplication?.institution) && (
+                <Alert className="mb-4 border-primary/30 bg-primary/5">
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertTitle>Assigned school</AlertTitle>
+                  <AlertDescription>
+                    {assignmentPreview?.assigned_school?.full_name || assignmentPreview?.assigned_school?.name || submittedApplication?.institution}
+                    {(assignmentPreview?.program_name || submittedApplication?.program)
+                      ? ` — ${assignmentPreview?.program_name || submittedApplication?.program}`
+                      : ''}
+                  </AlertDescription>
+                </Alert>
+              )}
               <PaymentStep
                 title={currentStepConfig.title}
                 form={form}
@@ -850,6 +921,7 @@ const ApplicationWizardContent = () => {
                 selectedProgramName={selectedProgramDetails?.name}
                 selectedIntakeLabel={intakes.find(i => i.id === form.watch('intake'))?.name}
                 selectedInstitutionLabel={
+                  submittedApplication?.institution ||
                   selectedProgramDetails?.institutions?.full_name ||
                   selectedProgramDetails?.institutions?.name ||
                   undefined
@@ -876,7 +948,7 @@ const ApplicationWizardContent = () => {
 
             <div>
               {!isLastStep ? (
-                <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || (currentStepConfig.key === 'payment' && !isPaymentResolvedForProgress(paymentStatus))} className="min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
+                <Button type="button" variant="primary" onClick={wrappedHandleNextStep} loading={loading} disabled={loading || (currentStepConfig.key === 'assignedSchool' && !assignmentResolved) || (currentStepConfig.key === 'payment' && !isPaymentResolvedForProgress(paymentStatus))} className="min-h-[48px]" aria-label={`Continue to ${wizardSteps[currentStepIndex + 1]?.progressTitle || 'next step'}`}>
                   {loading || isUploadBlocking ? nextButtonLabel : (<><span>{nextButtonLabel}</span><ArrowRight className="h-4 w-4 ml-2" /></>)}
                 </Button>
               ) : (
@@ -922,28 +994,42 @@ const ApplicationWizardContent = () => {
               >
                 <h3 id="wizard-support-heading" className="sr-only">Application support tools</h3>
                 <ul className="space-y-2 text-xs text-foreground">
-                  {currentStepIndex === 0 && (
+                  {currentStepConfig.key === 'program' && (
                     <>
-                      {WIZARD_COPY.quickTipsByStep.basicKyc.map((tip) => (
+                      {WIZARD_COPY.quickTipsByStep.program.map((tip) => (
                         <li key={tip}>• {tip}</li>
                       ))}
                     </>
                   )}
-                  {currentStepIndex === 1 && (
+                  {currentStepConfig.key === 'assignedSchool' && (
+                    <>
+                      {WIZARD_COPY.quickTipsByStep.assignedSchool.map((tip) => (
+                        <li key={tip}>• {tip}</li>
+                      ))}
+                    </>
+                  )}
+                  {currentStepConfig.key === 'personal' && (
+                    <>
+                      {WIZARD_COPY.quickTipsByStep.personal.map((tip) => (
+                        <li key={tip}>• {tip}</li>
+                      ))}
+                    </>
+                  )}
+                  {currentStepConfig.key === 'education' && (
                     <>
                       {WIZARD_COPY.quickTipsByStep.education.map((tip) => (
                         <li key={tip}>• {tip}</li>
                       ))}
                     </>
                   )}
-                  {currentStepIndex === 2 && (
+                  {currentStepConfig.key === 'payment' && (
                     <>
                       {WIZARD_COPY.quickTipsByStep.payment.map((tip) => (
                         <li key={tip}>• {tip}</li>
                       ))}
                     </>
                   )}
-                  {currentStepIndex === 3 && (
+                  {currentStepConfig.key === 'submit' && (
                     <>
                       {WIZARD_COPY.quickTipsByStep.submit.map((tip) => (
                         <li key={tip}>• {tip}</li>

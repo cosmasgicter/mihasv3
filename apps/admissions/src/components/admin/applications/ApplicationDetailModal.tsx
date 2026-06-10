@@ -74,7 +74,10 @@ interface ApplicationDetailModalProps {
  onUpdateStatus: (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<unknown>
  onPaymentStatusUpdate: (id: string, status: string, verificationNotes?: string) => Promise<void>
  onGenerateAcceptanceLetter: () => Promise<void>
+ onGenerateApplicationSlip: () => Promise<void>
+ onGenerateConditionalOffer: () => Promise<void>
  onGenerateFinanceReceipt: () => Promise<void>
+ onGeneratePaymentReceipt: () => Promise<void>
 }
 
 function GradesDisplay({ grades, loading }: { grades: Grade[], loading: boolean }) {
@@ -171,14 +174,20 @@ export function ApplicationDetailModal({
  onSendNotification,
  onViewDocuments,
  onViewHistory,
- onUpdateStatus,
- onPaymentStatusUpdate,
- onGenerateAcceptanceLetter,
- onGenerateFinanceReceipt
+onUpdateStatus,
+onPaymentStatusUpdate,
+onGenerateAcceptanceLetter,
+onGenerateApplicationSlip,
+onGenerateConditionalOffer,
+onGenerateFinanceReceipt,
+onGeneratePaymentReceipt
 }: ApplicationDetailModalProps) {
  const [isClient, setIsClient] = useState(false)
  const [isGeneratingAcceptance, setIsGeneratingAcceptance] = useState(false)
+ const [isGeneratingSlip, setIsGeneratingSlip] = useState(false)
+ const [isGeneratingConditionalOffer, setIsGeneratingConditionalOffer] = useState(false)
  const [isGeneratingFinanceReceipt, setIsGeneratingFinanceReceipt] = useState(false)
+ const [isGeneratingPaymentReceipt, setIsGeneratingPaymentReceipt] = useState(false)
  const [activeTab, setActiveTab] = useState<'overview' | 'interview' | 'grades' | 'documents' | 'payment' | 'history' | 'ai'>('overview')
  const [applicationData, setApplicationData] = useState<ApplicationDetailResponse | null>(null)
  const [loading, setLoading] = useState(false)
@@ -260,7 +269,10 @@ export function ApplicationDetailModal({
 
  useEffect(() => {
  setIsGeneratingAcceptance(false)
+ setIsGeneratingSlip(false)
+ setIsGeneratingConditionalOffer(false)
  setIsGeneratingFinanceReceipt(false)
+ setIsGeneratingPaymentReceipt(false)
  setActiveTab('overview')
  setApplicationData(null)
  setPaymentRecords([])
@@ -402,6 +414,28 @@ export function ApplicationDetailModal({
  }
  }
 
+ const handleGenerateSlip = async () => {
+ try {
+ setIsGeneratingSlip(true)
+ await onGenerateApplicationSlip()
+ } catch (error) {
+ logger.error('Failed to generate application slip:', error)
+ } finally {
+ setIsGeneratingSlip(false)
+ }
+ }
+
+ const handleGenerateConditionalOffer = async () => {
+ try {
+ setIsGeneratingConditionalOffer(true)
+ await onGenerateConditionalOffer()
+ } catch (error) {
+ logger.error('Failed to generate conditional offer:', error)
+ } finally {
+ setIsGeneratingConditionalOffer(false)
+ }
+ }
+
  const handleGenerateFinanceReceipt = async () => {
  try {
  setIsGeneratingFinanceReceipt(true)
@@ -410,6 +444,17 @@ export function ApplicationDetailModal({
  logger.error('Failed to generate finance receipt:', error)
  } finally {
  setIsGeneratingFinanceReceipt(false)
+ }
+ }
+
+ const handleGeneratePaymentReceipt = async () => {
+ try {
+ setIsGeneratingPaymentReceipt(true)
+ await onGeneratePaymentReceipt()
+ } catch (error) {
+ logger.error('Failed to generate payment receipt:', error)
+ } finally {
+ setIsGeneratingPaymentReceipt(false)
  }
  }
 
@@ -817,6 +862,16 @@ export function ApplicationDetailModal({
  <Send className="h-3.5 w-3.5" />
  Notify
  </Button>
+ <Button
+ variant="outline"
+ size="sm"
+ loading={isGeneratingSlip}
+ onClick={() => { void handleGenerateSlip() }}
+ className="flex items-center gap-1.5"
+ >
+ <FileText className="h-3.5 w-3.5" />
+ Slip
+ </Button>
  {application.status === 'approved' && (
  <>
  <Button
@@ -832,12 +887,32 @@ export function ApplicationDetailModal({
  <Button
  variant="outline"
  size="sm"
+ loading={isGeneratingConditionalOffer}
+ onClick={() => { void handleGenerateConditionalOffer() }}
+ className="flex items-center gap-1.5"
+ >
+ <FileText className="h-3.5 w-3.5" />
+ Conditional Offer
+ </Button>
+ <Button
+ variant="outline"
+ size="sm"
  loading={isGeneratingFinanceReceipt}
  onClick={() => { void handleGenerateFinanceReceipt() }}
  className="flex items-center gap-1.5"
  >
  <CreditCard className="h-3.5 w-3.5" />
- Receipt
+ Finance Receipt
+ </Button>
+ <Button
+ variant="outline"
+ size="sm"
+ loading={isGeneratingPaymentReceipt}
+ onClick={() => { void handleGeneratePaymentReceipt() }}
+ className="flex items-center gap-1.5"
+ >
+ <CreditCard className="h-3.5 w-3.5" />
+ Payment Receipt
  </Button>
  </>
  )}

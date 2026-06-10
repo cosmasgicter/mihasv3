@@ -309,7 +309,7 @@ export default function AdminPrograms() {
   return (
     <>
       <Seo
-        title="Programs & Intakes | MIHAS-KATC Admissions"
+        title="Programs & Intakes | Beanola Admissions"
         description="Manage academic programs, institutions, and intake configurations."
         path="/admin/programs"
         noindex

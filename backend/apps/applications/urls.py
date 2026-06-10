@@ -9,6 +9,7 @@ from django.urls import path
 from apps.applications.history_views import TimelineHistoryView
 from apps.applications.views import (
     AcceptanceLetterView,
+    ApplicationSlipView,
     ApplicationAmendmentReviewView,
     ApplicationAmendmentView,
     ApplicationAssignView,
@@ -17,6 +18,7 @@ from apps.applications.views import (
     ApplicationConditionsView,
     ApplicationConditionVerifyView,
     ApplicationConfirmEnrollmentView,
+    ConditionalOfferView,
     ApplicationDetailView,
     ApplicationDetailsView,
     ApplicationDocumentsView,
@@ -38,6 +40,7 @@ from apps.applications.views import (
     ApplicationWithdrawView,
     EmailSlipView,
     FinanceReceiptView,
+    PaymentReceiptView,
 )
 
 app_name = "applications"
@@ -61,8 +64,11 @@ urlpatterns = [
     path("<uuid:application_id>/review/", ApplicationReviewView.as_view(), name="application-review"),
     path("<uuid:application_id>/interviews/", ApplicationInterviewView.as_view(), name="application-interviews"),
     path("<uuid:application_id>/verify-document/", ApplicationVerifyDocumentView.as_view(), name="application-verify-document"),
+    path("<uuid:application_id>/application-slip/", ApplicationSlipView.as_view(), name="application-slip"),
     path("<uuid:application_id>/acceptance-letter/", AcceptanceLetterView.as_view(), name="application-acceptance-letter"),
+    path("<uuid:application_id>/conditional-offer/", ConditionalOfferView.as_view(), name="application-conditional-offer"),
     path("<uuid:application_id>/finance-receipt/", FinanceReceiptView.as_view(), name="application-finance-receipt"),
+    path("<uuid:application_id>/payment-receipt/", PaymentReceiptView.as_view(), name="application-payment-receipt"),
     path("<uuid:application_id>/email-slip/", EmailSlipView.as_view(), name="application-email-slip"),
     path("<uuid:application_id>/withdraw/", ApplicationWithdrawView.as_view(), name="application-withdraw"),
     path("<uuid:application_id>/waitlist-position/", ApplicationWaitlistPositionView.as_view(), name="application-waitlist-position"),

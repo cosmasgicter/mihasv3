@@ -242,7 +242,7 @@ export default function AdminUsers() {
   return (
     <>
       <Seo
-        title="User Management | MIHAS-KATC Admissions"
+        title="User Management | Beanola Admissions"
         description="Create accounts, manage roles, permissions, and review user activity."
         path="/admin/users"
         noindex

@@ -37,6 +37,12 @@ function normalizePathname(pathname: string): string {
 export function isMarketingPublicRoute(pathname: string): boolean {
   const normalized = normalizePathname(pathname)
 
+  // DEV-ONLY preview routes are public (no auth shell). Guarded here AND by
+  // the route guard in App.tsx; in production builds the route is not mounted.
+  if (import.meta.env.DEV && normalized.startsWith('/dev/')) {
+    return true
+  }
+
   if (MARKETING_PUBLIC_ROUTES.has(normalized)) {
     return true
   }

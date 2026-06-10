@@ -93,15 +93,15 @@ export default function SignInPage() {
 
   const seoByPath = {
     '/auth/signin': {
-      title: 'Sign In | MIHAS-KATC Admissions',
-      description: 'Sign in to the MIHAS-KATC admissions portal.',
+      title: 'Sign In | Beanola Admissions',
+      description: 'Sign in to the Beanola admissions portal.',
     },
     '/signin': {
-      title: 'Login | MIHAS-KATC Admissions',
-      description: 'Access your MIHAS-KATC student admissions account.',
+      title: 'Login | Beanola Admissions',
+      description: 'Access your Beanola student admissions account.',
     },
     '/login': {
-      title: 'Login | MIHAS-KATC Admissions',
+      title: 'Login | Beanola Admissions',
       description: 'Sign in to manage applications and status updates.',
     },
   } as const;

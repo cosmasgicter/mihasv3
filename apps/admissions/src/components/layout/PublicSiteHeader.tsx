@@ -56,20 +56,11 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
       <header className={cn('sticky top-0 z-50 border-b border-border bg-card shadow-sm', className)}>
         <div className="container-responsive px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-3">
-            <Link to="/" className="inline-flex items-center gap-3 font-semibold text-foreground" aria-label="Mukuba Institute of Health and Applied Sciences logo - Home">
+            <Link to="/" className="inline-flex items-center gap-3 font-semibold text-foreground" aria-label="Beanola Admissions - Home">
               <span className="inline-flex items-center gap-2">
                 <img
-                  src="/images/logos/mihas-logo.webp"
-                  alt="MIHAS"
-                  width={40}
-                  height={40}
-                  loading="eager"
-                  decoding="async"
-                  className="h-10 w-10 rounded bg-card p-0.5"
-                />
-                <img
-                  src="/images/logos/katc-logo.webp"
-                  alt="Kalulushi Training Centre"
+                  src="/images/logos/beanola-logo.svg"
+                  alt="Beanola Admissions"
                   width={40}
                   height={40}
                   loading="eager"
@@ -78,7 +69,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
                 />
               </span>
               <span className="hidden sm:block">
-                <span className="block text-xs font-semibold uppercase text-muted-foreground">MIHAS-KATC</span>
+                <span className="block text-xs font-semibold uppercase text-muted-foreground">Beanola</span>
                 <span className="block text-base font-semibold tracking-tight text-foreground">Admissions</span>
               </span>
             </Link>

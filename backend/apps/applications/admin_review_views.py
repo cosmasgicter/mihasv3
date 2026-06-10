@@ -146,10 +146,15 @@ class ApplicationListCreateView(APIView):
             queryset = Application.objects.select_related(
                 'user', 'payment_verified_by', 'reviewed_by', 'admin_feedback_by',
                 'assigned_reviewer_id',
+                'institution_ref', 'canonical_program', 'program_offering', 'intake_ref',
             ).prefetch_related(
                 'applicationdocument_set', 'applicationgrade_set', 'payment_set',
                 'applicationcondition_set', 'applicationamendment_set',
             ).all()
+            if role != "super_admin":
+                from apps.catalog.services import AccessScopeService
+
+                queryset = AccessScopeService().filter_applications(queryset, user)
             queryset = _with_payment_summary(queryset)
         else:
             # Student path: lightweight query - no payment summary subqueries,
@@ -220,6 +225,33 @@ class ApplicationListCreateView(APIView):
         data = serializer.validated_data
 
         from apps.applications.intake_enforcer import IntakeEnforcer
+        assigned = None
+        required_documents = []
+        if data.get("program_id") and data.get("intake_id"):
+            try:
+                from apps.catalog.services import OfferingAssignmentService
+
+                assigned = OfferingAssignmentService().assign(
+                    program_id=str(data["program_id"]),
+                    intake_id=str(data["intake_id"]),
+                    country=data.get("country"),
+                    nationality=data.get("nationality"),
+                    institution_id=str(data["institution_id"]) if data.get("institution_id") else None,
+                    emit_audit=True,
+                    audit_source="application_create",
+                    audit_actor_id=str(getattr(request.user, "id", "")) or None,
+                    audit_actor_role=getattr(request.user, "role", None),
+                )
+            except Exception as exc:
+                return Response(
+                    {"success": False, "error": str(exc), "code": getattr(exc, "code", "NO_ELIGIBLE_OFFERING")},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            data["program"] = assigned.canonical_program.name
+            data["intake"] = assigned.intake.name
+            data["institution"] = assigned.institution.name
+            required_documents = assigned.required_documents
+
         intake_check = IntakeEnforcer.check_draft_creation(data["intake"])
         if not intake_check.allowed:
             return Response(
@@ -233,6 +265,8 @@ class ApplicationListCreateView(APIView):
             intake=data["intake"],
             nrc_number=data.get("nrc_number"),
             passport_number=data.get("passport_number"),
+            program_id=str(assigned.canonical_program.id) if assigned else None,
+            intake_id=str(assigned.intake.id) if assigned else None,
         )
         if dup_result.has_duplicate:
             return Response(
@@ -249,10 +283,13 @@ class ApplicationListCreateView(APIView):
 
         application_fee = None
         try:
-            from apps.catalog.models import Program
             from apps.documents.fee_resolver import FeeResolver
 
-            program = Program.objects.get(name=data["program"], is_active=True)
+            program = assigned.offering if assigned else None
+            if program is None:
+                from apps.catalog.models import Program
+
+                program = Program.objects.get(name=data["program"], is_active=True)
             resolved_fee = FeeResolver().resolve_fee(
                 program_code=program.code,
                 nationality=data.get("nationality"),
@@ -262,20 +299,35 @@ class ApplicationListCreateView(APIView):
         except Exception:
             logger.exception("Failed to resolve application fee during application create")
 
-        application = Application.objects.create(
-            user_id=str(request.user.id), application_number=_generate_application_number(data.get('institution', '')),
-            public_tracking_code=_generate_tracking_code(data.get('institution', '')), full_name=data["full_name"],
-            nrc_number=data.get("nrc_number") or "", passport_number=data.get("passport_number") or "",
-            date_of_birth=data["date_of_birth"], sex=data["sex"], phone=data["phone"],
-            email=data["email"], residence_town=data["residence_town"],
-            country=data.get("country") or "Zambia",
-            nationality=data.get("nationality", "Zambian"), program=data["program"],
-            next_of_kin_name=data.get("next_of_kin_name") or "",
-            next_of_kin_phone=data.get("next_of_kin_phone") or "",
-            intake=data["intake"], institution=data["institution"], application_fee=application_fee,
-            status="draft", version=1,
-        )
-        return Response({"success": True, "data": ApplicationSerializer(application).data}, status=status.HTTP_201_CREATED)
+        create_kwargs = {
+            "user_id": str(request.user.id), "application_number": _generate_application_number(data.get('institution', '')),
+            "public_tracking_code": _generate_tracking_code(data.get('institution', '')), "full_name": data["full_name"],
+            "nrc_number": data.get("nrc_number") or "", "passport_number": data.get("passport_number") or "",
+            "date_of_birth": data["date_of_birth"], "sex": data["sex"], "phone": data["phone"],
+            "email": data["email"], "residence_town": data["residence_town"],
+            "country": data.get("country") or "Zambia",
+            "nationality": data.get("nationality", "Zambian"), "program": data["program"],
+            "next_of_kin_name": data.get("next_of_kin_name") or "",
+            "next_of_kin_phone": data.get("next_of_kin_phone") or "",
+            "intake": data["intake"], "institution": data["institution"], "application_fee": application_fee,
+            "status": "draft", "version": 1,
+        }
+        if assigned:
+            create_kwargs.update(
+                institution_ref_id=assigned.institution.id,
+                canonical_program_id=assigned.canonical_program.id,
+                program_offering_id=assigned.offering.id,
+                intake_ref_id=assigned.intake.id,
+            )
+        application = Application.objects.create(**create_kwargs)
+        response_data = ApplicationSerializer(application).data
+        response_data["assigned_school"] = {
+            "id": str(assigned.institution.id),
+            "name": assigned.institution.name,
+            "code": assigned.institution.code,
+        } if assigned else None
+        response_data["required_documents"] = required_documents
+        return Response({"success": True, "data": response_data}, status=status.HTTP_201_CREATED)
 
 
 # ---------------------------------------------------------------------------
@@ -340,7 +392,12 @@ class ApplicationReviewView(APIView):
     @idempotent
     def post(self, request, application_id):
         try:
-            app = Application.objects.get(id=application_id)
+            queryset = Application.objects.all()
+            if not is_super_admin(request.user):
+                from apps.catalog.services import AccessScopeService
+
+                queryset = AccessScopeService().filter_applications(queryset, request.user)
+            app = queryset.get(id=application_id)
         except Application.DoesNotExist:
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -539,7 +596,7 @@ class ApplicationReviewView(APIView):
                 except ApplicationSubmissionError as exc:
                     return Response(
                         {"success": False, "error": exc.message, "code": exc.code},
-                        status=status.HTTP_400_BAD_REQUEST,
+                        status=getattr(exc, "status_code", None) or status.HTTP_400_BAD_REQUEST,
                     )
                 return Response({"success": True, "data": {"message": f"Status updated from {old_status} to {new_status}", "application_id": str(locked_app.id), "old_status": old_status, "new_status": new_status}})
 
@@ -669,4 +726,3 @@ class ApplicationReviewView(APIView):
         except Exception:
             pass
         return Response({"success": True, "data": response_data})
-

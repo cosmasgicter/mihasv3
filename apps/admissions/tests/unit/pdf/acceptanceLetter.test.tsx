@@ -133,7 +133,7 @@ describe('generateAcceptanceLetter — signatory defaults', () => {
     expect(DEFAULT_SIGNATORY.postnominal).toBe('MD')
     // The real scanned signature path should live under images/signatures
     expect(DEFAULT_SIGNATORY.signatureImage).toBe(
-      '/images/signatures/solomon-musonda.png',
+      '/images/signatures/director-signature.png',
     )
   })
 
@@ -175,5 +175,35 @@ describe('generateAcceptanceLetter — validation', () => {
     await expect(
       generateAcceptanceLetter({ ...unconditional, studentName: '' }),
     ).rejects.toThrow(/missing acceptance data/i)
+  })
+})
+
+describe('generateAcceptanceLetter — institution + programme variants', () => {
+  it('renders a KATC letter when institution is the full name', async () => {
+    const blob = await generateAcceptanceLetter({
+      ...unconditional,
+      institution: 'Kalulushi Training Centre',
+      program: 'Diploma in Clinical Medicine',
+      intake: 'January 2026',
+    })
+    expect(blob).toBeInstanceOf(Blob)
+  })
+
+  it('renders a KATC Environmental Health (distance) letter', async () => {
+    const blob = await generateAcceptanceLetter({
+      ...unconditional,
+      institution: 'KATC',
+      program: 'Diploma in Environmental Health',
+    })
+    expect(blob).toBeInstanceOf(Blob)
+  })
+
+  it('accepts an explicit studentAddress and custom commitmentFee', async () => {
+    const blob = await generateAcceptanceLetter({
+      ...unconditional,
+      studentAddress: 'P.O. Box 12345, Kitwe',
+      commitmentFee: 1000,
+    })
+    expect(blob).toBeInstanceOf(Blob)
   })
 })

@@ -31,6 +31,9 @@ DRAFT_SAFE_FIELDS = frozenset({
     "address_line_1", "address_line_2", "postal_code",
     "next_of_kin_name", "next_of_kin_phone",
     "program", "intake", "institution", "additional_subjects",
+    # Canonical IDs (program_id/intake_id/institution_id/program_offering_id)
+    # are backend-controlled (set by the assignment flow) and declared
+    # read_only on the serializer; they are intentionally NOT client-writable.
     "result_slip_url", "extra_kyc_url",
 })
 
@@ -337,6 +340,10 @@ class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSer
     payment_verified_by_name = serializers.SerializerMethodField()
     payment_verified_by_email = serializers.SerializerMethodField()
     last_payment_audit_notes = serializers.CharField(source="admin_feedback", read_only=True)
+    institution_id = serializers.UUIDField(source="institution_ref_id", read_only=True)
+    program_id = serializers.UUIDField(source="canonical_program_id", read_only=True)
+    program_offering_id = serializers.UUIDField(read_only=True)
+    intake_id = serializers.UUIDField(source="intake_ref_id", read_only=True)
 
     class Meta:
         model = Application
@@ -347,7 +354,9 @@ class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSer
             "sex", "phone", "email", "residence_town", "nationality",
             "country", "address_line_1", "address_line_2", "postal_code",
             "next_of_kin_name", "next_of_kin_phone",
+            "institution_id", "program_id", "program_offering_id", "intake_id",
             "program", "intake", "institution", "status", "version",
+            "student_number",
             "result_slip_url", "extra_kyc_url", "application_fee",
             "payment_method", "paid_amount", "paid_at", "receipt_number",
             "payment_status", "payment_verified_at", "payment_verified_by",
@@ -365,7 +374,7 @@ class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSer
             "id", "application_number", "public_tracking_code", "tracking_code",
             "payment_reference", "last_payment_reference",
             "payment_verified_by_name", "payment_verified_by_email",
-            "version", "created_at", "updated_at",
+            "version", "created_at", "updated_at", "student_number",
         ]
 
     def get_fields(self):
@@ -478,9 +487,12 @@ class ApplicationCreateSerializer(serializers.Serializer):
     nationality = serializers.CharField(max_length=100, required=False, default="Zambian")
     next_of_kin_name = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True, default="")
     next_of_kin_phone = serializers.CharField(max_length=20, required=False, allow_blank=True, allow_null=True, default="")
-    program = serializers.CharField(max_length=255)
-    intake = serializers.CharField(max_length=100)
-    institution = serializers.CharField(max_length=255)
+    program_id = serializers.UUIDField(required=False)
+    intake_id = serializers.UUIDField(required=False)
+    institution_id = serializers.UUIDField(required=False)
+    program = serializers.CharField(max_length=255, required=False)
+    intake = serializers.CharField(max_length=100, required=False)
+    institution = serializers.CharField(max_length=255, required=False, allow_blank=True)
     draft_name = serializers.CharField(max_length=255, required=False, allow_blank=True, default="")
 
     def validate_phone(self, value):
@@ -506,6 +518,27 @@ class ApplicationCreateSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid program reference.")
         return resolved.name
 
+    def validate_program_id(self, value):
+        from apps.catalog.models import CanonicalProgram
+
+        if not CanonicalProgram.objects.filter(id=value, is_active=True).exists():
+            raise serializers.ValidationError("Invalid canonical program reference.")
+        return value
+
+    def validate_intake_id(self, value):
+        from apps.catalog.models import Intake
+
+        if not Intake.objects.filter(id=value, is_active=True).exists():
+            raise serializers.ValidationError("Invalid intake reference.")
+        return value
+
+    def validate_institution_id(self, value):
+        from apps.catalog.models import Institution
+
+        if not Institution.objects.filter(id=value, is_active=True).exists():
+            raise serializers.ValidationError("Invalid institution reference.")
+        return value
+
     def validate_intake(self, value):
         """Validate and canonicalize intake via IdentifierResolver."""
         resolved = IdentifierResolver.resolve_intake(value)
@@ -528,8 +561,27 @@ class ApplicationCreateSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
+        program_id = attrs.get("program_id")
+        intake_id = attrs.get("intake_id")
         program_name = attrs.get("program")
         intake_name = attrs.get("intake")
+        if program_id or intake_id:
+            if not program_id or not intake_id:
+                raise serializers.ValidationError(
+                    {"program_id": "program_id and intake_id are required together."},
+                    code="INVALID_PROGRAM_INTAKE",
+                )
+            return attrs
+        if not program_name or not intake_name:
+            raise serializers.ValidationError(
+                {"program": "Either program_id/intake_id or program/intake is required."},
+                code="INVALID_PROGRAM_INTAKE",
+            )
+        if not attrs.get("institution"):
+            raise serializers.ValidationError(
+                {"institution": "Institution is required for legacy program/intake submissions."},
+                code="INVALID_INSTITUTION",
+            )
         if program_name and intake_name:
             validate_program_intake_compatibility(program_name, intake_name)
         return attrs
@@ -548,12 +600,17 @@ class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.Mode
     points = serializers.SerializerMethodField()
     age = serializers.SerializerMethodField()
     days_since_submission = serializers.SerializerMethodField()
+    institution_id = serializers.UUIDField(source="institution_ref_id", read_only=True)
+    program_id = serializers.UUIDField(source="canonical_program_id", read_only=True)
+    program_offering_id = serializers.UUIDField(read_only=True)
+    intake_id = serializers.UUIDField(source="intake_ref_id", read_only=True)
 
     class Meta:
         model = Application
         fields = [
             "id", "user_id", "application_number", "public_tracking_code", "tracking_code",
             "full_name", "email", "phone", "program", "intake", "institution",
+            "institution_id", "program_id", "program_offering_id", "intake_id",
             "status", "payment_status", "payment_method", "paid_amount", "paid_at",
             "receipt_number",
             "payment_verified_at", "payment_reference", "last_payment_reference",

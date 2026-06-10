@@ -31,7 +31,9 @@ class FunnelAnalyticsView(APIView):
     @extend_schema(operation_id="analytics_funnel", tags=["analytics"], responses={200: OpenApiResponse(response=FUNNEL_RESPONSE)})
     def get(self, request):
         from django.core.cache import cache
+        from apps.accounts.permissions import is_super_admin
         from apps.analytics.admissions_analytics import AdmissionsAnalyticsService
+        from apps.catalog.services import AccessScopeService
 
         filters = {}
         if request.query_params.get("start_date"):
@@ -43,14 +45,46 @@ class FunnelAnalyticsView(APIView):
         if request.query_params.get("program"):
             filters["program"] = request.query_params["program"]
 
-        cache_key = f"admissions_funnel:{hashlib.md5(json.dumps(filters, sort_keys=True).encode()).hexdigest()}"
+        # Cross-tenant isolation (R4.5): the funnel aggregates Application and
+        # Payment rows, so a School_Staff caller must only ever see their own
+        # institutions' counts. The aggregation is scoped inside
+        # ``AdmissionsAnalyticsService`` (it receives the caller), and the cache
+        # key is namespaced by the caller's resolved scope so one school's
+        # cached funnel can never be served to another school. Super-admins keep
+        # a single global cache namespace.
+        no_school_access = False
+        if is_super_admin(request.user):
+            scope_token = "global"
+        else:
+            scope = AccessScopeService().filters_for_user(request.user)
+            if scope.all_access:
+                scope_token = "global"
+            else:
+                # R4.6: a no-scope staff member's scoped funnel is correctly all
+                # zeros; flag it so the frontend shows "no school access
+                # assigned" rather than reading the zeros as platform totals.
+                no_school_access = scope.has_no_scope
+                scope_token = "scope:" + hashlib.md5(
+                    json.dumps(
+                        {
+                            "institution_ids": sorted(scope.institution_ids),
+                            "offering_ids": sorted(scope.offering_ids),
+                            "application_ids": sorted(scope.application_ids),
+                        },
+                        sort_keys=True,
+                    ).encode()
+                ).hexdigest()
+
+        filters_hash = hashlib.md5(json.dumps(filters, sort_keys=True).encode()).hexdigest()
+        cache_key = f"admissions_funnel:{scope_token}:{filters_hash}"
         cached = cache.get(cache_key)
         if cached:
             return Response({"success": True, "data": cached})
 
         try:
-            service = AdmissionsAnalyticsService()
+            service = AdmissionsAnalyticsService(user=request.user)
             data = {
+                "no_school_access": no_school_access,
                 "funnel": service.funnel_metrics(filters),
                 "timing": service.timing_metrics(filters),
                 "payments": service.payment_metrics(filters),

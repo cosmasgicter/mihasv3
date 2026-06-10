@@ -1,5 +1,5 @@
-const PRODUCTION_APP_ORIGIN = 'https://apply.mihas.edu.zm'
-const PRODUCTION_API_ORIGIN = 'https://api.mihas.edu.zm'
+const PRODUCTION_APP_ORIGIN = 'https://apply.beanola.com'
+const PRODUCTION_API_ORIGIN = 'https://api.beanola.com'
 
 function normalizeBaseUrl(value: string): string {
   return value.replace(/\/$/, '').replace(/\/api\/v1$/, '')
@@ -39,7 +39,7 @@ export function getApiBaseUrl(): string {
   if (configuredBaseUrl) {
     const normalized = normalizeBaseUrl(configuredBaseUrl)
     // Guard: if VITE_API_BASE_URL accidentally points to the frontend origin
-    // (e.g. https://apply.mihas.edu.zm), fall through to the origin-based
+    // (e.g. https://apply.beanola.com), fall through to the origin-based
     // resolution below instead of sending API traffic to the static site.
     if (normalized !== PRODUCTION_APP_ORIGIN) {
       return normalized

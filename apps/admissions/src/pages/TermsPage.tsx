@@ -15,8 +15,8 @@ export default function TermsPage() {
   return (
     <PublicLayout>
       <Seo
-        title="Terms of Use | MIHAS-KATC Admissions"
-        description="Read the terms that govern use of the MIHAS-KATC admissions portal and related applicant services."
+        title="Terms of Use | Beanola Admissions"
+        description="Read the terms that govern use of the Beanola admissions portal and related applicant services."
         path="/terms"
       />
 
@@ -26,7 +26,7 @@ export default function TermsPage() {
             variant="surface"
             icon={<FileText className="h-6 w-6" aria-hidden="true" />}
             title="Terms of Use"
-            description="These terms explain how applicants may use the MIHAS-KATC admissions portal and what responsibilities apply when creating and managing an account."
+            description="These terms explain how applicants may use the Beanola admissions portal and what responsibilities apply when creating and managing an account."
           />
 
           <article className="mx-auto max-w-prose space-y-10">
@@ -58,7 +58,7 @@ export default function TermsPage() {
               <h2 className="text-xl font-semibold text-foreground">2. Account Responsibility</h2>
               <p className="mt-3 text-base leading-7 text-muted-foreground sm:leading-8">
                 You are responsible for keeping your sign-in credentials secure and for ensuring the
-                information you provide is accurate, current, and complete. MIHAS-KATC may suspend or
+                information you provide is accurate, current, and complete. Beanola may suspend or
                 restrict access when fraudulent, misleading, or abusive activity is detected.
               </p>
             </section>

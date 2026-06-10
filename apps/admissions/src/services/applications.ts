@@ -402,9 +402,30 @@ export const applicationService = {
     )
   },
 
+  generateApplicationSlip: async (id: string) => {
+    return apiClient.request<{ task_id: string; application_id: string; status: string }>(
+      `/applications/${encodeURIComponent(id)}/application-slip/`,
+      { method: 'POST' }
+    )
+  },
+
+  generateConditionalOffer: async (id: string) => {
+    return apiClient.request<{ task_id: string; application_id: string; status: string }>(
+      `/applications/${encodeURIComponent(id)}/conditional-offer/`,
+      { method: 'POST' }
+    )
+  },
+
   generateFinanceReceipt: async (id: string) => {
     return apiClient.request<{ task_id: string; application_id: string; status: string }>(
       `/applications/${encodeURIComponent(id)}/finance-receipt/`,
+      { method: 'POST' }
+    )
+  },
+
+  generatePaymentReceipt: async (id: string) => {
+    return apiClient.request<{ task_id: string; application_id: string; status: string }>(
+      `/applications/${encodeURIComponent(id)}/payment-receipt/`,
       { method: 'POST' }
     )
   },

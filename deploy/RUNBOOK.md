@@ -252,3 +252,111 @@ docker stats --no-stream                                  # live memory per cont
 docker compose -f docker-compose.prod.yml restart web     # restart one service
 df -h && free -h                                          # disk + memory/swap
 ```
+
+---
+
+## 9. Monitoring via Grafana Cloud (no inbound ports)
+
+A single **Grafana Alloy** agent ships telemetry **outbound** to your Grafana
+Cloud free-tier stack. Nothing is exposed on the box — the only inbound surface
+stays `80/443` (Caddy) + SSH. You view everything at
+`https://<your-stack>.grafana.net`, which **is** the secured, login-gated URL
+only you can reach.
+
+```
+EC2 box                                  Grafana Cloud (yourorg.grafana.net)
+┌─────────────────────────────┐          ┌──────────────────────────────────┐
+│ alloy ──host metrics───────────push────▶ Prometheus (Mimir)  → dashboards  │
+│   ├── container metrics ───────push────▶                       + alerts     │
+│   └── container logs ──────────push────▶ Loki                → log search   │
+└─────────────────────────────┘  (HTTPS, outbound only — no inbound ports)
+```
+
+What it gives you, mapped to this stack:
+
+| Signal | Source | Why it matters on a 2 GB box |
+|--------|--------|------------------------------|
+| Host CPU/RAM/disk/network | `prometheus.exporter.unix` | Catch RAM + **disk-fill** (the #1 silent killer) before they take Postgres down. |
+| Per-container CPU/RAM | `prometheus.exporter.cadvisor` | See `web`/`celery` memory creep per service and alert *before* the OOM-killer fires. |
+| All container logs | `discovery.docker` + `loki.source.docker` | Search web/celery/beat/caddy/postgres/redis logs in one place, with history, from anywhere. |
+
+### Security model
+
+- **No inbound ports.** Alloy only makes outbound HTTPS connections to Grafana
+  Cloud. Your security group is unchanged (`22/80/443`).
+- **The dashboard is Grafana's own login.** `yourorg.grafana.net` is gated by
+  your Grafana account — **turn on 2FA** there and it is locked to you.
+- **Secrets stay on the box.** The API key + endpoints live only in
+  `~/mihas/.env` (gitignored, `chmod 600`), injected as env vars — never baked
+  into an image or committed.
+- **Read-only access to the host.** The docker socket and `/`, `/proc`, `/sys`
+  are mounted **read-only**; Alloy can read stats and tail logs, never control
+  containers or modify the host.
+
+### One-time setup
+
+1. **Create a Cloud access policy / token** in Grafana Cloud:
+   `yourorg.grafana.net` → **Connections → Add new connection → Hosted
+   Prometheus/Loki** (or **Administration → Access Policies → Create token**)
+   with roles `metrics:write` + `logs:write`. Copy the **token** and the
+   **Prometheus** and **Loki** push URLs + usernames (the numeric instance IDs)
+   shown on that page.
+2. **Fill `~/mihas/.env`** (see `deploy/.env.prod.example`):
+   ```bash
+   MONITOR_HOSTNAME=mihas-ec2
+   GCLOUD_API_KEY=<token>
+   GCLOUD_PROM_URL=https://prometheus-prod-XX-prod-REGION.grafana.net/api/prom/push
+   GCLOUD_PROM_USER=<prometheus numeric user id>
+   GCLOUD_LOKI_URL=https://logs-prod-XXX.grafana.net/loki/api/v1/push
+   GCLOUD_LOKI_USER=<loki numeric user id>
+   ```
+3. **Copy the config up and start Alloy:**
+   ```bash
+   # from your laptop:
+   scp -r deploy/alloy deploy/docker-compose.grafana-cloud.yml ubuntu@<ip>:~/mihas/
+   # on the box:
+   cd ~/mihas
+   docker compose -f docker-compose.prod.yml -f docker-compose.grafana-cloud.yml \
+     --env-file .env up -d alloy
+   docker compose -f docker-compose.prod.yml -f docker-compose.grafana-cloud.yml logs -f alloy
+   # look for successful remote_write / loki push; no auth errors.
+   ```
+
+### View + alert
+
+- **Metrics**: `yourorg.grafana.net` → Drilldown → Metrics, or import a
+  community dashboard (e.g. Node Exporter Full, cAdvisor) — your data is already
+  there under the `instance="mihas-ec2"` label.
+- **Logs**: Drilldown → Logs → `{job="docker"}`, filter by
+  `container="web"` / `celery` / `postgres` etc.
+- **Alerts** (Grafana Cloud → Alerting): recommended for this box —
+  - RAM used > 90 % for 5 min,
+  - root disk used > 80 %,
+  - any container `up == 0` (Alloy stopped reporting) for 5 min.
+  Route to email/Slack/Discord in **Contact points**.
+
+### Free-tier note
+
+Scrape interval is set to 60 s in `config.alloy` to stay within the free tier's
+active-series / ingestion limits. If you approach the cap, drop cAdvisor's
+per-container metrics first (comment out the `cadvisor` scrape) and keep host
+metrics + logs.
+
+### Host hardening (still recommended, unrelated to monitoring)
+
+`deploy/harden-host.sh` applies Docker **log rotation** (so container logs can't
+fill the disk), `unattended-upgrades`, and `fail2ban`. Run once:
+
+```bash
+cd ~/mihas && ./harden-host.sh
+```
+
+### Update / remove
+
+```bash
+# update Alloy
+docker compose -f docker-compose.prod.yml -f docker-compose.grafana-cloud.yml --env-file .env pull alloy
+docker compose -f docker-compose.prod.yml -f docker-compose.grafana-cloud.yml --env-file .env up -d alloy
+# remove telemetry entirely (app stack untouched)
+docker compose -f docker-compose.grafana-cloud.yml down
+```

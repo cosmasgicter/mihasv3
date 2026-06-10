@@ -279,10 +279,22 @@ class TestApplicationAPIContractsPreservation:
         # Mock the queryset chain and serializer to avoid DB writes
         with patch("apps.applications.student_draft_views._with_payment_summary", side_effect=lambda qs: qs), \
              patch("apps.applications.student_draft_views.Application.objects") as mock_qs, \
+             patch("apps.applications.student_draft_views.AccessScopeService") as mock_scope_cls, \
              patch("apps.applications.student_draft_views.ApplicationSerializer") as mock_ser_cls:
             mock_chain = MagicMock()
             mock_chain.get.return_value = application
             mock_qs.select_related.return_value.prefetch_related.return_value = mock_chain
+
+            # The admin tenant-scope check in _get_application runs
+            # AccessScopeService().filter_applications(...).exists(). The
+            # admin is in-scope for this application, so exists() is True.
+            # Isolate the new seam the same way the queryset chain is
+            # isolated so this preservation test exercises only the
+            # PATCH/PUT contract, not multi-tenant scoping (covered by the
+            # dedicated isolation suites).
+            mock_scope = MagicMock()
+            mock_scope.filter_applications.return_value.exists.return_value = True
+            mock_scope_cls.return_value = mock_scope
 
             mock_serializer = MagicMock()
             mock_serializer.is_valid.return_value = True
@@ -353,11 +365,22 @@ class TestApplicationAPIContractsPreservation:
         application = _make_application(app_id=app_id, status="submitted")
 
         with patch("apps.applications.admin_review_views.Application.objects") as mock_qs, \
+             patch("apps.catalog.services.AccessScopeService") as mock_scope_cls, \
              patch("apps.applications.admin_review_views.transition_application_status") as mock_transition, \
              patch("apps.applications.admin_review_views.transaction.atomic"):
             mock_qs.get.return_value = application
+            mock_qs.all.return_value.get.return_value = application
             mock_qs.select_for_update.return_value.get.return_value = application
             mock_transition.return_value = "submitted"  # old_status
+
+            # Admins (non-super-admin) pass through the tenant-scope filter
+            # in post(). The seam is locally imported from
+            # apps.catalog.services, so patch it there. filter_applications
+            # is a pass-through here — the admin is in-scope — so the
+            # existing Application.objects.get mock still resolves the row.
+            mock_scope = MagicMock()
+            mock_scope.filter_applications.side_effect = lambda qs, _user: qs
+            mock_scope_cls.return_value = mock_scope
 
             request = _auth_request(
                 factory, "post",
@@ -394,11 +417,21 @@ class TestApplicationAPIContractsPreservation:
         application = _make_application(app_id=app_id, status="submitted")
 
         with patch("apps.applications.admin_review_views.Application.objects") as mock_qs, \
+             patch("apps.catalog.services.AccessScopeService") as mock_scope_cls, \
              patch("apps.applications.admin_review_views.transition_application_status") as mock_transition, \
              patch("apps.applications.admin_review_views.transaction.atomic"):
             mock_qs.get.return_value = application
+            mock_qs.all.return_value.get.return_value = application
             mock_qs.select_for_update.return_value.get.return_value = application
             mock_transition.return_value = "submitted"
+
+            # Admins pass through the tenant-scope filter in post(); the
+            # seam is locally imported from apps.catalog.services. Make it
+            # a pass-through so the existing Application.objects.get mock
+            # still resolves the row (tenant scoping is covered elsewhere).
+            mock_scope = MagicMock()
+            mock_scope.filter_applications.side_effect = lambda qs, _user: qs
+            mock_scope_cls.return_value = mock_scope
 
             # Send legacy payload with 'status' instead of 'new_status'
             request = _auth_request(

@@ -72,7 +72,7 @@ function buildFallbackPreviewSummary({
 }) {
   const firstName = fullName?.trim()?.split(/\s+/)[0] || 'Student'
   const programLabel = program?.trim() || 'your chosen programme'
-  const institutionLabel = institution?.trim() || 'MIHAS'
+  const institutionLabel = institution?.trim() || 'Beanola Admissions'
   const intakeLabel = intake?.trim()
   const paymentLine = paymentStatus === 'successful'
     ? 'Your payment has already been confirmed.'
@@ -188,7 +188,7 @@ const SubmitStep = ({
       label: 'Personal information completed',
       detail: formValues.full_name ? formValues.full_name : 'Full name is still missing',
       completed: isRequirementComplete('full_name', Boolean(formValues.full_name)),
-      stepKey: 'basicKyc' as StepKey,
+      stepKey: 'personal' as StepKey,
     },
     {
       label: 'Minimum Grade 12 subjects added',
@@ -354,7 +354,7 @@ const SubmitStep = ({
               {onNavigateToStep && (
                 <button
                   type="button"
-                  onClick={() => onNavigateToStep('basicKyc')}
+                  onClick={() => onNavigateToStep('personal')}
                   className="shrink-0 rounded-lg border border-border/70 px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/5 min-h-[44px] flex items-center"
                 >
                   Edit details

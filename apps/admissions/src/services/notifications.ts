@@ -310,7 +310,7 @@ export const notificationService = {
     if (!userId || !userName) return false;
     return notificationService.sendNotification({
       userId,
-      title: 'Welcome to MIHAS-KATC',
+      title: 'Welcome to Beanola',
       content: `Welcome ${userName}! Your account has been created successfully.`,
       type: 'success',
     });

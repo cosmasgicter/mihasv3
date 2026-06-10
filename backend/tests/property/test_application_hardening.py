@@ -307,10 +307,12 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
         mock_history.changes = None
 
         with patch("apps.applications.admin_review_views.transaction.atomic"), \
+             patch("apps.catalog.services.AccessScopeService") as mock_scope_cls, \
              patch("apps.applications.admin_review_views.Application.objects") as mock_app_objects, \
              patch("apps.applications.admin_review_views.transition_application_status") as mock_transition, \
              patch("apps.applications.admin_review_views.ApplicationStatusHistory.objects") as mock_history_objects:
 
+            mock_scope_cls.return_value.filter_applications.side_effect = lambda qs, user: qs
             mock_app_objects.get.return_value = mock_app
             mock_transition.return_value = "submitted"  # old_status
             mock_history_objects.filter.return_value.order_by.return_value.first.return_value = mock_history
@@ -373,11 +375,13 @@ class TestForceBypassCreatesAuditTrail(SimpleTestCase):
         mock_app.payment_status = "verified"
 
         with patch("apps.applications.admin_review_views.transaction.atomic"), \
+             patch("apps.catalog.services.AccessScopeService") as mock_scope_cls, \
              patch("apps.applications.admin_review_views.Application.objects") as mock_app_objects, \
              patch("apps.applications.admin_review_views.transition_application_status") as mock_transition, \
              patch("apps.applications.admin_review_views.ApplicationStatusHistory.objects") as mock_history_objects, \
              patch("apps.applications.admin_review_views.Payment.objects") as mock_payment:
 
+            mock_scope_cls.return_value.filter_applications.side_effect = lambda qs, user: qs
             mock_app_objects.get.return_value = mock_app
             mock_transition.return_value = "under_review"
             # For approved status without force, payment check must pass

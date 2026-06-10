@@ -239,8 +239,8 @@ export default function StudentSettings() {
   return (
     <>
       <Seo
-        title="My Settings | MIHAS-KATC Admissions"
-        description="Manage your profile details, residence information, and security settings for your MIHAS-KATC admissions account."
+        title="My Settings | Beanola Admissions"
+        description="Manage your profile details, residence information, and security settings for your Beanola admissions account."
         path="/student/settings"
         noindex
       />

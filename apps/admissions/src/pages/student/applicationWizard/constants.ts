@@ -3,9 +3,17 @@ export const WIZARD_COPY = {
   missingFieldsPrefix: 'Missing:',
   quickTipsTitle: 'Step notes',
   quickTipsByStep: {
-    basicKyc: [
+    program: [
+      'Programme and intake',
+      'Assigned school next'
+    ],
+    assignedSchool: [
+      'Assigned school and fee',
+      'Required documents'
+    ],
+    personal: [
       'Contact details',
-      'Programme and intake'
+      'NRC or passport'
     ],
     education: [
       'At least 5 subjects',

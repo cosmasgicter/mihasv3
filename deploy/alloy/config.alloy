@@ -1,0 +1,105 @@
+// MIHAS — Grafana Alloy config: ship host + container metrics and container
+// logs OUTBOUND to Grafana Cloud. Nothing here listens on a public port.
+//
+// All secrets come from env vars (set in ~/mihas/.env, never baked in):
+//   GCLOUD_PROM_URL   GCLOUD_PROM_USER   GCLOUD_API_KEY
+//   GCLOUD_LOKI_URL   GCLOUD_LOKI_USER
+// (Prometheus + Loki share the same API key; the usernames differ — both are
+//  shown on the Grafana Cloud "Connections → Data sources" / stack details page.)
+//
+// Reference: grafana.com/docs/alloy — prometheus.remote_write, loki.write,
+// prometheus.exporter.unix, discovery.docker, loki.source.docker.
+
+// ---------------------------------------------------------------------------
+// 1. Outbound sinks (Grafana Cloud)
+// ---------------------------------------------------------------------------
+
+prometheus.remote_write "gcloud" {
+  endpoint {
+    url = sys.env("GCLOUD_PROM_URL")   // .../api/prom/push
+    basic_auth {
+      username = sys.env("GCLOUD_PROM_USER")
+      password = sys.env("GCLOUD_API_KEY")
+    }
+  }
+}
+
+loki.write "gcloud" {
+  endpoint {
+    url = sys.env("GCLOUD_LOKI_URL")   // .../loki/api/v1/push
+    basic_auth {
+      username = sys.env("GCLOUD_LOKI_USER")
+      password = sys.env("GCLOUD_API_KEY")
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 2. Host metrics (CPU, RAM, disk, filesystem, network) — the 2GB box's vitals
+// ---------------------------------------------------------------------------
+
+prometheus.exporter.unix "host" {
+  // Root filesystem fill is the #1 silent killer; rootfs is mounted at /rootfs.
+  rootfs_path = "/rootfs"
+  procfs_path = "/host/proc"
+  sysfs_path  = "/host/sys"
+}
+
+prometheus.scrape "host" {
+  targets    = prometheus.exporter.unix.host.targets
+  forward_to = [prometheus.relabel.host.receiver]
+  scrape_interval = "60s"   // gentle on the free-tier active-series budget
+}
+
+// Stamp a stable instance label so dashboards/alerts pin to this host.
+prometheus.relabel "host" {
+  forward_to = [prometheus.remote_write.gcloud.receiver]
+  rule {
+    target_label = "instance"
+    replacement  = sys.env("HOSTNAME")
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 3. Per-container metrics (cAdvisor) — see web/celery memory creep per service
+// ---------------------------------------------------------------------------
+
+prometheus.exporter.cadvisor "containers" {
+  docker_host        = "unix:///var/run/docker.sock"
+  storage_duration   = "5m"
+}
+
+prometheus.scrape "containers" {
+  targets    = prometheus.exporter.cadvisor.containers.targets
+  forward_to = [prometheus.remote_write.gcloud.receiver]
+  scrape_interval = "60s"
+}
+
+// ---------------------------------------------------------------------------
+// 4. Container logs — every service's stdout/stderr, searchable in Cloud Loki
+// ---------------------------------------------------------------------------
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// Turn the noisy container name/id into clean Loki labels.
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+  rule {
+    target_label = "host"
+    replacement  = sys.env("HOSTNAME")
+  }
+}
+
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output
+  labels     = { job = "docker" }
+  forward_to = [loki.write.gcloud.receiver]
+}

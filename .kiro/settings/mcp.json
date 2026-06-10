@@ -28,7 +28,9 @@
       ],
       "env": {},
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [
+        "create_entities"
+      ]
     },
     "shadcn-ui": {
       "command": "npx",

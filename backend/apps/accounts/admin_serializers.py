@@ -348,6 +348,16 @@ class AdminDashboardNeedsAttentionSerializer(serializers.Serializer):
 
 
 class AdminDashboardSerializer(serializers.Serializer):
+    no_school_access = serializers.BooleanField(
+        required=False,
+        default=False,
+        help_text=(
+            "True when the caller is a non-super-admin with no school "
+            "membership or grant. Frontend renders an explicit 'No school "
+            "access assigned' state instead of treating the zero counts as "
+            "platform-wide totals (R4.6)."
+        ),
+    )
     applications = AdminDashboardApplicationStatsSerializer()
     users = AdminDashboardUserStatsSerializer()
     needs_attention = AdminDashboardNeedsAttentionSerializer()

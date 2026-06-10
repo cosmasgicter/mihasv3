@@ -15,6 +15,7 @@ from apps.documents.payment_constants import (
     CanonicalStatus,
 )
 from apps.documents.payment_helpers import (
+    _build_tenant_payment_metadata,
     _review_application_payment_impl,
 )
 from apps.documents.payment_types import (
@@ -101,6 +102,7 @@ class PaymentAdminMixin:
                     transaction_reference="",
                     payment_method="admin_override",
                     metadata={
+                        **_build_tenant_payment_metadata(application),
                         "admin_override_placeholder": True,
                     },
                     created_at=now,

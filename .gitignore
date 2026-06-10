@@ -44,6 +44,10 @@ apps/admissions/public/ocr/tesseract/
 .migration-backup/
 r2.env
 
+# Filled-in Alloy configs that contain real Grafana Cloud tokens — never commit.
+*.secret.alloy
+deploy/alloy/config.local.alloy
+
 # Testing
 /coverage
 coverage/

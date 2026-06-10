@@ -51,7 +51,7 @@ export default function History() {
   return (
     <>
       <Seo
-        title="Activity History | MIHAS-KATC Admissions"
+        title="Activity History | Beanola Admissions"
         description="View the chronological timeline of your application activity."
         path="/student/history"
         noindex

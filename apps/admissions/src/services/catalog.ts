@@ -24,6 +24,7 @@ type RawProgram = {
   application_fee?: number | string
   requirements?: Record<string, unknown> | null
   is_active?: boolean
+  available_offerings?: RawProgram[]
 }
 
 type RawIntake = {
@@ -48,6 +49,20 @@ type RawSubject = {
   curriculum_type?: string
 }
 
+type RawCatalogContext = {
+  portal_type: 'shared' | 'white_label'
+  institution_id?: string | null
+  institution_code?: string | null
+  brand: {
+    name: string
+    owner?: string
+    primary_color?: string
+    secondary_color?: string
+    support_email?: string
+    admissions_email?: string
+  }
+}
+
 export interface Institution {
   id: string
   name: string
@@ -70,6 +85,7 @@ export interface Program {
   code?: string
   application_fee?: number
   requirements?: Record<string, unknown>
+  available_offerings?: Program[]
 }
 
 export interface Intake {
@@ -91,6 +107,59 @@ export interface Subject {
   category?: string
   curriculum_type?: string
   is_active?: boolean
+}
+
+export interface CatalogContext {
+  portal_type: 'shared' | 'white_label'
+  institution_id: string | null
+  institution_code?: string | null
+  brand: RawCatalogContext['brand']
+}
+
+export interface AssignmentPreviewRequiredDocument {
+  document_type: string
+  label: string
+  required: boolean
+  rules: Record<string, unknown>
+}
+
+export interface AssignmentPreviewFee {
+  amount: string
+  currency: string
+  residency_category: string
+  source: string
+}
+
+export interface AssignmentPreviewContact {
+  email?: string | null
+  phone?: string | null
+  website?: string | null
+}
+
+export interface AssignmentPreview {
+  program_id: string
+  intake_id: string
+  program_offering_id: string
+  institution_id: string
+  assigned_school: {
+    id: string
+    name: string
+    full_name?: string | null
+    code?: string | null
+  }
+  program_name: string
+  intake_name: string
+  fee: AssignmentPreviewFee | null
+  required_documents: AssignmentPreviewRequiredDocument[]
+  contact: AssignmentPreviewContact
+}
+
+export interface AssignmentPreviewParams {
+  programId: string
+  intakeId: string
+  nationality?: string | null
+  country?: string | null
+  institution?: string | null
 }
 
 type ProgramCollectionResponse = { programs: Program[] }
@@ -218,6 +287,11 @@ function normalizeProgram(record: RawProgram | Program | null | undefined): Prog
     code: record.code,
     application_fee: toNumber(record.application_fee, 0),
     requirements,
+    available_offerings: Array.isArray(record.available_offerings)
+      ? record.available_offerings.map(item => normalizeProgram(item)).filter(Boolean) as Program[]
+      : 'available_offerings' in record && Array.isArray(record.available_offerings)
+        ? record.available_offerings
+        : undefined,
   }
 }
 
@@ -499,6 +573,26 @@ function buildInstitutionPayload(data: InstitutionFormData, existing?: RawInstit
 }
 
 export const catalogService = {
+  getContext: async (): Promise<CatalogContext> => {
+    const endpoint = '/catalog/context/'
+    try {
+      const response = await apiClient.request<RawCatalogContext>(endpoint)
+      return {
+        portal_type: response?.portal_type === 'white_label' ? 'white_label' : 'shared',
+        institution_id: response?.institution_id ?? null,
+        institution_code: response?.institution_code ?? null,
+        brand: response?.brand ?? { name: 'Beanola Admissions', owner: 'Beanola Technologies' },
+      }
+    } catch (error) {
+      logApiError('catalog', endpoint, error)
+      return {
+        portal_type: 'shared',
+        institution_id: null,
+        brand: { name: 'Beanola Admissions', owner: 'Beanola Technologies' },
+      }
+    }
+  },
+
   getPrograms: async (params?: QueryParams): Promise<ProgramCollectionResponse> => {
     const query = buildQueryString(params ?? {})
     const endpoint = `/catalog/programs/${query}`
@@ -522,6 +616,46 @@ export const catalogService = {
       )
     } catch (error) {
       logApiError('catalog', `/catalog/programs/?intake=${intakeId}`, error)
+      throw error
+    }
+  },
+
+  getCanonicalPrograms: async (params?: QueryParams): Promise<ProgramCollectionResponse> => {
+    const query = buildQueryString(params ?? {})
+    const endpoint = `/catalog/canonical-programs/${query}`
+    try {
+      return normalizeProgramsResponse(
+        await apiClient.request<RawProgram[] | ProgramCollectionResponse | RawPaginatedCollection<RawProgram>>(endpoint)
+      )
+    } catch (error) {
+      logApiError('catalog', endpoint, error)
+      throw error
+    }
+  },
+
+  /**
+   * Resolve the assigned school (offering), fee, required documents, and
+   * school contact for a chosen canonical program + intake (R10.2). Read-only
+   * preview — creates no application row. Throws on a non-2xx response so the
+   * wizard can surface a recoverable assignment-failure path (R10.4 / task 21.2).
+   */
+  getAssignmentPreview: async (params: AssignmentPreviewParams): Promise<AssignmentPreview> => {
+    const query = buildQueryString({
+      program_id: params.programId,
+      intake_id: params.intakeId,
+      ...(params.nationality ? { nationality: params.nationality } : {}),
+      ...(params.country ? { country: params.country } : {}),
+      ...(params.institution ? { institution: params.institution } : {}),
+    })
+    const endpoint = `/catalog/assignment-preview/${query}`
+    try {
+      const response = await apiClient.request<AssignmentPreview>(endpoint)
+      if (!response) {
+        throw new Error('No assignment returned')
+      }
+      return response
+    } catch (error) {
+      logApiError('catalog', endpoint, error)
       throw error
     }
   },

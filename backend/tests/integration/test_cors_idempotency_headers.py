@@ -16,14 +16,14 @@ class TestCorsIdempotencyKeyPreflight:
     """Verify OPTIONS preflight accepts idempotency-key in Access-Control-Request-Headers."""
 
     @override_settings(
-        CORS_ALLOWED_ORIGINS=["https://apply.mihas.edu.zm"],
+        CORS_ALLOWED_ORIGINS=["https://apply.beanola.com"],
         CORS_ALLOW_ALL_ORIGINS=False,
     )
     def test_preflight_allows_idempotency_key_header(self, client):
         """An OPTIONS preflight requesting idempotency-key must be allowed."""
         response = client.options(
             "/api/v1/applications/00000000-0000-0000-0000-000000000000/submit/",
-            HTTP_ORIGIN="https://apply.mihas.edu.zm",
+            HTTP_ORIGIN="https://apply.beanola.com",
             HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
             HTTP_ACCESS_CONTROL_REQUEST_HEADERS="idempotency-key",
         )
@@ -37,14 +37,14 @@ class TestCorsIdempotencyKeyPreflight:
         )
 
     @override_settings(
-        CORS_ALLOWED_ORIGINS=["https://apply.mihas.edu.zm"],
+        CORS_ALLOWED_ORIGINS=["https://apply.beanola.com"],
         CORS_ALLOW_ALL_ORIGINS=False,
     )
     def test_preflight_allows_combined_headers(self, client):
         """Preflight requesting multiple custom headers including idempotency-key."""
         response = client.options(
             "/api/v1/applications/00000000-0000-0000-0000-000000000000/submit/",
-            HTTP_ORIGIN="https://apply.mihas.edu.zm",
+            HTTP_ORIGIN="https://apply.beanola.com",
             HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
             HTTP_ACCESS_CONTROL_REQUEST_HEADERS="x-csrf-token, idempotency-key, content-type",
         )

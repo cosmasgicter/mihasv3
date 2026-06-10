@@ -52,7 +52,7 @@ class TestCookieSameSiteBugCondition:
 
     On unfixed code, prod.py sets AUTH_COOKIE_SAMESITE = "Lax" which
     prevents cookies from being sent on cross-origin credentialed requests
-    from apply.mihas.edu.zm to api.mihas.edu.zm.
+    from apply.beanola.com to api.beanola.com.
 
     This test MUST FAIL on unfixed code — confirming the bug exists.
 

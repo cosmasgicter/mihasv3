@@ -107,8 +107,8 @@ export default function ResetPasswordPage() {
     return (
       <>
         <Seo
-          title="Verify Reset Link | MIHAS-KATC Admissions"
-          description="Verifying your MIHAS-KATC password reset link before allowing password update."
+          title="Verify Reset Link | Beanola Admissions"
+          description="Verifying your Beanola password reset link before allowing password update."
           path="/auth/reset-password"
         />
         <AuthSkeleton />
@@ -121,8 +121,8 @@ export default function ResetPasswordPage() {
     return (
       <>
         <Seo
-          title="Password Updated | MIHAS-KATC Admissions"
-          description="Your MIHAS-KATC account password was updated successfully. Sign in again to continue your application journey."
+          title="Password Updated | Beanola Admissions"
+          description="Your Beanola account password was updated successfully. Sign in again to continue your application journey."
           path="/auth/reset-password"
         />
         <AuthShell
@@ -159,8 +159,8 @@ export default function ResetPasswordPage() {
     return (
       <>
         <Seo
-          title="Reset Link Error | MIHAS-KATC Admissions"
-          description="The MIHAS-KATC password reset link is invalid or expired. Request a new link to continue."
+          title="Reset Link Error | Beanola Admissions"
+          description="The Beanola password reset link is invalid or expired. Request a new link to continue."
           path="/auth/reset-password"
         />
         <AuthShell
@@ -206,8 +206,8 @@ export default function ResetPasswordPage() {
   return (
     <>
       <Seo
-        title="Set New Password | MIHAS-KATC Admissions"
-        description="Create a new secure password for your MIHAS-KATC admissions account."
+        title="Set New Password | Beanola Admissions"
+        description="Create a new secure password for your Beanola admissions account."
         path="/auth/reset-password"
       />
       <AuthShell

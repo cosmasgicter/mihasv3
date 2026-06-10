@@ -135,13 +135,13 @@ vi.mock('@/components/landing/LandingPageSections', () => ({
         300+ 92% Graduates working in Zambian hospitals Get hired within 12 months
       </div>
       <div data-testid="features-mock">
-        Why students pick MIHAS-KATC Learn from Working Professionals A diploma that is registered before you walk out 92% of our graduates are hired within a year
+        Why students pick Beanola Learn from Working Professionals A diploma that is registered before you walk out 92% of our graduates are hired within a year
       </div>
       <div data-testid="accreditation-mock">
         Your diploma gets you registered NMCZ Accredited HPCZ Accredited ECZ Recognized UNZA Affiliated
       </div>
       <div data-testid="programs-mock">
-        Three diplomas. Three career paths. Kalulushi Training Centre Mukuba Institute of Health and Applied Sciences Diploma in Clinical Medicine Diploma in Registered Nursing
+        Three diplomas. Three career paths. Program-first admissions Shared Beanola portal Diploma in Clinical Medicine Diploma in Registered Nursing
       </div>
       <div data-testid="how-it-works-mock">
         How the application works Create your account Pay the application fee K150 USD 20
@@ -210,7 +210,7 @@ describe('Landing page verification', () => {
   it('renders without errors and shows the hero heading', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Become a nurse, clinical officer, or environmental health inspector')
+    expect(text).toContain('Apply to the right school from one admissions portal.')
   })
 
   it('renders the hero CTA buttons with correct links', async () => {
@@ -236,7 +236,7 @@ describe('Landing page verification', () => {
   it('renders the features section with all feature cards', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('Why students pick MIHAS-KATC')
+    expect(text).toContain('Why students pick Beanola')
     expect(text).toContain('Learn from Working Professionals')
     expect(text).toContain('A diploma that is registered before you walk out')
     expect(text).toContain('92% of our graduates are hired within a year')
@@ -260,8 +260,8 @@ describe('Landing page verification', () => {
     await renderAndWait()
     const text = container.textContent || ''
     expect(text).toContain('Three diplomas. Three career paths.')
-    expect(text).toContain('Kalulushi Training Centre')
-    expect(text).toContain('Mukuba Institute of Health and Applied Sciences')
+    expect(text).toContain('Program-first admissions')
+    expect(text).toContain('Shared Beanola portal')
     expect(text).toContain('Diploma in Clinical Medicine')
     expect(text).toContain('Diploma in Registered Nursing')
   })
@@ -326,7 +326,7 @@ describe('Landing page verification', () => {
     await renderAndWait()
     const text = container.textContent || ''
     // Page should still render all sections
-    expect(text).toContain('Become a nurse, clinical officer, or environmental health inspector')
+    expect(text).toContain('Apply to the right school from one admissions portal.')
     expect(text).toContain('Three diplomas. Three career paths.')
   })
 })

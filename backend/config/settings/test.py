@@ -16,3 +16,6 @@ DATABASES = {
 
 # Ensure SIMPLE_JWT signing key matches the dev fallback used by tokens.py
 SIMPLE_JWT["SIGNING_KEY"] = "insecure-dev-signing-key"  # noqa: F405
+
+# Disable rate limiting during unit/property tests to avoid test-client throttling
+RATELIMIT_ENABLE = False

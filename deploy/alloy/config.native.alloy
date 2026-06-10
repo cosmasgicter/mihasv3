@@ -1,0 +1,79 @@
+// MIHAS — Alloy config for a NATIVE (systemd) install on the Ubuntu box.
+// Lives at: /etc/alloy/config.alloy   (edit with: sudo nano /etc/alloy/config.alloy)
+// Apply changes with:                 sudo systemctl restart alloy.service
+//
+// Replace the THREE placeholders before saving:
+//   <TOKEN>       the single mihas-server token (used for BOTH endpoints)
+//   <LOKI_URL>    e.g. https://logs-prod-XXX.grafana.net/loki/api/v1/push
+//   <LOKI_USER>   the Loki username number (NOT 3282506)
+//
+// NOTE: this is NOT Kubernetes. Do not paste any discovery.kubernetes blocks.
+
+// ===== DESTINATIONS (where data is sent) ====================================
+
+prometheus.remote_write "gcloud" {
+  endpoint {
+    url = "https://prometheus-prod-55-prod-gb-south-1.grafana.net/api/prom/push"
+    basic_auth {
+      username = "3282506"
+      password = "<TOKEN>"
+    }
+  }
+}
+
+loki.write "gcloud" {
+  endpoint {
+    url = "<LOKI_URL>"
+    basic_auth {
+      username = "<LOKI_USER>"
+      password = "<TOKEN>"
+    }
+  }
+}
+
+// ===== HOST METRICS (CPU / RAM / disk / network of the box) =================
+
+prometheus.exporter.unix "host" { }
+
+prometheus.scrape "host" {
+  targets         = prometheus.exporter.unix.host.targets
+  forward_to      = [prometheus.remote_write.gcloud.receiver]
+  scrape_interval = "60s"
+}
+
+// ===== CONTAINER METRICS (per-service CPU/RAM: web, celery, postgres, ...) ==
+// Needs the alloy user in the docker group (see RUNBOOK). If it ever errors,
+// you can comment out these two blocks and keep host metrics + logs.
+
+prometheus.exporter.cadvisor "containers" {
+  docker_host      = "unix:///var/run/docker.sock"
+  storage_duration = "5m"
+}
+
+prometheus.scrape "containers" {
+  targets         = prometheus.exporter.cadvisor.containers.targets
+  forward_to      = [prometheus.remote_write.gcloud.receiver]
+  scrape_interval = "60s"
+}
+
+// ===== CONTAINER LOGS (stdout/stderr of every container) ====================
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output
+  labels     = { job = "docker" }
+  forward_to = [loki.write.gcloud.receiver]
+}

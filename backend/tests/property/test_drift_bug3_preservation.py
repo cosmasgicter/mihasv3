@@ -219,6 +219,10 @@ class TestExtractEndpointPreservation(SimpleTestCase):
         mock_app = MagicMock()
         mock_app.id = app_id
         mock_app.user_id = user_id
+        # The authorized-document loader reads ``document.application`` directly
+        # (via ``select_related``) rather than issuing a separate Application
+        # query, so wire the owning application onto the document.
+        mock_doc.application = mock_app
 
         mock_task = MagicMock()
         mock_task.id = "celery-task-id-123"

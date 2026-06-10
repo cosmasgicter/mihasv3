@@ -243,7 +243,7 @@ class TestProductionDebugGuard(SimpleTestCase):
         import config.settings.base as base_settings
 
         with patch.object(base_settings, "DEBUG", True), patch.object(
-            base_settings, "ALLOWED_HOSTS", ["api.mihas.edu.zm"]
+            base_settings, "ALLOWED_HOSTS", ["api.beanola.com"]
         ):
             with self.assertRaises(ImproperlyConfigured):
                 base_settings.validate_debug_not_serving_production_hosts()

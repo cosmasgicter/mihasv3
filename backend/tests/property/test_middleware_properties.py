@@ -682,11 +682,11 @@ class TestCORSOriginEnforcementProperty(SimpleTestCase):
     @given(
         origin=st.from_regex(
             r"https?://[a-z0-9\-]{1,20}\.[a-z]{2,6}", fullmatch=True
-        ).filter(lambda o: o != "https://apply.mihas.edu.zm"),
+        ).filter(lambda o: o != "https://apply.beanola.com"),
     )
     @settings(max_examples=5)
     @override_settings(
-        CORS_ALLOWED_ORIGINS=["https://apply.mihas.edu.zm"],
+        CORS_ALLOWED_ORIGINS=["https://apply.beanola.com"],
         CORS_ALLOW_ALL_ORIGINS=False,
     )
     def test_disallowed_origin_not_reflected(self, origin):
@@ -701,7 +701,7 @@ class TestCORSOriginEnforcementProperty(SimpleTestCase):
         self.assertNotIn(origin, allowed)
 
     @override_settings(
-        CORS_ALLOWED_ORIGINS=["https://apply.mihas.edu.zm"],
+        CORS_ALLOWED_ORIGINS=["https://apply.beanola.com"],
         CORS_ALLOW_ALL_ORIGINS=False,
     )
     def test_allowed_origin_is_in_list(self):
@@ -709,6 +709,6 @@ class TestCORSOriginEnforcementProperty(SimpleTestCase):
         from django.conf import settings as django_settings
 
         self.assertIn(
-            "https://apply.mihas.edu.zm",
+            "https://apply.beanola.com",
             django_settings.CORS_ALLOWED_ORIGINS,
         )

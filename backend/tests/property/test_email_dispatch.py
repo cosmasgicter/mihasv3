@@ -208,7 +208,7 @@ class TestPasswordResetEmailContainsTokenAndUrl(SimpleTestCase):
 
     For any generated password reset token, the EmailQueue record body created
     for the reset email must contain both the raw token string and the frontend
-    base URL (https://apply.mihas.edu.zm).
+    base URL (https://apply.beanola.com).
 
     **Validates: Requirements 2.5**
     """
@@ -217,7 +217,7 @@ class TestPasswordResetEmailContainsTokenAndUrl(SimpleTestCase):
     @settings(max_examples=5, deadline=None)
     def test_reset_email_body_contains_token_and_base_url(self, token, email):
         """PasswordResetRequestView creates an email body containing the raw
-        token and the base URL https://apply.mihas.edu.zm."""
+        token and the base URL https://apply.beanola.com."""
         from rest_framework.test import APIRequestFactory
 
         from apps.accounts.views import PasswordResetRequestView
@@ -273,4 +273,4 @@ class TestPasswordResetEmailContainsTokenAndUrl(SimpleTestCase):
         self.assertIn(token, body)
 
         # Verify the frontend base URL is present in the body
-        self.assertIn("https://apply.mihas.edu.zm", body)
+        self.assertIn("https://apply.beanola.com", body)

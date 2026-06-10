@@ -54,17 +54,22 @@ export function resolveDraftResumeStepId(
   grades: SubjectGrade[],
   uploads?: DraftResumeUploads
 ): number {
+  // Step ids match steps/config.ts:
+  // 1 program, 2 assignedSchool, 3 personal, 4 education, 5 payment, 6 submit.
+  // A persisted draft always has a chosen programme (it was created via the
+  // program-first flow), so we resume at the personal step or later — never
+  // before the assigned-school checkpoint.
   if (!application.program || !application.full_name) {
-    return 1
+    return 3
   }
 
   const paymentStatus = normalizePaymentStatus(application.payment_status)
   if (paymentStatus === 'verified' || paymentStatus === 'deferred') {
-    return 4
+    return 6
   }
 
   const resolvedUploads = uploads ?? { result_slip: false, extra_kyc: false }
   const hasEducationComplete = grades.length >= 5 && resolvedUploads.result_slip && resolvedUploads.extra_kyc
 
-  return hasEducationComplete ? 3 : 2
+  return hasEducationComplete ? 5 : 4
 }

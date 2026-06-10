@@ -16,8 +16,8 @@ interface LoadingFallbackProps {
 }
 
 export function LoadingFallback({
-  message = 'Preparing MIHAS',
-  label = 'Preparing MIHAS application',
+  message = 'Preparing Beanola',
+  label = 'Preparing Beanola application',
   timeout = 15000,
   delay = 180,
 }: LoadingFallbackProps) {

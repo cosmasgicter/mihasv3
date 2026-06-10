@@ -87,6 +87,8 @@ vi.mock('@/components/ui/OptimizedImage', () => ({
 
 vi.mock('@/components/icons', () => ({
   CheckCircle: (props: any) => React.createElement('svg', { ...props, 'aria-hidden': 'true' }),
+  GraduationCap: (props: any) => React.createElement('svg', { ...props, 'aria-hidden': 'true' }),
+  Building2: (props: any) => React.createElement('svg', { ...props, 'aria-hidden': 'true' }),
 }))
 
 // ---------------------------------------------------------------------------

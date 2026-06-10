@@ -139,7 +139,7 @@ describe('AuthShell layout structure', () => {
 
   it('brand link is present with aria-label', () => {
     const doc = renderShell()
-    const brandLink = doc.querySelector('a[aria-label="MIHAS-KATC home"]')
+    const brandLink = doc.querySelector('a[aria-label="Beanola home"]')
     expect(brandLink).not.toBeNull()
   })
 

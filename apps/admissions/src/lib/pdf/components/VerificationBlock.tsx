@@ -16,7 +16,7 @@ import { Image, StyleSheet, Text, View } from '@react-pdf/renderer'
 
 import { semantic, spacing, textStyles } from '../theme'
 
-const QR_SIZE = 60 // pt — small enough to keep document on one page, still scannable
+const QR_SIZE = 50 // pt — small enough to keep document on one page, still scannable
 
 const styles = StyleSheet.create({
   wrapper: {

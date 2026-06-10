@@ -115,7 +115,7 @@ class TestCreateNotification(SimpleTestCase):
         self.assertEqual(payload["type"], "info")
         self.assertIsNone(payload["action_url"])
 
-    @override_settings(FRONTEND_URL="https://apply.mihas.edu.zm")
+    @override_settings(FRONTEND_URL="https://apply.beanola.com")
     @patch("apps.common.outbox.transaction.atomic", side_effect=lambda: nullcontext())
     @patch("apps.common.models.OutboxEvent.objects.create")
     @patch("apps.common.models.Notification.objects.create")
@@ -128,7 +128,7 @@ class TestCreateNotification(SimpleTestCase):
             user_id="user-123",
             title="Title",
             message="Message",
-            action_url="https://apply.mihas.edu.zm/student/communications?page=1#latest",
+            action_url="https://apply.beanola.com/student/communications?page=1#latest",
         )
 
         self.assertEqual(

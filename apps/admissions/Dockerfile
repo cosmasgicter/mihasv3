@@ -2,8 +2,8 @@
 #
 # Build context is the REPO ROOT (monorepo workspace). Built in CI:
 #   docker build -f apps/admissions/Dockerfile \
-#     --build-arg VITE_API_BASE_URL=https://api.mihas.edu.zm \
-#     --build-arg VITE_APP_BASE_URL=https://apply.mihas.edu.zm \
+#     --build-arg VITE_API_BASE_URL=https://api.beanola.com \
+#     --build-arg VITE_APP_BASE_URL=https://apply.beanola.com \
 #     --build-arg VITE_APP_VERSION=$GIT_SHA \
 #     --build-arg VITE_GLITCHTIP_DSN=... \
 #     -t ghcr.io/<owner>/mihas-frontend:<sha> .

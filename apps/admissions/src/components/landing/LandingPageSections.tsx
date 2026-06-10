@@ -74,7 +74,7 @@ function FeaturesSection() {
         <ScrollReveal className="mb-10 max-w-3xl sm:mb-12">
           <TextEffect effect="fadeUp">
             <h2 id="features-heading" className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Why students pick MIHAS-KATC
+              Why students pick Beanola
             </h2>
           </TextEffect>
           <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
@@ -406,7 +406,7 @@ function InternationalSection() {
             </h2>
           </TextEffect>
           <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
-            MIHAS-KATC welcomes international students. The application is the same portal, in the same place, payable in USD.
+            Beanola welcomes international students. The application is the same portal, in the same place, payable in USD.
           </p>
         </ScrollReveal>
 

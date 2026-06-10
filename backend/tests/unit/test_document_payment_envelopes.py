@@ -27,6 +27,10 @@ class TestDocumentExtractEnvelope(SimpleTestCase):
         with patch("apps.applications.models.Application.objects") as mock_app_qs:
             mock_app = MagicMock(user_id=user_id)
             mock_app_qs.get.return_value = mock_app
+            # The authorized-document loader reads ``document.application``
+            # directly (via ``select_related``); wire the owning application
+            # onto the document so the owner check passes.
+            mock_doc.application = mock_app
 
             with patch("apps.documents.tasks.extract_document_text_task") as mock_task:
                 mock_task.delay.return_value = MagicMock(id="task-123")

@@ -179,7 +179,7 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
                     Mukuba Institute of Health &amp; Applied Sciences
                   </strong><br />
                   Plot 1234, Independence Avenue, Kalulushi, Zambia<br />
-                  apply.mihas.edu.zm
+                  apply.beanola.com
                 </td>
                 <td align="right" valign="top"
                     style="font-family:{t.FONT_BODY};font-size:11px;

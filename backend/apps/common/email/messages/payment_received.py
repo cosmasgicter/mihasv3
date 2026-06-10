@@ -55,7 +55,7 @@ def render(context: dict) -> tuple[str, str]:
     raw_amount = context.get("amount")
     currency = context.get("currency") or "ZMW"
     method = context.get("payment_method") or "—"
-    portal = context.get("portal_url") or "https://apply.mihas.edu.zm"
+    portal = context.get("portal_url") or "https://apply.beanola.com"
 
     amount_label = _format_amount(raw_amount, currency) if raw_amount not in (None, "") else f"— {currency}"
 

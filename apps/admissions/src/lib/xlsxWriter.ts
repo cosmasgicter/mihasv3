@@ -115,7 +115,7 @@ const workbookXml = (sheetName: string) => `<?xml version="1.0" encoding="UTF-8"
 
 const appPropertiesXml = (sheetName: string) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">
-  <Application>MIHAS-KATC Admissions</Application>
+  <Application>Beanola Admissions</Application>
   <DocSecurity>0</DocSecurity>
   <ScaleCrop>false</ScaleCrop>
   <TitlesOfParts><vt:vector size="1" baseType="lpstr"><vt:lpstr>${escapeXml(sanitizeSheetName(sheetName))}</vt:lpstr></vt:vector></TitlesOfParts>
@@ -125,8 +125,8 @@ const corePropertiesXml = (createdAt: Date) => {
   const timestamp = createdAt.toISOString()
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <dc:creator>MIHAS-KATC Admissions</dc:creator>
-  <cp:lastModifiedBy>MIHAS-KATC Admissions</cp:lastModifiedBy>
+  <dc:creator>Beanola Admissions</dc:creator>
+  <cp:lastModifiedBy>Beanola Admissions</cp:lastModifiedBy>
   <dcterms:created xsi:type="dcterms:W3CDTF">${timestamp}</dcterms:created>
   <dcterms:modified xsi:type="dcterms:W3CDTF">${timestamp}</dcterms:modified>
 </cp:coreProperties>`

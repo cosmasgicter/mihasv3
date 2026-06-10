@@ -330,7 +330,7 @@ export default function ProgramFees() {
   return (
     <>
       <Seo
-        title="Program Fees | MIHAS-KATC Admissions"
+        title="Program Fees | Beanola Admissions"
         description="Manage application and tuition fees for each program and residency category."
         path="/admin/program-fees"
         noindex

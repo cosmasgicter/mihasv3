@@ -45,6 +45,9 @@ export interface ApplicationCreateData {
   nationality?: string
   next_of_kin_name?: string | null
   next_of_kin_phone?: string | null
+  program_id?: string
+  intake_id?: string
+  institution_id?: string
   program: string
   intake: string
   institution: string
@@ -63,6 +66,10 @@ export interface ApplicationUpdateData {
   nationality?: string
   next_of_kin_name?: string | null
   next_of_kin_phone?: string | null
+  program_id?: string
+  intake_id?: string
+  institution_id?: string
+  program_offering_id?: string
   program?: string
   intake?: string
   institution?: string

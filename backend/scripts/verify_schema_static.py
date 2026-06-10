@@ -71,6 +71,15 @@ EXPECTED_TABLES = [
     "fee_waivers",
     "academic_calendar_events",
     "communication_templates",
+    # Multi-tenant Beanola admissions (additive tenant schema —
+    # backend/scripts/2026_06_08_01_multi_tenant_beanola_admissions.sql).
+    "canonical_programs",
+    "institution_assets",
+    "institution_document_templates",
+    "institution_required_documents",
+    "institution_domains",
+    "user_institution_memberships",
+    "access_grants",
 ]
 
 # Expected foreign key relationships: (child_table.column -> parent_table)

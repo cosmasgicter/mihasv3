@@ -136,7 +136,7 @@ export async function exportAuditEntriesToPdf({
   let startY = 16
 
   doc.setFontSize(18)
-  doc.text('MIHAS Audit Trail Export', 14, startY)
+  doc.text('Beanola Audit Trail Export', 14, startY)
   startY += 7
 
   doc.setFontSize(10)

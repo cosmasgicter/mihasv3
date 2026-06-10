@@ -50,6 +50,7 @@ from hypothesis import strategies as st  # noqa: E402
 # lockstep: any future regression in the helpers is observed by the
 # property tests on the next CI run.
 from apps.common.management.commands.check_schema_drift import (  # noqa: E402
+    _COVERAGE_EXEMPT_SCRIPTS,
     _declared_columns,
     _enumerate_foreign_keys,
     _enumerate_migration_scripts,
@@ -459,6 +460,26 @@ def test_migration_history_coverage(data) -> None:
             "compare against."
         )
 
+    # An empty ``migration_history`` is semantically equivalent to the
+    # table being absent: the bootstrap/reconcile step
+    # (``2026_05_22_migration_history_*.sql``) has not run on this
+    # database, so there is no recorded set to compare against. This is
+    # the canonical state of every ephemeral test DB — the session-scoped
+    # ``unmanaged_schema`` fixture creates the table (because
+    # ``MigrationHistory`` is a ``managed=False`` model) but never applies
+    # the SQL migrations that populate it. The drift-guard CLI treats this
+    # "not bootstrapped" case as a clean short-circuit; the property test
+    # mirrors that by skipping. On production Neon ``migration_history`` is
+    # populated, so the coverage property runs fully and catches real
+    # drift there.
+    recorded = _recorded_migration_names()
+    if not recorded:
+        pytest.skip(
+            "migration_history is present but empty on the configured "
+            "database — the bootstrap/reconcile step has not run, so the "
+            "coverage property has no recorded set to compare against."
+        )
+
     scripts = _enumerate_migration_scripts()
     if not scripts:
         pytest.skip(
@@ -482,9 +503,20 @@ def test_migration_history_coverage(data) -> None:
     from datetime import datetime, timedelta, timezone
 
     cutoff = datetime.now(timezone.utc) - timedelta(days=7)
-    recorded = _recorded_migration_names()
 
     for path in subset:
+        # Declarative coverage exemptions — mirror the canonical CLI
+        # (`_find_stale_unrecorded_migrations` in check_schema_drift).
+        # ``00_full_schema.sql`` is a full-schema bootstrap snapshot, not
+        # an incremental applied migration, and
+        # ``legacy_columns_drop_2026_08_15.sql`` is a future-scheduled
+        # destructive drop that must stay UNAPPLIED until its date. Both
+        # are registered in docs/canonical-truth-map.md and matched by
+        # exact filename, so this can never mask a genuinely stale script
+        # with a different name (real-drift detection preserved — R8.4).
+        if path.name in _COVERAGE_EXEMPT_SCRIPTS:
+            continue
+
         commit_ts = _git_commit_timestamp(path)
         if commit_ts is not None:
             timestamp = commit_ts

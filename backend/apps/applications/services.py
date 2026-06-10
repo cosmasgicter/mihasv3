@@ -68,12 +68,199 @@ _STATUS_TRANSITION_UPDATE_FIELDS = [
 
 
 class ApplicationSubmissionError(Exception):
-    """Raised when a student-facing submission attempt fails validation."""
+    """Raised when a student-facing submission attempt fails validation.
 
-    def __init__(self, code: str, message: str):
+    ``status_code`` lets a caller signal a non-400 HTTP status (e.g. the
+    offering-revalidation codes are 409 Conflict). ``next_action`` carries an
+    optional recoverable next-action payload so the client can present a
+    non-dead-end path (choose another intake, join the waitlist, etc.).
+    Both default to the legacy behaviour (400, no next action) so existing
+    raisers that pass only ``(code, message)`` are unaffected.
+    """
+
+    def __init__(self, code: str, message: str, *, status_code: int = 400, next_action: dict | None = None):
         super().__init__(message)
         self.code = code
         self.message = message
+        self.status_code = status_code
+        self.next_action = next_action
+
+
+def _coerce_uuid(value) -> str | None:
+    """Return the canonical string form of *value* iff it is a real UUID.
+
+    Returns ``None`` for ``None``, empty, non-UUID strings, or non-string
+    objects (e.g. ``MagicMock`` attributes in unit tests). This is the guard
+    that keeps submission-time offering revalidation strictly additive: legacy
+    rows with null canonical IDs — and any object that does not carry genuine
+    canonical UUIDs — fall straight through to the existing behaviour.
+    """
+    try:
+        return str(_uuid.UUID(str(value)))
+    except (ValueError, TypeError, AttributeError):
+        return None
+
+
+def _evaluate_locked_offering(
+    offering_id: str,
+    intake_id: str,
+    country: str | None,
+    nationality: str | None,
+) -> tuple[bool, bool]:
+    """Re-check the *previously assigned* offering against current state.
+
+    Mirrors the per-candidate eligibility filters of
+    ``OfferingAssignmentService.assign`` for one specific offering so we can
+    distinguish the two recoverable submit-time failures:
+
+    Returns ``(eligible, capacity_full)``:
+      * ``eligible`` — the offering is still active, its program-intake link is
+        active, residency/assignment rules still allow this applicant, and
+        capacity is not exhausted.
+      * ``capacity_full`` — the offering's program-intake capacity is exhausted
+        (used to choose ``OFFERING_CAPACITY_FULL`` over
+        ``OFFERING_NO_LONGER_AVAILABLE``).
+    """
+    from apps.catalog.models import Intake, Program, ProgramIntake
+    from apps.catalog.services import OfferingAssignmentService
+
+    offering = Program.objects.filter(id=offering_id).first()
+    intake_obj = Intake.objects.filter(id=intake_id).first()
+    if offering is None or intake_obj is None:
+        return (False, False)
+
+    program_intake = ProgramIntake.objects.filter(
+        program_id=offering_id, intake_id=intake_id
+    ).first()
+
+    capacity_full = bool(
+        program_intake is not None
+        and not OfferingAssignmentService._has_capacity(program_intake, intake_obj)
+    )
+
+    active = bool(offering.is_active) and (offering.offering_status == "active")
+    program_intake_active = program_intake is not None and (
+        program_intake.is_active is True or program_intake.is_active is None
+    )
+    rules_ok = True
+    if program_intake is not None:
+        rules_ok = OfferingAssignmentService._rules_match(
+            offering.assignment_rules, country=country, nationality=nationality
+        ) and OfferingAssignmentService._rules_match(
+            program_intake.residency_rules, country=country, nationality=nationality
+        )
+
+    eligible = bool(
+        active
+        and program_intake is not None
+        and program_intake_active
+        and rules_ok
+        and not capacity_full
+    )
+    return (eligible, capacity_full)
+
+
+def _build_revalidation_error(capacity_full: bool) -> ApplicationSubmissionError:
+    """Construct the recoverable 409 error for a stale offering assignment."""
+    if capacity_full:
+        return ApplicationSubmissionError(
+            "OFFERING_CAPACITY_FULL",
+            "The assigned school offering filled to capacity before your "
+            "application was submitted.",
+            status_code=409,
+            next_action={
+                "type": "join_waitlist",
+                "message": "This offering is now full. You can join the waitlist "
+                "or choose another intake.",
+            },
+        )
+    return ApplicationSubmissionError(
+        "OFFERING_NO_LONGER_AVAILABLE",
+        "The school offering assigned to this application is no longer "
+        "available for the selected intake.",
+        status_code=409,
+        next_action={
+            "type": "choose_another_intake",
+            "message": "This offering is no longer available. Please choose "
+            "another intake or contact admissions.",
+        },
+    )
+
+
+def _revalidate_offering_assignment(locked_app: Application) -> None:
+    """Re-run offering assignment at submit time against the locked snapshot.
+
+    Design R2.7 / R2.4: the submission path re-validates eligibility and
+    capacity rather than trusting the assignment captured at draft time. If the
+    previously assigned offering is no longer eligible it raises
+    ``OFFERING_NO_LONGER_AVAILABLE``; if it filled to capacity it raises
+    ``OFFERING_CAPACITY_FULL`` — both recoverable (409). Submission never
+    silently succeeds on a stale draft assignment.
+
+    Strictly additive: applications without a full set of canonical IDs (legacy
+    rows) skip revalidation entirely and keep the existing behaviour. Any
+    unexpected infrastructure error degrades to "skip" rather than blocking a
+    legitimate submission.
+    """
+    program_id = _coerce_uuid(getattr(locked_app, "canonical_program_id", None))
+    intake_id = _coerce_uuid(getattr(locked_app, "intake_ref_id", None))
+    offering_id = _coerce_uuid(getattr(locked_app, "program_offering_id", None))
+    if not (program_id and intake_id and offering_id):
+        # Legacy / non-canonical application — do not force assignment.
+        return
+
+    institution_id = _coerce_uuid(getattr(locked_app, "institution_ref_id", None))
+    country = getattr(locked_app, "country", None)
+    nationality = getattr(locked_app, "nationality", None)
+
+    try:
+        from apps.catalog.services import (
+            OfferingAssignmentError,
+            OfferingAssignmentService,
+        )
+
+        # R2.7: re-run the assignment service with the LOCKED snapshot residency
+        # inputs (not live client input).
+        winner_id: str | None
+        try:
+            result = OfferingAssignmentService().assign(
+                program_id=program_id,
+                intake_id=intake_id,
+                country=country,
+                nationality=nationality,
+                institution_id=institution_id,
+                emit_audit=True,
+                audit_source="application_submit_revalidation",
+                audit_application_id=str(getattr(locked_app, "id", "")) or None,
+            )
+            winner_id = str(result.offering.id)
+        except OfferingAssignmentError:
+            winner_id = None
+
+        # Fast path: the assignment still resolves to the same offering.
+        if winner_id == offering_id:
+            return
+
+        # The assigned offering is no longer the winner (or nothing resolved).
+        # Decide precisely whether the previously assigned offering is still
+        # eligible; only fail when it genuinely is not.
+        eligible, capacity_full = _evaluate_locked_offering(
+            offering_id, intake_id, country, nationality
+        )
+        if eligible:
+            return
+        raise _build_revalidation_error(capacity_full)
+    except ApplicationSubmissionError:
+        raise
+    except Exception:
+        # Never block a legitimate submission on an unexpected revalidation
+        # error (canonical program/intake row unreadable, infra hiccup, ...).
+        logger.warning(
+            "Offering assignment revalidation degraded for app=%s",
+            getattr(locked_app, "id", None),
+            exc_info=True,
+        )
+        return
 
 
 def transition_application_status(
@@ -179,6 +366,18 @@ def transition_application_status(
             application.enrollment_confirmation_deadline = deadline
         except Exception:
             logger.exception("Failed to compute enrollment deadline for app=%s", application.id)
+
+    # Assign a student number on FULL acceptance (entering 'enrolled'). This
+    # catches every path to enrolled (admin review, condition auto-promote,
+    # waitlist auto-promote → approved → enrolled, student enrollment
+    # confirmation). Idempotent — an application that already has a number
+    # keeps it. Never blocks the transition if number generation fails.
+    if new_status == "enrolled" and not getattr(application, "student_number", None):
+        try:
+            from apps.applications._view_helpers import assign_student_number_if_needed
+            assign_student_number_if_needed(application)
+        except Exception:
+            logger.exception("Failed to assign student number for app=%s", application.id)
 
     return old_status
 
@@ -303,12 +502,22 @@ def submit_application(
             program=locked_app.program,
             intake=locked_app.intake,
             exclude_id=str(locked_app.id),
+            program_id=str(locked_app.canonical_program_id) if locked_app.canonical_program_id else None,
+            intake_id=str(locked_app.intake_ref_id) if locked_app.intake_ref_id else None,
         )
         if dup_result.has_duplicate:
             raise ApplicationSubmissionError(
                 "DUPLICATE_SUBMITTED_APPLICATION",
                 "Another application for this program and intake has already been submitted.",
             )
+
+        # Re-run offering assignment against the locked snapshot (R2.7 / R2.4).
+        # Additive: legacy rows without canonical IDs skip this entirely.
+        # Admin force-submit bypasses revalidation alongside the other gates so
+        # operators can still force offline/paper submissions onto a full or
+        # archived offering.
+        if not admin_force:
+            _revalidate_offering_assignment(locked_app)
 
         old_status = transition_application_status(
             application=locked_app,

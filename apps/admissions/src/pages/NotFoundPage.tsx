@@ -106,7 +106,7 @@ export default function NotFoundPage() {
   return (
     <PublicLayout>
       <Seo
-        title="Page Not Found | MIHAS-KATC Admissions"
+        title="Page Not Found | Beanola Admissions"
         description="The page you're looking for doesn't exist or has been moved."
         path="/404"
         noindex

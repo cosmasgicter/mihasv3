@@ -26,7 +26,7 @@ export const MarketingRouteSkeleton: FC = () => {
     <div
       role="status"
       aria-live="polite"
-      aria-label="Loading MIHAS Admissions"
+      aria-label="Loading Beanola Admissions"
       className="flex min-h-screen flex-col bg-background"
     >
       {/* Masthead — matches PublicSiteHeader geometry so hydration doesn't shift layout */}

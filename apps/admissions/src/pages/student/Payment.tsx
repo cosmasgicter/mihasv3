@@ -341,7 +341,7 @@ export default function PaymentPage() {
   if (loading) {
     return (
       <>
-        <Seo title="Payment | MIHAS-KATC Admissions" description="View your application payment history." path="/student/payment" noindex />
+        <Seo title="Payment | Beanola Admissions" description="View your application payment history." path="/student/payment" noindex />
         <PageShell title="Application Payment" subtitle="Loading payment information...">
           <div className="space-y-6" role="status" aria-label="Loading payment information">
             <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
@@ -369,7 +369,7 @@ export default function PaymentPage() {
 
   return (
     <>
-      <Seo title="Payment | MIHAS-KATC Admissions" description="View your application payment history." path="/student/payment" noindex />
+      <Seo title="Payment | Beanola Admissions" description="View your application payment history." path="/student/payment" noindex />
       <PageShell
         title="Application Payment"
         subtitle="View payment history and complete outstanding application fees."

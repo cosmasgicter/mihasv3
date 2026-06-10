@@ -172,6 +172,77 @@ def _generate_tracking_code(institution_name: str = '') -> str:
     return f"TRK-{code}{year}{random_part}"
 
 
+def _generate_student_number(institution_name: str = '') -> str:
+    """Generate a student number assigned on full acceptance (enrolment).
+
+    Format: ``{CODE}/{YY}/{SEQ5}`` e.g. ``MIHAS/26/00001`` — deliberately
+    distinct from the application number (``MIHAS202600042``) so the two are
+    never confused.
+
+    Uses the per-(institution_code, year) Postgres sequence via the SQL helper
+    ``next_student_number(p_code, p_year)`` defined in
+    ``backend/scripts/2026_06_08_student_number.sql``. Sequences are atomic.
+
+    Falls back to a count+attempt path only when the SQL function is
+    unavailable (e.g. SQLite unit tests). The fallback preserves the format.
+    """
+    code = _resolve_institution_code(institution_name)
+    year = timezone.now().year
+    yy = f"{year % 100:02d}"
+    prefix = f"{code}/{yy}/"
+
+    # Preferred path: per-sequence atomic generation.
+    try:
+        from django.db import connection
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT next_student_number(%s, %s)", [code, year])
+            result = cursor.fetchone()
+            if result and result[0]:
+                return result[0]
+    except Exception:
+        logger.warning(
+            "next_student_number SQL helper unavailable, "
+            "falling back to count+attempt for code=%s year=%s",
+            code,
+            year,
+        )
+
+    # Legacy fallback (SQLite tests / older schema). Racy under burst load but
+    # preserves the format in steady state.
+    for attempt in range(5):
+        count = Application.objects.filter(
+            student_number__startswith=prefix
+        ).count()
+        seq = str(count + 1 + attempt).zfill(5)
+        candidate = f"{prefix}{seq}"
+        if not Application.objects.filter(student_number=candidate).exists():
+            return candidate
+
+    # Ultimate fallback: append random hex (still slash-formatted).
+    return f"{prefix}{uuid.uuid4().hex[:5].upper()}"
+
+
+def assign_student_number_if_needed(application) -> str | None:
+    """Idempotently assign a student number to a fully-accepted application.
+
+    Returns the (existing or newly-generated) student number, or ``None`` when
+    the application is not in a terminal-accepted state. Safe to call multiple
+    times — an application that already has a student number keeps it.
+
+    Should be called inside the same transaction/lock as the status transition
+    to ``enrolled`` so concurrent callers cannot double-assign.
+    """
+    if getattr(application, "student_number", None):
+        return application.student_number
+    number = _generate_student_number(application.institution or "")
+    application.student_number = number
+    # Persist via a targeted update so we don't clobber other in-flight writes.
+    Application.objects.filter(id=application.id).update(student_number=number)
+    return number
+
+
+
 # ---------------------------------------------------------------------------
 # Document task helper
 # ---------------------------------------------------------------------------
@@ -183,24 +254,31 @@ def _enqueue_document_task(application, task_type, task_func, request):
     Handles idempotency check, Celery task dispatch, audit logging,
     and response construction. Used by AcceptanceLetterView and
     FinanceReceiptView to eliminate duplicated logic.
-    """
-    from datetime import timedelta
 
+    Idempotency is **input-driven**: the Official_Document_Generator computes a
+    Document_Fingerprint over the render inputs and reuses the
+    Current_Official_Version when nothing changed, so it never creates duplicate
+    ``system_generated`` rows on repeated requests (R6.2). This helper therefore
+    only keeps a command-identity replay guard for the HTTP request (so a rapid
+    double-submit returns the same ``task_id``); the previous one-hour
+    wall-clock window has been removed — the generator's fingerprint lifecycle,
+    not elapsed time, decides whether a new document is produced.
+    """
     from apps.common.audit_network import build_audit_network_fields
     from apps.common.models import AuditLog, IdempotencyKey
 
     application_id = str(application.id)
 
-    # Idempotency check - 1-hour TTL (server-generated key for task dedup)
+    # Command-identity replay guard (server-generated key for task dedup). No
+    # wall-clock TTL: input-driven idempotency is enforced by the generator's
+    # Document_Fingerprint / Current_Official_Version lifecycle (R6).
     idem_key = f"{task_type}:{application_id}"
     actor_id = request.user.id
     method = "POST"
     path = f"/api/v1/applications/{application_id}/{task_type}/"
-    ttl_threshold = timezone.now() - timedelta(hours=1)
 
     existing = IdempotencyKey.objects.filter(
         idempotency_key=idem_key, actor_id=actor_id, method=method, path=path,
-        created_at__gt=ttl_threshold,
     ).first()
     if existing and existing.response_body:
         return Response(

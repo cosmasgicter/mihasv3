@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
-const DEFAULT_SITE_NAME = 'MIHAS-KATC Admissions'
-const DEFAULT_IMAGE = '/images/logos/mihas-logo.png'
+const DEFAULT_SITE_NAME = 'Beanola Admissions'
+const DEFAULT_IMAGE = '/images/logos/beanola-logo.svg'
 
 const resolveSiteUrl = () => {
   const configuredUrl = import.meta.env.VITE_APP_BASE_URL || import.meta.env.VITE_SITE_URL
@@ -14,7 +14,7 @@ const resolveSiteUrl = () => {
     return window.location.origin
   }
 
-  return 'https://apply.mihas.edu.zm'
+  return 'https://apply.beanola.com'
 }
 
 const buildAbsoluteUrl = (value: string, siteUrl: string) => {

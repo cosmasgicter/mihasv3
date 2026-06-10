@@ -296,8 +296,8 @@ export default function PublicApplicationTracker() {
   return (
     <PublicLayout>
       <Seo
-        title="Track Your Application | MIHAS-KATC Admissions"
-        description="Track your MIHAS-KATC application status in real time using your application number and view key admissions milestones."
+        title="Track Your Application | Beanola Admissions"
+        description="Track your Beanola application status in real time using your application number and view key admissions milestones."
         path="/track-application"
       />
 

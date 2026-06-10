@@ -54,26 +54,26 @@ const MESSAGE_TEMPLATES = [
   {
     id: 'draft_reminder',
     name: 'Draft Application Reminder',
-    subject: 'Complete Your MIHAS Application',
-    body: 'Dear {{full_name}},\n\nWe noticed you have started an application with MIHAS but haven\'t completed it yet. We encourage you to complete your application as soon as possible.\n\nIf you need any assistance, please don\'t hesitate to reach out.\n\nBest regards,\nMIHAS Admissions Team'
+    subject: 'Complete Your Beanola Application',
+    body: 'Dear {{full_name}},\n\nWe noticed you have started an application with Beanola but haven\'t completed it yet. We encourage you to complete your application as soon as possible.\n\nIf you need any assistance, please don\'t hesitate to reach out.\n\nBest regards,\nBeanola Admissions Team'
   },
   {
     id: 'document_request',
     name: 'Document Request',
     subject: 'Additional Documents Required',
-    body: 'Dear {{full_name}},\n\nWe need additional documents to process your application. Please upload the required documents at your earliest convenience.\n\nBest regards,\nMIHAS Admissions Team'
+    body: 'Dear {{full_name}},\n\nWe need additional documents to process your application. Please upload the required documents at your earliest convenience.\n\nBest regards,\nBeanola Admissions Team'
   },
   {
     id: 'status_update',
     name: 'Application Status Update',
     subject: 'Application Status Update',
-    body: 'Dear {{full_name}},\n\nWe wanted to update you on the status of your application. Please log in to your account to view the latest information.\n\nBest regards,\nMIHAS Admissions Team'
+    body: 'Dear {{full_name}},\n\nWe wanted to update you on the status of your application. Please log in to your account to view the latest information.\n\nBest regards,\nBeanola Admissions Team'
   },
   {
     id: 'interview_reminder',
     name: 'Interview Reminder',
     subject: 'Interview Reminder',
-    body: 'Dear {{full_name}},\n\nThis is a reminder about your upcoming interview. Please ensure you are prepared and arrive on time.\n\nBest regards,\nMIHAS Admissions Team'
+    body: 'Dear {{full_name}},\n\nThis is a reminder about your upcoming interview. Please ensure you are prepared and arrive on time.\n\nBest regards,\nBeanola Admissions Team'
   }
 ]
 

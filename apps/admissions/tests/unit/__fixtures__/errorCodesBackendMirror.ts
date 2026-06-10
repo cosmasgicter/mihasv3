@@ -89,10 +89,16 @@ export const BACKEND_ERROR_CODES: Record<string, { http_status: number; message:
   INVALID_FILE: { http_status: 400, message: 'Invalid file format or content', category: 'document' },
   NO_FILE: { http_status: 400, message: 'No file provided', category: 'document' },
   STORAGE_ERROR: { http_status: 500, message: 'File storage operation failed', category: 'document' },
+  ASSET_INVALID: { http_status: 400, message: 'Asset file failed MIME, magic-byte, or size validation', category: 'document' },
+  TEMPLATE_TOKEN_REJECTED: { http_status: 400, message: 'Disallowed section or token in document template', category: 'document' },
   // Catalog
   INACTIVE_INTAKE: { http_status: 400, message: 'The selected intake is not active', category: 'common' },
   INVALID_INSTITUTION: { http_status: 400, message: 'Invalid institution', category: 'common' },
   INVALID_PROGRAM_INTAKE: { http_status: 400, message: 'The program is not available for this intake', category: 'common' },
+  // Offering assignment (multi-tenant Beanola — submission revalidation)
+  NO_ELIGIBLE_OFFERING: { http_status: 409, message: 'No eligible school offering is available for this program and intake', category: 'application' },
+  OFFERING_NO_LONGER_AVAILABLE: { http_status: 409, message: 'The previously assigned school offering is no longer available', category: 'application' },
+  OFFERING_CAPACITY_FULL: { http_status: 409, message: "The assigned offering's capacity filled before submission", category: 'application' },
   // Interview
   INTERVIEWER_CONFLICT: { http_status: 409, message: 'Interviewer schedule conflict', category: 'application' },
   INVALID_MODE: { http_status: 400, message: 'Invalid interview mode', category: 'application' },

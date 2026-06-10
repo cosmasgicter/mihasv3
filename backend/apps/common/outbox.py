@@ -93,7 +93,7 @@ def _safe_action_url(value: str | None) -> str | None:
     except Exception:
         return None
 
-    frontend = urlparse(getattr(settings, "FRONTEND_URL", "https://apply.mihas.edu.zm"))
+    frontend = urlparse(getattr(settings, "FRONTEND_URL", "https://apply.beanola.com"))
     if parsed.scheme == "https" and parsed.netloc == frontend.netloc:
         path = parsed.path or "/"
         suffix = f"?{parsed.query}" if parsed.query else ""

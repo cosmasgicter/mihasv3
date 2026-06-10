@@ -6,10 +6,51 @@ from apps.documents.models import Payment
 
 
 class AdmissionsAnalyticsService:
-    """Computes live admissions metrics from Application and Payment data."""
+    """Computes live admissions metrics from Application and Payment data.
+
+    Cross-tenant isolation (R4.5): when a non-super-admin caller is supplied,
+    every base queryset is bounded through ``AccessScopeService`` *before*
+    aggregation, so a School_Staff member's funnel/timing/payment counts only
+    ever reflect their own institutions' rows — never platform-wide totals. A
+    no-scope staff member therefore sees zeros for their (empty) scope, not the
+    global aggregate. Super-admins (and the legacy ``user=None`` callers used by
+    internal jobs) retain global access.
+    """
+
+    def __init__(self, user=None):
+        # ``user`` is optional so existing internal callers keep working with a
+        # global view. Views that serve a request MUST pass ``request.user`` so
+        # the scope filter fires for School_Staff.
+        self.user = user
+
+    # -- Scope helpers ------------------------------------------------------
+
+    def _is_global(self) -> bool:
+        if self.user is None:
+            return True
+        from apps.accounts.permissions import is_super_admin
+
+        return is_super_admin(self.user)
+
+    def _scope_applications(self, qs):
+        if self._is_global():
+            return qs
+        from apps.catalog.services import AccessScopeService
+
+        return AccessScopeService().filter_applications(qs, self.user)
+
+    def _scope_payments(self, qs):
+        if self._is_global():
+            return qs
+        from apps.catalog.services import AccessScopeService
+
+        return AccessScopeService().filter_payments(qs, self.user)
+
+    # -- Metrics ------------------------------------------------------------
 
     def funnel_metrics(self, filters: dict) -> dict:
         qs = Application.objects.all()
+        qs = self._scope_applications(qs)
         qs = self._apply_filters(qs, filters)
 
         counts = qs.aggregate(
@@ -49,6 +90,7 @@ class AdmissionsAnalyticsService:
 
     def timing_metrics(self, filters: dict) -> dict:
         qs = Application.objects.exclude(submitted_at=None)
+        qs = self._scope_applications(qs)
         qs = self._apply_filters(qs, filters)
         raw = qs.aggregate(
             avg_draft_to_submit_days=Avg(F("submitted_at") - F("created_at")),
@@ -63,6 +105,7 @@ class AdmissionsAnalyticsService:
 
     def payment_metrics(self, filters: dict) -> dict:
         qs = Payment.objects.all()
+        qs = self._scope_payments(qs)
         if filters.get("start_date"):
             qs = qs.filter(created_at__gte=filters["start_date"])
         if filters.get("end_date"):

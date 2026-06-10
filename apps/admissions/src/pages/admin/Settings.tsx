@@ -37,7 +37,7 @@ import {
 export const validateSetting = _validateSetting
 
 const SETTING_BLUEPRINTS: SettingBlueprint[] = [
-  { key: 'site_name', label: 'Portal name', description: 'Primary platform title shown across public and authenticated screens.', category: 'general', valueType: 'string', placeholder: 'MIHAS Application System', is_public: true },
+  { key: 'site_name', label: 'Portal name', description: 'Primary platform title shown across public and authenticated screens.', category: 'general', valueType: 'string', placeholder: 'Beanola Application System', is_public: true },
   { key: 'enable_online_applications', label: 'Online applications', description: 'Controls whether students can start or continue applications online.', category: 'general', valueType: 'boolean', placeholder: 'true', is_public: true },
   { key: 'contact_email', label: 'Admissions email', description: 'Primary email used for admissions contact, slip delivery, and public support messaging.', category: 'contact', valueType: 'string', placeholder: 'admissions@mihas.edu.zm', is_public: true },
   { key: 'contact_phone', label: 'Admissions phone', description: 'Primary phone number shown to applicants and used by support surfaces.', category: 'contact', valueType: 'string', placeholder: '+260-000-000-000', is_public: true },
@@ -227,7 +227,7 @@ export default function AdminSettings() {
 
   return (
     <>
-      <Seo title="Operational Settings | MIHAS-KATC Admissions" description="Configure admissions portal settings, guided controls, and advanced system keys." path="/admin/settings" noindex />
+      <Seo title="Operational Settings | Beanola Admissions" description="Configure admissions portal settings, guided controls, and advanced system keys." path="/admin/settings" noindex />
       <PageShell
         title="Operational Settings"
         eyebrow="System Configuration"

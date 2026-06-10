@@ -1,7 +1,7 @@
 """Production settings — full security, SSL redirect enabled.
 
-Domain: api.mihas.edu.zm (Koyeb)
-Frontend: apply.mihas.edu.zm (Vercel)
+Domain: api.beanola.com (self-hosted EC2 + Caddy)
+Frontend: apply.beanola.com / jobs.beanola.com (self-hosted EC2 + Caddy)
 """
 
 from django.core.exceptions import ImproperlyConfigured
@@ -12,7 +12,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get("ALLOWED_HOSTS", "api.mihas.edu.zm").split(",")  # noqa: F405
+    for host in os.environ.get("ALLOWED_HOSTS", "api.beanola.com").split(",")  # noqa: F405
     if host.strip()
 ]
 validate_debug_not_serving_production_hosts()  # noqa: F405
@@ -25,8 +25,9 @@ SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Auth cookie domain — shared across apply.mihas.edu.zm and api.mihas.edu.zm
-AUTH_COOKIE_DOMAIN = ".mihas.edu.zm"
+# Auth cookie domain — shared across apply.beanola.com and api.beanola.com.
+# Env-driven so the platform domain can move without a code change.
+AUTH_COOKIE_DOMAIN = os.environ.get("AUTH_COOKIE_DOMAIN", ".beanola.com")  # noqa: F405
 AUTH_COOKIE_SAMESITE = "None"
 AUTH_COOKIE_SECURE = True
 AUTH_COOKIE_HTTPONLY = True
@@ -66,7 +67,7 @@ _os.environ.setdefault("REQUEST_METRIC_SAMPLE_RATE", "0.1")
 # CORS — production frontend only (explicit origins, no regexes)
 CORS_ALLOWED_ORIGINS = split_csv_env(  # noqa: F405
     "CORS_ALLOWED_ORIGINS",
-    "https://apply.mihas.edu.zm,https://api.mihas.edu.zm,https://jobs.mihas.edu.zm,https://mihas.edu.zm,https://www.mihas.edu.zm,https://katc.edu.zm,https://www.katc.edu.zm,https://beanola.com,https://www.beanola.com",
+    "https://apply.beanola.com,https://api.beanola.com,https://jobs.beanola.com,https://beanola.com,https://www.beanola.com,https://mihas.edu.zm,https://www.mihas.edu.zm,https://katc.edu.zm,https://www.katc.edu.zm",
 )
 CORS_ALLOWED_ORIGIN_REGEXES = []
 CORS_ALLOW_ALL_ORIGINS = False

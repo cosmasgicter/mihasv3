@@ -38,6 +38,16 @@ import {
 } from '@/lib/profileFieldMapping'
 import { mergeWizardSubjects, resolveWizardSubjectId } from '../lib/educationCatalog'
 import {
+  asAssignmentFailureCode,
+  buildAdmissionsMailto,
+  getAssignmentFailureCode,
+  hasRecordedAssignmentInterest,
+  recordAssignmentInterest,
+  resolveAssignmentRecovery,
+  type AssignmentFailureCode,
+  type AssignmentRecoveryGuidance,
+} from '../lib/assignmentRecovery'
+import {
   mergeDraftResumeUploads,
   normalizeDraftResumeGrades,
   resolveDraftResumeStepId,
@@ -61,7 +71,7 @@ import {
   type WizardProgram,
   type WizardIntake
 } from '../types'
-import { getStepIndexById, wizardSteps } from '../steps/config'
+import { getStepIndexById, getStepIndexByKey, wizardSteps } from '../steps/config'
 import {
   createGradeRowId,
   normalizeServerUploadedFiles,
@@ -154,6 +164,15 @@ interface UseWizardControllerResult {
   goToStep: (index: number) => void
   refetchPaymentStatus: () => Promise<void>
   setPaymentStatus: (status: 'pending' | 'successful' | 'failed' | 'deferred' | null) => void
+  assignmentPreview: import('@/services/catalog').AssignmentPreview | null | undefined
+  assignmentPreviewLoading: boolean
+  assignmentPreviewError: string | null
+  assignmentResolved: boolean
+  refetchAssignmentPreview: () => void
+  assignmentRecovery: AssignmentRecoveryGuidance | null
+  assignmentContactMailto: string | null
+  assignmentInterestRecorded: boolean
+  joinAssignmentInterestList: () => void
 }
 
 export interface PaymentValidationContext {
@@ -196,6 +215,12 @@ const useWizardController = (): UseWizardControllerResult => {
   const [programs, setPrograms] = useState<WizardProgram[]>([])
   const [intakes, setIntakes] = useState<WizardIntake[]>([])
   const isSubmittingRef = useRef(false)
+  // Submit-time re-assignment failure code (R2.7). Set when the submit path
+  // returns OFFERING_NO_LONGER_AVAILABLE / OFFERING_CAPACITY_FULL so the
+  // assigned-school checkpoint can render the recoverable guidance.
+  const [submitAssignmentFailureCode, setSubmitAssignmentFailureCode] =
+    useState<AssignmentFailureCode | null>(null)
+  const [assignmentInterestTick, setAssignmentInterestTick] = useState(0)
 
   const findProgramId = useCallback(
     (
@@ -281,14 +306,6 @@ const useWizardController = (): UseWizardControllerResult => {
     (value?: string | null) => resolveWizardIntakeIdentity(intakes, value),
     [intakes]
   )
-
-  const resolveInstitutionCode = useCallback((institutionLabel: string) => {
-    const normalized = institutionLabel.trim().toLowerCase()
-    if (normalized.includes('kalulushi') || normalized.includes('katc')) {
-      return 'KATC'
-    }
-    return 'MIHAS'
-  }, [])
 
   const programIds = useMemo(() => programs.map(program => program.id).filter(Boolean), [programs])
   const intakeIds = useMemo(
@@ -396,6 +413,113 @@ const useWizardController = (): UseWizardControllerResult => {
     }
   }, [programs, selectedProgram, findProgramId, setValue])
   const clearValidationError = useCallback(() => setError(''), [])
+
+  // ── Program-first assignment preview (R10.2 / R10.3) ──────────────────────
+  // Once the student has chosen a canonical programme + intake, resolve the
+  // assigned school + fee + required documents + contact from the backend.
+  // The result drives the assigned-school checkpoint (step 2) and gates the
+  // payment step: payment is unreachable until `assignmentResolved` is true.
+  const { data: wizardCatalogContext } = catalogData.useContext()
+  const whiteLabelInstitutionId =
+    wizardCatalogContext?.portal_type === 'white_label' ? wizardCatalogContext.institution_id : null
+  const previewNationality = getBestValue(profile?.nationality, getUserMetadata(user).nationality, 'Zambian')
+  const previewCountry = getCanonicalResidenceCountry(profile, getUserMetadata(user))
+  const {
+    data: assignmentPreview,
+    isFetching: assignmentPreviewFetching,
+    error: assignmentPreviewErrorRaw,
+    refetch: refetchAssignmentPreview,
+  } = catalogData.useAssignmentPreview({
+    programId: selectedProgram && programIds.includes(selectedProgram) ? selectedProgram : null,
+    intakeId: selectedIntake && intakeIds.includes(selectedIntake) ? selectedIntake : null,
+    nationality: previewNationality,
+    country: previewCountry,
+    institution: whiteLabelInstitutionId,
+  })
+  // R10.3 gate: assignment is "resolved" only when the backend returned an
+  // assigned school AND a resolved fee for the chosen program+intake.
+  const assignmentResolved = Boolean(assignmentPreview?.assigned_school?.id && assignmentPreview?.fee)
+  const assignmentPreviewError = assignmentPreviewErrorRaw
+    ? toError(assignmentPreviewErrorRaw).message || 'We could not confirm your assigned school. Please try again.'
+    : null
+
+  // ── Recoverable assignment-failure guidance (R10.4, R2.6, R2.7) ───────────
+  // A failure is either: a preview failure carrying a stable code (R2.6:
+  // NO_ELIGIBLE_OFFERING), a submit-time re-assignment failure (R2.7:
+  // OFFERING_NO_LONGER_AVAILABLE / OFFERING_CAPACITY_FULL), or a transient
+  // network/unknown failure. In every case the student gets a recoverable path
+  // (choose another intake, interest list, contact admissions) — never a
+  // dead-end. The submit-time code takes precedence because it is the most
+  // recent, decisive signal.
+  const previewFailureCode = getAssignmentFailureCode(assignmentPreviewErrorRaw)
+  const activeAssignmentFailureCode = submitAssignmentFailureCode ?? previewFailureCode
+  const assignmentContactMailto = useMemo(
+    () =>
+      buildAdmissionsMailto({
+        email:
+          assignmentPreview?.contact?.email ??
+          wizardCatalogContext?.brand?.admissions_email ??
+          wizardCatalogContext?.brand?.support_email ??
+          null,
+        programName: assignmentPreview?.program_name ?? selectedProgramDetails?.name,
+        intakeName: assignmentPreview?.intake_name,
+      }),
+    [
+      assignmentPreview?.contact?.email,
+      assignmentPreview?.program_name,
+      assignmentPreview?.intake_name,
+      wizardCatalogContext?.brand?.admissions_email,
+      wizardCatalogContext?.brand?.support_email,
+      selectedProgramDetails?.name,
+    ],
+  )
+  const assignmentRecovery: AssignmentRecoveryGuidance | null = useMemo(() => {
+    // Only surface recovery when there is an actual failure: a stable code, or
+    // a transient preview error while ids are present and nothing resolved.
+    const hasFailure =
+      activeAssignmentFailureCode !== null ||
+      (Boolean(assignmentPreviewError) && !assignmentResolved)
+    if (!hasFailure) return null
+    return resolveAssignmentRecovery({
+      code: activeAssignmentFailureCode,
+      programName: assignmentPreview?.program_name ?? selectedProgramDetails?.name,
+      intakeName:
+        assignmentPreview?.intake_name ??
+        intakes.find(intake => intake.id === selectedIntake)?.name,
+    })
+  }, [
+    activeAssignmentFailureCode,
+    assignmentPreviewError,
+    assignmentResolved,
+    assignmentPreview?.program_name,
+    assignmentPreview?.intake_name,
+    selectedProgramDetails?.name,
+    intakes,
+    selectedIntake,
+  ])
+  const assignmentInterestRecorded = useMemo(() => {
+    void assignmentInterestTick
+    return hasRecordedAssignmentInterest({ programId: selectedProgram, intakeId: selectedIntake })
+  }, [assignmentInterestTick, selectedProgram, selectedIntake])
+  const joinAssignmentInterestList = useCallback(() => {
+    const recorded = recordAssignmentInterest({
+      programId: selectedProgram,
+      intakeId: selectedIntake,
+      code: activeAssignmentFailureCode,
+    })
+    if (recorded) {
+      setAssignmentInterestTick(tick => tick + 1)
+      showSuccess('Added to the interest list. We will contact you if a place opens.')
+    }
+  }, [selectedProgram, selectedIntake, activeAssignmentFailureCode, showSuccess])
+
+  // Clear a stale submit-time failure once the student changes their selection
+  // and a fresh assignment resolves successfully.
+  useEffect(() => {
+    if (assignmentResolved && submitAssignmentFailureCode) {
+      setSubmitAssignmentFailureCode(null)
+    }
+  }, [assignmentResolved, submitAssignmentFailureCode])
 
   const {
     resultSlipFile,
@@ -625,6 +749,7 @@ const useWizardController = (): UseWizardControllerResult => {
     hasIdentityFile: Boolean(extraKycFile),
     paymentStatus,
     confirmSubmission,
+    assignmentResolved,
   })
 
   useEffect(() => {
@@ -726,7 +851,45 @@ const useWizardController = (): UseWizardControllerResult => {
   const handleNextStep = useCallback(async () => {
     await saveDraft({ syncServer: false })
 
-    if (currentStepConfig.key === 'basicKyc') {
+    // Step 1 (R10.1): programme + intake selection. Validate the pair, then
+    // advance to the assigned-school checkpoint. The assignment preview runs
+    // reactively (useAssignmentPreview) — no application row is created here.
+    if (currentStepConfig.key === 'program') {
+      const formData = watch()
+      if (!formData.program || !programIds.includes(formData.program)) {
+        setError('Please select a valid program from the list provided')
+        return
+      }
+      if (!formData.intake || !intakeIds.includes(formData.intake)) {
+        setError('Please select a valid intake from the list provided')
+        return
+      }
+      setError('')
+      goToStep(currentStepIndex + 1)
+      return
+    }
+
+    // Step 2 (R10.2 / R10.3): assigned-school checkpoint. Payment is unreachable
+    // until the backend has resolved the assigned school AND fee. Block forward
+    // navigation past this checkpoint until the preview resolves.
+    if (currentStepConfig.key === 'assignedSchool') {
+      if (assignmentPreviewFetching) {
+        setError('Please wait while we confirm your assigned school.')
+        return
+      }
+      if (!assignmentResolved) {
+        setError(
+          assignmentPreviewError ||
+          'We could not confirm your assigned school for this programme and intake. Please choose another intake or contact admissions.'
+        )
+        return
+      }
+      setError('')
+      goToStep(currentStepIndex + 1)
+      return
+    }
+
+    if (currentStepConfig.key === 'personal') {
       const formData = watch()
       const requiredFields = ['full_name', 'date_of_birth', 'sex', 'phone', 'email', 'residence_town', 'program', 'intake']
       const missingFields = requiredFields.filter(field => {
@@ -774,7 +937,7 @@ const useWizardController = (): UseWizardControllerResult => {
 
         const programName = resolvedProgram.label
         const institutionLabel =
-          resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
+          resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'Beanola Admissions'
         
         // Duplicate check handled by backend on create/submit
 
@@ -839,6 +1002,8 @@ const useWizardController = (): UseWizardControllerResult => {
             country: sanitizeInput(formData.country) || country,
             next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
             next_of_kin_phone: sanitizePhoneInput(formData.next_of_kin_phone) || null,
+            program_id: resolvedProgram.id,
+            intake_id: resolvedIntake.id,
             program: resolvedProgram.label,
             intake: resolvedIntake.name,
             institution: institutionLabel,
@@ -853,8 +1018,8 @@ const useWizardController = (): UseWizardControllerResult => {
           setSubmittedApplication({
             applicationNumber: app.application_number || '',
             trackingCode: String(app.public_tracking_code || ''),
-            program: programName,
-            institution: institutionLabel,
+            program: app.program || programName,
+            institution: app.institution || institutionLabel,
             intake: resolvedIntake.label,
             fullName: formData.full_name,
             email: formData.email,
@@ -888,7 +1053,7 @@ const useWizardController = (): UseWizardControllerResult => {
             const nationality = getBestValue(profile?.nationality, metadata.nationality, 'Zambian')
             const country = getCanonicalResidenceCountry(profile, metadata)
             const institutionLabel =
-              resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
+              resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'Beanola Admissions'
 
             const app = await createApplication.mutateAsync({
               full_name: sanitizeInput(formData.full_name),
@@ -902,6 +1067,8 @@ const useWizardController = (): UseWizardControllerResult => {
               country: sanitizeInput(formData.country) || country,
               next_of_kin_name: sanitizeInput(formData.next_of_kin_name) || null,
               next_of_kin_phone: sanitizePhoneInput(formData.next_of_kin_phone) || null,
+              program_id: resolvedProgram.id,
+              intake_id: resolvedIntake.id,
               program: resolvedProgram.label,
               intake: resolvedIntake.name,
               institution: institutionLabel,
@@ -916,8 +1083,8 @@ const useWizardController = (): UseWizardControllerResult => {
             setSubmittedApplication({
               applicationNumber: app.application_number || '',
               trackingCode: String(app.public_tracking_code || ''),
-              program: resolvedProgram.label,
-              institution: institutionLabel,
+              program: app.program || resolvedProgram.label,
+              institution: app.institution || institutionLabel,
               intake: resolvedIntake.label,
               fullName: formData.full_name,
               email: formData.email,
@@ -979,10 +1146,10 @@ const useWizardController = (): UseWizardControllerResult => {
       const validGradeCount = liveValidation.validCount
 
       if (!applicationId) {
-        const errorMessage = 'Application not created. Returning to Basic Information step.'
+        const errorMessage = 'Application not created. Returning to the personal details step.'
         setError(errorMessage)
         showError(errorMessage)
-        goToStep(0)
+        goToStep(getStepIndexByKey('personal'))
         return
       }
 
@@ -1041,10 +1208,10 @@ const useWizardController = (): UseWizardControllerResult => {
       } catch (error) {
         logApiError('application-wizard', `/applications/${applicationId}/grades/`, error)
         if (isApplicationMissingError(error)) {
-          const errorMessage = 'Your online draft was no longer available. Your grades are saved on this device; please continue from Basic Information to refresh the draft.'
+          const errorMessage = 'Your online draft was no longer available. Your grades are saved on this device; please continue from the personal details step to refresh the draft.'
           clearStaleApplicationReference(applicationId, errorMessage)
           setError(errorMessage)
-          goToStep(0)
+          goToStep(getStepIndexByKey('personal'))
           return
         }
 
@@ -1102,6 +1269,9 @@ const useWizardController = (): UseWizardControllerResult => {
     deriveInstitutionLabel,
     clearStaleApplicationReference,
     queryClient,
+    assignmentPreviewFetching,
+    assignmentResolved,
+    assignmentPreviewError,
   ])
 
   const handlePrevStep = useCallback(() => {
@@ -1230,8 +1400,22 @@ const useWizardController = (): UseWizardControllerResult => {
       const errorCode = (error as { data?: { code?: string }; code?: string })?.data?.code || (error as { code?: string })?.code
       if (applicationId && isApplicationMissingError(error)) {
         clearStaleApplicationReference(applicationId)
-        message = 'Your online draft was no longer available. Your details are still saved on this device; please continue from Basic Information to refresh the draft.'
-        goToStep(0)
+        message = 'Your online draft was no longer available. Your details are still saved on this device; please continue from the personal details step to refresh the draft.'
+        goToStep(getStepIndexByKey('personal'))
+      } else if (asAssignmentFailureCode(errorCode)) {
+        // R2.7: submission re-ran assignment and the assigned offering is no
+        // longer eligible / filled to capacity. This is recoverable, never a
+        // silent success — surface the recoverable guidance on the
+        // assigned-school checkpoint and route the student there.
+        const failureCode = asAssignmentFailureCode(errorCode)!
+        setSubmitAssignmentFailureCode(failureCode)
+        const recovery = resolveAssignmentRecovery({
+          code: failureCode,
+          programName: selectedProgramDetails?.name,
+          intakeName: intakes.find(intake => intake.id === getValues('intake'))?.name,
+        })
+        message = recovery.message
+        goToStep(getStepIndexByKey('assignedSchool'))
       } else if (errorCode === 'IDEMPOTENCY_PENDING') {
         message = 'Your submission is still being processed. Please wait a moment, refresh the application status, and try again only if it is not submitted.'
       } else if (errorCode === 'ALREADY_SUBMITTED') {
@@ -1264,7 +1448,7 @@ const useWizardController = (): UseWizardControllerResult => {
       setLoading(false)
       isSubmittingRef.current = false
     }
-  }, [confirmSubmission, uploadedFiles, resultSlipFile, extraKycFile, paymentStatus, applicationId, submitApplicationMutation, user?.id, showError, showSuccess, queryClient, clearStaleApplicationReference, goToStep])
+  }, [confirmSubmission, uploadedFiles, resultSlipFile, extraKycFile, paymentStatus, applicationId, submitApplicationMutation, user?.id, showError, showSuccess, queryClient, clearStaleApplicationReference, goToStep, selectedProgramDetails, intakes, getValues])
 
   return {
     authLoading,
@@ -1332,7 +1516,16 @@ const useWizardController = (): UseWizardControllerResult => {
     watchValues: watch,
     goToStep,
     refetchPaymentStatus,
-    setPaymentStatus
+    setPaymentStatus,
+    assignmentPreview,
+    assignmentPreviewLoading: assignmentPreviewFetching,
+    assignmentPreviewError,
+    assignmentResolved,
+    refetchAssignmentPreview: () => { void refetchAssignmentPreview() },
+    assignmentRecovery,
+    assignmentContactMailto,
+    assignmentInterestRecorded,
+    joinAssignmentInterestList,
   }
 }
 

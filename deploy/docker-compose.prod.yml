@@ -30,9 +30,9 @@ services:
     restart: unless-stopped
     environment:
       ADMIN_EMAIL: ${ADMIN_EMAIL:?set ADMIN_EMAIL for Let's Encrypt}
-      APP_HOST: ${APP_HOST:?set APP_HOST e.g. apply.mihas.edu.zm}
-      API_HOST: ${API_HOST:?set API_HOST e.g. api.mihas.edu.zm}
-      JOBS_HOST: ${JOBS_HOST:?set JOBS_HOST e.g. jobs.mihas.edu.zm}
+      APP_HOST: ${APP_HOST:?set APP_HOST e.g. apply.beanola.com}
+      API_HOST: ${API_HOST:?set API_HOST e.g. api.beanola.com}
+      JOBS_HOST: ${JOBS_HOST:?set JOBS_HOST e.g. jobs.beanola.com}
     ports:
       - "80:80"
       - "443:443"

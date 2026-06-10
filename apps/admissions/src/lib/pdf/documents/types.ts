@@ -62,6 +62,23 @@ export interface AcceptanceLetterData {
   startDate?: string
   conditional?: boolean
   conditions?: AcceptanceCondition[]
+  /**
+   * Student number assigned on full acceptance/enrolment, e.g. "MIHAS/26/00001".
+   * When present it is shown in the letter's metadata strip. Optional — early
+   * (pre-enrolment) acceptance letters may not have one yet.
+   */
+  studentNumber?: string
+  /**
+   * Optional applicant postal address, shown in the Name/Address/Date block
+   * to match the official letter. Falls back to a blank dotted line.
+   */
+  studentAddress?: string
+  /**
+   * The K1,000 (default) non-refundable commitment fee, in ZMW, that secures
+   * the student's place and is treated as part-payment toward tuition. Paid
+   * into the school's tuition account (see the resolved profile).
+   */
+  commitmentFee?: number
   /** Optional signatory override — defaults to Dr Solomon Musonda. */
   signatoryName?: string
   /** Optional role override — defaults to "Managing Director". */
@@ -95,13 +112,27 @@ export interface AcceptanceLetterData {
  *
  * The institution shown in the signature block is the one issuing the
  * specific document (MIHAS or KATC, resolved from the application's
- * `institution` field). For nursing-program acceptance letters, the
- * division line resolves to "… — School of Nursing" via
- * `deriveSignatoryDivision()` in AcceptanceLetter.
+ * `institution` field). The official acceptance letters close with
+ * "On behalf of {institution}" above "Dr Solomon Musonda, MD /
+ * Managing Director" — no school/division line — so the letter renders
+ * the institution alone. The optional `signatoryDivision` field on
+ * AcceptanceLetterData is retained for backward compatibility but is not
+ * rendered by the acceptance letter.
  */
 export const DEFAULT_SIGNATORY = {
   name: 'Dr Solomon Musonda',
   role: 'Managing Director',
   postnominal: 'MD',
-  signatureImage: '/images/signatures/solomon-musonda.png',
+  signatureImage: '/images/signatures/director-signature.png',
+} as const
+
+/**
+ * Intrinsic pixel dimensions of the default signature scan
+ * (`director-signature.png`) after cropping to the ink and upscaling:
+ * 472×208 (~2.27:1). The aspect ratio must be preserved when rendering so
+ * the signature is not stretched. SignatureBlock uses these to size the image.
+ */
+export const DEFAULT_SIGNATURE_DIMENSIONS = {
+  width: 472,
+  height: 208,
 } as const

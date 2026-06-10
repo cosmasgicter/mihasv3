@@ -23,6 +23,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsOwnerOrAdmin
 from apps.applications.duplicate_checker import DuplicateChecker
+from apps.catalog.services import AccessScopeService
 from apps.applications.models import (
     Application,
     ApplicationAmendment,
@@ -259,6 +260,27 @@ class ApplicationDetailView(APIView):
         except Application.DoesNotExist:
             return None
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
+            return None
+        # Tenant scope: a non-super-admin admin may only read applications within
+        # their membership/grant scope. An out-of-scope read must be
+        # indistinguishable from not-found (return None → 404), never a 200 that
+        # leaks the other school's record (R4.4).
+        role = getattr(request.user, 'role', 'student')
+        if role == 'admin' and not AccessScopeService().filter_applications(
+            Application.objects.filter(id=app.id), request.user
+        ).exists():
+            try:
+                from apps.catalog.tenant_audit_service import TenantAuditService
+
+                TenantAuditService.record_scope_denied(
+                    resource_type="application",
+                    resource_id=app.id,
+                    actor_id=getattr(request.user, "id", None),
+                    actor_role=role,
+                    request=request,
+                )
+            except Exception:  # pragma: no cover - audit must never block the read
+                pass
             return None
         return app
 

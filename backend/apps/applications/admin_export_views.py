@@ -128,6 +128,10 @@ class ApplicationExportView(APIView):
     def get(self, request):
         full_export = is_super_admin(request.user)
         queryset = _with_payment_summary(Application.objects.all()).order_by("-created_at")
+        if not full_export:
+            from apps.catalog.services import AccessScopeService
+
+            queryset = AccessScopeService().filter_applications(queryset, request.user)
         filterset = ApplicationFilter(request.query_params, queryset=queryset)
         queryset = filterset.qs
 
@@ -150,4 +154,3 @@ class ApplicationExportView(APIView):
         return Response({"success": True, "data": {
             "page": 1, "pageSize": len(data), "totalCount": len(data), "results": data,
         }})
-

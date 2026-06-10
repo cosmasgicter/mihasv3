@@ -24,7 +24,7 @@ def render(context: dict) -> tuple[str, str]:
     tracking = context.get("tracking_code") or "—"
     program = context.get("program_name") or "your selected programme"
     intake = context.get("intake_name") or "the current intake"
-    portal = context.get("portal_url") or "https://apply.mihas.edu.zm"
+    portal = context.get("portal_url") or "https://apply.beanola.com"
 
     subject = f"Application received — {app_no}"
 

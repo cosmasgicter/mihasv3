@@ -21,6 +21,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
+from apps.catalog.services import AccessScopeService
 from apps.common.pagination import StandardPagination
 from apps.documents.models import ApplicationDocument, Payment, ProgramFee
 from apps.documents.serializers import (
@@ -109,10 +110,67 @@ def _get_authorized_document(request, view, document_id):
     if application is None:
         return None, _document_not_found_response()
 
-    if not IsOwnerOrAdmin().has_object_permission(request, view, application):
-        return None, _document_permission_denied_response()
+    role = getattr(request.user, "role", "student")
+    if role == "admin":
+        scoped = AccessScopeService().filter_documents(
+            ApplicationDocument.objects.filter(id=document.id),
+            request.user,
+        )
+        if not scoped.exists():
+            # Out-of-scope reads must be indistinguishable from a true
+            # not-found so existence cannot be inferred (R4.4).
+            return None, _document_not_found_response()
+    elif not IsOwnerOrAdmin().has_object_permission(request, view, application):
+        # A non-owning student (or any non-admin without ownership) is masked
+        # as a genuine not-found so document existence cannot be inferred
+        # (R3.6, R4.3, Property 13). Out-of-scope reads across every document
+        # surface return the byte-identical 404 envelope.
+        return None, _document_not_found_response()
 
     return document, None
+
+
+def _audit_official_document_deleted(request, document):
+    """Write a privileged official-document deletion Audit_Event (R4.4, R4.6).
+
+    Routes through the existing ``TenantAuditService`` / ``audit_logs``
+    mechanism. The payload carries only non-PII identifiers — actor id,
+    document id, application id, document type, the ``system_generated`` flag,
+    and the institution id. It NEVER includes the document body, extracted
+    text, file URL/storage key, or applicant PII (NRC, full name, phone,
+    email). Audit-writer failures never propagate.
+    """
+    application = getattr(document, "application", None)
+    institution_id = getattr(application, "institution_ref_id", None) if application else None
+    actor_id = getattr(request.user, "id", None)
+    actor_role = getattr(request.user, "role", None)
+
+    try:
+        from apps.catalog.tenant_audit_service import TenantAuditService
+
+        TenantAuditService.record_event(
+            action="official_document.deleted",
+            entity_type="application_document",
+            entity_id=document.id,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            institution_id=institution_id,
+            metadata={
+                "document_id": str(document.id),
+                "application_id": str(application.id) if application is not None else None,
+                "document_type": document.document_type,
+                "system_generated": bool(document.system_generated),
+                "institution_id": str(institution_id) if institution_id else None,
+            },
+            retention_category="security",
+            request=request,
+        )
+    except Exception:  # pragma: no cover - audit writes must never block deletes
+        logger.warning(
+            "Failed to emit official-document deletion audit for document %s",
+            getattr(document, "id", None),
+            exc_info=True,
+        )
 
 
 def _get_document_storage_key(document):
@@ -213,6 +271,16 @@ class DocumentUploadView(APIView):
                 {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        if role == "admin":
+            scoped = AccessScopeService().filter_applications(
+                Application.objects.filter(id=application.id),
+                user,
+            )
+            if not scoped.exists():
+                return Response(
+                    {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
         if role not in ("admin", "super_admin") and document_type == "application_slip":
             return Response(
                 {"success": False, "error": "Application slips are system-generated", "code": "INSUFFICIENT_PERMISSIONS"},
@@ -310,34 +378,17 @@ class DocumentExtractView(APIView):
     throttle_scope = "ai_document_extract"
 
     def post(self, request, document_id):
-        try:
-            document = ApplicationDocument.objects.select_related('application').get(id=document_id)
-        except ApplicationDocument.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Document not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        # Authorize through the shared scope path BEFORE any side effect. The
+        # loader masks out-of-scope reads as a byte-identical 404 not-found
+        # (R3.2, R3.3, R3.6) and never authorizes on ``role == "admin"`` alone
+        # — scope comes only from ``AccessScopeService`` (R3.8).
+        document, error_response = _get_authorized_document(request, self, document_id)
+        if error_response is not None:
+            # Return the loader error unchanged; no OCR task is enqueued and no
+            # document state is mutated (R3.1, R3.2).
+            return error_response
 
-        # Ownership check.
-        from apps.applications.models import Application
-
-        try:
-            application = Application.objects.get(id=document.application_id)
-        except Application.DoesNotExist:
-            return Response(
-                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        user = request.user
-        role = getattr(user, "role", "student")
-        if role not in ("admin", "super_admin") and str(application.user_id) != str(user.id):
-            return Response(
-                {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        # Enqueue OCR task.
+        # Enqueue OCR task only after authorization succeeds (R3.4, R3.5, R3.7).
         from apps.documents.tasks import extract_document_text_task
 
         force = request.data.get("force", False) is True
@@ -490,6 +541,34 @@ class DocumentDeleteView(APIView):
         if error_response is not None:
             return error_response
 
+        role = getattr(request.user, "role", "student")
+
+        # R4.1: official (system-generated) documents are immutable to anyone
+        # who is not a super-admin — students and ordinary school staff alike.
+        if document.system_generated and role != "super_admin":
+            return Response(
+                {
+                    "success": False,
+                    "error": "Official generated documents cannot be deleted",
+                    "code": "OFFICIAL_DOCUMENT_IMMUTABLE",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # R4.2: a student may soft-delete their own non-system document only
+        # while the application is still editable (draft) per the existing
+        # editability policy.
+        if role not in ("admin", "super_admin"):
+            if document.application.status != "draft":
+                return Response(
+                    {
+                        "success": False,
+                        "error": "Application is not editable",
+                        "code": "APPLICATION_NOT_EDITABLE",
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
         document.verification_status = "deleted"
         document.updated_at = timezone.now()
         document.save(update_fields=["verification_status", "updated_at"])
@@ -521,6 +600,12 @@ class DocumentDeleteView(APIView):
                 application.extra_kyc_url = None
                 application.updated_at = timezone.now()
                 application.save(update_fields=["extra_kyc_url", "updated_at"])
+
+        # R4.4/R4.6: a super-admin's privileged deletion of an official
+        # (system-generated) document is audited — IDs + doc type + flag +
+        # institution only, never the document body, PII, or secrets.
+        if role == "super_admin" and document.system_generated:
+            _audit_official_document_deleted(request, document)
 
         return Response(
             {"success": True, "message": "Document deleted"},

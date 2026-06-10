@@ -327,6 +327,25 @@ ERROR_CODES.update({
         "message": "File storage operation failed",
         "category": "document",
     },
+    # Tenant asset upload (multi-tenant Beanola — R5.3). Stable code for any
+    # MIME / magic-byte / size validation failure on an institution asset
+    # upload. Always 400 — an invalid asset is a client error, not a payload
+    # too large (413), so the size guard funnels here too.
+    "ASSET_INVALID": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Asset file failed MIME, magic-byte, or size validation",
+        "category": "document",
+    },
+    # Document-template safety (multi-tenant Beanola — R5.7 / R6.4). Raised when
+    # a Document_Template create/update carries a disallowed section key, a
+    # token outside the canonical allowlist, an injected/unknown token in a
+    # section body, or an arbitrary uploaded DOCX/PDF/RTF/OLE merge document.
+    # Always 400 — a disallowed template is a client error.
+    "TEMPLATE_TOKEN_REJECTED": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Disallowed section or token in document template",
+        "category": "document",
+    },
 })
 
 # --- Catalog (programs/intakes/institutions) ---
@@ -345,6 +364,29 @@ ERROR_CODES.update({
         "http_status": status.HTTP_400_BAD_REQUEST,
         "message": "The program is not available for this intake",
         "category": "common",
+    },
+})
+
+# --- Offering assignment (multi-tenant Beanola — submission revalidation) ---
+# Raised when submission-time re-validation of the locked offering assignment
+# fails (spec multi-tenant-beanola-admissions, R2.7 / R2.4). Both are 409 and
+# carry a recoverable next action — submission never silently succeeds on a
+# stale draft assignment.
+ERROR_CODES.update({
+    "NO_ELIGIBLE_OFFERING": {
+        "http_status": status.HTTP_409_CONFLICT,
+        "message": "No eligible school offering is available for this program and intake",
+        "category": "application",
+    },
+    "OFFERING_NO_LONGER_AVAILABLE": {
+        "http_status": status.HTTP_409_CONFLICT,
+        "message": "The previously assigned school offering is no longer available",
+        "category": "application",
+    },
+    "OFFERING_CAPACITY_FULL": {
+        "http_status": status.HTTP_409_CONFLICT,
+        "message": "The assigned offering's capacity filled before submission",
+        "category": "application",
     },
 })
 

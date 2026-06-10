@@ -97,8 +97,8 @@ export default function ApplicationDetail() {
     return (
       <>
       <Seo
-        title="Application Details | MIHAS-KATC Admissions"
-        description="View the full details of your MIHAS-KATC admissions application."
+        title="Application Details | Beanola Admissions"
+        description="View the full details of your Beanola admissions application."
         path={`/student/application/${id}`}
         noindex
       />
@@ -123,8 +123,8 @@ export default function ApplicationDetail() {
     return (
       <>
       <Seo
-        title="Application Details | MIHAS-KATC Admissions"
-        description="View the full details of your MIHAS-KATC admissions application."
+        title="Application Details | Beanola Admissions"
+        description="View the full details of your Beanola admissions application."
         path={`/student/application/${id}`}
         noindex
       />
@@ -155,8 +155,8 @@ export default function ApplicationDetail() {
   return (
     <>
       <Seo
-        title="Application Details | MIHAS-KATC Admissions"
-        description="View the full details of your MIHAS-KATC admissions application."
+        title="Application Details | Beanola Admissions"
+        description="View the full details of your Beanola admissions application."
         path={`/student/application/${id}`}
         noindex
       />

@@ -94,7 +94,8 @@ describe('wizard draft resume helpers', () => {
       deriveDraftResumeUploads(application)
     )
 
-    expect(stepId).toBe(3)
+    // 6-step model (R10.1): payment is step 5.
+    expect(stepId).toBe(5)
   })
 
   it('resumes to the review step when payment is already verified', () => {
@@ -120,7 +121,8 @@ describe('wizard draft resume helpers', () => {
       deriveDraftResumeUploads(application)
     )
 
-    expect(stepId).toBe(4)
+    // 6-step model (R10.1): review/submit is step 6.
+    expect(stepId).toBe(6)
   })
 
   it('stays on the education step when grades or documents are incomplete', () => {
@@ -141,6 +143,7 @@ describe('wizard draft resume helpers', () => {
       deriveDraftResumeUploads(application)
     )
 
-    expect(stepId).toBe(2)
+    // 6-step model (R10.1): education is step 4.
+    expect(stepId).toBe(4)
   })
 })

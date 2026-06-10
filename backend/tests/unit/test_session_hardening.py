@@ -248,11 +248,11 @@ class TestCookieSettings(SimpleTestCase):
     @override_settings(
         AUTH_COOKIE_SECURE=True,
         AUTH_COOKIE_SAMESITE="None",
-        AUTH_COOKIE_DOMAIN=".mihas.edu.zm",
+        AUTH_COOKIE_DOMAIN=".beanola.com",
     )
     def test_prod_cookie_settings(self):
-        """Production: Secure=True, SameSite=None, Domain=.mihas.edu.zm."""
+        """Production: Secure=True, SameSite=None, Domain=.beanola.com."""
         from django.conf import settings as s
         self.assertTrue(s.AUTH_COOKIE_SECURE)
         self.assertEqual(s.AUTH_COOKIE_SAMESITE, "None")
-        self.assertEqual(s.AUTH_COOKIE_DOMAIN, ".mihas.edu.zm")
+        self.assertEqual(s.AUTH_COOKIE_DOMAIN, ".beanola.com")

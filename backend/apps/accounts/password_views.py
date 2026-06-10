@@ -162,7 +162,7 @@ class PasswordResetRequestView(APIView):
             from apps.common.outbox import queue_email
 
             reset_link = (
-                f"https://apply.mihas.edu.zm/auth/reset-password?token={raw_token}"
+                f"https://apply.beanola.com/auth/reset-password?token={raw_token}"
             )
             subject = "Password Reset Request"
             body = (

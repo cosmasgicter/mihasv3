@@ -251,7 +251,7 @@ def _build_context(application, extra_context: dict | None = None) -> dict:
         "intake_name": str(getattr(application, "intake", "")),
         "status": getattr(application, "status", ""),
         "tracking_code": getattr(application, "public_tracking_code", "") or getattr(application, "tracking_code", ""),
-        "portal_url": "https://apply.mihas.edu.zm",
+        "portal_url": "https://apply.beanola.com",
     }
     if extra_context:
         ctx.update(extra_context)

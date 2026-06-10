@@ -138,7 +138,7 @@ export function NextActionCards({
       {applicationStatus === 'enrolled' && (
         <SectionCard
           title="Enrollment confirmed"
-          description="Your enrollment has been confirmed. Welcome to MIHAS!"
+          description="Your enrollment has been confirmed."
           icon={<CheckCircle className="h-5 w-5 text-success" />}
         />
       )}

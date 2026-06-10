@@ -17,6 +17,8 @@ interface StepValidationOptions {
   hasResultSlip?: boolean
   hasIdentityDocument?: boolean
   uploading?: boolean
+  /** True once the backend has resolved the assigned school + fee (R10.2/R10.3). */
+  assignmentResolved?: boolean
 }
 
 const isFieldComplete = (value: unknown): boolean => {
@@ -39,6 +41,7 @@ export const useStepValidation = (
     hasResultSlip = false,
     hasIdentityDocument = false,
     uploading = false,
+    assignmentResolved = false,
   } = options
   const values = (() => {
     try {
@@ -49,12 +52,32 @@ export const useStepValidation = (
   })()
 
   return useMemo(() => {
+    // Step indices match steps/config.ts:
+    // 0 program, 1 assignedSchool, 2 personal, 3 education, 4 payment, 5 submit.
     const validations: Record<number, () => StepValidation> = {
       0: () => {
-        const hasNrcOrPassport = isFieldComplete(values.nrc_number) || isFieldComplete(values.passport_number)
         const fields = [
           { label: 'Program', complete: isFieldComplete(values.program) },
           { label: 'Intake', complete: isFieldComplete(values.intake) },
+        ]
+        const completed = fields.filter(f => f.complete)
+        const missing = fields.filter(f => !f.complete).map(f => f.label)
+        return {
+          isValid: completed.length === fields.length,
+          completedFields: completed.length,
+          totalFields: fields.length,
+          missingFields: missing,
+        }
+      },
+      1: () => ({
+        isValid: assignmentResolved,
+        completedFields: assignmentResolved ? 1 : 0,
+        totalFields: 1,
+        missingFields: assignmentResolved ? [] : ['Confirm your assigned school and fee'],
+      }),
+      2: () => {
+        const hasNrcOrPassport = isFieldComplete(values.nrc_number) || isFieldComplete(values.passport_number)
+        const fields = [
           { label: 'Full Name', complete: isFieldComplete(values.full_name) },
           { label: 'Email', complete: isFieldComplete(values.email) },
           { label: 'Phone', complete: isFieldComplete(values.phone) },
@@ -72,7 +95,7 @@ export const useStepValidation = (
           missingFields: missing
         }
       },
-      1: () => {
+      3: () => {
         const validGrades = (
           selectedGrades.length > 0
             ? selectedGrades
@@ -104,7 +127,7 @@ export const useStepValidation = (
               : missingFields
         }
       },
-      2: () => {
+      4: () => {
         const paymentComplete = isPaymentResolvedForProgress(paymentStatus)
         return {
           isValid: paymentComplete,
@@ -113,7 +136,7 @@ export const useStepValidation = (
           missingFields: paymentComplete ? [] : ['Complete payment or choose pay later']
         }
       },
-      3: () => {
+      5: () => {
         const paymentComplete = isPaymentResolvedForProgress(paymentStatus)
         const confirmationComplete = confirmSubmission
         const missing: string[] = []
@@ -138,5 +161,5 @@ export const useStepValidation = (
       totalFields: 0,
       missingFields: []
     }
-  }, [values, currentStep, paymentStatus, confirmSubmission, selectedGrades, hasResultSlip, hasIdentityDocument, uploading])
+  }, [values, currentStep, paymentStatus, confirmSubmission, selectedGrades, hasResultSlip, hasIdentityDocument, uploading, assignmentResolved])
 }

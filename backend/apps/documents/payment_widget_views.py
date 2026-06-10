@@ -48,6 +48,7 @@ from apps.common.idempotency import idempotent
 from apps.common.dev_bypass import require_not_dev_bypass_in_production
 from apps.common.throttling import AIUserScopedRateThrottle, PaymentUserScopedRateThrottle
 from apps.documents import payment_metrics
+from apps.documents.payment_helpers import _build_tenant_payment_metadata
 
 from django.http import HttpResponseRedirect
 
@@ -410,6 +411,7 @@ class PaymentDevBypassView(APIView):
         )
 
         metadata = {
+            **_build_tenant_payment_metadata(application),
             "dev_bypass": True,
             "simulated_by": str(user.id),
             "simulated_at": now.isoformat(),

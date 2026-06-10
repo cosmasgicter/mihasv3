@@ -320,7 +320,7 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
             throw new Error('Please select a valid intake before saving your draft online.')
           }
           const institutionLabel =
-            resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'MIHAS'
+            resolvedProgram.institutionLabel || deriveInstitutionLabel(selectedProgramDetails?.institutions) || 'Beanola Admissions'
           const app = await createApplication.mutateAsync(
             buildServerDraftPayload({
               formData: {
@@ -331,6 +331,8 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
               selectedProgramDetails,
               institutionCode: institutionLabel,
               nationality,
+              programId: resolvedProgram.id,
+              intakeId: resolvedIntake.id,
             })
           )
 
@@ -352,8 +354,8 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
             setSubmittedApplication(prev => ({
               applicationNumber: app.application_number || prev?.applicationNumber || '',
               trackingCode: String(app.public_tracking_code || prev?.trackingCode || ''),
-              program: resolvedProgram.label,
-              institution: institutionLabel,
+              program: app.program || resolvedProgram.label,
+              institution: app.institution || institutionLabel,
               intake: resolvedIntake.label,
               fullName: formData.full_name,
               email: formData.email,

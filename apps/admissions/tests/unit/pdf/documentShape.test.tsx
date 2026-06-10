@@ -371,31 +371,30 @@ describe('PaymentReceipt shape', () => {
 })
 
 describe('AcceptanceLetter shape', () => {
-  it('unconditional variant includes Next Steps and SignatureBlock', async () => {
+  it('unconditional variant includes the official fee/requirements sections and SignatureBlock', async () => {
     capturedElement.current = null
     await generateAcceptanceLetter(acceptanceUnconditionalFixture)
     const shape = treeShape(capturedElement.current!)
-    // Section should include "Next Steps" and the signature block
     expect(shape).toContain('PageFrame[documentType=ADMISSION]')
     expect(shape).toContain('SignatureBlock')
     expect(shape).toContain('VerificationBlock')
-    // Unconditional does NOT have the Conditions section — so no extra
-    // "subject to" paragraph and no conditions View iteration.
-    // We confirm by counting SectionHeadings: Programme Details + Next Steps = 2.
+    // The official letter (MIHAS Registered Nursing fixture) carries four
+    // accented section headings on the attached fees page: Fee Chart,
+    // Payment Modalities, Important Notes, Other Requirements.
     const sectionHeadings = shape.match(/SectionHeading\[accent\]/g)
     expect(sectionHeadings).not.toBeNull()
-    expect(sectionHeadings!.length).toBe(2)
+    expect(sectionHeadings!.length).toBe(4)
   })
 
-  it('conditional variant swaps Next Steps for Conditions of Offer', async () => {
+  it('conditional variant adds the Conditions of Offer section', async () => {
     capturedElement.current = null
     await generateAcceptanceLetter(acceptanceConditionalFixture)
     const shape = treeShape(capturedElement.current!)
     expect(shape).toContain('PageFrame[documentType=CONDITIONAL ADMISSION]')
     expect(shape).toContain('SignatureBlock')
-    // Conditional has: Programme Details + Conditions of Offer = 2 SectionHeadings
-    // (no Next Steps — that was removed during QA tightening to fit one page)
+    // Conditional adds "Conditions of Offer" ahead of the four fees-page
+    // headings = 5 accented SectionHeadings.
     const sectionHeadings = shape.match(/SectionHeading\[accent\]/g)
-    expect(sectionHeadings!.length).toBe(2)
+    expect(sectionHeadings!.length).toBe(5)
   })
 })

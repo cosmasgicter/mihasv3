@@ -38,24 +38,15 @@ export function SharedFooter({ className }: SharedFooterProps) {
           <div>
             <div className="flex items-center space-x-2 mb-6">
               <img
-                src="/images/logos/mihas-logo.webp"
-                alt="MIHAS"
+                src="/images/logos/beanola-logo.svg"
+                alt="Beanola Admissions"
                 width={32}
                 height={32}
                 loading="lazy"
                 decoding="async"
                 className="h-6 w-6 sm:h-8 sm:w-8 rounded bg-card p-0.5"
               />
-              <img
-                src="/images/logos/katc-logo.webp"
-                alt="Kalulushi Training Centre"
-                width={32}
-                height={32}
-                loading="lazy"
-                decoding="async"
-                className="h-6 w-6 sm:h-8 sm:w-8 rounded bg-card p-0.5"
-              />
-              <span className="text-xl sm:text-2xl font-bold text-white">MIHAS-KATC</span>
+              <span className="text-xl sm:text-2xl font-bold text-white">Beanola</span>
             </div>
             <h3 className="text-lg sm:text-xl font-semibold mb-4 text-white">Apply Today - Contact Us</h3>
             <div className="space-y-2 text-sm text-white sm:text-base">
@@ -68,14 +59,14 @@ export function SharedFooter({ className }: SharedFooterProps) {
                 className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
               >
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <span><strong>KATC:</strong> {contactInfo.katcPhone}</span>
+                <span><strong>Admissions:</strong> {contactInfo.katcPhone}</span>
               </a>
               <a
                 href={`tel:${contactInfo.mihasPhone.replace(/\s/g, '')}`}
                 className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
               >
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <span><strong>MIHAS:</strong> {contactInfo.mihasPhone}</span>
+                <span><strong>Support:</strong> {contactInfo.mihasPhone}</span>
               </a>
               <a
                 href={`mailto:${contactInfo.email}`}
@@ -150,7 +141,7 @@ export function SharedFooter({ className }: SharedFooterProps) {
         {/* Copyright */}
         <div className="border-t border-white/20 mt-8 sm:mt-12 pt-6 sm:pt-8 text-center">
           <p className="mb-2 text-sm text-white sm:text-base">
-            &copy; {new Date().getFullYear()} MIHAS-KATC. All rights reserved.
+            &copy; {new Date().getFullYear()} Beanola. All rights reserved.
           </p>
           <p className="text-sm text-white">
             Developed with ❤️ by{' '}

@@ -28,6 +28,46 @@ def api_request_factory():
     return APIRequestFactory()
 
 
+# ---------------------------------------------------------------------------
+# Multi-tenant (Beanola) shared fixtures — spec multi-tenant-beanola-admissions
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def tenant_world(db):
+    """Build one fully-linked tenant object graph against the test DB.
+
+    Returns a ``TenantWorld`` dataclass exposing institution, canonical
+    program, offering, intake, program-intake, student, application, staff,
+    membership, and access-grant rows. Requires the pytest-django ``db``
+    fixture so the ``managed=False`` tenant tables (created by the
+    ``unmanaged_schema`` session fixture) are available.
+    """
+    from tests.tenant_fixtures import build_tenant_world
+
+    return build_tenant_world()
+
+
+@pytest.fixture()
+def tenant_world_factory(db):
+    """Return the ``build_tenant_world`` callable for parametrised builds.
+
+    Lets a test create several independent or canonical-sharing worlds with
+    custom priorities, residency rules, capacity, or grant scopes.
+    """
+    from tests.tenant_fixtures import build_tenant_world
+
+    return build_tenant_world
+
+
+@pytest.fixture()
+def two_tenant_worlds(db):
+    """Build two independent tenant worlds that share one canonical program."""
+    from tests.tenant_fixtures import build_two_tenant_worlds
+
+    return build_two_tenant_worlds()
+
+
 @pytest.fixture(scope="session", autouse=True)
 def unmanaged_schema(django_db_setup, django_db_blocker):
     """Create unmanaged-model tables inside ephemeral test databases."""

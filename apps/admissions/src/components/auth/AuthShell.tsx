@@ -67,27 +67,18 @@ export function AuthShell({
         <Link
           to="/"
           className="mx-auto mb-10 flex items-center gap-3 rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted"
-          aria-label="MIHAS-KATC home"
+          aria-label="Beanola home"
         >
           <img
-            src="/images/logos/mihas-logo.webp"
-            alt="MIHAS"
+            src="/images/logos/beanola-logo.svg"
+            alt="Beanola Admissions"
             width={32}
             height={32}
             loading="eager"
             decoding="async"
             className="h-8 w-8"
           />
-          <img
-            src="/images/logos/katc-logo.webp"
-            alt="Kalulushi Training Centre"
-            width={32}
-            height={32}
-            loading="eager"
-            decoding="async"
-            className="h-8 w-8"
-          />
-          <span className="text-lg font-semibold tracking-tight text-foreground">MIHAS-KATC</span>
+          <span className="text-lg font-semibold tracking-tight text-foreground">Beanola</span>
         </Link>
 
         {/* Form card — the dominant surface */}

@@ -167,13 +167,13 @@ describe('PDF theme — institutions', () => {
     expect(institutions.KATC.email).toBe('info@katc.edu.zm')
   })
 
-  it('exposes the real MIHAS address (Kalulushi, not the placeholder Kitwe address)', () => {
-    // Regression: the initial migration guessed "Private Bag E10, Kitwe"
-    // — MIHAS actually operates in Kalulushi. The short form must fit in
-    // the BrandHeader's narrow address column; detailedAddress carries
-    // the landmarks for letters and the contact page.
+  it('exposes the real MIHAS address (Kalulushi, matching the official letterhead)', () => {
+    // Sourced from the official MIHAS acceptance letter (public/mihasacceptance.pdf):
+    // "Plot No: 3375 President Avenue, P. O. Box 260218, Kalulushi, Zambia".
+    // The short form must fit in the BrandHeader's narrow address column;
+    // detailedAddress carries the landmarks for the contact page.
     expect(institutions.MIHAS.address).toBe(
-      'Plot 3375 Off President Avenue, Kalulushi, Zambia',
+      'Plot 3375 President Avenue, P.O. Box 260218, Kalulushi, Zambia',
     )
     expect(institutions.MIHAS.detailedAddress).toContain('Civic Centre')
     expect(institutions.MIHAS.detailedAddress).toContain('Kalulushi General Hospital')
@@ -182,11 +182,12 @@ describe('PDF theme — institutions', () => {
   })
 
   it('exposes the KATC address distinct from MIHAS', () => {
-    // Real KATC address per Google Business Profile — Dag Hammarskjöld
-    // Road (note the ö — keep this to catch accidental ASCII flattening).
+    // Sourced from the official KATC acceptance letters: "Plot No: 110206
+    // Dag Hammarskjöld Street, P. O. Box 23597, Kalulushi, Zambia" (keep the
+    // ö to catch accidental ASCII flattening).
     expect(institutions.KATC.address).toContain('Dag Hammarskjöld')
     expect(institutions.KATC.address).toContain('Kalulushi')
-    expect(institutions.KATC.address).toContain('10101')
+    expect(institutions.KATC.address).toContain('23597')
     // Different physical location from MIHAS — share a city, not a plot
     expect(institutions.KATC.address).not.toBe(institutions.MIHAS.address)
     expect(institutions.KATC.address).not.toContain('President Avenue')

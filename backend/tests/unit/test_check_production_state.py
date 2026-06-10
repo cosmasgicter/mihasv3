@@ -23,8 +23,8 @@ PROD_SETTINGS = {
     "AI_HARDENING_REDACTION": True,
     "SECRET_KEY": "real-production-secret-key-abc123",
     "SIMPLE_JWT": SIMPLE_JWT_SETTINGS,
-    "ALLOWED_HOSTS": ["api.mihas.edu.zm"],
-    "CORS_ALLOWED_ORIGINS": ["https://apply.mihas.edu.zm"],
+    "ALLOWED_HOSTS": ["api.beanola.com"],
+    "CORS_ALLOWED_ORIGINS": ["https://apply.beanola.com"],
     "LENCO_API_SECRET_KEY": "sk_live_xxx",
     "LENCO_PUBLIC_KEY": "pk_live_xxx",
     "AUDIT_LOG_ENCRYPTION_KEY": "enc-key-xxx",
@@ -102,7 +102,7 @@ class TestCheckProductionStateFailures:
         with pytest.raises(SystemExit):
             call_command("check_production_state", "--strict")
 
-    @override_settings(**{**PROD_SETTINGS, "ALLOWED_HOSTS": ["localhost", "api.mihas.edu.zm"]})
+    @override_settings(**{**PROD_SETTINGS, "ALLOWED_HOSTS": ["localhost", "api.beanola.com"]})
     def test_fails_on_localhost_in_allowed_hosts(self, monkeypatch):
         monkeypatch.setenv("DATABASE_URL", "postgres://neon.tech/prod")
         monkeypatch.setenv("REDIS_URL", "redis://prod-redis:6379")

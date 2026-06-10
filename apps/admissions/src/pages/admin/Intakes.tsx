@@ -330,7 +330,7 @@ export default function AdminIntakes() {
   return (
     <>
       <Seo
-        title="Intakes | MIHAS-KATC Admissions"
+        title="Intakes | Beanola Admissions"
         description="Create and manage admission intake periods, deadlines, and capacity."
         path="/admin/intakes"
         noindex

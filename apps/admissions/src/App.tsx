@@ -24,6 +24,11 @@ const TermsPage = lazy(() => import('@/pages/TermsPage'))
 const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 
+// DEV-ONLY: live PDF document previews. Tree-shaken out of production
+// builds because the routes are guarded by `import.meta.env.DEV`.
+const AcceptanceLetterPreview = lazy(() => import('@/pages/dev/AcceptanceLetterPreview'))
+const DocumentPreview = lazy(() => import('@/pages/dev/DocumentPreview'))
+
 function App() {
   useEffect(() => {
     // App boot succeeded — clear the chunk reload guard so future
@@ -143,6 +148,12 @@ function RouteAwareApp() {
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/404" element={<NotFoundPage />} />
+              {import.meta.env.DEV ? (
+                <Route path="/dev/acceptance-letter" element={<AcceptanceLetterPreview />} />
+              ) : null}
+              {import.meta.env.DEV ? (
+                <Route path="/dev/documents" element={<DocumentPreview />} />
+              ) : null}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>

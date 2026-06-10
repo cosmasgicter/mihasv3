@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { preloadAuthRoutes } from '@/lib/routePreload';
-import { CheckCircle } from '@/components/icons';
+import { CheckCircle, GraduationCap, Building2 } from '@/components/icons';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from '@/lib/animation-config';
 
@@ -148,35 +148,27 @@ export function ShapeLandingHero({
 
           <M className="rounded-lg border border-border bg-card p-3 shadow-md" {...(reduced ? {} : { variants: item, initial: 'hidden', animate: 'visible', transition: { duration: 0.5, delay: 0.4, ease: [0.22, 1, 0.36, 1] } }) as any}>
             <div className="relative overflow-hidden rounded-lg bg-primary/5">
+              {/* Program-first, brand-neutral showcase (R3.6): the shared
+                  portal must present canonical programs without favouring or
+                  naming any single school. The configured schools are resolved
+                  per-host at runtime, not hard-coded here. */}
               <div className="aspect-[4/3] grid grid-cols-2 gap-3 p-4 sm:p-6">
                 <figure className="flex flex-col items-center justify-center gap-3 rounded-md border border-border bg-card p-3 shadow-sm">
-                  <img
-                    src="/images/logos/mihas-logo.webp"
-                    alt="Mukuba Institute of Health and Applied Sciences"
-                    width={96}
-                    height={96}
-                    loading="eager"
-                    decoding="async"
-                    className="h-16 w-16 sm:h-20 sm:w-20 object-contain"
-                  />
+                  <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary/10 sm:h-20 sm:w-20" aria-hidden="true">
+                    <GraduationCap className="h-8 w-8 text-primary sm:h-10 sm:w-10" />
+                  </span>
                   <figcaption className="text-center">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">MIHAS</p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">Mukuba Institute · Kalulushi</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">Choose a program</p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">Pick a program and intake first</p>
                   </figcaption>
                 </figure>
                 <figure className="flex flex-col items-center justify-center gap-3 rounded-md border border-border bg-card p-3 shadow-sm">
-                  <img
-                    src="/images/logos/katc-logo.webp"
-                    alt="Kalulushi Training Centre"
-                    width={96}
-                    height={96}
-                    loading="eager"
-                    decoding="async"
-                    className="h-16 w-16 sm:h-20 sm:w-20 object-contain"
-                  />
+                  <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary/10 sm:h-20 sm:w-20" aria-hidden="true">
+                    <Building2 className="h-8 w-8 text-primary sm:h-10 sm:w-10" />
+                  </span>
                   <figcaption className="text-center">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">KATC</p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">Kalulushi Training Centre</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-foreground sm:text-sm">School assigned</p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">Reviewed before you pay</p>
                   </figcaption>
                 </figure>
               </div>

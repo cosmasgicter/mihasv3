@@ -1,0 +1,46 @@
+# MIHAS — Grafana Cloud telemetry overlay (additive, same box).
+#
+# A single Grafana Alloy agent ships host metrics, per-container metrics, and
+# container logs OUTBOUND to your Grafana Cloud stack. It publishes NO ports —
+# the only inbound surface on the box stays 80/443 (Caddy). You view everything
+# at https://<your-stack>.grafana.net, which is itself the secured, login-gated
+# URL only you can reach (enable 2FA on that account).
+#
+# Run alongside the prod stack (note BOTH -f files):
+#   docker compose -f docker-compose.prod.yml -f docker-compose.grafana-cloud.yml --env-file .env up -d alloy
+#
+# Extra memory: ~150MB (Alloy). Comfortably within the 2GB box + swap.
+
+services:
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    restart: unless-stopped
+    # Pull all five GCLOUD_* secrets + HOSTNAME from ~/mihas/.env.
+    env_file:
+      - .env
+    environment:
+      HOSTNAME: ${MONITOR_HOSTNAME:-mihas-ec2}
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --storage.path=/var/lib/alloy/data
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+      # read-only docker socket: read container stats + tail logs, never control.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # host metrics roots for prometheus.exporter.unix (all read-only).
+      - /:/rootfs:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      # cAdvisor per-container cgroup v2 metrics (gives the name/id labels).
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      # containerd socket: cAdvisor needs it to map docker-*.scope cgroups to
+      # container NAMES (this host uses the overlayfs/containerd storage driver).
+      - /run/containerd/containerd.sock:/run/containerd/containerd.sock:ro
+    mem_limit: 384m
+
+volumes:
+  alloy-data:

@@ -22,6 +22,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
+from apps.catalog.services import AccessScopeService
 from apps.common.pagination import StandardPagination
 from apps.documents.models import ApplicationDocument, Payment, ProgramFee
 from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
@@ -50,7 +51,7 @@ from apps.common.dev_bypass import require_not_dev_bypass_in_production
 from apps.common.throttling import AIUserScopedRateThrottle, PaymentUserScopedRateThrottle
 from apps.documents import payment_metrics
 
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 
 logger = logging.getLogger(__name__)
 
@@ -165,6 +166,8 @@ class PaymentListView(APIView):
 
         if role in ("admin", "super_admin"):
             queryset = Payment.objects.select_related('application', 'user').all()
+            if role != "super_admin":
+                queryset = AccessScopeService().filter_payments(queryset, user)
         else:
             queryset = Payment.objects.select_related('application', 'user').filter(user_id=str(user.id))
 
@@ -182,6 +185,142 @@ class PaymentListView(APIView):
 
         serializer = PaymentSerializer(queryset, many=True)
         return Response({"success": True, "data": serializer.data})
+
+
+class PaymentSettlementSummaryView(APIView):
+    """GET /api/v1/payments/settlements/ - settlement grouping by school/offering.
+
+    Returns the tenant-scoped settlement grouping as JSON by default. Pass
+    ``?export=csv`` to download the same grouping as a ``text/csv`` attachment
+    for operations teams that need files rather than JSON. The CSV variant is
+    identically tenant-scoped (it reuses the exact same scope + grouping path),
+    so School_Staff only ever see their own schools' rows and no-scope staff get
+    a header-only file (R7.4).
+    """
+
+    permission_classes = [IsAdmin]
+
+    # Columns shared between the JSON grouping and the CSV export so the two
+    # never drift. ``payment_ids`` is intentionally excluded from the CSV to
+    # keep the operational file compact.
+    CSV_COLUMNS = (
+        "institution_id",
+        "institution_name",
+        "program_offering_id",
+        "program_name",
+        "currency",
+        "payment_count",
+        "gross_amount",
+    )
+
+    def _scoped_queryset(self, request):
+        """Tenant-scoped, status/date-filtered payment queryset.
+
+        Super-admins see every payment; every other admin is bounded to their
+        own schools via ``AccessScopeService`` (no-scope staff get an empty
+        queryset, never global totals).
+        """
+        queryset = Payment.objects.select_related("application").all()
+        if getattr(request.user, "role", None) != "super_admin":
+            queryset = AccessScopeService().filter_payments(queryset, request.user)
+
+        status_filter = request.query_params.get("status")
+        if status_filter:
+            statuses = [item.strip() for item in status_filter.split(",") if item.strip()]
+        else:
+            statuses = ["successful", "force_approved", "verified", "paid"]
+        queryset = queryset.filter(status__in=statuses)
+
+        start_date = request.query_params.get("start_date")
+        if start_date:
+            queryset = queryset.filter(created_at__date__gte=start_date)
+        end_date = request.query_params.get("end_date")
+        if end_date:
+            queryset = queryset.filter(created_at__date__lte=end_date)
+
+        return queryset
+
+    @staticmethod
+    def _group_payments(queryset):
+        """Group a scoped payment queryset by (institution, offering, currency).
+
+        Labels are derived from the ``payments.metadata`` settlement snapshot
+        with a legacy fallback to the application's display fields; missing
+        metadata buckets as an explicit "Unassigned" row (R7.4/R7.5). This is
+        the single grouping path shared by both the JSON and CSV responses.
+        """
+        groups: dict[tuple[str, str, str], dict] = {}
+        for payment in queryset.order_by("created_at"):
+            metadata = payment.metadata or {}
+            application = getattr(payment, "application", None)
+            institution_id = metadata.get("institution_id") or str(getattr(application, "institution_ref_id", "") or "")
+            institution_name = metadata.get("institution_name") or getattr(application, "institution", None) or "Unassigned"
+            offering_id = metadata.get("program_offering_id") or str(getattr(application, "program_offering_id", "") or "")
+            offering_name = metadata.get("program_name") or getattr(application, "program", None) or "Unassigned"
+            currency = payment.currency or "ZMW"
+            key = (institution_id or "unassigned", offering_id or "unassigned", currency)
+            if key not in groups:
+                groups[key] = {
+                    "institution_id": institution_id or None,
+                    "institution_name": institution_name,
+                    "program_offering_id": offering_id or None,
+                    "program_name": offering_name,
+                    "currency": currency,
+                    "payment_count": 0,
+                    "gross_amount": "0.00",
+                    "payment_ids": [],
+                }
+            amount = Decimal(str(groups[key]["gross_amount"])) + (payment.amount or Decimal("0"))
+            groups[key]["gross_amount"] = str(amount.quantize(Decimal("0.01")))
+            groups[key]["payment_count"] += 1
+            groups[key]["payment_ids"].append(str(payment.id))
+
+        return sorted(
+            groups.values(),
+            key=lambda item: (item["institution_name"], item["program_name"], item["currency"]),
+        )
+
+    def _csv_response(self, results):
+        """Render grouped settlement rows as a ``text/csv`` attachment."""
+        import csv
+        import io
+
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(self.CSV_COLUMNS)
+        for row in results:
+            writer.writerow([row.get(column, "") for column in self.CSV_COLUMNS])
+
+        filename = f"settlement-summary-{timezone.now().strftime('%Y%m%d')}.csv"
+        response = HttpResponse(buffer.getvalue(), content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+    @extend_schema(
+        operation_id="payments_settlement_summary",
+        tags=["payments"],
+        parameters=[
+            OpenApiParameter("start_date", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+            OpenApiParameter("end_date", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+            OpenApiParameter("status", OpenApiTypes.STR, OpenApiParameter.QUERY),
+            OpenApiParameter(
+                "export",
+                OpenApiTypes.STR,
+                OpenApiParameter.QUERY,
+                required=False,
+                description="Pass 'csv' to download the grouping as a CSV file instead of JSON.",
+            ),
+        ],
+        responses={200: OpenApiResponse(description="Settlement totals grouped by institution, offering, and currency (JSON, or CSV download when export=csv).")},
+    )
+    def get(self, request):
+        queryset = self._scoped_queryset(request)
+        results = self._group_payments(queryset)
+
+        if (request.query_params.get("export") or "").lower() == "csv":
+            return self._csv_response(results)
+
+        return Response({"success": True, "data": {"results": results, "totalCount": len(results)}})
 
 
 @extend_schema_view(
@@ -224,6 +363,13 @@ class PaymentReceiptView(APIView):
                 {"success": False, "error": "Not authorized", "code": "INSUFFICIENT_PERMISSIONS"},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        if role == "admin" and not AccessScopeService().filter_payments(Payment.objects.filter(id=payment.id), user).exists():
+            # Out-of-scope reads must be indistinguishable from a true
+            # not-found so existence cannot be inferred (R4.4).
+            return Response(
+                {"success": False, "error": "Payment not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         if payment.status not in RECEIPT_ELIGIBLE_STATUSES:
             return Response(
@@ -258,6 +404,10 @@ class PaymentReceiptView(APIView):
             "receipt_number": payment.receipt_number,
             "created_at": payment.created_at.isoformat() if payment.created_at else None,
             "application_number": application.application_number if application else None,
+            "institution_id": (payment.metadata or {}).get("institution_id"),
+            "institution_name": (payment.metadata or {}).get("institution_name") or (application.institution if application else None),
+            "program_id": (payment.metadata or {}).get("program_id"),
+            "program_offering_id": (payment.metadata or {}).get("program_offering_id"),
             "program": application.program if application else None,
             "applicant_name": application.full_name if application else None,
             "override": payment.status == "force_approved",
@@ -311,6 +461,13 @@ class PaymentVerifyView(APIView):
             return Response(
                 {"success": False, "error": {"code": "NOT_OWNER", "message": "Not authorized"}, "code": "NOT_OWNER"},
                 status=status.HTTP_403_FORBIDDEN,
+            )
+        if role == "admin" and not AccessScopeService().filter_payments(Payment.objects.filter(id=payment.id), user).exists():
+            # Out-of-scope reads must be indistinguishable from a true
+            # not-found so existence cannot be inferred (R4.4).
+            return Response(
+                {"success": False, "error": {"code": "NOT_FOUND", "message": "Payment not found"}, "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         from apps.documents.payment_service import PaymentService

@@ -27,6 +27,7 @@ from apps.common.openapi_helpers import ErrorResponseSerializer
 from apps.documents.models import ApplicationDocument, Payment
 from apps.documents.payment_constants import COMPLETED_PAYMENT_STATUSES
 from apps.documents.serializers import DocumentSerializer
+from apps.catalog.services import AccessScopeService
 
 from ._view_helpers import (
     ApplicationAsyncTaskResponseSerializer,
@@ -37,6 +38,12 @@ from ._view_helpers import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _get_scoped_application(request, application_id):
+    queryset = Application.objects.select_related("user", "institution_ref", "canonical_program", "program_offering", "intake_ref")
+    queryset = AccessScopeService().filter_applications(queryset, request.user)
+    return queryset.get(id=application_id)
 
 
 # ---------------------------------------------------------------------------
@@ -64,9 +71,7 @@ class ApplicationVerifyDocumentView(APIView):
         from apps.common.audit_network import build_audit_network_fields
 
         try:
-            application = Application.objects.select_related(
-                'user'
-            ).get(id=application_id)
+            application = _get_scoped_application(request, application_id)
         except Application.DoesNotExist:
             return Response(
                 {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
@@ -182,9 +187,7 @@ class AcceptanceLetterView(APIView):
     )
     def post(self, request, application_id):
         try:
-            application = Application.objects.select_related(
-                'user'
-            ).get(id=application_id)
+            application = _get_scoped_application(request, application_id)
         except Application.DoesNotExist:
             return Response(
                 {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
@@ -208,6 +211,76 @@ class AcceptanceLetterView(APIView):
             task_func = None
 
         return _enqueue_document_task(application, "acceptance-letter", task_func, request)
+
+
+class ApplicationSlipView(APIView):
+    """POST /api/v1/applications/{id}/application-slip/"""
+
+    permission_classes = [IsAdmin]
+    serializer_class = ApplicationAsyncTaskSerializer
+
+    @extend_schema(
+        operation_id="applications_generate_application_slip",
+        tags=["applications"],
+        request=None,
+        responses={
+            202: OpenApiResponse(response=ApplicationAsyncTaskResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            503: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+    def post(self, request, application_id):
+        try:
+            application = _get_scoped_application(request, application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        try:
+            from apps.applications.tasks import generate_application_slip_task
+            task_func = generate_application_slip_task
+        except ImportError:
+            task_func = None
+        return _enqueue_document_task(application, "application-slip", task_func, request)
+
+
+class ConditionalOfferView(APIView):
+    """POST /api/v1/applications/{id}/conditional-offer/"""
+
+    permission_classes = [IsAdmin]
+    serializer_class = ApplicationAsyncTaskSerializer
+
+    @extend_schema(
+        operation_id="applications_generate_conditional_offer",
+        tags=["applications"],
+        request=None,
+        responses={
+            202: OpenApiResponse(response=ApplicationAsyncTaskResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            503: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+    def post(self, request, application_id):
+        try:
+            application = _get_scoped_application(request, application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        if application.status not in {"conditional", "conditionally_approved", "approved"}:
+            return Response(
+                {"success": False, "error": "Application is not in a conditional-offer status", "code": "INVALID_STATUS"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            from apps.applications.tasks import generate_conditional_offer_task
+            task_func = generate_conditional_offer_task
+        except ImportError:
+            task_func = None
+        return _enqueue_document_task(application, "conditional-offer", task_func, request)
 
 
 # ---------------------------------------------------------------------------
@@ -239,9 +312,7 @@ class FinanceReceiptView(APIView):
     )
     def post(self, request, application_id):
         try:
-            application = Application.objects.select_related(
-                'user'
-            ).get(id=application_id)
+            application = _get_scoped_application(request, application_id)
         except Application.DoesNotExist:
             return Response(
                 {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
@@ -268,3 +339,44 @@ class FinanceReceiptView(APIView):
             task_func = None
 
         return _enqueue_document_task(application, "finance-receipt", task_func, request)
+
+
+class PaymentReceiptView(APIView):
+    """POST /api/v1/applications/{id}/payment-receipt/"""
+
+    permission_classes = [IsAdmin]
+    serializer_class = ApplicationAsyncTaskSerializer
+
+    @extend_schema(
+        operation_id="applications_generate_payment_receipt",
+        tags=["applications"],
+        request=None,
+        responses={
+            202: OpenApiResponse(response=ApplicationAsyncTaskResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            503: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    )
+    def post(self, request, application_id):
+        try:
+            application = _get_scoped_application(request, application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        has_verified_payment = Payment.objects.filter(
+            application_id=application.id, status__in=COMPLETED_PAYMENT_STATUSES
+        ).exists()
+        if not has_verified_payment:
+            return Response(
+                {"success": False, "error": "Application must have a completed payment to generate a payment receipt", "code": "PAYMENT_REQUIRED"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            from apps.applications.tasks import generate_payment_receipt_task
+            task_func = generate_payment_receipt_task
+        except ImportError:
+            task_func = None
+        return _enqueue_document_task(application, "payment-receipt", task_func, request)

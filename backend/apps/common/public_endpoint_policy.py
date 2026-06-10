@@ -6,6 +6,9 @@ deliberate decision instead of an accidental permission regression.
 
 PUBLIC_ENDPOINT_CLASSIFICATIONS = {
     # health/meta/catalog public read
+    "apps.catalog.views.CatalogContextView": "health_meta_catalog_public_read",
+    "apps.catalog.views.CanonicalProgramListView": "health_meta_catalog_public_read",
+    "apps.catalog.views.AssignmentPreviewView": "health_meta_catalog_public_read",
     "apps.catalog.views.ProgramListCreateView": "health_meta_catalog_public_read",
     "apps.catalog.views.IntakeListCreateView": "health_meta_catalog_public_read",
     "apps.catalog.views.SubjectListView": "health_meta_catalog_public_read",

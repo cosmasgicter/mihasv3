@@ -1,51 +1,49 @@
 /**
  * AcceptanceLetter — the formal offer letter issued when an application is
- * approved. Two variants share the same shell:
+ * approved. It faithfully reproduces the structure of the official MIHAS and
+ * KATC admission letters (see public/mihasacceptance.pdf,
+ * public/"katc cog acceptance.docx", public/"katc eht acceptance.docx"):
  *
- *   Unconditional: "We are pleased to offer you..."
- *   Conditional:   "Your offer is subject to the following conditions..."
+ *   BrandHeader (institution letterhead, repeated on every page)
  *
- * The conditional variant surfaces a numbered conditions list. If the list
- * is long (8+ conditions), @react-pdf's automatic page-break (via the PageFrame
- * fixed header/footer) carries the header to page 2 — solving the old
- * jsPDF "orphaned page 2" and "mid-list break" bugs.
+ *   Name / Address / Date block
+ *   REF: LETTER OF ADMISSION TO {PROGRAMME} ({CODE}) TRAINING – {YEAR} …
+ *   Refer to your application {application number}
  *
- * Signatory defaults to Dr Solomon Musonda, MD (Managing Director of both
- * MIHAS and KATC), with a real scanned signature image. The division line
- * auto-derives from the program name — nursing programs show "School of
- * Nursing" under the institution, matching MIHAS's paper-form convention.
- * All signature fields (name, role, postnominal, signatureImage, division)
- * are overridable via AcceptanceLetterData.
+ *   "I am glad to inform you that your application to study … was successful.
+ *    Kindly note that this offer is non-transferable …"
+ *   Medical examination + certified Grade 12 + reporting date paragraph.
  *
- * Layout:
- *   BrandHeader
+ *   ▸ Securing your place (the mandatory K1,000 non-refundable commitment fee,
+ *     paid into the school's tuition account, treated as part-payment toward
+ *     tuition — with the exact bank account).
  *
- *   [Title] Letter of Acceptance  (or "Conditional Letter of Acceptance")
- *   [Meta strip] reference │ date │ APPROVED badge
+ *   Congratulations! / On behalf of {institution}
+ *   [SignatureBlock — Dr Solomon Musonda, MD, Managing Director]
  *
- *   Dear {Student Name},
+ *   ── page break ──
+ *   Fee Chart (item · amount · account)
+ *   Payment Modalities (tuition + other-fees bank account blocks)
+ *   Additional notes (bursary, GNC breakdown, late-registration penalty …)
+ *   Other Requirements (items to bring)
  *
- *   It is our great pleasure to offer you admission...
- *   [body paragraph 1]
- *   [body paragraph 2]
+ *   (Conditional variant) adds a "Conditions of Offer" section before the
+ *   signature, and the QR payload type switches to conditional_acceptance.
  *
- *   Section: Programme Details (2-col grid)
- *   (if conditional) Section: Conditions of Offer (numbered list)
- *   Section: Next Steps (numbered list)
+ * The exact banking, fee, and requirement data is resolved per
+ * institution + programme from `acceptanceLetterProfiles.ts`, which is
+ * transcribed verbatim from the official samples. Callers only pass the
+ * application's institution + program names; the profile supplies the rest.
  *
- *   Yours sincerely,
- *
- *   [SignatureBlock]           [VerificationBlock]
- *
- *   BrandFooter
+ * Signatory defaults to Dr Solomon Musonda, MD (Managing Director of BOTH
+ * MIHAS and KATC) with the new transparent scanned signature.
  */
 
 import { Document, StyleSheet, Text, View } from '@react-pdf/renderer'
+import type { ReactElement } from 'react'
 
 import { formatDate } from '../../dateFormat'
 
-import { FieldGrid } from '../components/FieldGrid'
-import { LabeledField } from '../components/LabeledField'
 import { MetadataStrip } from '../components/MetadataStrip'
 import { PageFrame } from '../components/PageFrame'
 import { SectionHeading } from '../components/SectionHeading'
@@ -56,13 +54,24 @@ import { renderToBlob } from '../render'
 import {
   colors,
   getInstitution,
+  registerPdfFonts,
   semantic,
   space,
   spacing,
   textStyles,
 } from '../theme'
 
+import {
+  computeIntakeTotal,
+  resolveAcceptanceProfile,
+  type AcceptanceProfile,
+  type BankAccount,
+  type FeeChartRow,
+} from './acceptanceLetterProfiles'
+import { resolveIntake } from './intakeSchedule'
 import { DEFAULT_SIGNATORY, type AcceptanceLetterData } from './types'
+
+const DEFAULT_COMMITMENT_FEE = 1000
 
 const styles = StyleSheet.create({
   title: {
@@ -70,18 +79,214 @@ const styles = StyleSheet.create({
     color: semantic.titleText,
     marginBottom: spacing[2],
   },
-  salutation: {
-    ...textStyles.bodyProse,
-    color: semantic.bodyText,
+  addressBlock: {
     marginBottom: spacing[2],
   },
-  bodyParagraph: {
-    ...textStyles.bodyProse,
+  addressLine: {
+    ...textStyles.body,
     color: semantic.bodyText,
+    marginBottom: spacing[0.5],
+  },
+  refLine: {
+    ...textStyles.bodyStrong,
+    color: semantic.titleText,
+    marginBottom: spacing[1],
+  },
+  applicationRef: {
+    ...textStyles.body,
+    color: semantic.mutedText,
     marginBottom: spacing[2],
+  },
+  salutation: {
+    ...textStyles.body,
+    color: semantic.bodyText,
+    marginBottom: spacing[1.5],
+  },
+  bodyParagraph: {
+    ...textStyles.body,
+    color: semantic.bodyText,
+    marginBottom: spacing[1],
   },
   section: {
     marginBottom: space.sectionGap,
+  },
+  // Highlighted commitment-fee callout — the single most important action.
+  commitmentBox: {
+    borderWidth: 1,
+    borderColor: colors.accent.gold,
+    backgroundColor: colors.ink[50],
+    borderRadius: 4,
+    padding: spacing[2],
+    marginBottom: spacing[2],
+  },
+  commitmentHeading: {
+    ...textStyles.bodyStrong,
+    color: colors.accent.gold,
+    marginBottom: spacing[1],
+  },
+  commitmentText: {
+    ...textStyles.body,
+    color: semantic.bodyText,
+  },
+  commitmentAccount: {
+    marginTop: spacing[1.5],
+    paddingTop: spacing[1],
+    borderTopWidth: 0.5,
+    borderTopColor: colors.accent.gold,
+  },
+  commitmentAccountText: {
+    ...textStyles.body,
+    color: semantic.bodyText,
+    marginBottom: spacing[0.5],
+  },
+  commitmentAccountNo: {
+    ...textStyles.code,
+    color: semantic.titleText,
+  },
+  commitmentAccountNote: {
+    ...textStyles.metadata,
+    color: semantic.mutedText,
+    marginTop: spacing[0.5],
+  },
+  // Fee chart table.
+  table: {
+    borderWidth: 0.5,
+    borderColor: semantic.divider,
+    borderRadius: 4,
+  },
+  tableHeaderRow: {
+    flexDirection: 'row',
+    backgroundColor: colors.ink[50],
+    borderBottomWidth: 0.5,
+    borderBottomColor: semantic.divider,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 0.5,
+    borderBottomColor: semantic.divider,
+  },
+  tableRowLast: {
+    flexDirection: 'row',
+  },
+  th: {
+    ...textStyles.label,
+    color: semantic.labelText,
+    paddingVertical: spacing[1.5],
+    paddingHorizontal: spacing[2],
+  },
+  td: {
+    ...textStyles.body,
+    color: semantic.bodyText,
+    paddingVertical: spacing[1.5],
+    paddingHorizontal: spacing[2],
+  },
+  colItem: { flex: 3 },
+  colAmount: { flex: 1.4 },
+  colAccount: { flex: 2.2 },
+  tdAmount: {
+    ...textStyles.body,
+    color: semantic.bodyText,
+    paddingVertical: spacing[1.5],
+    paddingHorizontal: spacing[2],
+  },
+  tdAccount: {
+    ...textStyles.code,
+    fontSize: 9,
+    color: semantic.bodyText,
+    paddingVertical: spacing[1.5],
+    paddingHorizontal: spacing[2],
+  },
+  cadence: {
+    ...textStyles.metadata,
+    color: semantic.mutedText,
+  },
+  // Fee-chart row variants.
+  tableRowDeduction: {
+    flexDirection: 'row',
+    borderBottomWidth: 0.5,
+    borderBottomColor: semantic.divider,
+    backgroundColor: colors.badge.greenBg,
+  },
+  tableRowSubtotal: {
+    flexDirection: 'row',
+    borderBottomWidth: 0.5,
+    borderBottomColor: semantic.divider,
+    backgroundColor: colors.ink[50],
+  },
+  tableRowOptional: {
+    flexDirection: 'row',
+    borderBottomWidth: 0.5,
+    borderBottomColor: semantic.divider,
+  },
+  tableTotalRow: {
+    flexDirection: 'row',
+    backgroundColor: colors.accent.gold,
+  },
+  tdStrong: {
+    ...textStyles.bodyStrong,
+    color: semantic.bodyText,
+    paddingVertical: spacing[1.5],
+    paddingHorizontal: spacing[2],
+  },
+  tdDeduction: {
+    ...textStyles.body,
+    color: colors.accent.green,
+    paddingVertical: spacing[1.5],
+    paddingHorizontal: spacing[2],
+  },
+  tdTotalLabel: {
+    ...textStyles.bodyStrong,
+    color: colors.paper,
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[2],
+  },
+  tdTotalAmount: {
+    ...textStyles.bodyStrong,
+    color: colors.paper,
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[2],
+  },
+  optionalBadge: {
+    ...textStyles.metadata,
+    fontSize: 7.5,
+    color: colors.accent.gold,
+    marginTop: spacing[0.5],
+  },
+  feeChartCaption: {
+    ...textStyles.metadata,
+    color: semantic.mutedText,
+    marginTop: spacing[1.5],
+  },
+  // Bank account block (Payment Modalities).
+  bankBlock: {
+    borderLeftWidth: 2,
+    borderLeftColor: colors.accent.gold,
+    paddingLeft: spacing[3],
+    marginBottom: spacing[3],
+  },
+  bankLabel: {
+    ...textStyles.bodyStrong,
+    color: semantic.titleText,
+    marginBottom: spacing[1],
+  },
+  bankRow: {
+    flexDirection: 'row',
+    marginBottom: spacing[0.5],
+  },
+  bankKey: {
+    ...textStyles.body,
+    color: semantic.mutedText,
+    width: 130,
+  },
+  bankValue: {
+    ...textStyles.bodyStrong,
+    color: semantic.bodyText,
+    flex: 1,
+  },
+  bankValueMono: {
+    ...textStyles.code,
+    color: semantic.bodyText,
+    flex: 1,
   },
   listRow: {
     flexDirection: 'row',
@@ -89,15 +294,25 @@ const styles = StyleSheet.create({
     marginBottom: spacing[1],
   },
   listNumber: {
-    ...textStyles.bodyProse,
+    ...textStyles.body,
     fontWeight: 600,
     color: colors.accent.gold,
     width: spacing[5],
   },
+  listBullet: {
+    ...textStyles.body,
+    color: colors.accent.gold,
+    width: spacing[4],
+  },
   listText: {
-    ...textStyles.bodyProse,
+    ...textStyles.body,
     color: semantic.bodyText,
     flex: 1,
+  },
+  noteText: {
+    ...textStyles.body,
+    color: semantic.bodyText,
+    marginBottom: spacing[1.5],
   },
   listDeadline: {
     ...textStyles.metadata,
@@ -107,26 +322,120 @@ const styles = StyleSheet.create({
     marginBottom: spacing[1],
   },
   closing: {
-    ...textStyles.bodyProse,
+    ...textStyles.body,
     color: semantic.bodyText,
-    marginTop: spacing[4],
-    marginBottom: spacing[1],
+    marginTop: spacing[1],
+    marginBottom: spacing[0.5],
+  },
+  onBehalf: {
+    ...textStyles.body,
+    color: semantic.bodyText,
+    marginBottom: spacing[0.5],
   },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    marginTop: spacing[2],
+    marginTop: spacing[1],
+    height: 80,
+  },
+  requirementsIntro: {
+    ...textStyles.body,
+    color: semantic.bodyText,
+    marginBottom: spacing[2],
   },
 })
 
 interface Props {
   data: AcceptanceLetterData
+  profile: AcceptanceProfile
   qrDataUrl: string
   generatedLabel: string
 }
 
-function AcceptanceLetterDocument({ data, qrDataUrl, generatedLabel }: Props) {
+function formatKwacha(amount: number): string {
+  const abs = Math.abs(amount)
+  const formatted = abs.toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return amount < 0 ? `(K${formatted})` : `K${formatted}`
+}
+
+/** Render one fee-chart row with styling appropriate to its kind. */
+function FeeRow({ row }: { row: FeeChartRow }) {
+  const kind = row.kind ?? 'charge'
+  const rowStyle =
+    kind === 'deduction'
+      ? styles.tableRowDeduction
+      : kind === 'subtotal'
+        ? styles.tableRowSubtotal
+        : row.optional
+          ? styles.tableRowOptional
+          : styles.tableRow
+  const amountStyle =
+    kind === 'deduction'
+      ? [styles.tdDeduction, styles.colAmount]
+      : row.emphasis || kind === 'subtotal'
+        ? [styles.tdStrong, styles.colAmount]
+        : [styles.tdAmount, styles.colAmount]
+  const itemStyle = row.emphasis || kind === 'subtotal' ? styles.tdStrong : styles.td
+
+  return (
+    <View style={rowStyle} wrap={false}>
+      <View style={styles.colItem}>
+        <Text style={itemStyle}>{row.item}</Text>
+        {row.cadence ? (
+          <Text style={[styles.cadence, { paddingHorizontal: spacing[2], paddingBottom: spacing[1] }]}>
+            {row.cadence}
+          </Text>
+        ) : null}
+        {row.optional ? (
+          <Text style={[styles.optionalBadge, { paddingHorizontal: spacing[2], paddingBottom: spacing[1] }]}>
+            OPTIONAL — not included in the intake total
+          </Text>
+        ) : null}
+      </View>
+      <Text style={amountStyle}>{formatKwacha(row.amount)}</Text>
+      <Text style={[styles.tdAccount, styles.colAccount]}>{row.account ?? '—'}</Text>
+    </View>
+  )
+}
+
+function BankAccountBlock({ account }: { account: BankAccount }) {
+  return (
+    <View style={styles.bankBlock} wrap={false}>
+      <Text style={styles.bankLabel}>{account.label}</Text>
+      <View style={styles.bankRow}>
+        <Text style={styles.bankKey}>Account Name</Text>
+        <Text style={styles.bankValue}>{account.accountName}</Text>
+      </View>
+      <View style={styles.bankRow}>
+        <Text style={styles.bankKey}>Bank Name</Text>
+        <Text style={styles.bankValue}>{account.bankName}</Text>
+      </View>
+      <View style={styles.bankRow}>
+        <Text style={styles.bankKey}>Account Number</Text>
+        <Text style={styles.bankValueMono}>{account.accountNumber}</Text>
+      </View>
+      <View style={styles.bankRow}>
+        <Text style={styles.bankKey}>Branch Name</Text>
+        <Text style={styles.bankValue}>{account.branchName}</Text>
+      </View>
+      <View style={styles.bankRow}>
+        <Text style={styles.bankKey}>Branch Code</Text>
+        <Text style={styles.bankValueMono}>{account.branchCode}</Text>
+      </View>
+      <View style={styles.bankRow}>
+        <Text style={styles.bankKey}>Swift Code</Text>
+        <Text style={styles.bankValueMono}>{account.swiftCode}</Text>
+      </View>
+      <View style={styles.bankRow}>
+        <Text style={styles.bankKey}>Sort Code</Text>
+        <Text style={styles.bankValueMono}>{account.sortCode}</Text>
+      </View>
+    </View>
+  )
+}
+
+function AcceptanceLetterDocument({ data, profile, qrDataUrl, generatedLabel }: Props) {
   const institution = getInstitution(data.institution)
   const isConditional = Boolean(data.conditional && data.conditions?.length)
   const titleLine = isConditional
@@ -138,22 +447,47 @@ function AcceptanceLetterDocument({ data, qrDataUrl, generatedLabel }: Props) {
   const signatoryPostnominal =
     data.signatoryPostnominal ?? DEFAULT_SIGNATORY.postnominal
   const signatureImage = data.signatureImage ?? DEFAULT_SIGNATORY.signatureImage
-  const signatoryDivision =
-    data.signatoryDivision ?? deriveSignatoryDivision(data.program)
+
+  const commitmentFee = data.commitmentFee ?? DEFAULT_COMMITMENT_FEE
+  const tuition = profile.tuitionAccount
+
+  // Resolve the correct intake (month + year) — July or January, rolled
+  // forward from the offer date when the intake string lacks a year.
+  const intake = resolveIntake(data.intake, data.approvedDate)
+
+  // Compose the dynamic REF title + academic-year clause from the resolved
+  // intake so the letter never shows a stale hard-coded year.
+  const refTitle =
+    `LETTER OF ADMISSION TO ${profile.refProgramTitle} TRAINING – ` +
+    `${intake.shortLabel.toUpperCase()} INTAKE ${profile.studyMode.toUpperCase()} PROGRAMME`
+  const academicYear = `${intake.shortLabel} ${profile.programDisplayName} academic year`
+
+  // Reporting clause — append the intake year to the day/month from the profile.
+  const reportingClause = profile.reportingDayMonth
+    ? ` You are expected to report to school on ${profile.reportingDayMonth}, ${intake.year}.`
+    : ''
+
+  // Commitment-fee deadline clause — append the intake year when known.
+  const deadlineClause = profile.commitmentDeadlineDayMonth
+    ? ` before ${profile.commitmentDeadlineDayMonth}, ${intake.year}`
+    : ' upon receipt of this offer'
+
+  const intakeTotal = computeIntakeTotal(profile.feeChart)
 
   return (
     <Document
       title={`${titleLine} — ${data.applicationNumber}`}
       author={institution.fullName}
       subject="Official offer of admission"
-      creator="MIHAS-KATC Admissions"
-      producer="MIHAS-KATC Admissions Platform"
+      creator="Beanola Admissions"
+      producer="Beanola Admissions Platform"
     >
       <PageFrame
         institution={institution}
         documentType={isConditional ? 'CONDITIONAL ADMISSION' : 'ADMISSION'}
-        tagLine="Office of the Director"
+        tagLine="Office of the Managing Director"
         footerGeneratedLabel={generatedLabel}
+        footerDisclaimer="All correspondence to be addressed to the Managing Director."
       >
         <Text style={styles.title}>{titleLine}</Text>
 
@@ -166,36 +500,79 @@ function AcceptanceLetterDocument({ data, qrDataUrl, generatedLabel }: Props) {
           }}
         />
 
+        {/* Name / Address block — matches the official letter head matter. */}
+        <View style={styles.addressBlock}>
+          <Text style={styles.addressLine}>Name: {data.studentName}</Text>
+          <Text style={styles.addressLine}>
+            Address: {data.studentAddress?.trim() || '………………………………………………'}
+          </Text>
+          {data.studentNumber ? (
+            <Text style={styles.addressLine}>
+              Student Number:{' '}
+              <Text style={textStyles.code}>{data.studentNumber}</Text>
+            </Text>
+          ) : null}
+        </View>
+
+        <Text style={styles.refLine}>REF: {refTitle}</Text>
+        <Text style={styles.applicationRef}>
+          Refer to your application {data.applicationNumber}, dated{' '}
+          {formatDate(data.approvedDate)}.
+        </Text>
+
         <Text style={styles.salutation}>Dear {data.studentName},</Text>
 
         <Text style={styles.bodyParagraph}>
-          It is our great pleasure to offer you admission to{' '}
-          <Text style={textStyles.bodyStrong}>{data.program}</Text> at{' '}
-          {institution.fullName} for the{' '}
-          <Text style={textStyles.bodyStrong}>{data.intake}</Text> intake.
+          I am glad to inform you that your application to study{' '}
+          <Text style={textStyles.bodyStrong}>{profile.studyDescriptor}</Text>{' '}
+          was successful. Kindly note that this offer is non-transferable to any
+          other person, institution or programme and it is for the{' '}
+          {academicYear} only.
           {isConditional
-            ? ' Your admission is subject to the conditions listed below.'
-            : ' This offer recognises the quality of your application and the strength of your preparation.'}
+            ? ' Your admission is further subject to the conditions listed below.'
+            : ''}
         </Text>
 
-        {!isConditional ? (
-          <Text style={styles.bodyParagraph}>
-            We look forward to welcoming you to our learning community, where
-            you will train alongside experienced clinicians and graduate with
-            qualifications recognised across Zambia and the SADC region.
-          </Text>
-        ) : null}
+        <Text style={styles.bodyParagraph}>
+          You are expected to undergo a medical examination for the purpose of
+          obtaining a medical certificate deeming you fit for training. Kindly
+          ensure that your Grade 12 school certificate results are certified;
+          certified copies should be presented to us on the day of reporting.
+          {reportingClause}
+        </Text>
 
-        <View style={styles.section}>
-          <SectionHeading accent>Programme Details</SectionHeading>
-          <FieldGrid>
-            <LabeledField label="Programme" value={data.program} strong />
-            <LabeledField label="Intake" value={data.intake} />
-            <LabeledField label="Application Number" value={data.applicationNumber} mono />
-            {data.startDate ? (
-              <LabeledField label="Start Date" value={formatDate(data.startDate)} />
-            ) : null}
-          </FieldGrid>
+        {/* The mandatory K1,000 commitment fee — the single most important */}
+        {/* action and the reason this clause is visually highlighted. */}
+        <View style={styles.commitmentBox} wrap={false}>
+          <Text style={styles.commitmentHeading}>
+            Securing your place — {formatKwacha(commitmentFee)} commitment fee
+          </Text>
+          <Text style={styles.commitmentText}>
+            To accept this offer and secure your place, you are required to pay
+            a non-refundable commitment fee of{' '}
+            <Text style={textStyles.bodyStrong}>{formatKwacha(commitmentFee)}</Text>
+            {deadlineClause}. This amount is not an extra charge — it is treated
+            as part-payment towards your tuition fees. Deposit it into the
+            school&apos;s tuition account below and bring proof of payment on the
+            day of reporting.
+          </Text>
+          <View style={styles.commitmentAccount}>
+            <Text style={styles.commitmentAccountText}>
+              <Text style={textStyles.bodyStrong}>{tuition.accountName}</Text>
+              {'  ·  '}
+              {tuition.bankName}
+            </Text>
+            <Text style={styles.commitmentAccountText}>
+              A/C <Text style={styles.commitmentAccountNo}>{tuition.accountNumber}</Text>
+              {'  ·  '}
+              {tuition.branchName} ({tuition.branchCode})
+              {'  ·  '}
+              Swift {tuition.swiftCode}
+            </Text>
+            <Text style={styles.commitmentAccountNote}>
+              Full fee schedule and payment accounts are attached overleaf.
+            </Text>
+          </View>
         </View>
 
         {isConditional && data.conditions ? (
@@ -220,86 +597,123 @@ function AcceptanceLetterDocument({ data, qrDataUrl, generatedLabel }: Props) {
           </View>
         ) : null}
 
-        {/* "Next Steps" appears only for unconditional offers. For conditional */}
-        {/* letters the conditions list IS the next-steps list, so we skip to */}
-        {/* avoid redundant content and keep the letter on one page. */}
-        {!isConditional ? (
-          <View style={styles.section}>
-            <SectionHeading accent>Next Steps</SectionHeading>
-            {NEXT_STEPS.map((step, i) => (
-              <View key={i} style={styles.listRow} wrap={false}>
-                <Text style={styles.listNumber}>{i + 1}.</Text>
-                <Text style={styles.listText}>{step}</Text>
-              </View>
-            ))}
-          </View>
-        ) : null}
-
-        <Text style={styles.closing}>
-          Congratulations once again. We look forward to seeing you on campus.
+        <Text style={styles.bodyParagraph}>
+          Attached is a copy of the school fees and other requirements for the
+          first semester of the first academic year.
         </Text>
-        <Text style={styles.bodyParagraph}>Yours sincerely,</Text>
 
-        {/* Keep the signature + verification row together — if they orphan */}
-        {/* across a page break the letter looks unsigned. The prose above is */}
-        {/* allowed to flow naturally so page 1 can fill its available space. */}
+        {/* Closing + signature. Signature row stays atomic (wrap=false); the */}
+        {/* closing lines flow naturally so the block fills page 1. */}
+        <Text style={styles.closing}>Congratulations!</Text>
+        <Text style={styles.onBehalf}>On behalf of {institution.fullName}</Text>
         <View style={styles.footerRow} wrap={false}>
           <SignatureBlock
             name={signatoryName}
             role={signatoryRole}
             postnominal={signatoryPostnominal}
-            institution={institution.fullName}
-            division={signatoryDivision}
             signatureImage={signatureImage}
           />
           <VerificationBlock qrDataUrl={qrDataUrl} />
+        </View>
+
+        {/* ── School fees & requirements — starts on a fresh page so the */}
+        {/* letter proper reads as one clean page, matching the samples. ── */}
+        <View break>
+          {profile.feeChart.length > 0 ? (
+            <View style={styles.section}>
+              <SectionHeading accent>
+                Fee Chart — {profile.programDisplayName}
+              </SectionHeading>
+              <View style={styles.table}>
+                <View style={styles.tableHeaderRow}>
+                  <Text style={[styles.th, styles.colItem]}>Item</Text>
+                  <Text style={[styles.th, styles.colAmount]}>Amount (ZMW)</Text>
+                  <Text style={[styles.th, styles.colAccount]}>Account</Text>
+                </View>
+                {profile.feeChart.map((row, i) => (
+                  <FeeRow key={i} row={row} />
+                ))}
+                {/* Computed mandatory total for the intake (excludes optional */}
+                {/* items; tuition is counted net of the 50% bursary). */}
+                <View style={styles.tableTotalRow} wrap={false}>
+                  <Text style={[styles.tdTotalLabel, styles.colItem]}>
+                    Total payable for the intake (excluding optional items)
+                  </Text>
+                  <Text style={[styles.tdTotalAmount, styles.colAmount]}>
+                    {formatKwacha(intakeTotal)}
+                  </Text>
+                  <Text style={[styles.tdTotalAmount, styles.colAccount]}> </Text>
+                </View>
+              </View>
+              <Text style={styles.feeChartCaption}>
+                {profile.feeChart.some((r) => r.kind === 'deduction')
+                  ? 'The 50% tuition bursary is already reflected above. Optional items (accommodation and per-year fees) are charged separately and are not part of the intake total.'
+                  : 'Optional items (accommodation and per-year fees) are charged separately and are not part of the intake total.'}
+              </Text>
+            </View>
+          ) : null}
+
+          <View style={styles.section}>
+            <SectionHeading accent>Payment Modalities</SectionHeading>
+            <Text style={styles.requirementsIntro}>
+              Students are required to pay fees in full per semester or per year
+              into the school account(s) below.
+            </Text>
+            <BankAccountBlock account={profile.tuitionAccount} />
+            {profile.otherFeesAccount ? (
+              <BankAccountBlock account={profile.otherFeesAccount} />
+            ) : null}
+          </View>
+
+          {profile.notes.length > 0 ? (
+            <View style={styles.section}>
+              <SectionHeading accent>Important Notes</SectionHeading>
+              {profile.notes.map((note, i) => (
+                <View key={i} style={styles.listRow} wrap={false}>
+                  <Text style={styles.listBullet}>•</Text>
+                  <Text style={styles.listText}>{note}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+
+          {profile.requirements.length > 0 ? (
+            <View style={styles.section}>
+              <SectionHeading accent>Other Requirements</SectionHeading>
+              <Text style={styles.requirementsIntro}>
+                Prospective students are expected to bring the following training
+                requirements:
+              </Text>
+              {profile.requirements.map((req, i) => (
+                <View key={i} style={styles.listRow} wrap={false}>
+                  <Text style={styles.listBullet}>•</Text>
+                  <Text style={styles.listText}>{req}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
         </View>
       </PageFrame>
     </Document>
   )
 }
 
-const NEXT_STEPS = [
-  'Confirm your acceptance through the admissions portal within 14 days.',
-  'Complete registration and pay the tuition deposit by the stated deadline.',
-  'Attend the orientation programme in the first week of the intake.',
-  'Contact admissions@mihas.edu.zm if you have any questions or need support.',
-]
-
 /**
- * Map a program name to its originating school/division.
- *
- * Mirrors MIHAS's paper application form convention, where the footer
- * reads "On behalf of Mukuba Institute of Health and Applied Sciences,
- * School of Nursing" for nursing programs. Adding a division line under
- * the institution is a small visual concession that matches the
- * authority of the paper stationery.
- *
- * Returns `undefined` when the program has no mapped division — the
- * institution name stands alone in that case.
+ * Build the AcceptanceLetter <Document> element (async, because the QR code
+ * is generated asynchronously). Shared by the public generator and the
+ * dev-only in-browser preview (which renders the element directly through
+ * @react-pdf's <PDFViewer> instead of toBlob).
  */
-function deriveSignatoryDivision(program: string): string | undefined {
-  const lower = program.toLowerCase()
-  if (lower.includes('nursing')) return 'School of Nursing'
-  if (lower.includes('midwifery')) return 'School of Midwifery'
-  if (lower.includes('clinical medicine') || lower.includes('medical')) {
-    return 'School of Clinical Medicine'
-  }
-  if (lower.includes('pharmacy')) return 'School of Pharmacy'
-  if (lower.includes('environmental health')) return 'School of Environmental Health'
-  return undefined
-}
-
-/**
- * Public function — replaces the old jsPDF-based generateAcceptanceLetter.
- * Signature preserved for backward compatibility.
- */
-export async function generateAcceptanceLetter(
+export async function buildAcceptanceLetterElement(
   data: AcceptanceLetterData,
-): Promise<Blob> {
+): Promise<ReactElement> {
   if (!data || !data.applicationNumber || !data.studentName) {
     throw new Error('Missing acceptance data for letter generation')
   }
+
+  registerPdfFonts()
+
+  const profile = resolveAcceptanceProfile(data.institution, data.program)
 
   const qrDataUrl = await buildQrDataUrl({
     type: data.conditional ? 'conditional_acceptance' : 'acceptance_letter',
@@ -312,11 +726,23 @@ export async function generateAcceptanceLetter(
 
   const generatedLabel = `Generated ${formatDate(new Date().toISOString())}`
 
-  return renderToBlob(
+  return (
     <AcceptanceLetterDocument
       data={data}
+      profile={profile}
       qrDataUrl={qrDataUrl}
       generatedLabel={generatedLabel}
-    />,
+    />
   )
+}
+
+/**
+ * Public function — replaces the old jsPDF-based generateAcceptanceLetter.
+ * Signature preserved for backward compatibility.
+ */
+export async function generateAcceptanceLetter(
+  data: AcceptanceLetterData,
+): Promise<Blob> {
+  const element = await buildAcceptanceLetterElement(data)
+  return renderToBlob(element as ReactElement<import('@react-pdf/renderer').DocumentProps>)
 }

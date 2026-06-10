@@ -13,6 +13,8 @@ type DraftApplicationPayload = {
   country: string
   next_of_kin_name: string | null
   next_of_kin_phone: string | null
+  program_id?: string
+  intake_id?: string
   program: string
   intake: string
   institution: string
@@ -39,14 +41,17 @@ export function buildServerDraftPayload({
   selectedProgramDetails,
   institutionCode,
   nationality,
+  programId,
+  intakeId,
 }: {
   formData: WizardFormData
   selectedProgramDetails?: WizardProgram
   institutionCode: string
   nationality: string
+  programId?: string
+  intakeId?: string
 }): DraftApplicationPayload {
-  // Django validates program/intake/institution by name, not by ID.
-  // The caller is expected to pass the canonical intake name here.
+  // The backend now accepts IDs for assignment and keeps names as display snapshots.
   const programName = selectedProgramDetails?.name?.trim() || formData.program
   return {
     full_name: formData.full_name.trim(),
@@ -60,6 +65,8 @@ export function buildServerDraftPayload({
     country: formData.country?.trim() || 'Zambia',
     next_of_kin_name: formData.next_of_kin_name?.trim() || null,
     next_of_kin_phone: formData.next_of_kin_phone ? normalizePhoneNumberInput(formData.next_of_kin_phone).trim() : null,
+    ...(programId ? { program_id: programId } : {}),
+    ...(intakeId ? { intake_id: intakeId } : {}),
     program: programName,
     intake: formData.intake,
     institution: institutionCode,

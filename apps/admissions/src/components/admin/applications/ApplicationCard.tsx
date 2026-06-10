@@ -106,8 +106,8 @@ export const ApplicationCard = React.memo<ApplicationCardProps>(function Applica
     try {
       const title = data.subject?.trim() || (
         data.channel === 'in-app'
-            ? 'Portal update from MIHAS Admissions'
-            : 'Message from MIHAS Admissions'
+            ? 'Portal update from Beanola Admissions'
+            : 'Message from Beanola Admissions'
       )
 
       if (data.channel === 'email') {

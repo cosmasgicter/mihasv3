@@ -29,6 +29,8 @@ from rest_framework.views import APIView
 from apps.accounts.models import Profile
 from apps.accounts.permissions import IsAdmin, ROLE_HIERARCHY, is_super_admin
 from apps.accounts.services import hash_password
+from apps.catalog.models import UserInstitutionMembership
+from apps.catalog.services import AccessScopeService
 from apps.common.audit_network import build_audit_network_fields, decrypt_network_value
 from apps.common.models import AuditLog, Setting
 from apps.common.openapi_helpers import (
@@ -256,18 +258,32 @@ class AdminDashboardView(APIView):
 
             from apps.applications.models import Application
 
+            scope_service = AccessScopeService()
+            app_queryset = Application.objects.all()
+            caller_is_super_admin = is_super_admin(request.user)
+            # R4.6: a no-scope (no membership/grant) non-super-admin must see an
+            # explicit "no school access assigned" signal, not bare zeros that
+            # could be misread as platform-wide totals. Every aggregate below is
+            # already computed over the scoped queryset, so the counts are a
+            # correct zero for an empty scope; this flag lets the frontend
+            # distinguish that empty-scope case from "zero rows in my school".
+            no_school_access = False
+            if not caller_is_super_admin:
+                no_school_access = scope_service.filters_for_user(request.user).has_no_scope
+                app_queryset = scope_service.filter_applications(app_queryset, request.user)
+
             # Application counts by status
             status_counts = dict(
-                Application.objects.values_list("status")
+                app_queryset.values_list("status")
                 .annotate(count=Count("id"))
                 .values_list("status", "count")
             )
 
-            activity_queryset = Application.objects.annotate(
+            activity_queryset = app_queryset.annotate(
                 activity_at=Coalesce("submitted_at", "updated_at", "created_at")
             )
-            today_created_count = Application.objects.filter(created_at__gte=today_start).count()
-            today_submitted_count = Application.objects.filter(submitted_at__gte=today_start).count()
+            today_created_count = app_queryset.filter(created_at__gte=today_start).count()
+            today_submitted_count = app_queryset.filter(submitted_at__gte=today_start).count()
             today_count = activity_queryset.filter(activity_at__gte=today_start).count()
             week_count = activity_queryset.filter(activity_at__gte=week_start).count()
             month_count = activity_queryset.filter(activity_at__gte=month_start).count()
@@ -278,15 +294,20 @@ class AdminDashboardView(APIView):
                 from apps.documents.models import Payment
                 from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
 
+                status_entries_queryset = ApplicationStatusHistory.objects.select_related('application', 'changed_by')
+                recent_payments_queryset = Payment.objects.filter(status__in=RECEIPT_ELIGIBLE_STATUSES)
+                if not is_super_admin(request.user):
+                    scoped_app_ids = app_queryset.values_list("id", flat=True)
+                    status_entries_queryset = status_entries_queryset.filter(application_id__in=scoped_app_ids)
+                    recent_payments_queryset = scope_service.filter_payments(recent_payments_queryset, request.user)
+
                 status_entries = (
-                    ApplicationStatusHistory.objects
-                    .select_related('application', 'changed_by')
+                    status_entries_queryset
                     .order_by('-created_at')[:10]
                 )
 
                 recent_payments = (
-                    Payment.objects
-                    .filter(status__in=RECEIPT_ELIGIBLE_STATUSES)
+                    recent_payments_queryset
                     .select_related('application')
                     .order_by('-updated_at')[:5]
                 )
@@ -297,26 +318,43 @@ class AdminDashboardView(APIView):
                 recent_activity = []
 
             # Total users
-            total_users = Profile.objects.count()
-            active_users = Profile.objects.filter(is_active=True).count()
+            user_queryset = Profile.objects.all()
+            if not is_super_admin(request.user):
+                filters = scope_service.filters_for_user(request.user)
+                scoped_user_ids = UserInstitutionMembership.objects.filter(
+                    institution_id__in=filters.institution_ids,
+                    is_active=True,
+                ).values_list("user_id", flat=True)
+                user_queryset = user_queryset.filter(Q(id__in=scoped_user_ids) | Q(id=request.user.id))
+            total_users = user_queryset.count()
+            active_users = user_queryset.filter(is_active=True).count()
 
             # Needs attention counts
             try:
                 from apps.documents.models import ApplicationDocument, Payment
                 from apps.applications.models import ApplicationInterview
 
-                pending_payments = Payment.objects.filter(
+                pending_payments_queryset = Payment.objects.filter(
                     status__in=['pending', 'initiated']
-                ).count()
+                )
+                if not is_super_admin(request.user):
+                    pending_payments_queryset = scope_service.filter_payments(pending_payments_queryset, request.user)
+                pending_payments = pending_payments_queryset.count()
 
-                pending_documents = ApplicationDocument.objects.filter(
+                pending_documents_queryset = ApplicationDocument.objects.filter(
                     verification_status__in=[None, '', 'pending', 'uploaded']
-                ).count()
+                )
+                if not is_super_admin(request.user):
+                    pending_documents_queryset = scope_service.filter_documents(pending_documents_queryset, request.user)
+                pending_documents = pending_documents_queryset.count()
 
-                upcoming_interviews = ApplicationInterview.objects.filter(
+                upcoming_interviews_queryset = ApplicationInterview.objects.filter(
                     scheduled_at__gte=now,
                     status__in=['scheduled', 'pending'],
-                ).count()
+                )
+                if not is_super_admin(request.user):
+                    upcoming_interviews_queryset = upcoming_interviews_queryset.filter(application_id__in=app_queryset.values_list("id", flat=True))
+                upcoming_interviews = upcoming_interviews_queryset.count()
             except Exception:
                 logger.warning("Failed to load needs-attention counts", exc_info=True)
                 pending_payments = 0
@@ -326,6 +364,7 @@ class AdminDashboardView(APIView):
             return Response({
                 "success": True,
                 "data": {
+                    "no_school_access": no_school_access,
                     "applications": {
                         "by_status": status_counts,
                         "today": today_count,
@@ -334,7 +373,7 @@ class AdminDashboardView(APIView):
                         "today_submitted": today_submitted_count,
                         "this_week": week_count,
                         "this_month": month_count,
-                        "total": Application.objects.count(),
+                        "total": app_queryset.count(),
                     },
                     "users": {
                         "total": total_users,
@@ -401,6 +440,13 @@ class AdminUserListView(APIView):
 
     def get(self, request):
         queryset = Profile.objects.all().order_by("-created_at")
+        if not is_super_admin(request.user):
+            filters = AccessScopeService().filters_for_user(request.user)
+            scoped_user_ids = UserInstitutionMembership.objects.filter(
+                institution_id__in=filters.institution_ids,
+                is_active=True,
+            ).values_list("user_id", flat=True)
+            queryset = queryset.filter(Q(id__in=scoped_user_ids) | Q(id=request.user.id))
 
         # Role filter
         role = request.query_params.get("role")
@@ -704,4 +750,3 @@ class AdminUserExportView(APIView):
         )
 
         return response
-

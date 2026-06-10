@@ -111,7 +111,7 @@ describe('Property 1: API path prefix normalization (idempotent)', () => {
   it('passes absolute URLs through unchanged', () => {
     const absoluteUrlArb = fc.oneof(
       relativePathArb.map(p => `http://example.com${p}`),
-      relativePathArb.map(p => `https://api.mihas.edu.zm${p}`),
+      relativePathArb.map(p => `https://api.beanola.com${p}`),
     );
 
     fc.assert(
@@ -139,8 +139,8 @@ describe('Property 13: API base URL resolution', () => {
   it('strips trailing slashes from VITE_API_BASE_URL', () => {
     const baseArb = fc.constantFrom(
       'http://localhost:8000',
-      'https://api.mihas.edu.zm',
-      'https://staging.api.mihas.edu.zm',
+      'https://api.beanola.com',
+      'https://staging.api.beanola.com',
     );
 
     fc.assert(
@@ -161,7 +161,7 @@ describe('Property 13: API base URL resolution', () => {
   it('strips /api/v1 suffix from VITE_API_BASE_URL', () => {
     const baseArb = fc.constantFrom(
       'http://localhost:8000',
-      'https://api.mihas.edu.zm',
+      'https://api.beanola.com',
     );
 
     fc.assert(
@@ -178,7 +178,7 @@ describe('Property 13: API base URL resolution', () => {
   /**
    * **Validates: Requirements 1.1, 18.1**
    */
-  it('defaults to https://api.mihas.edu.zm when VITE_API_BASE_URL is not set and no browser origin', async () => {
+  it('defaults to https://api.beanola.com when VITE_API_BASE_URL is not set and no browser origin', async () => {
     vi.resetModules();
 
     // Clear any existing mocks for apiConfig
@@ -192,6 +192,6 @@ describe('Property 13: API base URL resolution', () => {
 
     // In a node environment (no window), should fall back to production default
     const result = getApiBaseUrl();
-    expect(result).toBe('https://api.mihas.edu.zm');
+    expect(result).toBe('https://api.beanola.com');
   });
 });

@@ -680,7 +680,7 @@ def test_property_20_canonical_json_round_trip(payload):
 
 _HEX_ALPHABET = "0123456789abcdef"
 _IDENTITY_TEXT = st.text(
-    alphabet=st.characters(blacklist_characters="|"), max_size=30,
+    alphabet=st.characters(blacklist_characters="|", blacklist_categories=("Cs",)), max_size=30,
 )
 
 

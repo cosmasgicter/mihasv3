@@ -38,7 +38,7 @@ def _hash_value(value: str) -> str:
 
 def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
     """Set HTTP-only access + refresh cookies with the subdomain strategy."""
-    cookie_domain = getattr(settings, "AUTH_COOKIE_DOMAIN", ".mihas.edu.zm")
+    cookie_domain = getattr(settings, "AUTH_COOKIE_DOMAIN", ".beanola.com")
     samesite = getattr(settings, "AUTH_COOKIE_SAMESITE", "Lax")
     secure = getattr(settings, "AUTH_COOKIE_SECURE", True)
     httponly = getattr(settings, "AUTH_COOKIE_HTTPONLY", True)
@@ -69,7 +69,7 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
 
 def _clear_auth_cookies(response: Response) -> None:
     """Clear access + refresh cookies."""
-    cookie_domain = getattr(settings, "AUTH_COOKIE_DOMAIN", ".mihas.edu.zm")
+    cookie_domain = getattr(settings, "AUTH_COOKIE_DOMAIN", ".beanola.com")
     response.delete_cookie("access_token", domain=cookie_domain, path="/")
     response.delete_cookie("refresh_token", domain=cookie_domain, path="/")
 

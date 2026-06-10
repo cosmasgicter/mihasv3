@@ -39,9 +39,9 @@ import { borderWidth, semantic, spacing, textStyles } from '../theme'
 
 const styles = StyleSheet.create({
   wrapper: {
-    // marginTop was spacing[3] (12pt); tightened to spacing[2] (8pt) to
-    // help fit the signature row on one page alongside the division line.
-    marginTop: spacing[2],
+    // Zero top margin so the (now larger) signature keeps together with the
+    // closing lines on page 1 of the acceptance letter rather than orphaning.
+    marginTop: 0,
     width: 260,
   },
   scriptSignature: {
@@ -55,19 +55,18 @@ const styles = StyleSheet.create({
   signatureImage: {
     // Explicit width + height (not width:'auto'). @react-pdf's Yoga layout
     // engine renders an <Image> with width:'auto' at the PNG's INTRINSIC
-    // width (1344px), which overflowed the 260pt wrapper and overlapped the
-    // verification/QR block in the footer row. The source PNG is 1344×459
-    // (~2.928:1); 111×38 preserves that aspect ratio (2.921) and keeps the
-    // signature within the wrapper.
-    height: 38,
-    width: 111,
+    // pixel width, which overflows the wrapper. The default signature scan
+    // (director-signature.png) is cropped to the ink and upscaled to 472×208
+    // (~2.27:1). 132×58 preserves that ratio and renders the signature at a
+    // legible size above the rule. Callers can override via the
+    // `signatureWidth`/`signatureHeight` props for a differently-shaped scan.
     objectFit: 'contain',
     marginBottom: spacing[1],
   },
   line: {
     borderBottomWidth: borderWidth.thin,
     borderBottomColor: semantic.bodyText,
-    marginBottom: spacing[2],
+    marginBottom: spacing[1],
   },
   name: {
     ...textStyles.bodyStrong,
@@ -110,6 +109,13 @@ export interface SignatureBlockProps {
    * Pinyon Script rendering. When omitted, the script fallback is used.
    */
   signatureImage?: string
+  /**
+   * Optional explicit signature image dimensions (points). Defaults to
+   * 175×11 — the aspect ratio of the default director-signature.png scan
+   * (1227×77). Override for a differently-shaped signature image.
+   */
+  signatureWidth?: number
+  signatureHeight?: number
 }
 
 /**
@@ -128,13 +134,18 @@ export function SignatureBlock({
   institution,
   division,
   signatureImage,
+  signatureWidth = 120,
+  signatureHeight = 53,
 }: SignatureBlockProps) {
   const displayName = composeDisplayName(name, postnominal)
 
   return (
     <View style={styles.wrapper}>
       {signatureImage ? (
-        <Image src={signatureImage} style={styles.signatureImage} />
+        <Image
+          src={signatureImage}
+          style={[styles.signatureImage, { width: signatureWidth, height: signatureHeight }]}
+        />
       ) : (
         <Text style={styles.scriptSignature}>{displayName}</Text>
       )}

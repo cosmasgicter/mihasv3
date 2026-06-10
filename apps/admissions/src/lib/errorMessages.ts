@@ -113,11 +113,18 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   INVALID_FILE: 'Invalid file format or content.',
   NO_FILE: 'No file provided.',
   STORAGE_ERROR: 'File storage operation failed. Please try again.',
+  ASSET_INVALID: 'This asset must be a PNG, JPEG, WebP, or SVG under 2MB.',
+  TEMPLATE_TOKEN_REJECTED: 'Disallowed section or token in document template.',
 
   // Catalog
   INACTIVE_INTAKE: 'The selected intake is not active.',
   INVALID_INSTITUTION: 'Invalid institution.',
   INVALID_PROGRAM_INTAKE: 'The program is not available for this intake.',
+
+  // Offering assignment (multi-tenant Beanola — submission revalidation)
+  NO_ELIGIBLE_OFFERING: 'No school offering is available for this program and intake. Try another intake or contact admissions.',
+  OFFERING_NO_LONGER_AVAILABLE: 'The assigned school offering is no longer available. Try another intake or contact admissions.',
+  OFFERING_CAPACITY_FULL: 'The assigned offering filled before submission. You can join the waitlist or choose another intake.',
 
   // Interview
   INTERVIEWER_CONFLICT: 'Interviewer schedule conflict.',
