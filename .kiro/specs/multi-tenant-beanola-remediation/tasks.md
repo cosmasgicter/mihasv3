@@ -297,7 +297,7 @@ Each phase ends in a verification block and a checkpoint that pauses for the use
     - Tests for fee rows, bank rows, requirements, clone/version, and that preview does not assume MIHAS/KATC fallback.
     - _Requirements: R8.8_
 
-- [ ] 18. Checkpoint — Phase 4
+- [-] 18. Checkpoint — Phase 4
   - `cd backend && python3 -m pytest tests/property/test_document_profile_resolution_properties.py tests/property/test_template_safety.py tests/unit/test_official_documents.py -q`; `python3 manage.py check`. `cd apps/admissions && bun run type-check && bun run lint && bun run test`. Confirm a new school can be configured without code changes and the acceptance renderer reads only tenant data. Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R8.2, R8.3, R8.4, R8.8, R8.9_
 

@@ -1,47 +1,46 @@
-"""Property-based test: branch-fork failure mode emits the canonical line.
+"""Property-based test: branch-fork failure mode emits the canonical marker.
 
-# Feature: production-schema-reconciliation
+# Feature: production-schema-reconciliation (amended post Neon→self-hosted migration)
 # Property: Every Neon branch-fork failure path is tagged with the
-#           canonical ``NEON_BRANCH_FORK_UNAVAILABLE`` marker so a CI
-#           failure caused by Neon API trouble is distinguishable from
-#           a real schema-drift finding.
+#           canonical ``NEON_BRANCH_FORK_UNAVAILABLE`` marker so a Neon
+#           API problem is distinguishable from a real schema-drift
+#           finding in the CI logs.
 
-Per Requirement 5.9 (Acceptance Criterion 10 of Requirement 5):
+Original Requirement 5.9 (Acceptance Criterion 10 of Requirement 5) said the
+workflow SHALL ``exit 1`` on a fork-creation failure. That requirement was
+written when **Neon was the production database**. The platform has since
+migrated production to self-hosted Postgres (see
+``deploy/RUNBOOK.md`` / ``.kiro/steering/infrastructure.md``); Neon is now only
+the *authoring* database. A Neon-side problem (missing key, branch-quota
+exhaustion → HTTP 422, transient API error) must therefore NOT fail the
+Backend Governance run — the drift-guard degrades to a warning+skip while the
+``schema-and-outbox-checks`` job remains the hard gate.
 
-    IF the Neon_Branch_Fork creation step fails, THEN THE workflow
-    SHALL exit with status 1 AND SHALL print
-    ``NEON_BRANCH_FORK_UNAVAILABLE: <error>`` so the CI failure is
-    distinguishable from a real drift finding.
+The **amended contract** this test now enforces (operator-signal preserved,
+fail-fast relaxed):
 
-The fork-creation step in ``.github/workflows/backend-governance.yml``
-(design.md Component 7) currently has three failure branches:
+    Every terminating branch of the fork-creation step — whether it
+    ``exit 1`` (genuine contract violation) or ``exit 0`` with
+    ``skipped=true`` (graceful Neon-unavailable degrade) — that handles a
+    Neon failure MUST echo the canonical literal
+    ``NEON_BRANCH_FORK_UNAVAILABLE`` (or the broader skip warning) so the
+    CI log distinguishes a Neon problem from a real drift finding.
 
-    1. ``curl ... || { echo "NEON_BRANCH_FORK_UNAVAILABLE: API request
-       failed"; exit 1; }`` — Neon HTTP call failed.
-    2. ``if [ -z "$branch_id" ] ... ; then echo
-       "NEON_BRANCH_FORK_UNAVAILABLE: branch id missing in response";
-       exit 1; fi`` — response JSON shape regression.
-    3. ``if [ -z "$conn" ] ... ; then echo
-       "NEON_BRANCH_FORK_UNAVAILABLE: connection_uri missing in
-       response"; exit 1; fi`` — response JSON shape regression.
-
-The property under test: **every shell branch in the fork-creation
-step that terminates with ``exit 1`` is preceded (within the same
-local context) by an ``echo`` containing the canonical literal
-``NEON_BRANCH_FORK_UNAVAILABLE``.**  An ``exit 1`` without the marker
-would degrade R5.9: the CI failure would be indistinguishable from a
-genuine drift finding, eroding the operator signal that the spec is
-designed to deliver.
+Concretely we assert:
+    1. the fork-creation step exists in the drift-guard job;
+    2. the canonical literal appears in the run body;
+    3. the step degrades gracefully — it sets ``skipped=true`` and does NOT
+       hard-fail the run on a Neon-unavailable condition;
+    4. the run body never contains a bare ``exit 1`` (the obsolete fail-fast
+       behaviour that broke governance after the migration).
 
 The test parses the YAML on every example so it always reflects the
-current on-disk state. Hypothesis draws a non-empty unique subset of
-the per-rule assertion names per example and runs only the drawn
-checks; this lets shrinking pinpoint the single broken rule when a
-contract regresses.
+current on-disk state.
 
-**Validates: Requirements 5.9**
+**Validates: Requirements 5.9 (amended for self-hosted production)**
 
-Spec: ``.kiro/specs/production-schema-reconciliation/`` — Task 5.5.
+Spec: ``.kiro/specs/production-schema-reconciliation/`` — Task 5.5,
+amended by the multi-tenant-beanola / self-hosted migration.
 """
 from __future__ import annotations
 
@@ -286,24 +285,16 @@ def _check_canonical_literal_present_in_run_body() -> None:
     )
 
 
-def _check_every_exit_one_is_tagged_with_canonical_literal() -> None:
-    """Rule 3: every ``exit 1`` in the fork-creation step is preceded
-    by an ``echo`` containing ``NEON_BRANCH_FORK_UNAVAILABLE``.
+def _check_degrades_gracefully_not_hard_fail() -> None:
+    """Rule 3: the fork-creation step degrades to a skip, never hard-fails.
 
-    This is the deep form of Rule 2: the literal must not just appear
-    *somewhere* in the run body, it must precede *every* failure
-    exit. Otherwise a contributor could add a new failure branch
-    (e.g. a missing-jq error) that exits 1 silently and the operator
-    would see a CI failure indistinguishable from a real drift
-    finding.
+    Post-migration contract: a Neon-unavailable condition must set
+    ``skipped=true`` (consumed by the ``if: steps.fork.outputs.skipped !=
+    'true'`` guard on the drift run) and must NOT contain a bare ``exit 1``
+    that would fail the whole Backend Governance run. Neon is authoring-only;
+    the ``schema-and-outbox-checks`` job is the real hard gate.
 
-    The check walks backwards up to 5 non-trivial lines from each
-    ``exit 1`` line, skipping blanks and comments. The 5-line window
-    matches the longest existing failure branch in design.md
-    Component 7's Component 7 YAML (4 lines) plus a one-line
-    tolerance for future additions.
-
-    **Validates: Requirements 5.9**
+    **Validates: Requirements 5.9 (amended)**
     """
     workflow = _load_workflow()
     job = _drift_guard_job(workflow)
@@ -311,54 +302,73 @@ def _check_every_exit_one_is_tagged_with_canonical_literal() -> None:
     fork_step = _fork_creation_step(steps)
     run_body = _fork_run_body(fork_step)
     lines = run_body.splitlines()
-    exit_one_lines = _exit_one_indices(lines)
-    assert exit_one_lines, (
-        "Fork-creation step's 'run:' body has no 'exit 1' line. The "
-        "step must surface failure with status 1 per Requirement 5.9."
+
+    # No bare ``exit 1`` — the obsolete fail-fast that broke governance.
+    exit_one_lines = [
+        (i + 1, lines[i].rstrip()) for i in _exit_one_indices(lines)
+    ]
+    assert not exit_one_lines, (
+        "Fork-creation step still contains a bare 'exit 1'. Post Neon→self-"
+        "hosted migration the step must degrade to a warning+skip (set "
+        "'skipped=true' and 'exit 0'), not fail the governance run. "
+        f"Offending lines: {exit_one_lines}"
     )
-    untagged: list[tuple[int, str]] = []
-    for idx in exit_one_lines:
-        if not _backward_window_has_canonical(lines, idx):
-            untagged.append((idx + 1, lines[idx].rstrip()))
+
+    # Must set the skip signal the drift run is gated on.
+    assert "skipped=true" in run_body, (
+        "Fork-creation step must emit 'skipped=true' on a Neon-unavailable "
+        "condition so the drift run is bypassed gracefully (the run step is "
+        "gated on \"if: steps.fork.outputs.skipped != 'true'\")."
+    )
+
+
+def _check_skip_paths_are_tagged_or_warned() -> None:
+    """Rule 4: every graceful-skip path carries an operator signal.
+
+    Each branch that sets ``skipped=true`` must, within a small backward
+    window, surface either the canonical ``NEON_BRANCH_FORK_UNAVAILABLE``
+    marker or a ``::warning::`` annotation — so a skipped drift-guard is
+    visible in the CI log and never silently mistaken for a clean pass.
+
+    **Validates: Requirements 5.9 (amended)**
+    """
+    workflow = _load_workflow()
+    job = _drift_guard_job(workflow)
+    steps = _drift_guard_steps(job)
+    fork_step = _fork_creation_step(steps)
+    run_body = _fork_run_body(fork_step)
+    lines = run_body.splitlines()
+
+    skip_indices = [i for i, line in enumerate(lines) if "skipped=true" in line]
+    assert skip_indices, (
+        "Fork-creation step has no 'skipped=true' branch; the graceful-"
+        "degrade contract requires at least one."
+    )
+
+    def _window_has_signal(idx: int, *, window: int = 6) -> bool:
+        examined = 0
+        j = idx - 1
+        while j >= 0 and examined < window:
+            line = lines[j]
+            if _is_blank_or_comment(line):
+                j -= 1
+                continue
+            if CANONICAL_LITERAL in line or "::warning::" in line:
+                return True
+            examined += 1
+            j -= 1
+        return False
+
+    untagged = [
+        (idx + 1, lines[idx].rstrip())
+        for idx in skip_indices
+        if not _window_has_signal(idx)
+    ]
     assert not untagged, (
-        "Each 'exit 1' in the fork-creation step's 'run:' body MUST "
-        "be preceded (within 5 non-trivial lines) by an 'echo' "
-        f"containing the canonical literal {CANONICAL_LITERAL!r}. "
-        "Per Requirement 5.9, an untagged failure branch is "
-        "indistinguishable from a real schema-drift finding in the "
-        "CI logs.\n"
-        "Untagged 'exit 1' lines (1-based line number, line text): "
-        f"{untagged}"
-    )
-
-
-def _check_canonical_literal_appears_at_least_once_per_exit_one() -> None:
-    """Rule 4: count(``CANONICAL_LITERAL``) >= count(``exit 1``).
-
-    A weaker but easier-to-shrink form of Rule 3. If there are three
-    failure branches each ending in ``exit 1``, the literal must
-    appear at least three times. This rule complements Rule 3 by
-    catching the common regression of "I added a new failure branch
-    but forgot to echo the marker" without requiring per-line
-    backward-window analysis.
-
-    **Validates: Requirements 5.9**
-    """
-    workflow = _load_workflow()
-    job = _drift_guard_job(workflow)
-    steps = _drift_guard_steps(job)
-    fork_step = _fork_creation_step(steps)
-    run_body = _fork_run_body(fork_step)
-    lines = run_body.splitlines()
-    exit_one_count = len(_exit_one_indices(lines))
-    literal_count = run_body.count(CANONICAL_LITERAL)
-    assert literal_count >= exit_one_count, (
-        "Fork-creation step has "
-        f"{exit_one_count} 'exit 1' line(s) but the canonical literal "
-        f"{CANONICAL_LITERAL!r} appears only {literal_count} time(s). "
-        "Each failure branch that exits 1 MUST echo the literal so "
-        "operators can distinguish a Neon-API failure from a real "
-        "schema-drift finding. Per Requirement 5.9."
+        "Each 'skipped=true' branch MUST be preceded (within 6 non-trivial "
+        f"lines) by an operator signal — the canonical {CANONICAL_LITERAL!r} "
+        "marker or a '::warning::' annotation — so a Neon-unavailable skip is "
+        f"distinguishable from a clean pass. Untagged: {untagged}"
     )
 
 
@@ -371,11 +381,11 @@ ASSERTIONS: dict[str, Callable[[], None]] = {
     "canonical_literal_present_in_run_body": (
         _check_canonical_literal_present_in_run_body
     ),
-    "every_exit_one_is_tagged_with_canonical_literal": (
-        _check_every_exit_one_is_tagged_with_canonical_literal
+    "degrades_gracefully_not_hard_fail": (
+        _check_degrades_gracefully_not_hard_fail
     ),
-    "canonical_literal_appears_at_least_once_per_exit_one": (
-        _check_canonical_literal_appears_at_least_once_per_exit_one
+    "skip_paths_are_tagged_or_warned": (
+        _check_skip_paths_are_tagged_or_warned
     ),
 }
 
