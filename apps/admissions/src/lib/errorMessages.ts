@@ -113,6 +113,8 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   INVALID_FILE: 'Invalid file format or content.',
   NO_FILE: 'No file provided.',
   STORAGE_ERROR: 'File storage operation failed. Please try again.',
+  OFFICIAL_DOCUMENT_IMMUTABLE: 'Official generated documents cannot be deleted.',
+  DOCUMENT_PROFILE_NOT_CONFIGURED: 'This document is not available yet — its template has not been configured. Please contact the admissions office.',
   ASSET_INVALID: 'This asset must be a PNG, JPEG, WebP, or SVG under 2MB.',
   TEMPLATE_TOKEN_REJECTED: 'Disallowed section or token in document template.',
 

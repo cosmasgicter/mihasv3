@@ -273,6 +273,9 @@ _PROTECTED = {
     "apps.catalog.admin_views.AdminTenantRequiredDocumentListCreateView",
     "apps.catalog.admin_views.AdminTenantTemplateDetailView",
     "apps.catalog.admin_views.AdminTenantTemplateListCreateView",
+    "apps.catalog.admin_views.AdminTenantProfileListCreateView",
+    "apps.catalog.admin_views.AdminTenantProfileDetailView",
+    "apps.catalog.admin_views.AdminTenantProfileCloneView",
     "apps.catalog.admin_views._InstitutionChildDetailView",
     "apps.catalog.admin_views._InstitutionChildListCreateView",
     # documents

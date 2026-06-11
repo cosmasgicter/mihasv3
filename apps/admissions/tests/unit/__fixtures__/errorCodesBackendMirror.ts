@@ -89,6 +89,8 @@ export const BACKEND_ERROR_CODES: Record<string, { http_status: number; message:
   INVALID_FILE: { http_status: 400, message: 'Invalid file format or content', category: 'document' },
   NO_FILE: { http_status: 400, message: 'No file provided', category: 'document' },
   STORAGE_ERROR: { http_status: 500, message: 'File storage operation failed', category: 'document' },
+  OFFICIAL_DOCUMENT_IMMUTABLE: { http_status: 403, message: 'Official generated documents cannot be deleted', category: 'document' },
+  DOCUMENT_PROFILE_NOT_CONFIGURED: { http_status: 422, message: 'No document profile configured for this institution and document type', category: 'document' },
   ASSET_INVALID: { http_status: 400, message: 'Asset file failed MIME, magic-byte, or size validation', category: 'document' },
   TEMPLATE_TOKEN_REJECTED: { http_status: 400, message: 'Disallowed section or token in document template', category: 'document' },
   // Catalog

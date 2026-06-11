@@ -860,6 +860,302 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: List admin institution audit
+  /api/v1/admin/institutions/{institution_id}/document-profiles/:
+    get:
+      operationId: api_v1_admin_institutions_document_profiles_retrieve
+      description: |-
+        List/create rich tenant document profiles (R8.8).
+
+        Profiles are the multi-section successors to templates: an optional
+        applies-to scope (offering / canonical program / intake), a ``layout_key``,
+        structured ``sections`` + ``fee_chart`` + ``bank_accounts`` +
+        ``requirements`` + ``signatory``. Reads are scoped via ``AccessScopeService``
+        (inherited from the base) so out-of-scope schools 404; writes are
+        super-admin-gated and content-safety validated before any persistence.
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDocumentProfile'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve api v1 admin institutions document profiles
+    post:
+      operationId: api_v1_admin_institutions_document_profiles_create
+      description: |-
+        List/create rich tenant document profiles (R8.8).
+
+        Profiles are the multi-section successors to templates: an optional
+        applies-to scope (offering / canonical program / intake), a ``layout_key``,
+        structured ``sections`` + ``fee_chart`` + ``bank_accounts`` +
+        ``requirements`` + ``signatory``. Reads are scoped via ``AccessScopeService``
+        (inherited from the base) so out-of-scope schools 404; writes are
+        super-admin-gated and content-safety validated before any persistence.
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminDocumentProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminDocumentProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminDocumentProfile'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDocumentProfile'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create api v1 admin institutions document profiles
+  /api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/:
+    patch:
+      operationId: api_v1_admin_institutions_document_profiles_partial_update
+      description: |-
+        Update (activate/deactivate, scope, layout) a tenant document profile.
+
+        A PATCH that changes profile *content* is content-safety validated. To
+        create a new version of a profile use the dedicated clone endpoint, which
+        reuses ``InstitutionDocumentProfileService.create_new_version`` (INSERT,
+        never in-place UPDATE) so prior versions — and any documents generated from
+        them — stay untouched.
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminDocumentProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminDocumentProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminDocumentProfile'
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDocumentProfile'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update api v1 admin institutions document profiles partial
+  /api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/clone/:
+    post:
+      operationId: api_v1_admin_institutions_document_profiles_clone_create
+      description: |-
+        POST a new version of an existing profile (R8.5 / R8.8).
+
+        Reuses ``InstitutionDocumentProfileService.create_new_version`` — an INSERT
+        with ``version = next_version_for_scope + 1`` in the source profile's exact
+        scope; every prior row is left byte-for-byte untouched, preserving the
+        provenance of documents already generated from earlier versions. Optional
+        content overrides (``sections`` / ``fee_chart`` / ``bank_accounts`` /
+        ``requirements`` / ``signatory`` / ``rules`` / ``layout_key`` /
+        ``is_active``) are validated before any write via the shared
+        ``validate_profile_payload`` machinery (raised as ``TEMPLATE_TOKEN_REJECTED``).
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminDocumentProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminDocumentProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminDocumentProfile'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDocumentProfile'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create api v1 admin institutions document profiles clone
   /api/v1/admin/institutions/{institution_id}/domains/:
     get:
       operationId: api_v1_admin_institutions_domains_retrieve
@@ -12900,6 +13196,79 @@ components:
       required:
       - active
       - total
+    AdminDocumentProfile:
+      type: object
+      description: |-
+        Rich tenant document profile serializer (R8.8).
+
+        Surfaces the full profile shape — optional applies-to scope
+        (``program_id``/``canonical_program_id``/``intake_id``), ``layout_key``,
+        and the structured ``sections`` / ``fee_chart`` / ``bank_accounts`` /
+        ``requirements`` / ``signatory`` JSON — for the admin TemplatesPanel.
+        Content safety + structural caps are enforced separately by
+        ``validate_profile_payload`` in the view (mapped to ``TEMPLATE_TOKEN_REJECTED``),
+        exactly like the template path; this serializer only binds the columns.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+        document_type:
+          type: string
+          maxLength: 60
+        program_id:
+          type: string
+          format: uuid
+          nullable: true
+        canonical_program_id:
+          type: string
+          format: uuid
+          nullable: true
+        intake_id:
+          type: string
+          format: uuid
+          nullable: true
+        layout_key:
+          type: string
+          maxLength: 80
+        sections: {}
+        fee_chart: {}
+        bank_accounts: {}
+        requirements: {}
+        signatory: {}
+        rules:
+          nullable: true
+        version:
+          type: integer
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+      required:
+      - created_at
+      - created_by_id
+      - document_type
+      - id
+      - institution_id
+      - updated_at
+      - version
     AdminDocumentTemplate:
       type: object
       properties:
@@ -14919,15 +15288,15 @@ components:
           maxLength: 20
         role:
           enum:
-          - reviewer
           - super_admin
           - student
+          - reviewer
           - admin
           type: string
           description: |-
-            * `reviewer` - reviewer
             * `super_admin` - super_admin
             * `student` - student
+            * `reviewer` - reviewer
             * `admin` - admin
           x-spec-enum-id: 1a3817a8a61ce783
         password:
@@ -16836,6 +17205,71 @@ components:
         is_active:
           type: boolean
         created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+    PatchedAdminDocumentProfile:
+      type: object
+      description: |-
+        Rich tenant document profile serializer (R8.8).
+
+        Surfaces the full profile shape — optional applies-to scope
+        (``program_id``/``canonical_program_id``/``intake_id``), ``layout_key``,
+        and the structured ``sections`` / ``fee_chart`` / ``bank_accounts`` /
+        ``requirements`` / ``signatory`` JSON — for the admin TemplatesPanel.
+        Content safety + structural caps are enforced separately by
+        ``validate_profile_payload`` in the view (mapped to ``TEMPLATE_TOKEN_REJECTED``),
+        exactly like the template path; this serializer only binds the columns.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+        document_type:
+          type: string
+          maxLength: 60
+        program_id:
+          type: string
+          format: uuid
+          nullable: true
+        canonical_program_id:
+          type: string
+          format: uuid
+          nullable: true
+        intake_id:
+          type: string
+          format: uuid
+          nullable: true
+        layout_key:
+          type: string
+          maxLength: 80
+        sections: {}
+        fee_chart: {}
+        bank_accounts: {}
+        requirements: {}
+        signatory: {}
+        rules:
+          nullable: true
+        version:
+          type: integer
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        updated_at:
           type: string
           format: date-time
           readOnly: true

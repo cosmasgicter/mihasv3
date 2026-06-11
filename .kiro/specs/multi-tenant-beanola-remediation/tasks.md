@@ -205,7 +205,7 @@ Each phase ends in a verification block and a checkpoint that pauses for the use
     - Author (do not apply) a documented future additive migration adding `application_documents.is_current boolean default true` + partial unique index `(application_id, document_type) WHERE system_generated AND is_current`, with generator flipping the prior current row. V1 derives "current" by query; this is the drift-resistant upgrade once proven on Neon.
     - _Requirements: R6.4_
 
-- [x] 8. Student-safe official-document endpoints (R5)
+- [x] 8. Student-safe official-document endpoints (R5)Sig
   - [x] 8.1 Write status-gating tests (test-first)
     - File: `backend/tests/property/test_official_document_gating_properties.py` (+ frontend mirror, task 11.3). Assert the type gate holds: application_slip → non-draft submitted; acceptance_letter → `approved`; conditional_offer → `conditionally_approved`; payment_receipt → a completed payment exists. Assert school-staff out-of-scope and not-permitted student requests return the 404 masking envelope.
     - **Property 18: Student official-document status gating** — **Validates: Requirements 5.2, 5.3, 5.4, 5.5, 7.5** (`backend/tests/property/test_official_document_gating_properties.py`; `--hypothesis-seed=0`, ≥100 examples)
@@ -289,11 +289,11 @@ Each phase ends in a verification block and a checkpoint that pauses for the use
     - _Requirements: R8.5_
 
 - [ ] 17. Admin template/profile UI (R8.8)
-  - [ ] 17.1 Extend TemplatesPanel + tenants service
+  - [x] 17.1 Extend TemplatesPanel + tenants service
     - Extend `apps/admissions/src/pages/admin/tenants/TemplatesPanel.tsx` and `apps/admissions/src/services/admin/tenants.ts` to choose document type + optional applies-to offering/canonical-program/intake, choose a layout, edit structured sections, fee-chart rows, bank accounts, requirements, and signatory text, preview with sample data, clone the latest version, and activate/deactivate versions. Apply the UI guardrails (R7.7/R17.7) — load `PRODUCT.md`/`DESIGN.md` and consult the design skills first.
     - _Requirements: R8.8_
 
-  - [ ] 17.2 Template panel UI tests
+  - [-] 17.2 Template panel UI tests
     - Tests for fee rows, bank rows, requirements, clone/version, and that preview does not assume MIHAS/KATC fallback.
     - _Requirements: R8.8_
 

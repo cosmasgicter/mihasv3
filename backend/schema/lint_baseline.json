@@ -1,12 +1,12 @@
 {
   "summary": {
-    "total_endpoints": 216,
-    "endpoints_with_issues": 124,
-    "total_issues": 918,
+    "total_endpoints": 220,
+    "endpoints_with_issues": 127,
+    "total_issues": 955,
     "errors": 1,
-    "warnings": 787,
+    "warnings": 824,
     "info": 130,
-    "score": 88.42
+    "score": 88.13
   },
   "issues": [
     {
@@ -245,6 +245,97 @@
       "category": "naming",
       "message": "Path parameter 'institution_id' should use camelCase or kebab-case in GET /api/v1/admin/institutions/{institution_id}/audit/",
       "path": "/paths//api/v1/admin/institutions/{institution_id}/audit//get/parameters[1]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case in GET /api/v1/admin/institutions/{institution_id}/document-profiles/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles//get/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case in POST /api/v1/admin/institutions/{institution_id}/document-profiles/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles//post/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'item_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "url_structure",
+      "message": "Path has excessive nesting (7 levels): /api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/",
+      "suggestion": "Consider flattening the resource hierarchy or using query parameters"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case in PATCH /api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}//patch/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'item_id' should use camelCase or kebab-case in PATCH /api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}//patch/parameters[1]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/clone/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'item_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/clone/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "url_structure",
+      "message": "Path has excessive nesting (8 levels): /api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/clone/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/clone/",
+      "suggestion": "Consider flattening the resource hierarchy or using query parameters"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case in POST /api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/clone/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/clone//post/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'item_id' should use camelCase or kebab-case in POST /api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/clone/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/document-profiles/{item_id}/clone//post/parameters[1]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
@@ -2548,6 +2639,90 @@
       "category": "naming",
       "message": "Property 'upcoming_interviews' in schema 'AdminDashboardNeedsAttention' should use camelCase",
       "path": "/components/schemas/AdminDashboardNeedsAttention/properties/upcoming_interviews",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'institution_id' in schema 'AdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/AdminDocumentProfile/properties/institution_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'document_type' in schema 'AdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/AdminDocumentProfile/properties/document_type",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'program_id' in schema 'AdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/AdminDocumentProfile/properties/program_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'canonical_program_id' in schema 'AdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/AdminDocumentProfile/properties/canonical_program_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'intake_id' in schema 'AdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/AdminDocumentProfile/properties/intake_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'layout_key' in schema 'AdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/AdminDocumentProfile/properties/layout_key",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'fee_chart' in schema 'AdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/AdminDocumentProfile/properties/fee_chart",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'bank_accounts' in schema 'AdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/AdminDocumentProfile/properties/bank_accounts",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'is_active' in schema 'AdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/AdminDocumentProfile/properties/is_active",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'created_at' in schema 'AdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/AdminDocumentProfile/properties/created_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'updated_at' in schema 'AdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/AdminDocumentProfile/properties/updated_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'created_by_id' in schema 'AdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/AdminDocumentProfile/properties/created_by_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {
@@ -4886,6 +5061,90 @@
       "category": "naming",
       "message": "Property 'created_by_id' in schema 'PatchedAdminAccessGrant' should use camelCase",
       "path": "/components/schemas/PatchedAdminAccessGrant/properties/created_by_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'institution_id' in schema 'PatchedAdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/PatchedAdminDocumentProfile/properties/institution_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'document_type' in schema 'PatchedAdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/PatchedAdminDocumentProfile/properties/document_type",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'program_id' in schema 'PatchedAdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/PatchedAdminDocumentProfile/properties/program_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'canonical_program_id' in schema 'PatchedAdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/PatchedAdminDocumentProfile/properties/canonical_program_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'intake_id' in schema 'PatchedAdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/PatchedAdminDocumentProfile/properties/intake_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'layout_key' in schema 'PatchedAdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/PatchedAdminDocumentProfile/properties/layout_key",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'fee_chart' in schema 'PatchedAdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/PatchedAdminDocumentProfile/properties/fee_chart",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'bank_accounts' in schema 'PatchedAdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/PatchedAdminDocumentProfile/properties/bank_accounts",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'is_active' in schema 'PatchedAdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/PatchedAdminDocumentProfile/properties/is_active",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'created_at' in schema 'PatchedAdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/PatchedAdminDocumentProfile/properties/created_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'updated_at' in schema 'PatchedAdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/PatchedAdminDocumentProfile/properties/updated_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'created_by_id' in schema 'PatchedAdminDocumentProfile' should use camelCase",
+      "path": "/components/schemas/PatchedAdminDocumentProfile/properties/created_by_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {
