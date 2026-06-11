@@ -13,7 +13,24 @@ django.setup()
 
 from rest_framework.test import APIClient, APIRequestFactory  # noqa: E402
 from django.apps import apps  # noqa: E402
+from django.core.cache import cache  # noqa: E402
 from django.db import connection  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limit_cache():
+    """Clear the shared cache before every test.
+
+    The django-ratelimit ``RateLimitMiddleware`` stores per-IP request counts
+    in the default cache. Without a reset between tests the coarse buckets
+    accumulate across the suite and unrelated tests start seeing 429
+    ``RATE_LIMITED`` responses (they pass in isolation but fail in a full
+    run). Clearing the cache per test keeps rate-limit state isolated without
+    disabling the middleware, so the limiter's own tests still exercise it.
+    """
+    cache.clear()
+    yield
+    cache.clear()
 
 
 @pytest.fixture()

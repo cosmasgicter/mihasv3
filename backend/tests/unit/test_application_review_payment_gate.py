@@ -15,6 +15,7 @@ Validates: Requirements R2.1, R2.2
 """
 
 import uuid
+import pytest
 from unittest.mock import MagicMock, patch
 
 from django.test import override_settings
@@ -22,6 +23,38 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
 from apps.applications.views import ApplicationReviewView
+
+
+@pytest.fixture(autouse=True)
+def _passthrough_access_scope_autouse():
+    """Neutralise multi-tenant application scoping for these tests.
+
+    The admin review / document / export paths now route through
+    ``AccessScopeService().filter_applications`` (multi-tenant Beanola). These
+    tests predate that scoping and assert review/notification/export behaviour
+    for an admin actor, so the scope service returns the queryset unchanged
+    (document_views imports it at module level; other call sites import it
+    lazily from apps.catalog.services).
+    """
+    from unittest.mock import patch as _patch
+    targets = []
+    try:
+        import apps.applications.document_views  # noqa: F401
+        targets.append("apps.applications.document_views.AccessScopeService")
+    except Exception:
+        pass
+    targets.append("apps.catalog.services.AccessScopeService")
+    mocks = []
+    import contextlib
+    with contextlib.ExitStack() as stack:
+        for t in targets:
+            m = stack.enter_context(_patch(t))
+            m.return_value.filter_applications.side_effect = lambda qs, _user: qs
+            m.return_value.filters_for_user.return_value = __import__(
+                "apps.catalog.services", fromlist=["ScopeFilters"]
+            ).ScopeFilters(True, set(), set(), set())
+        yield
+
 
 
 def _make_user(user_id=None, role="admin"):

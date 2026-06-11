@@ -287,6 +287,122 @@ class InstitutionDocumentProfileService:
                 return profile
         return None
 
+    # -- Versioning (R8.5) --------------------------------------------------
+    #
+    # Creating a "new version" of a profile is an INSERT, never an in-place
+    # UPDATE: a new ``InstitutionDocumentProfile`` row is written with
+    # ``version = current_max_version_for_scope + 1`` while every prior row is
+    # left byte-for-byte untouched. This is what preserves provenance — an
+    # Official_Document generated from version N stores ``profile_version=N`` in
+    # ``verification_notes.official_document`` (see
+    # ``pdf/renderers/_common.build_metadata``), and because version N's row is
+    # never mutated or deleted, that PDF's provenance stays valid even after
+    # version N+1 is created. ``resolve`` already picks the highest active
+    # ``version`` within the winning scope (``order_by("-version", ...)``), so a
+    # newly inserted ``version+1`` row becomes the resolved profile for new
+    # generations while older versions remain readable records.
+
+    # The per-version field set copied/overridden when a new version is created.
+    # ``version``/``is_active``/timestamps are managed by ``create_new_version``
+    # itself; the scope columns (institution/document_type/program/
+    # canonical_program/intake) are inherited from the source profile and pinned
+    # so the new version lands in the same resolution scope.
+    _VERSIONED_FIELDS = (
+        "layout_key",
+        "sections",
+        "fee_chart",
+        "bank_accounts",
+        "requirements",
+        "signatory",
+        "rules",
+    )
+
+    @staticmethod
+    def next_version_for_scope(profile: InstitutionDocumentProfile) -> int:
+        """The next monotonic version for ``profile``'s exact resolution scope.
+
+        Scope is ``(institution, document_type, program, canonical_program,
+        intake)`` — the same tuple ``resolve`` keys on. Returns
+        ``max(version) + 1`` across every existing row (active or not) in that
+        scope, so versions never collide or rewind even after a row is
+        deactivated. Starts at 1 when no row exists yet.
+        """
+        current_max = (
+            InstitutionDocumentProfile.objects.filter(
+                institution_id=profile.institution_id,
+                document_type=profile.document_type,
+                program_id=profile.program_id,
+                canonical_program_id=profile.canonical_program_id,
+                intake_id=profile.intake_id,
+            )
+            .order_by("-version")
+            .values_list("version", flat=True)
+            .first()
+        )
+        return (current_max or 0) + 1
+
+    def create_new_version(
+        self,
+        profile: InstitutionDocumentProfile,
+        *,
+        created_by_id: Any = None,
+        **changes: Any,
+    ) -> InstitutionDocumentProfile:
+        """Insert the next version of ``profile`` (R8.5) — never an UPDATE.
+
+        Copies the versioned content from ``profile``, applies any ``changes``
+        overrides (``sections``, ``fee_chart``, ``bank_accounts``,
+        ``requirements``, ``signatory``, ``rules``, ``layout_key``,
+        ``is_active``), validates the resulting payload via
+        ``validate_profile_payload`` BEFORE any DB write (so a rejected payload
+        persists nothing), and inserts a NEW row with
+        ``version = next_version_for_scope(profile)`` in ``profile``'s exact
+        scope. Every prior row — including ``profile`` itself — is left
+        untouched (never updated in place, never deleted).
+
+        The new row defaults to ``is_active=True`` so it becomes the resolved
+        version on the next generation; pass ``is_active=False`` to stage an
+        inactive draft. Deactivating an older version is the caller's separate
+        concern — this method only ever inserts.
+        """
+        merged: dict[str, Any] = {
+            field: getattr(profile, field) for field in self._VERSIONED_FIELDS
+        }
+        for field in self._VERSIONED_FIELDS:
+            if field in changes:
+                merged[field] = changes[field]
+        is_active = changes.get("is_active", True)
+
+        # Validate the new payload before inserting (Safe_Template_Policy). This
+        # raises ``TemplateValidationError`` and writes nothing on any violation.
+        validate_profile_payload(
+            sections=merged["sections"],
+            fee_chart=merged["fee_chart"],
+            bank_accounts=merged["bank_accounts"],
+            requirements=merged["requirements"],
+        )
+
+        now = timezone.now()
+        return InstitutionDocumentProfile.objects.create(
+            institution_id=profile.institution_id,
+            document_type=profile.document_type,
+            program_id=profile.program_id,
+            canonical_program_id=profile.canonical_program_id,
+            intake_id=profile.intake_id,
+            layout_key=merged["layout_key"],
+            sections=merged["sections"],
+            fee_chart=merged["fee_chart"],
+            bank_accounts=merged["bank_accounts"],
+            requirements=merged["requirements"],
+            signatory=merged["signatory"],
+            rules=merged["rules"],
+            version=self.next_version_for_scope(profile),
+            is_active=is_active,
+            created_by_id=created_by_id,
+            created_at=now,
+            updated_at=now,
+        )
+
 
 @dataclass(frozen=True)
 class InstitutionContext:

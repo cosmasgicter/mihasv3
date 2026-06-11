@@ -8,6 +8,7 @@ from apps.catalog.models import (
     AccessGrant,
     Institution,
     InstitutionAsset,
+    InstitutionDocumentProfile,
     InstitutionDocumentTemplate,
     InstitutionDomain,
     InstitutionRequiredDocument,
@@ -98,6 +99,35 @@ class AdminDocumentTemplateSerializer(serializers.ModelSerializer):
             "created_by_id",
         ]
         read_only_fields = ["id", "created_at", "updated_at", "created_by_id"]
+
+
+class AdminDocumentProfileSerializer(serializers.ModelSerializer):
+    """Rich tenant document profile serializer (R8.8).
+
+    Surfaces the full profile shape — optional applies-to scope
+    (``program_id``/``canonical_program_id``/``intake_id``), ``layout_key``,
+    and the structured ``sections`` / ``fee_chart`` / ``bank_accounts`` /
+    ``requirements`` / ``signatory`` JSON — for the admin TemplatesPanel.
+    Content safety + structural caps are enforced separately by
+    ``validate_profile_payload`` in the view (mapped to ``TEMPLATE_TOKEN_REJECTED``),
+    exactly like the template path; this serializer only binds the columns.
+    """
+
+    institution_id = serializers.UUIDField()
+    program_id = serializers.UUIDField(required=False, allow_null=True)
+    canonical_program_id = serializers.UUIDField(required=False, allow_null=True)
+    intake_id = serializers.UUIDField(required=False, allow_null=True)
+
+    class Meta:
+        model = InstitutionDocumentProfile
+        fields = [
+            "id", "institution_id", "document_type",
+            "program_id", "canonical_program_id", "intake_id",
+            "layout_key", "sections", "fee_chart", "bank_accounts",
+            "requirements", "signatory", "rules", "version", "is_active",
+            "created_at", "updated_at", "created_by_id",
+        ]
+        read_only_fields = ["id", "version", "created_at", "updated_at", "created_by_id"]
 
 
 class AdminRequiredDocumentSerializer(serializers.ModelSerializer):

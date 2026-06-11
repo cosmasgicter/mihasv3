@@ -279,12 +279,12 @@ Each phase ends in a verification block and a checkpoint that pauses for the use
     - Cover fee-chart layout rendering, acceptance renderer reads only the resolved profile, structural-cap rejections (≤30/5000/50/10/50), and no-profile → `failed`. File: `backend/tests/unit/test_official_documents.py` (extend).
     - _Requirements: R8.3, R8.9_
 
-- [ ] 16. Seed tenant document profiles (R8.4) + versioning (R8.5)
-  - [-] 16.1 Seed command + dev seed entry
+- [x] 16. Seed tenant document profiles (R8.4) + versioning (R8.5)
+  - [x] 16.1 Seed command + dev seed entry
     - Create `backend/apps/catalog/management/commands/seed_tenant_document_profiles.py` and a dev entry in `backend/scripts/seed_tenant_dev_data.py` that create the MIHAS RN, KATC COG, and KATC EHT acceptance profiles as tenant rows, transcribed from `apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts` + `intakeSchedule.ts` (banking, fee charts, requirements). Data lives as configurable tenant rows, not tests/frontend.
     - _Requirements: R8.4_
 
-  - [ ] 16.2 Versioning semantics
+  - [x] 16.2 Versioning semantics
     - Creating a new profile version inserts a new row with `version+1`; prior versions are retained as readable records and never alter documents already generated from earlier versions (fingerprint provenance preserves the producing version).
     - _Requirements: R8.5_
 

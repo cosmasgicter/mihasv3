@@ -130,15 +130,21 @@ def _generate_application_number(institution_name: str = '') -> str:
 
     # Preferred path: per-sequence atomic generation.
     try:
-        from django.db import connection
+        from django.db import connection, transaction
 
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT next_application_number(%s, %s)", [code, year]
-            )
-            result = cursor.fetchone()
-            if result and result[0]:
-                return result[0]
+        # Wrap in a savepoint so that if the SQL function is missing (older
+        # schema / freshly-built test DB without the script applied), the
+        # failed statement rolls back cleanly instead of poisoning the outer
+        # transaction (Postgres aborts the whole transaction on error, which
+        # would otherwise break the legacy count+attempt fallback below).
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT next_application_number(%s, %s)", [code, year]
+                )
+                result = cursor.fetchone()
+                if result and result[0]:
+                    return result[0]
     except Exception:
         # If the SQL function is missing (older schema, SQLite tests, etc.)
         # fall through to the legacy implementation. The legacy path is racy
@@ -193,13 +199,17 @@ def _generate_student_number(institution_name: str = '') -> str:
 
     # Preferred path: per-sequence atomic generation.
     try:
-        from django.db import connection
+        from django.db import connection, transaction
 
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT next_student_number(%s, %s)", [code, year])
-            result = cursor.fetchone()
-            if result and result[0]:
-                return result[0]
+        # Savepoint-wrapped so a missing SQL function rolls back cleanly
+        # instead of poisoning the outer transaction (see
+        # _generate_application_number for the same Postgres-abort rationale).
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT next_student_number(%s, %s)", [code, year])
+                result = cursor.fetchone()
+                if result and result[0]:
+                    return result[0]
     except Exception:
         logger.warning(
             "next_student_number SQL helper unavailable, "

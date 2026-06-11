@@ -9,6 +9,7 @@ import { SectionCard, StatusBadge } from '@/components/ui'
 import { toast } from '@/hooks/useToast'
 import { tenantAdminService, type TenantTemplate } from '@/services/admin/tenants'
 import { tenantErrorMessage } from './errors'
+import { ProfilesPanel } from './ProfilesPanel'
 import { ResourceList, TENANT_SELECT_CLASS } from './primitives'
 
 const DOCUMENT_TYPES = [
@@ -124,6 +125,7 @@ export function TemplatesPanel({ institutionId, templates, onChanged }: Template
   const previewTemplate = useMemo(() => templates.find(item => item.id === previewId) || null, [templates, previewId])
 
   return (
+    <div className="space-y-6">
     <SectionCard
       title="Document templates"
       description="Safe template sections for official backend-generated documents. Use allowlisted tokens only."
@@ -250,5 +252,8 @@ export function TemplatesPanel({ institutionId, templates, onChanged }: Template
         </div>
       )}
     </SectionCard>
+
+    <ProfilesPanel institutionId={institutionId} />
+    </div>
   )
 }

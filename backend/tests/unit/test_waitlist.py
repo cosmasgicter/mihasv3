@@ -10,6 +10,38 @@ from apps.applications.services import SYSTEM_ACTOR_ID
 from apps.applications.waitlist_manager import WaitlistError, WaitlistManager
 from apps.applications.views import ApplicationWaitlistPositionView
 
+
+@pytest.fixture(autouse=True)
+def _passthrough_access_scope_autouse():
+    """Neutralise multi-tenant application scoping for these tests.
+
+    The admin review / document / export paths now route through
+    ``AccessScopeService().filter_applications`` (multi-tenant Beanola). These
+    tests predate that scoping and assert review/notification/export behaviour
+    for an admin actor, so the scope service returns the queryset unchanged
+    (document_views imports it at module level; other call sites import it
+    lazily from apps.catalog.services).
+    """
+    from unittest.mock import patch as _patch
+    targets = []
+    try:
+        import apps.applications.document_views  # noqa: F401
+        targets.append("apps.applications.document_views.AccessScopeService")
+    except Exception:
+        pass
+    targets.append("apps.catalog.services.AccessScopeService")
+    mocks = []
+    import contextlib
+    with contextlib.ExitStack() as stack:
+        for t in targets:
+            m = stack.enter_context(_patch(t))
+            m.return_value.filter_applications.side_effect = lambda qs, _user: qs
+            m.return_value.filters_for_user.return_value = __import__(
+                "apps.catalog.services", fromlist=["ScopeFilters"]
+            ).ScopeFilters(True, set(), set(), set())
+        yield
+
+
 _WM_BASE = "apps.applications.waitlist_manager"
 _APP_OBJECTS = f"{_WM_BASE}.Application.objects"
 _TRANSITION = f"{_WM_BASE}.transition_application_status"

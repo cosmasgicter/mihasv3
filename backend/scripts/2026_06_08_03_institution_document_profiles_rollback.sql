@@ -3,20 +3,11 @@
 -- being dropped.
 --
 -- Forward script effect: a new institution_document_profiles table, two
--- indexes, and four NOT VALID foreign keys. This rollback drops the FKs,
--- indexes, and the table using IF EXISTS so it is idempotent on re-run and
--- does not error on a partial state.
-
-ALTER TABLE IF EXISTS institution_document_profiles
-    DROP CONSTRAINT IF EXISTS fk_doc_profiles_intake;
-ALTER TABLE IF EXISTS institution_document_profiles
-    DROP CONSTRAINT IF EXISTS fk_doc_profiles_canonical_program;
-ALTER TABLE IF EXISTS institution_document_profiles
-    DROP CONSTRAINT IF EXISTS fk_doc_profiles_program;
-ALTER TABLE IF EXISTS institution_document_profiles
-    DROP CONSTRAINT IF EXISTS fk_doc_profiles_institution;
+-- indexes, and four NOT VALID foreign keys. Dropping the table with CASCADE
+-- removes its indexes and the foreign keys in one inverse-additive step, so
+-- this rollback is idempotent on re-run and does not error on a partial state.
 
 DROP INDEX IF EXISTS idx_doc_profiles_scope;
 DROP INDEX IF EXISTS idx_doc_profiles_lookup;
 
-DROP TABLE IF EXISTS institution_document_profiles;
+DROP TABLE IF EXISTS institution_document_profiles CASCADE;

@@ -10,6 +10,7 @@ Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7
 import uuid
 from unittest.mock import MagicMock, patch
 
+import pytest
 from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -32,6 +33,25 @@ _IDEM = "apps.common.models.IdempotencyKey.objects"
 _PAY = "apps.documents.models.Payment.objects"
 _TASK_LETTER = "apps.applications.tasks.generate_acceptance_letter_task"
 _TASK_RECEIPT = "apps.applications.tasks.generate_finance_receipt_task"
+
+
+@pytest.fixture(autouse=True)
+def _passthrough_access_scope():
+    """Neutralise multi-tenant application scoping for these mock-based tests.
+
+    The document/verify/review views now route every fetch through
+    ``AccessScopeService().filter_applications`` (multi-tenant Beanola). These
+    SimpleTestCase-style tests mock ``Application.objects`` directly and assert
+    view wiring, so the real scope service must return the (mocked) queryset
+    unchanged instead of issuing its own DB query for the membership lookup.
+    ``document_views`` imports the service at module level; ``admin_review_views``
+    imports it lazily, so patch the canonical source for that path.
+    """
+    with patch("apps.applications.document_views.AccessScopeService") as doc_scope, \
+         patch("apps.catalog.services.AccessScopeService") as src_scope:
+        for m in (doc_scope, src_scope):
+            m.return_value.filter_applications.side_effect = lambda qs, _user: qs
+        yield
 
 
 # ---------------------------------------------------------------------------

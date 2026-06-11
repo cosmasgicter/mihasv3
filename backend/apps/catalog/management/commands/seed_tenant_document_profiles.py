@@ -364,7 +364,7 @@ class Command(BaseCommand):
         with transaction.atomic():
             for spec in PROFILE_SPECS:
                 institution = self._resolve_institution(Institution, spec, now)
-                program = self._resolve_offering(Program, institution, spec)
+                program = self._resolve_offering(Program, institution, spec, now)
                 canonical = (
                     program.canonical_program if program is not None else None
                 )
@@ -447,21 +447,50 @@ class Command(BaseCommand):
             )
         return institution
 
-    def _resolve_offering(self, Program, institution, spec):
-        """Resolve the offering Program by name substring within the institution.
+    def _resolve_offering(self, Program, institution, spec, now):
+        """Resolve (or create) the offering Program for this profile.
 
-        Returns ``None`` when no matching offering exists yet — the profile is
-        then created at institution-default scope. Mirrors the
-        name-substring matching used by the frontend resolveAcceptanceProfile.
+        First tries an existing offering in the institution by name substring
+        (so MIHAS's pre-seeded ``DRN`` offering is reused). When none exists yet
+        — e.g. the KATC offerings that the base dev seed does not create — it
+        get_or_creates one keyed on the spec's globally-unique ``program_code``,
+        using the same get_or_create idiom as seed_dev_data.py. This guarantees
+        each of the three profiles attaches to a distinct offering scope so they
+        never collide on the (institution, document_type, scope, version) key.
         """
         needle = spec.get("program_name_contains")
-        if not needle:
-            return None
-        return (
-            Program.objects.filter(
-                institution=institution,
-                name__icontains=needle,
+        existing = None
+        if needle:
+            existing = (
+                Program.objects.filter(
+                    institution=institution,
+                    name__icontains=needle,
+                )
+                .order_by("created_at", "id")
+                .first()
             )
-            .order_by("created_at", "id")
-            .first()
+        if existing is not None:
+            return existing
+
+        code = spec.get("program_code")
+        if not code:
+            return None
+        program, created = Program.objects.get_or_create(
+            code=code,
+            defaults=dict(
+                name=spec.get("program_name", code),
+                institution=institution,
+                duration_months=36,
+                is_active=True,
+                offering_status="active",
+                assignment_priority=100,
+                created_at=now,
+                updated_at=now,
+            ),
         )
+        if created:
+            self.stdout.write(
+                f"    offering created: {program.code} ({program.name}) "
+                f"-> {institution.code}"
+            )
+        return program

@@ -320,9 +320,40 @@ def _gather_render_inputs(application, document_type: str, payment=None):
     """
     tenant = _tenant_context(application)
     template = _render_template(application, document_type, tenant, payment)
+    # R6.1 / R6.5: the resolved tenant document profile's id + version are
+    # fingerprint inputs ("template/profile id+version"), so a profile version
+    # bump forces a new Current_Official_Version on the next request. Fold the
+    # profile provenance into the ``template`` dict the fingerprint reads — this
+    # keeps the pure ``_compute_document_fingerprint`` signature stable while
+    # making "what we hashed" cover the profile that actually drives the render.
+    _attach_profile_provenance(template, application, document_type)
     logo_asset = _active_asset(application, "logo")
     signature_asset = _active_asset(application, "signature")
     return tenant, template, logo_asset, signature_asset
+
+
+def _attach_profile_provenance(template: dict[str, Any], application, document_type: str) -> None:
+    """Fold the resolved Institution_Document_Profile id+version into ``template``.
+
+    Best-effort and additive: when an active profile resolves for
+    ``(application, document_type)`` its ``id`` + ``version`` are written under
+    the ``profile_id`` / ``profile_version`` keys that
+    ``_compute_document_fingerprint`` reads, so a profile version bump changes
+    the fingerprint (R6.5) while the existing template inputs still participate
+    independently. Never raises — a resolver failure simply leaves the profile
+    inputs null (the template version alone still drives reuse/supersede).
+    """
+    try:
+        from apps.catalog.services import InstitutionDocumentProfileService
+
+        profile = InstitutionDocumentProfileService().resolve(application, document_type)
+    except Exception:  # pragma: no cover - resolver must never break generation
+        profile = None
+    if profile is None:
+        return
+    profile_id = getattr(profile, "id", None)
+    template["profile_id"] = str(profile_id) if profile_id is not None else None
+    template["profile_version"] = getattr(profile, "version", None)
 
 
 def _current_official_version(ApplicationDocument, application, document_type: str):
@@ -529,8 +560,7 @@ def _compute_document_fingerprint(
       * document type,
       * application ``status`` + ``updated_at``,
       * institution id (from the tenant context),
-      * template/profile id + version,
-      * logo asset id + checksum, signature asset id + checksum,
+      * template/profile id + version,      * logo asset id + checksum, signature asset id + checksum,
       * and — **for receipt document types only** — payment id + receipt number.
 
     For non-receipt document types the payment inputs are ignored entirely, so a
@@ -548,6 +578,12 @@ def _compute_document_fingerprint(
         "institution_id": (tenant or {}).get("institution_id"),
         "template_id": (template or {}).get("template_id"),
         "template_version": (template or {}).get("template_version"),
+        # R6.1 / R6.5: the resolved tenant document profile's id + version are
+        # fingerprint inputs alongside the template's. ``_gather_render_inputs``
+        # folds them into the ``template`` dict via ``_attach_profile_provenance``;
+        # absent (no profile resolved) they collapse to a stable null pair.
+        "profile_id": (template or {}).get("profile_id"),
+        "profile_version": (template or {}).get("profile_version"),
         "logo_asset": _asset_fingerprint_parts(logo_asset),
         "signature_asset": _asset_fingerprint_parts(signature_asset),
     }

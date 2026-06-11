@@ -53,6 +53,73 @@ export interface TenantTemplate {
   is_active?: boolean
 }
 
+/** A single fee-chart row on a document profile (≤50 rows). */
+export interface TenantProfileFeeRow {
+  item: string
+  amount: number
+  cadence?: string | null
+  [key: string]: unknown
+}
+
+/** A single bank-account row on a document profile (≤10 rows). */
+export interface TenantProfileBankAccount {
+  bank_name: string
+  account_number: string
+  [key: string]: unknown
+}
+
+/**
+ * Rich tenant document profile (R8.8) — the multi-section successor to
+ * `TenantTemplate`. Carries an optional applies-to scope
+ * (offering/canonical-program/intake), a layout, free-form prose `sections`,
+ * and structured `fee_chart` / `bank_accounts` / `requirements` / `signatory`
+ * data. Mirrors the backend `AdminDocumentProfileSerializer`. Structural caps
+ * (≤30 sections × ≤5000 chars, ≤50 fee rows, ≤10 banks, ≤50 requirements) are
+ * enforced by the backend `validate_profile_payload`.
+ */
+export interface TenantDocumentProfile {
+  id: string
+  institution_id: string
+  document_type: string
+  program_id?: string | null
+  canonical_program_id?: string | null
+  intake_id?: string | null
+  layout_key: string
+  sections?: Record<string, string>
+  fee_chart?: TenantProfileFeeRow[]
+  bank_accounts?: TenantProfileBankAccount[]
+  requirements?: string[]
+  signatory?: Record<string, unknown>
+  rules?: Record<string, unknown> | null
+  version: number
+  is_active?: boolean
+  created_at?: string | null
+  updated_at?: string | null
+}
+
+export type TenantDocumentProfilePayload = Pick<TenantDocumentProfile, 'document_type'> &
+  Partial<TenantDocumentProfile>
+
+/** Optional content overrides accepted by the profile clone (new-version) endpoint. */
+export type TenantProfileCloneOverrides = Partial<
+  Pick<
+    TenantDocumentProfile,
+    'layout_key' | 'sections' | 'fee_chart' | 'bank_accounts' | 'requirements' | 'signatory' | 'rules' | 'is_active'
+  >
+>
+
+/** Structural caps enforced by the backend `validate_profile_payload` (R8.10). Surfaced in the UI. */
+export const TENANT_PROFILE_CAPS = {
+  maxSections: 30,
+  maxSectionChars: 5000,
+  maxFeeRows: 50,
+  maxBankAccounts: 10,
+  maxRequirements: 50,
+} as const
+
+/** Layout keys supported by the backend renderer package (`tasks/pdf/layouts/`). */
+export const TENANT_PROFILE_LAYOUTS = ['simple_letter', 'fee_chart_letter'] as const
+
 /**
  * Structured assignment/residency rule shape used by the rule builders.
  * Stored on the program offering's `assignment_rules` JSON column. Every field
@@ -302,6 +369,52 @@ export const tenantAdminService = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+
+  /**
+   * List a school's rich document profiles (R8.8). Returns every version of
+   * every profile scope; the panel groups by scope + document type and surfaces
+   * the latest version per scope.
+   */
+  listDocumentProfiles: async (institutionId: string) => {
+    const endpoint = `/admin/institutions/${encodeURIComponent(institutionId)}/document-profiles/`
+    try {
+      const response = await apiClient.request<RawList<TenantDocumentProfile>>(endpoint)
+      return listResult(response).items
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
+  createDocumentProfile: async (institutionId: string, data: TenantDocumentProfilePayload) =>
+    apiClient.request<TenantDocumentProfile>(`/admin/institutions/${encodeURIComponent(institutionId)}/document-profiles/`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateDocumentProfile: async (institutionId: string, profileId: string, data: Partial<TenantDocumentProfile>) =>
+    apiClient.request<TenantDocumentProfile>(
+      `/admin/institutions/${encodeURIComponent(institutionId)}/document-profiles/${encodeURIComponent(profileId)}/`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    ),
+
+  /**
+   * Clone a profile into its next version (R8.5). Reuses the backend
+   * `create_new_version` service — an INSERT that leaves prior versions (and
+   * any documents generated from them) untouched. Optional content overrides
+   * are validated server-side before any write.
+   */
+  cloneDocumentProfile: async (institutionId: string, profileId: string, overrides: TenantProfileCloneOverrides = {}) =>
+    apiClient.request<TenantDocumentProfile>(
+      `/admin/institutions/${encodeURIComponent(institutionId)}/document-profiles/${encodeURIComponent(profileId)}/clone/`,
+      {
+        method: 'POST',
+        body: JSON.stringify(overrides),
+      }
+    ),
 
   listRequiredDocuments: async (institutionId: string) => {
     const endpoint = `/admin/institutions/${encodeURIComponent(institutionId)}/required-documents/`

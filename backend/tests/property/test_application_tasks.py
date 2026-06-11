@@ -10,6 +10,7 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
 
+import io  # noqa: E402
 import uuid  # noqa: E402
 from unittest.mock import MagicMock, patch  # noqa: E402
 
@@ -102,9 +103,15 @@ class TestCeleryTaskApplicationDocumentCreation:
         with patch(_APP_MODEL) as mock_app_qs, \
              patch(_DOC_CREATE) as mock_doc_qs, \
              patch(_PAY_MODEL) as mock_pay_qs, \
+             patch("apps.applications.tasks.pdf_generation._render_official_pdf") as mock_render, \
              patch(_STORAGE) as mock_storage_cls:
             mock_app_qs.get.return_value = application
             mock_pay_qs.filter.return_value.first.return_value = _make_payment()
+            # Render seam is exercised by the dedicated renderer/profile tests.
+            # Here we only assert ApplicationDocument.create wiring, so return a
+            # clean PDF buffer + JSON-serialisable metadata (bypassing the
+            # tenant profile gate, which has its own coverage).
+            mock_render.return_value = (io.BytesIO(b"%PDF-1.4 test"), {"document_type": doc_type})
 
             storage_instance = _mock_storage_instance()
             mock_storage_cls.return_value = storage_instance
