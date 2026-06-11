@@ -7,6 +7,10 @@ Requirements: 10.1
 from django.urls import path
 
 from apps.applications.history_views import TimelineHistoryView
+from apps.applications.official_document_views import (
+    OfficialDocumentDetailView,
+    OfficialDocumentListView,
+)
 from apps.applications.views import (
     AcceptanceLetterView,
     ApplicationSlipView,
@@ -69,6 +73,16 @@ urlpatterns = [
     path("<uuid:application_id>/conditional-offer/", ConditionalOfferView.as_view(), name="application-conditional-offer"),
     path("<uuid:application_id>/finance-receipt/", FinanceReceiptView.as_view(), name="application-finance-receipt"),
     path("<uuid:application_id>/payment-receipt/", PaymentReceiptView.as_view(), name="application-payment-receipt"),
+    path(
+        "<uuid:application_id>/official-documents/",
+        OfficialDocumentListView.as_view(),
+        name="application-official-document-list",
+    ),
+    path(
+        "<uuid:application_id>/official-documents/<str:document_type>/",
+        OfficialDocumentDetailView.as_view(),
+        name="application-official-document-detail",
+    ),
     path("<uuid:application_id>/email-slip/", EmailSlipView.as_view(), name="application-email-slip"),
     path("<uuid:application_id>/withdraw/", ApplicationWithdrawView.as_view(), name="application-withdraw"),
     path("<uuid:application_id>/waitlist-position/", ApplicationWaitlistPositionView.as_view(), name="application-waitlist-position"),

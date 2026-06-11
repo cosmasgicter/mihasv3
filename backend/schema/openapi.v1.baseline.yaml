@@ -4685,6 +4685,184 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Delete applications interviews delete latest
+  /api/v1/applications/{application_id}/official-documents/:
+    get:
+      operationId: applications_official_document_list
+      description: GET /api/v1/applications/{id}/official-documents/ — latest per
+        type.
+      parameters:
+      - in: path
+        name: application_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - applications
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficialDocumentListResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: List applications official document
+  /api/v1/applications/{application_id}/official-documents/{document_type}/:
+    get:
+      operationId: applications_official_document_status
+      description: |-
+        Generate (POST) or read the status of (GET) a single Official_Document.
+
+        POST /api/v1/applications/{id}/official-documents/{document_type}/
+        GET  /api/v1/applications/{id}/official-documents/{document_type}/
+      parameters:
+      - in: path
+        name: application_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: document_type
+        schema:
+          type: string
+        required: true
+      tags:
+      - applications
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficialDocumentResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get applications official document status
+    post:
+      operationId: applications_official_document_generate
+      description: |-
+        Generate (POST) or read the status of (GET) a single Official_Document.
+
+        POST /api/v1/applications/{id}/official-documents/{document_type}/
+        GET  /api/v1/applications/{id}/official-documents/{document_type}/
+      parameters:
+      - in: path
+        name: application_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: document_type
+        schema:
+          type: string
+        required: true
+      tags:
+      - applications
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficialDocumentResponse'
+          description: ''
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficialDocumentResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Submit applications official document generate
   /api/v1/applications/{application_id}/payment-receipt/:
     post:
       operationId: applications_generate_payment_receipt
@@ -12740,9 +12918,8 @@ components:
           maxLength: 255
         version:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
         sections: {}
         tokens:
           nullable: true
@@ -13351,6 +13528,10 @@ components:
         version:
           type: integer
           readOnly: true
+        student_number:
+          type: string
+          readOnly: true
+          nullable: true
         result_slip_url:
           type: string
           nullable: true
@@ -13419,9 +13600,8 @@ components:
           maxLength: 20
         eligibility_score:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         eligibility_notes:
           type: string
@@ -13497,6 +13677,7 @@ components:
       - receipt_number
       - residence_town
       - sex
+      - student_number
       - tracking_code
       - updated_at
       - user_id
@@ -13821,9 +14002,8 @@ components:
           nullable: true
         step_completed:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         is_active:
           type: boolean
@@ -14740,14 +14920,14 @@ components:
         role:
           enum:
           - reviewer
-          - student
           - super_admin
+          - student
           - admin
           type: string
           description: |-
             * `reviewer` - reviewer
-            * `student` - student
             * `super_admin` - super_admin
+            * `student` - student
             * `admin` - admin
           x-spec-enum-id: 1a3817a8a61ce783
         password:
@@ -14778,9 +14958,8 @@ components:
           nullable: true
         duration_months:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         regulatory_body:
           type: string
@@ -15726,9 +15905,8 @@ components:
           maxLength: 255
         year:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         semester:
           type: string
@@ -15752,15 +15930,13 @@ components:
           nullable: true
         max_capacity:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         current_enrollment:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         is_active:
           type: boolean
@@ -16315,6 +16491,67 @@ components:
           default: true
       required:
       - data
+    OfficialDocumentListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OfficialDocumentStatus'
+        success:
+          type: boolean
+          default: true
+      required:
+      - data
+    OfficialDocumentResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/OfficialDocumentStatus'
+        success:
+          type: boolean
+          default: true
+      required:
+      - data
+    OfficialDocumentStatus:
+      type: object
+      properties:
+        document_id:
+          type: string
+          nullable: true
+        document_type:
+          type: string
+        status:
+          enum:
+          - ready
+          - queued
+          - failed
+          type: string
+          description: |-
+            * `ready` - ready
+            * `queued` - queued
+            * `failed` - failed
+          x-spec-enum-id: 39ff51f435f1fc59
+        download_url:
+          type: string
+        generated_at:
+          type: string
+          nullable: true
+        template_version:
+          type: integer
+          nullable: true
+        institution_id:
+          type: string
+          nullable: true
+        task_id:
+          type: string
+      required:
+      - document_id
+      - document_type
+      - generated_at
+      - institution_id
+      - status
+      - template_version
     OutreachAction:
       type: object
       properties:
@@ -16626,9 +16863,8 @@ components:
           maxLength: 255
         version:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
         sections: {}
         tokens:
           nullable: true
@@ -17000,6 +17236,10 @@ components:
         version:
           type: integer
           readOnly: true
+        student_number:
+          type: string
+          readOnly: true
+          nullable: true
         result_slip_url:
           type: string
           nullable: true
@@ -17072,9 +17312,8 @@ components:
           maxLength: 20
         eligibility_score:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           readOnly: true
           nullable: true
         eligibility_notes:
@@ -17230,9 +17469,8 @@ components:
           maxLength: 255
         year:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         semester:
           type: string
@@ -17256,15 +17494,13 @@ components:
           nullable: true
         max_capacity:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         current_enrollment:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         is_active:
           type: boolean
@@ -17336,9 +17572,8 @@ components:
           format: uuid
         duration_months:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         canonical_program_id:
           type: string
@@ -17346,9 +17581,8 @@ components:
           nullable: true
         assignment_priority:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         offering_status:
           type: string
@@ -17663,9 +17897,8 @@ components:
           readOnly: true
         duration_months:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         canonical_program_id:
           type: string
@@ -17673,9 +17906,8 @@ components:
           readOnly: true
         assignment_priority:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         offering_status:
           type: string
@@ -17737,9 +17969,8 @@ components:
           format: uuid
         duration_months:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         canonical_program_id:
           type: string
@@ -17747,9 +17978,8 @@ components:
           nullable: true
         assignment_priority:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
           nullable: true
         offering_status:
           type: string
@@ -18416,7 +18646,7 @@ components:
       description: Optional session cookie. If present and valid, the request is authenticated;
         otherwise it is treated as anonymous.
 servers:
-- url: https://api.mihas.edu.zm
+- url: https://api.beanola.com
   description: Production
 - url: http://localhost:8000
   description: Local development

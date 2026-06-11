@@ -1,10 +1,13 @@
-import { useState } from 'react'
-import { Award, ChevronDown, Download, FileCheck, FileText } from 'lucide-react'
+import { Award, ChevronDown, Download, FileCheck, FileText, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { useDocumentGeneration } from '@/hooks/useDocumentGeneration'
 import { useToastStore } from '@/hooks/useToast'
+import {
+  useOfficialDocument,
+  type OfficialDocumentUiState,
+} from '@/hooks/useOfficialDocument'
 import { ApplicationSlipActions } from '@/components/student/ApplicationSlipActions'
-import { isPaymentVerified } from '@/lib/paymentStatus'
+import { isOfficialDocumentOffered } from '@/lib/officialDocumentGate'
+import type { OfficialDocumentType } from '@/services/officialDocuments'
 
 interface DocumentButtonsProps {
   applicationId: string
@@ -13,81 +16,117 @@ interface DocumentButtonsProps {
   paymentStatus: string | null
 }
 
-export function DocumentButtons({ applicationId, applicationNumber, status, paymentStatus }: DocumentButtonsProps) {
-  const { generateDocument } = useDocumentGeneration()
-  const { addToast } = useToastStore()
-  const [loadingType, setLoadingType] = useState<string | null>(null)
+/** Map a UI state to the in-button label for an official-document action. */
+function actionLabel(uiState: OfficialDocumentUiState, restingLabel: string): string {
+  switch (uiState) {
+    case 'generating':
+      return 'Generating…'
+    case 'queued':
+      return 'Queued…'
+    case 'failed':
+      return 'Retry'
+    default:
+      return restingLabel
+  }
+}
 
-  const handleDownload = async (type: 'acceptance' | 'receipt' | 'conditional') => {
-    setLoadingType(type)
-    try {
-      const success = await generateDocument(type, applicationId)
-      if (success) {
-        addToast('success', 'Document downloaded successfully')
-      } else {
-        addToast('error', 'Failed to generate document. Please try again.')
-      }
-    } finally {
-      setLoadingType(null)
+interface OfficialDocActionProps {
+  applicationId: string
+  documentType: OfficialDocumentType
+  restingLabel: string
+  icon: React.ReactNode
+  /** Extra classes for tenant/status accenting (kept WCAG AA, no gradients). */
+  className?: string
+}
+
+/**
+ * A single backend-sourced official-document download button.
+ *
+ * Sources the document from `services/officialDocuments.ts` via
+ * `useOfficialDocument` (R7.1) — never a client `@/lib/pdf` render. Surfaces the
+ * backend `Queued`/`Generating`/`Ready`/`Failed` states (R7.2) and downloads the
+ * authoritative stored record on success (R7.3).
+ */
+function OfficialDocAction({ applicationId, documentType, restingLabel, icon, className }: OfficialDocActionProps) {
+  const { uiState, isBusy, error, download } = useOfficialDocument(applicationId, documentType)
+  const { addToast } = useToastStore()
+
+  const handleClick = async () => {
+    const ok = await download()
+    if (ok) {
+      addToast('success', 'Document downloaded successfully')
+    } else {
+      addToast('error', error || 'Failed to generate document. Please try again.')
     }
   }
 
-  const hasAcceptanceLetter = status === 'approved'
-  const hasConditionalLetter = status === 'conditionally_approved'
-  const hasReceipt = isPaymentVerified(paymentStatus)
-  const hasSlip = status !== 'draft'
+  const showSpinnerIcon = uiState === 'generating' || uiState === 'queued'
+  const leadingIcon = uiState === 'failed'
+    ? <RotateCcw className="h-4 w-4" aria-hidden="true" />
+    : !showSpinnerIcon
+      ? icon
+      : null
+
+  return (
+    <Button
+      onClick={handleClick}
+      disabled={isBusy}
+      loading={showSpinnerIcon}
+      variant="outline"
+      size="sm"
+      aria-live="polite"
+      className={`min-h-touch w-full justify-center gap-2 sm:w-auto ${className ?? ''}`}
+    >
+      {leadingIcon}
+      {actionLabel(uiState, restingLabel)}
+    </Button>
+  )
+}
+
+export function DocumentButtons({ applicationId, applicationNumber, status, paymentStatus }: DocumentButtonsProps) {
+  const hasAcceptanceLetter = isOfficialDocumentOffered('acceptance_letter', status, paymentStatus)
+  const hasConditionalLetter = isOfficialDocumentOffered('conditional_offer', status, paymentStatus)
+  const hasReceipt = isOfficialDocumentOffered('payment_receipt', status, paymentStatus)
+  const hasSlip = isOfficialDocumentOffered('application_slip', status, paymentStatus)
 
   if (!hasSlip && !hasAcceptanceLetter && !hasConditionalLetter && !hasReceipt) {
     return null
   }
 
   const acceptanceBtn = hasAcceptanceLetter && (
-    <Button
-      onClick={() => handleDownload('acceptance')}
-      disabled={loadingType !== null}
-      loading={loadingType === 'acceptance'}
-      variant="outline"
-      size="sm"
-      className="min-h-11 w-full justify-center gap-2 border-green-500 text-green-700 hover:bg-green-50 sm:w-auto"
-    >
-      {loadingType !== 'acceptance' && <Award className="w-4 h-4" />}
-      {loadingType === 'acceptance' ? 'Generating…' : 'Acceptance Letter'}
-    </Button>
+    <OfficialDocAction
+      applicationId={applicationId}
+      documentType="acceptance_letter"
+      restingLabel="Acceptance Letter"
+      icon={<Award className="h-4 w-4" aria-hidden="true" />}
+      className="border-green-700 text-green-800 hover:bg-green-50"
+    />
   )
 
   const conditionalBtn = hasConditionalLetter && (
-    <Button
-      onClick={() => handleDownload('conditional')}
-      disabled={loadingType !== null}
-      loading={loadingType === 'conditional'}
-      variant="outline"
-      size="sm"
-      className="min-h-11 w-full justify-center gap-2 border-amber-500 text-amber-700 hover:bg-amber-50 sm:w-auto"
-    >
-      {loadingType !== 'conditional' && <FileCheck className="w-4 h-4" />}
-      {loadingType === 'conditional' ? 'Generating…' : 'Conditional Acceptance'}
-    </Button>
+    <OfficialDocAction
+      applicationId={applicationId}
+      documentType="conditional_offer"
+      restingLabel="Conditional Acceptance"
+      icon={<FileCheck className="h-4 w-4" aria-hidden="true" />}
+      className="border-amber-700 text-amber-800 hover:bg-amber-50"
+    />
   )
 
   const receiptBtn = hasReceipt && (
-    <Button
-      onClick={() => handleDownload('receipt')}
-      disabled={loadingType !== null}
-      loading={loadingType === 'receipt'}
-      variant="outline"
-      size="sm"
-      className="min-h-11 w-full justify-center gap-2 sm:w-auto"
-    >
-      {loadingType !== 'receipt' && <Download className="w-4 h-4" />}
-      {loadingType === 'receipt' ? 'Generating…' : 'Payment Receipt'}
-    </Button>
+    <OfficialDocAction
+      applicationId={applicationId}
+      documentType="payment_receipt"
+      restingLabel="Payment Receipt"
+      icon={<Download className="h-4 w-4" aria-hidden="true" />}
+    />
   )
 
   return (
     <>
       {/* Mobile: collapsible */}
       <details className="group w-full rounded-lg border border-border bg-muted/30 sm:hidden">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm font-semibold text-foreground marker:hidden">
+        <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm font-semibold text-foreground marker:hidden">
           <span className="inline-flex items-center gap-2">
             <FileText className="h-4 w-4 text-primary" aria-hidden="true" />
             Documents

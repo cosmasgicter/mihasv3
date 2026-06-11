@@ -48,7 +48,6 @@ from apps.catalog.services import (
 )
 from apps.catalog.tenant_audit_service import TenantAuditService
 from apps.common.pagination import StandardPagination
-from apps.documents.validators import validate_asset_magic_bytes
 
 
 # Maximum accepted institution-asset upload size (2 MiB). Logos/signatures/seals
@@ -336,6 +335,8 @@ class AdminTenantAssetUploadView(APIView):
         # MIME + magic-byte validation for PNG/JPEG/WebP/SVG (R5.3). Any
         # mismatch/disallowed/empty/malformed upload → stable ASSET_INVALID.
         try:
+            from apps.documents.validators import validate_asset_magic_bytes
+
             detected_mime = validate_asset_magic_bytes(uploaded_file, declared_mime)
         except ValidationError:
             return Response(

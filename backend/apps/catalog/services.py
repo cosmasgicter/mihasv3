@@ -16,6 +16,7 @@ from apps.catalog.models import (
     AccessGrant,
     CanonicalProgram,
     Institution,
+    InstitutionDocumentProfile,
     InstitutionDocumentTemplate,
     InstitutionDomain,
     InstitutionRequiredDocument,
@@ -209,6 +210,82 @@ class OfferingAssignmentService:
             }
             for row in rows
         ]
+
+
+class InstitutionDocumentProfileService:
+    """Resolve the single most-specific active document profile (R8.2).
+
+    Precedence (most -> least specific), mirroring the scope ordering used by
+    ``OfferingAssignmentService.required_documents``:
+
+        offering + intake -> offering -> canonical-program + intake
+                          -> canonical program -> institution default
+
+    Within the winning level the highest active ``version`` wins. Inactive
+    rows are never selected; the result is ``None`` when no active profile
+    matches. Resolution always filters by ``(institution, document_type)``
+    first so it never leaks across tenants or document types.
+    """
+
+    def resolve(self, application, document_type: str) -> InstitutionDocumentProfile | None:
+        institution_id = getattr(application, "institution_ref_id", None)
+        if not institution_id:
+            return None
+
+        offering_id = getattr(application, "program_offering_id", None)
+        canonical_program_id = getattr(application, "canonical_program_id", None)
+        intake_id = getattr(application, "intake_ref_id", None)
+
+        # Most-specific -> least-specific scope filters. Each entry pins every
+        # scope column so a profile only matches when its scope is exactly this
+        # level (e.g. an offering-only profile has intake_id IS NULL); a
+        # higher-specificity decoy or a different intake never satisfies a
+        # lower level.
+        candidate_scopes: list[dict[str, Any] | None] = [
+            # offering + intake
+            (
+                {"program_id": offering_id, "canonical_program_id": None, "intake_id": intake_id}
+                if offering_id and intake_id
+                else None
+            ),
+            # offering
+            (
+                {"program_id": offering_id, "canonical_program_id": None, "intake_id": None}
+                if offering_id
+                else None
+            ),
+            # canonical program + intake
+            (
+                {"program_id": None, "canonical_program_id": canonical_program_id, "intake_id": intake_id}
+                if canonical_program_id and intake_id
+                else None
+            ),
+            # canonical program
+            (
+                {"program_id": None, "canonical_program_id": canonical_program_id, "intake_id": None}
+                if canonical_program_id
+                else None
+            ),
+            # institution default
+            {"program_id": None, "canonical_program_id": None, "intake_id": None},
+        ]
+
+        for scope in candidate_scopes:
+            if scope is None:
+                continue
+            profile = (
+                InstitutionDocumentProfile.objects.filter(
+                    institution_id=institution_id,
+                    document_type=document_type,
+                    is_active=True,
+                    **scope,
+                )
+                .order_by("-version", "-created_at", "-id")
+                .first()
+            )
+            if profile is not None:
+                return profile
+        return None
 
 
 @dataclass(frozen=True)
@@ -607,3 +684,208 @@ class DocumentTemplateService:
         if isinstance(value, dict):
             return {key: self._render_value(item, context, allowed) for key, item in value.items()}
         return value
+
+
+# ---------------------------------------------------------------------------
+# Tenant document-profile payload validation (R8.6 / R8.7 / R8.10)
+# ---------------------------------------------------------------------------
+#
+# Profiles are the multi-section successors to Document_Templates: they carry
+# many free-form prose sections plus structured fee-chart / bank-account /
+# requirements data, replacing the hard-coded frontend acceptance-letter copy
+# (see ``apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts``).
+#
+# This validator reuses every safety primitive from
+# ``validate_template_payload`` — the ``ALLOWED_TEMPLATE_TOKENS`` allowlist, the
+# ``_contains_merge_document`` / ``_MERGE_FIELD_MARKERS`` /
+# ``_MERGE_DOCUMENT_SIGNATURES`` rejection, the ``_MERGE_DOCUMENT_KEYS`` reserved
+# keys, the ``_TEMPLATE_TOKEN_RE`` token scan, ``html.escape`` at render via
+# ``DocumentTemplateService._render_value`` — and only adds the structural caps
+# and fee/bank row-shape checks the richer profile shape needs. Rejection is
+# mapped to the stable ``TEMPLATE_TOKEN_REJECTED`` 400 code at the endpoint
+# layer (task 17); this is the pure validator only — it raises before any
+# persistence side effect, so a rejected profile version is never stored.
+#
+# Section *keys* are free-form identifiers (profiles carry arbitrarily-named
+# sections, NOT the templates' ``{body, signatory}`` allowlist) — but a reserved
+# merge-document key (``merge_document`` etc., per ``_MERGE_DOCUMENT_KEYS``) is
+# still rejected. Uploaded DOCX/PDF originals are retained as admin-reference
+# attachments only and are never executed/merged, so an uploaded file does not
+# fail validation here (unlike the template path, which forbids file uploads).
+_MAX_PROFILE_SECTIONS = 30
+_MAX_PROFILE_SECTION_CHARS = 5_000
+_MAX_PROFILE_FEE_ROWS = 50
+_MAX_PROFILE_BANK_ACCOUNTS = 10
+_MAX_PROFILE_REQUIREMENTS = 50
+
+
+def validate_profile_payload(
+    *,
+    sections: Any = None,
+    tokens: Any = None,
+    fee_chart: Any = None,
+    bank_accounts: Any = None,
+    requirements: Any = None,
+    has_uploaded_file: bool = False,
+    extra_keys: Any = None,
+) -> None:
+    """Validate a tenant Document_Profile create/update payload (R8.6/8.7/8.10).
+
+    Accepts a safe structured-JSON profile — free-form prose sections that only
+    reference allowlisted ``{{token}}`` values, plus fee-chart / bank-account /
+    requirements data within the structural caps — and rejects anything that
+    smuggles a merge document, an unknown/injected token, a reserved
+    merge-document section key, or a malformed/oversized structure. Raises
+    :class:`TemplateValidationError` (mapped to the stable
+    ``TEMPLATE_TOKEN_REJECTED`` 400 code by the admin profile views) on any
+    violation, naming the offending section / token / row; returns ``None`` when
+    the payload is safe. Only provided values are validated, so a partial update
+    that omits a field leaves it untouched.
+
+    ``has_uploaded_file`` flags a multipart file part: uploaded DOCX/PDF
+    originals are retained as admin-reference attachments only (never
+    executed/merged), so — unlike the template path — a file upload does not
+    fail validation here. ``extra_keys`` is the set of top-level payload keys,
+    used to reject reserved merge-document keys exactly like the template path.
+    """
+    if extra_keys is not None:
+        reserved = {str(k).lower() for k in extra_keys} & _MERGE_DOCUMENT_KEYS
+        if reserved:
+            raise TemplateValidationError(
+                "Disallowed merge-document field(s): " + ", ".join(sorted(reserved))
+            )
+
+    if sections is not None:
+        _validate_profile_sections(sections)
+
+    if tokens is not None:
+        # Reuse the template token allowlist check verbatim — the message names
+        # the offending token, satisfying the offender-naming contract.
+        _validate_tokens(tokens)
+
+    if fee_chart is not None:
+        _validate_fee_chart(fee_chart)
+
+    if bank_accounts is not None:
+        _validate_bank_accounts(bank_accounts)
+
+    if requirements is not None:
+        _validate_requirements(requirements)
+
+
+def _validate_profile_sections(sections: Any) -> None:
+    if not isinstance(sections, dict):
+        raise TemplateValidationError("Profile sections must be a JSON object.")
+    if len(sections) > _MAX_PROFILE_SECTIONS:
+        raise TemplateValidationError(
+            f"Too many profile sections ({len(sections)}); the maximum is "
+            f"{_MAX_PROFILE_SECTIONS}."
+        )
+    for key, value in sections.items():
+        if not isinstance(key, str):
+            raise TemplateValidationError(
+                f"Profile section keys must be strings, not {type(key).__name__}."
+            )
+        # Section keys are free-form, but a reserved merge-document key implies a
+        # smuggled uploaded/merge document rather than a safe prose section.
+        if key.lower() in _MERGE_DOCUMENT_KEYS:
+            raise TemplateValidationError(
+                f"Disallowed reserved merge-document section key: {key!r}."
+            )
+        if not isinstance(value, str):
+            # A safe section body is plain prose; nested structures/binary are
+            # how a merge document would be smuggled in.
+            raise TemplateValidationError(
+                f"Profile section {key!r} must be a string, not "
+                f"{type(value).__name__}."
+            )
+        if len(value) > _MAX_PROFILE_SECTION_CHARS:
+            raise TemplateValidationError(
+                f"Profile section {key!r} exceeds the maximum length of "
+                f"{_MAX_PROFILE_SECTION_CHARS} characters."
+            )
+        if _contains_merge_document(value):
+            raise TemplateValidationError(
+                f"Profile section {key!r} contains disallowed merge-document "
+                "or field-code content."
+            )
+        for match in _TEMPLATE_TOKEN_RE.finditer(value):
+            token = match.group(1)
+            if token not in ALLOWED_TEMPLATE_TOKENS:
+                raise TemplateValidationError(
+                    f"Disallowed or injected token {{{{{token}}}}} in profile "
+                    f"section {key!r}."
+                )
+
+
+def _validate_fee_chart(fee_chart: Any) -> None:
+    if not isinstance(fee_chart, (list, tuple)):
+        raise TemplateValidationError("Profile fee_chart must be a list of fee rows.")
+    if len(fee_chart) > _MAX_PROFILE_FEE_ROWS:
+        raise TemplateValidationError(
+            f"Too many fee rows ({len(fee_chart)}); the maximum is "
+            f"{_MAX_PROFILE_FEE_ROWS}."
+        )
+    for index, row in enumerate(fee_chart):
+        if not isinstance(row, dict):
+            raise TemplateValidationError(
+                f"Fee row {index} must be an object, not {type(row).__name__}."
+            )
+        item = row.get("item")
+        if not isinstance(item, str) or not item.strip():
+            raise TemplateValidationError(
+                f"Fee row {index} must have a non-empty string 'item'."
+            )
+        amount = row.get("amount")
+        # bool is a subclass of int — a True/False "amount" is not a real fee.
+        if isinstance(amount, bool) or not isinstance(amount, (int, float)):
+            raise TemplateValidationError(
+                f"Fee row {index} 'amount' must be numeric."
+            )
+
+
+def _validate_bank_accounts(bank_accounts: Any) -> None:
+    if not isinstance(bank_accounts, (list, tuple)):
+        raise TemplateValidationError(
+            "Profile bank_accounts must be a list of bank-account rows."
+        )
+    if len(bank_accounts) > _MAX_PROFILE_BANK_ACCOUNTS:
+        raise TemplateValidationError(
+            f"Too many bank accounts ({len(bank_accounts)}); the maximum is "
+            f"{_MAX_PROFILE_BANK_ACCOUNTS}."
+        )
+    for index, row in enumerate(bank_accounts):
+        if not isinstance(row, dict):
+            raise TemplateValidationError(
+                f"Bank account row {index} must be an object, not "
+                f"{type(row).__name__}."
+            )
+        bank_name = row.get("bank_name")
+        if not isinstance(bank_name, str) or not bank_name.strip():
+            raise TemplateValidationError(
+                f"Bank account row {index} must have a non-empty string "
+                "'bank_name'."
+            )
+        account_number = row.get("account_number")
+        if not isinstance(account_number, str) or not account_number.strip():
+            raise TemplateValidationError(
+                f"Bank account row {index} must have a non-empty string "
+                "'account_number'."
+            )
+
+
+def _validate_requirements(requirements: Any) -> None:
+    if not isinstance(requirements, (list, tuple)):
+        raise TemplateValidationError(
+            "Profile requirements must be a list of requirement strings."
+        )
+    if len(requirements) > _MAX_PROFILE_REQUIREMENTS:
+        raise TemplateValidationError(
+            f"Too many requirements ({len(requirements)}); the maximum is "
+            f"{_MAX_PROFILE_REQUIREMENTS}."
+        )
+    for index, item in enumerate(requirements):
+        if not isinstance(item, str):
+            raise TemplateValidationError(
+                f"Requirement {index} must be a string, not {type(item).__name__}."
+            )

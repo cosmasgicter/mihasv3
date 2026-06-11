@@ -6,6 +6,7 @@ import {
   extractApplicationFromEnvelope,
   useDocumentGeneration,
 } from '@/hooks/useDocumentGeneration';
+import { useOfficialDocument } from '@/hooks/useOfficialDocument';
 import { generateApplicationSlip } from '@/lib/pdf';
 import { generateAcceptanceLetter } from '@/lib/pdf';
 import { generatePaymentReceipt } from '@/lib/pdf';
@@ -13,11 +14,28 @@ import { generatePaymentReceipt } from '@/lib/pdf';
 const getByIdMock = vi.fn();
 const apiRequestMock = vi.fn();
 
+// Backend official-document service mocks — the student official-download path
+// (task 10.2 rewired components → `useOfficialDocument`) sources documents from
+// here, NOT from the local `@/lib/pdf` generators (R7.1, R7.3, R7.4).
+const officialGenerateMock = vi.fn();
+const officialGetMock = vi.fn();
+const officialDownloadMock = vi.fn();
+const officialEmailMock = vi.fn();
+
 vi.mock('@/lib/pdf', () => ({
   generateApplicationSlip: vi.fn(async () => new Blob(['slip'])),
   generateAcceptanceLetter: vi.fn(async () => new Blob(['acceptance'])),
   generatePaymentReceipt: vi.fn(async () => new Blob(['receipt'])),
   generateReceiptNumber: vi.fn(() => 'RCT-001'),
+}));
+
+vi.mock('@/services/officialDocuments', () => ({
+  officialDocumentService: {
+    generateOfficialDocument: (...args: unknown[]) => officialGenerateMock(...args),
+    getOfficialDocument: (...args: unknown[]) => officialGetMock(...args),
+    downloadOfficialDocument: (...args: unknown[]) => officialDownloadMock(...args),
+    emailOfficialDocument: (...args: unknown[]) => officialEmailMock(...args),
+  },
 }));
 
 vi.mock('@/services/applications', () => ({

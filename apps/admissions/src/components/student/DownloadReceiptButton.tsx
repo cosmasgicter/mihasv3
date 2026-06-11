@@ -1,8 +1,8 @@
-import { Download } from 'lucide-react'
+import { Download, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { usePaymentReceipt } from '@/hooks/usePaymentReceipt'
+import { useOfficialDocument } from '@/hooks/useOfficialDocument'
 import { useToastStore } from '@/hooks/useToast'
-import { isPaymentVerified } from '@/lib/paymentStatus'
+import { isOfficialDocumentOffered } from '@/lib/officialDocumentGate'
 
 interface DownloadReceiptButtonProps {
   applicationId: string
@@ -10,38 +10,62 @@ interface DownloadReceiptButtonProps {
   disabled?: boolean
 }
 
-export function DownloadReceiptButton({ 
-  applicationId, 
+/**
+ * Download the official payment receipt from the backend (R7.1, R7.3).
+ *
+ * Sources the receipt PDF from `services/officialDocuments.ts` via
+ * `useOfficialDocument` — the authoritative tenant-branded backend record — and
+ * surfaces the `Queued`/`Generating`/`Ready`/`Failed` backend states (R7.2).
+ * The R5 payment gate is enforced here: the action only renders when payment is
+ * verified; the backend additionally 404-masks not-permitted requests.
+ */
+export function DownloadReceiptButton({
+  applicationId,
   paymentStatus,
-  disabled 
+  disabled,
 }: DownloadReceiptButtonProps) {
-  const { generateReceipt, loading } = usePaymentReceipt()
+  const { uiState, isBusy, error, download } = useOfficialDocument(applicationId, 'payment_receipt')
   const { addToast } = useToastStore()
 
   const handleDownload = async () => {
-    const success = await generateReceipt(applicationId)
-    if (success) {
+    const ok = await download()
+    if (ok) {
       addToast('success', 'Receipt downloaded successfully')
     } else {
-      addToast('error', 'Failed to generate receipt')
+      addToast('error', error || 'Failed to generate receipt')
     }
   }
 
-  if (!isPaymentVerified(paymentStatus)) {
+  if (!isOfficialDocumentOffered('payment_receipt', '', paymentStatus)) {
     return null
   }
+
+  const isWorking = uiState === 'generating' || uiState === 'queued'
+  const label =
+    uiState === 'generating'
+      ? 'Generating…'
+      : uiState === 'queued'
+        ? 'Queued…'
+        : uiState === 'failed'
+          ? 'Retry'
+          : 'Download Receipt'
 
   return (
     <Button
       onClick={handleDownload}
-      disabled={disabled || loading}
-      loading={loading}
+      disabled={disabled || isBusy}
+      loading={isWorking}
       variant="outline"
       size="sm"
+      aria-live="polite"
       className="min-h-touch gap-2"
     >
-      <Download className="w-4 h-4" />
-      {loading ? 'Generating...' : 'Download Receipt'}
+      {!isWorking && (
+        uiState === 'failed'
+          ? <RotateCcw className="h-4 w-4" aria-hidden="true" />
+          : <Download className="h-4 w-4" aria-hidden="true" />
+      )}
+      {label}
     </Button>
   )
 }

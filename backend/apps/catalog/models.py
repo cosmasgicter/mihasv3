@@ -255,6 +255,44 @@ class InstitutionRequiredDocument(models.Model):
         db_table = "institution_required_documents"
 
 
+class InstitutionDocumentProfile(models.Model):
+    """Rich tenant document profile (fee charts, bank accounts, requirements).
+
+    Resolved most-specific-first per (institution, document_type) scope:
+    offering+intake -> offering -> canonical+intake -> canonical -> default.
+    Backed by the additive ``institution_document_profiles`` SQL migration
+    (``backend/scripts/2026_06_08_03_institution_document_profiles.sql``);
+    ``managed = False`` so the test ``unmanaged_schema`` fixture mirrors it.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
+    document_type = models.CharField(max_length=60)
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, null=True, blank=True)
+    canonical_program = models.ForeignKey(
+        CanonicalProgram, on_delete=models.CASCADE, null=True, blank=True
+    )
+    intake = models.ForeignKey(Intake, on_delete=models.CASCADE, null=True, blank=True)
+    layout_key = models.CharField(max_length=80, default="simple_letter")
+    sections = models.JSONField(default=dict)
+    fee_chart = models.JSONField(default=list)
+    bank_accounts = models.JSONField(default=list)
+    requirements = models.JSONField(default=list)
+    signatory = models.JSONField(default=dict)
+    rules = models.JSONField(null=True, blank=True)
+    version = models.IntegerField(default=1)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        "accounts.Profile", on_delete=models.SET_NULL, null=True, blank=True
+    )
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "institution_document_profiles"
+
+
 class InstitutionDomain(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE)

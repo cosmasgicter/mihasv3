@@ -205,69 +205,69 @@ Each phase ends in a verification block and a checkpoint that pauses for the use
     - Author (do not apply) a documented future additive migration adding `application_documents.is_current boolean default true` + partial unique index `(application_id, document_type) WHERE system_generated AND is_current`, with generator flipping the prior current row. V1 derives "current" by query; this is the drift-resistant upgrade once proven on Neon.
     - _Requirements: R6.4_
 
-- [ ] 8. Student-safe official-document endpoints (R5)
+- [x] 8. Student-safe official-document endpoints (R5)
   - [x] 8.1 Write status-gating tests (test-first)
     - File: `backend/tests/property/test_official_document_gating_properties.py` (+ frontend mirror, task 11.3). Assert the type gate holds: application_slip → non-draft submitted; acceptance_letter → `approved`; conditional_offer → `conditionally_approved`; payment_receipt → a completed payment exists. Assert school-staff out-of-scope and not-permitted student requests return the 404 masking envelope.
     - **Property 18: Student official-document status gating** — **Validates: Requirements 5.2, 5.3, 5.4, 5.5, 7.5** (`backend/tests/property/test_official_document_gating_properties.py`; `--hypothesis-seed=0`, ≥100 examples)
     - _Requirements: R5.2, R5.3, R5.4, R5.5, R5.6, R5.8_
 
-  - [ ] 8.2 Implement the official-document views + routes
+  - [x] 8.2 Implement the official-document views + routes
     - Create `backend/apps/applications/official_document_views.py` with `POST /api/v1/applications/{id}/official-documents/{document_type}/` (generate/ensure current), `GET /api/v1/applications/{id}/official-documents/` (list latest per type), `GET /api/v1/applications/{id}/official-documents/{document_type}/` (status + download_url). Authorize via the shared scope path: students by owner check; school staff via `AccessScopeService().filter_applications(...)` with 404 masking out of scope; super-admin global. Enforce the R5 status/payment gates. Return the envelope with `document_id`, `document_type`, `status` (`ready|queued|failed`), optional `download_url`, `generated_at`, `template_version`, `institution_id`; async path returns `status="queued"` with a `task_id`. Wire routes in the application `urls.py` and `backend/config/urls.py` include if needed.
     - _Requirements: R5.1, R5.2, R5.3, R5.4, R5.5, R5.6, R5.7, R5.8, R5.9_
 
-- [ ] 9. Property test — out-of-scope == not-found (masking)
-  - [ ] 9.1 Cross-surface masking property
+- [x] 9. Property test — out-of-scope == not-found (masking)
+  - [x] 9.1 Cross-surface masking property
     - **Property 13: Out-of-scope document access is indistinguishable from not-found** — across the OCR-extract, official-document, and delete surfaces (byte-identical status/code/message; no task enqueued; no state mutated).
     - **Validates: Requirements 3.3, 3.6, 4.3, 5.6, 5.8** (`backend/tests/property/test_remediation_isolation_properties.py`; `--hypothesis-seed=0`, ≥100 examples)
     - _Requirements: R3.3, R3.6, R4.3, R5.6, R5.8_
 
-- [ ] 10. Frontend official-document service + component switch (R7)
-  - [ ] 10.1 Add `officialDocuments.ts` service
+- [x] 10. Frontend official-document service + component switch (R7)
+  - [x] 10.1 Add `officialDocuments.ts` service
     - Create `apps/admissions/src/services/officialDocuments.ts` with `generateOfficialDocument`, `listOfficialDocuments`, `getOfficialDocument`, `downloadOfficialDocument` (authorized download endpoint), and `emailOfficialDocument`. Use the app-local `apiClient`, the `{"success": true, "data": ...}` envelope, and the `OfficialDocumentStatus` type.
     - _Requirements: R7.1, R7.3, R7.4_
 
-  - [ ] 10.2 Rewire student document components to the backend service
+  - [x] 10.2 Rewire student document components to the backend service
     - Switch `apps/admissions/src/components/student/DocumentButtons.tsx`, `ApplicationSlipActions.tsx`, and `DownloadReceiptButton.tsx` to call `officialDocuments.ts` instead of `useDocumentGeneration`/`slipService`/`@/lib/pdf`. Surface `Queued`/`Generating`/`Ready`/`Failed` states from backend status; email path emails the backend-stored document, not a local blob; respect the R5 status + payment gates. Keep `useDocumentGeneration`/`@/lib/pdf` reachable only for dev/draft preview. Apply the UI guardrails (canonical primitives, Lucide, WCAG AA, ≥44px, no purple gradients/gradient text/glassmorphism/nested cards/emoji) — load `PRODUCT.md`/`DESIGN.md` and consult the design skills first.
     - _Requirements: R7.1, R7.2, R7.3, R7.4, R7.5, R7.6, R7.7_
 
-  - [ ] 10.3 Frontend gating property + service-call tests
+  - [x] 10.3 Frontend gating property + service-call tests
     - Update `apps/admissions/tests/unit/useDocumentGeneration.test.tsx` to assert backend service calls (not local PDF generation); add `apps/admissions/tests/property/officialDocumentGating.property.test.ts`.
     - **Property 18 (frontend mirror): Student official-document status gating** — **Validates: Requirements 5.2, 5.3, 5.4, 5.5, 7.5** (`apps/admissions/tests/property/officialDocumentGating.property.test.ts`; `fc.assert(prop, { numRuns: 100, seed: 0 })`)
     - _Requirements: R7.1, R7.2, R7.5_
 
-- [ ] 11. Checkpoint — Phase 3
+- [x] 11. Checkpoint — Phase 3
   - Backend: `cd backend && python3 -m pytest tests/property/test_document_fingerprint_properties.py tests/property/test_official_document_lifecycle_properties.py tests/property/test_official_document_gating_properties.py tests/property/test_remediation_isolation_properties.py -q`; `python3 manage.py check`; `python3 manage.py spectacular --file /tmp/schema.yaml`. Frontend: `cd apps/admissions && bun run type-check && bun run test`. Confirm repeated downloads create no duplicate records and students fetch backend-stored documents. Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R5.1, R6.2, R7.1, R7.6_
 
 ## Phase 4 — Tenant document profiles (R8)
 
-- [ ] 12. Author the `institution_document_profiles` migration (additive, Neon-first)
-  - [ ] 12.1 Write and validate the migration SQL on a Neon branch
+- [x] 12. Author the `institution_document_profiles` migration (additive, Neon-first)
+  - [x] 12.1 Write and validate the migration SQL on a Neon branch
     - Create `backend/scripts/2026_06_08_03_institution_document_profiles.sql`: `CREATE TABLE IF NOT EXISTS institution_document_profiles` with the design columns (id, institution_id, document_type, program_id, canonical_program_id, intake_id, layout_key, sections jsonb, fee_chart jsonb, bank_accounts jsonb, requirements jsonb, signatory jsonb, rules jsonb, version, is_active, created_by_id, created_at, updated_at), `idx_doc_profiles_lookup` and `idx_doc_profiles_scope`, and `NOT VALID` FKs to institutions/programs/canonical_programs/intakes. Additive/idempotent only. Validate on a Neon branch (dry-run discovery + apply + re-apply no-op); capture the branch id. Do not apply to production.
     - _Requirements: R8.1, R8.5_
 
-- [ ] 13. Profile resolution service (R8.2) — test-first
-  - [ ] 13.1 Write profile-resolution determinism tests (test-first)
+- [x] 13. Profile resolution service (R8.2) — test-first
+  - [x] 13.1 Write profile-resolution determinism tests (test-first)
     - **Property 20: Document profile resolution is deterministic and most-specific** — most-specific order offering+intake → offering → canonical-program+intake → canonical program → institution default; deterministic for identical inputs.
     - **Validates: Requirements 8.2** (`backend/tests/property/test_document_profile_resolution_properties.py`; `--hypothesis-seed=0`, ≥100 examples)
     - _Requirements: R8.2_
 
-  - [ ] 13.2 Implement `InstitutionDocumentProfileService.resolve`
+  - [x] 13.2 Implement `InstitutionDocumentProfileService.resolve`
     - Add the model (`managed = False`) + `InstitutionDocumentProfileService.resolve(application, document_type)` mirroring the specificity ordering used by `OfferingAssignmentService.required_documents`. Returns the single most-specific active profile or `None`.
     - _Requirements: R8.2_
 
-- [ ] 14. Safe_Template_Policy for profiles (R8.6, R8.7, R8.10) — test-first
-  - [ ] 14.1 Write profile content-safety tests (test-first)
+- [x] 14. Safe_Template_Policy for profiles (R8.6, R8.7, R8.10) — test-first
+  - [x] 14.1 Write profile content-safety tests (test-first)
     - **Property 19: Document profile/template content is safe** — only allowlisted tokens substituted (unknown/injected render inert), every token value HTML-escaped, and disallowed sections/tokens or DOCX/PDF/RTF/OLE/WordprocessingML merge content rejected with a descriptive error naming the offender, not persisted.
     - **Validates: Requirements 8.6, 8.7, 8.10** (`backend/tests/property/test_template_safety.py` — extend existing; `--hypothesis-seed=0`, ≥100 examples)
     - _Requirements: R8.6, R8.7, R8.10_
 
-  - [ ] 14.2 Implement `validate_profile_payload`
+  - [x] 14.2 Implement `validate_profile_payload`
     - In `backend/apps/catalog/services.py`, add `validate_profile_payload` reusing `validate_template_payload`'s machinery (allowlisted tokens, `html.escape` at render, `_contains_merge_document`/`_MERGE_FIELD_MARKERS`/`_MERGE_DOCUMENT_SIGNATURES` rejection, per-section size cap) and add the structural caps (≤30 sections × ≤5000 chars, ≤50 fee rows, ≤10 banks, ≤50 requirements) plus fee-chart/bank-account row-shape validation. Reject with the existing `TEMPLATE_TOKEN_REJECTED` 400 code naming the offending section/token; do not persist the version. Retain uploaded DOCX/PDF originals as admin-reference attachments only — never executed/merged.
     - _Requirements: R8.6, R8.7, R8.10_
 
 - [ ] 15. Backend renderer package (R8.3, R8.9)
-  - [ ] 15.1 Build the `pdf/` renderer package
+  - [x] 15.1 Build the `pdf/` renderer package
     - Create `backend/apps/applications/tasks/pdf/` with `render_context.py` (tenant + resolved profile + assets + payment context) and `renderers/{application_slip,acceptance_letter,conditional_offer,payment_receipt}.py` + `layouts/{simple_letter,fee_chart_letter}.py`. Replace the generic `_default_body` path in `pdf_generation.py`. The acceptance-letter renderer builds letterhead, date/address, ref line, body, commitment-fee block, bank-account block, fee chart, requirements list, notes, and signatory/signature **solely** from the resolved profile + tenant assets — never frontend constants.
     - _Requirements: R8.3_
 

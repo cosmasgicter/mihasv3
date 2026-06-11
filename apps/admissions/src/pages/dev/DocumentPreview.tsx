@@ -192,7 +192,7 @@ export default function DocumentPreview() {
       .then((el) => { if (alive) setElement(el) })
       .catch((e) => { if (alive) setError(String(e?.message ?? e)) })
     return () => { alive = false }
-  }, [index]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [index])
 
   // Group buttons by document type for a tidy toolbar.
   const groups = useMemo(() => {

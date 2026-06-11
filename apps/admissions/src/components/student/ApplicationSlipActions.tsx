@@ -1,111 +1,50 @@
-import React, { useState } from 'react'
-import { CheckCircle2, Download, Mail, X } from 'lucide-react'
+import { useState } from 'react'
+import { CheckCircle2, Download, Mail, RotateCcw, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
-import { createApplicationSlip } from '@/lib/slipService'
-import type { ApplicationSlipData } from '@/lib/applicationSlip'
-import { applicationService } from '@/services/applications'
+import { useOfficialDocument } from '@/hooks/useOfficialDocument'
 import { toast } from '@/hooks/useToast'
-import { toError } from '@/lib/toError'
 
 interface ApplicationSlipActionsProps {
   applicationId: string
+  /** Retained for backward compatibility with callers; the backend names the file. */
   applicationNumber?: string
   compact?: boolean
 }
 
-function buildSlipPayload(
-  application: Record<string, unknown>,
-  fallbackEmail?: string,
-  userId?: string,
-  applicationId?: string
-): ApplicationSlipData | null {
-  const getString = (value: unknown): string | undefined =>
-    typeof value === 'string' ? value : undefined
-  const getNullableString = (value: unknown): string | null =>
-    typeof value === 'string' ? value : null
-
-  const email = getString(application.email) || fallbackEmail
-  const trackingCode = getString(application.public_tracking_code)
-  const applicationNumber = getString(application.application_number)
-
-  if (!email || !trackingCode || !applicationNumber) return null
-
-  return {
-    application_id: applicationId || getString(application.id),
-    public_tracking_code: trackingCode,
-    application_number: applicationNumber,
-    status: getString(application.status) || 'submitted',
-    payment_status: getNullableString(application.payment_status),
-    submitted_at: getNullableString(application.submitted_at),
-    updated_at: getNullableString(application.updated_at),
-    program_name: getNullableString(application.program) ?? getNullableString(application.program_name),
-    intake_name: getNullableString(application.intake) ?? getNullableString(application.intake_name),
-    institution: getNullableString(application.institution),
-    institution_name: getNullableString(application.institution_name),
-    full_name: getNullableString(application.full_name),
-    email,
-    phone: getNullableString(application.phone),
-    nationality: getNullableString(application.nationality),
-    admin_feedback: getNullableString(application.admin_feedback),
-    admin_feedback_date: getNullableString(application.admin_feedback_date),
-    userId,
-  }
-}
-
-export function ApplicationSlipActions({ applicationId, applicationNumber, compact = false }: ApplicationSlipActionsProps) {
+/**
+ * Download and email the official application slip from the backend (R7.1).
+ *
+ * Both actions go through `services/officialDocuments.ts` via
+ * `useOfficialDocument('application_slip')`: the download streams the
+ * authoritative stored backend record (R7.3) and the email path emails the
+ * backend-stored slip — never a locally generated blob (R7.4). The button
+ * labels reflect the backend `Queued`/`Generating`/`Ready`/`Failed` states
+ * (R7.2). The R5 status gate (slip only after a non-draft submission) is
+ * enforced by the caller (`DocumentButtons` renders this only when
+ * `status !== 'draft'`); the backend additionally 404-masks out-of-scope
+ * requests, which degrade to a friendly error here.
+ *
+ * The client `@/lib/pdf`/`slipService` generators are intentionally no longer
+ * referenced from this student official-download path (R7.6).
+ */
+export function ApplicationSlipActions({ applicationId, compact = false }: ApplicationSlipActionsProps) {
   const { user } = useAuth()
-  const [isDownloading, setIsDownloading] = useState(false)
-  const [isEmailing, setIsEmailing] = useState(false)
+  const { uiState, isBusy, download, email } = useOfficialDocument(applicationId, 'application_slip')
+
   const [showEmailInput, setShowEmailInput] = useState(false)
   const [emailAddress, setEmailAddress] = useState('')
   const [sentTo, setSentTo] = useState<string | null>(null)
   const [emailError, setEmailError] = useState<string | null>(null)
 
-  const fetchSlipPayload = async (targetEmail?: string) => {
-    const response = await applicationService.getById(applicationId)
-    const application = response?.application
-    if (!application) throw new Error('Application details are unavailable')
-
-    const payload = buildSlipPayload(application as Record<string, unknown>, user?.email, user?.id, applicationId)
-    if (!payload) throw new Error('Missing application details required for the slip')
-
-    if (targetEmail) payload.email = targetEmail
-    return payload
-  }
-
-  const triggerBlobDownload = (blob: Blob) => {
-    const name = applicationNumber || applicationId
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `application-slip-${name}.pdf`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-  }
+  const isWorking = uiState === 'generating' || uiState === 'queued'
+  const workingLabel = uiState === 'queued' ? 'Queued…' : 'Generating...'
 
   const handleDownload = async () => {
-    setIsDownloading(true)
-    try {
-      const payload = await fetchSlipPayload()
-      const result = await createApplicationSlip(payload, {
-        toast: {
-          showSuccess: (t, m) => toast.success(t, m),
-          showError: (t, m) => toast.error(t, m),
-          showInfo: (t, m) => toast.info(t, m),
-          showWarning: (t, m) => toast.warning(t, m),
-        },
-      })
-      if (result.error) throw new Error(result.error)
-      if (!result.blob) throw new Error('The slip could not be generated for download')
-      triggerBlobDownload(result.blob)
-    } catch (error) {
-      toast.error('Download Failed', toError(error).message || 'Unable to download the slip')
-    } finally {
-      setIsDownloading(false)
+    const ok = await download()
+    if (!ok) {
+      toast.error('Download Failed', 'Unable to download the slip. Please try again.')
     }
   }
 
@@ -123,40 +62,17 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
       return
     }
 
-    setIsEmailing(true)
     setEmailError(null)
     setSentTo(null)
 
-    try {
-      const payload = await fetchSlipPayload(target)
-      const result = await createApplicationSlip(payload, {
-        sendEmail: true,
-        toast: {
-          showSuccess: (t, m) => toast.success(t, m),
-          showError: (t, m) => toast.error(t, m),
-          showInfo: (t, m) => toast.info(t, m),
-          showWarning: (t, m) => toast.warning(t, m),
-        },
-      })
-
-      if (result.error) throw new Error(result.error)
-
-      if (result.emailError) {
-        if (result.blob) {
-          triggerBlobDownload(result.blob)
-          setEmailError('Email could not be sent. Your slip is downloading instead.')
-        } else {
-          setEmailError(result.emailError)
-        }
-        return
-      }
-
+    const ok = await email(target)
+    if (ok) {
       setSentTo(target)
       setTimeout(() => { setSentTo(null); setShowEmailInput(false) }, 5000)
-    } catch (error) {
-      setEmailError(toError(error).message || 'Unable to email the slip')
-    } finally {
-      setIsEmailing(false)
+    } else {
+      // No local-blob fallback for official documents (R7.4/R7.6): surface a
+      // clear, retry-able error instead of emailing a client render.
+      setEmailError('Email could not be sent. Please try again.')
     }
   }
 
@@ -165,28 +81,34 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
       <div className={compact ? 'flex w-full flex-col gap-2' : 'flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:w-auto'}>
         <Button
           onClick={handleDownload}
-          disabled={isDownloading}
+          disabled={isBusy}
           variant="secondary"
+          aria-live="polite"
           className={compact
             ? 'min-h-touch w-full justify-center gap-2 rounded-lg border border-border bg-card text-foreground hover:bg-muted hover:border-border'
             : 'min-h-touch w-full justify-center gap-2 rounded-lg border border-border bg-card text-foreground hover:bg-muted hover:border-border sm:w-auto'
           }
-          loading={isDownloading}
+          loading={isWorking}
         >
-          {!isDownloading && <Download className="h-4 w-4" />}
-          <span>{isDownloading ? 'Generating...' : 'Download Slip'}</span>
+          {!isWorking && (
+            uiState === 'failed'
+              ? <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              : <Download className="h-4 w-4" aria-hidden="true" />
+          )}
+          <span>{isWorking ? workingLabel : uiState === 'failed' ? 'Retry Download' : 'Download Slip'}</span>
         </Button>
 
         {!showEmailInput && (
           <Button
             onClick={handleEmailOpen}
             variant="primary"
+            disabled={isBusy}
             className={compact
               ? 'min-h-touch w-full justify-center gap-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90'
               : 'min-h-touch w-full justify-center gap-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto'
             }
           >
-            <Mail className="h-4 w-4" />
+            <Mail className="h-4 w-4" aria-hidden="true" />
             <span>Email Slip</span>
           </Button>
         )}
@@ -197,48 +119,50 @@ export function ApplicationSlipActions({ applicationId, applicationNumber, compa
           <div className="flex items-center gap-2">
             <input
               type="email"
+              inputMode="email"
+              autoComplete="email"
               value={emailAddress}
               onChange={(e) => { setEmailAddress(e.target.value); setEmailError(null) }}
               onKeyDown={(e) => { if (e.key === 'Enter') handleEmailSend() }}
               placeholder="Enter email address"
               autoFocus
               className="h-12 flex-1 rounded-lg border border-border bg-card px-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
-              disabled={isEmailing}
+              disabled={isBusy}
               aria-label="Email address for application slip"
             />
             <Button
               onClick={handleEmailSend}
-              disabled={isEmailing || !emailAddress.trim()}
+              disabled={isBusy || !emailAddress.trim()}
               variant="primary"
               className="min-h-touch rounded-lg bg-primary px-5 text-primary-foreground hover:bg-primary/90"
-              loading={isEmailing}
+              loading={isWorking}
             >
-              {!isEmailing && <Mail className="h-4 w-4" />}
-              <span>{isEmailing ? 'Sending...' : 'Send'}</span>
+              {!isWorking && <Mail className="h-4 w-4" aria-hidden="true" />}
+              <span>{isWorking ? 'Sending...' : 'Send'}</span>
             </Button>
             <button
               onClick={() => { setShowEmailInput(false); setEmailError(null); setSentTo(null) }}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-muted-foreground"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
               aria-label="Cancel email"
               type="button"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
 
           {sentTo && (
-            <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 animate-fade-in" role="status" aria-live="polite">
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <div className="flex items-center gap-2 text-sm font-medium text-success animate-fade-in" role="status" aria-live="polite">
+              <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>Slip sent to {sentTo}</span>
             </div>
           )}
 
           {emailError && (
-            <div className="flex items-center justify-between text-sm text-red-600 animate-fade-in" role="alert">
+            <div className="flex items-center justify-between text-sm text-destructive animate-fade-in" role="alert">
               <span>{emailError}</span>
               <button
                 onClick={handleEmailSend}
-                className="ml-2 shrink-0 text-xs font-medium text-red-700 underline hover:text-red-800"
+                className="ml-2 shrink-0 text-xs font-medium text-destructive underline hover:text-destructive/80"
                 type="button"
               >
                 Retry

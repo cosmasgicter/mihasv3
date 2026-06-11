@@ -1,12 +1,12 @@
 {
   "summary": {
-    "total_endpoints": 213,
-    "endpoints_with_issues": 122,
-    "total_issues": 899,
+    "total_endpoints": 216,
+    "endpoints_with_issues": 124,
+    "total_issues": 918,
     "errors": 1,
-    "warnings": 770,
-    "info": 128,
-    "score": 88.51
+    "warnings": 787,
+    "info": 130,
+    "score": 88.42
   },
   "issues": [
     {
@@ -1085,6 +1085,76 @@
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in DELETE /api/v1/applications/{application_id}/interviews/",
       "path": "/paths//api/v1/applications/{application_id}/interviews//delete/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'application_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/applications/{application_id}/official-documents/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'application_id' should use camelCase or kebab-case in GET /api/v1/applications/{application_id}/official-documents/",
+      "path": "/paths//api/v1/applications/{application_id}/official-documents//get/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'application_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/applications/{application_id}/official-documents/{document_type}/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'document_type' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/applications/{application_id}/official-documents/{document_type}/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'application_id' should use camelCase or kebab-case in GET /api/v1/applications/{application_id}/official-documents/{document_type}/",
+      "path": "/paths//api/v1/applications/{application_id}/official-documents/{document_type}//get/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'document_type' should use camelCase or kebab-case in GET /api/v1/applications/{application_id}/official-documents/{document_type}/",
+      "path": "/paths//api/v1/applications/{application_id}/official-documents/{document_type}//get/parameters[1]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "info",
+      "category": "rest_conventions",
+      "message": "POST request typically should have request body: POST /api/v1/applications/{application_id}/official-documents/{document_type}/",
+      "path": "/paths//api/v1/applications/{application_id}/official-documents/{document_type}//post",
+      "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
+    },
+    {
+      "severity": "info",
+      "category": "responses",
+      "message": "Uncommon status code 202 for POST /api/v1/applications/{application_id}/official-documents/{document_type}/",
+      "path": "/paths//api/v1/applications/{application_id}/official-documents/{document_type}//post/responses/202",
+      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/official-documents/{document_type}/",
+      "path": "/paths//api/v1/applications/{application_id}/official-documents/{document_type}//post/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'document_type' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/official-documents/{document_type}/",
+      "path": "/paths//api/v1/applications/{application_id}/official-documents/{document_type}//post/parameters[1]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
@@ -2966,6 +3036,13 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'student_number' in schema 'Application' should use camelCase",
+      "path": "/components/schemas/Application/properties/student_number",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'result_slip_url' in schema 'Application' should use camelCase",
       "path": "/components/schemas/Application/properties/result_slip_url",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -4632,6 +4709,55 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'document_id' in schema 'OfficialDocumentStatus' should use camelCase",
+      "path": "/components/schemas/OfficialDocumentStatus/properties/document_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'document_type' in schema 'OfficialDocumentStatus' should use camelCase",
+      "path": "/components/schemas/OfficialDocumentStatus/properties/document_type",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'download_url' in schema 'OfficialDocumentStatus' should use camelCase",
+      "path": "/components/schemas/OfficialDocumentStatus/properties/download_url",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'generated_at' in schema 'OfficialDocumentStatus' should use camelCase",
+      "path": "/components/schemas/OfficialDocumentStatus/properties/generated_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'template_version' in schema 'OfficialDocumentStatus' should use camelCase",
+      "path": "/components/schemas/OfficialDocumentStatus/properties/template_version",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'institution_id' in schema 'OfficialDocumentStatus' should use camelCase",
+      "path": "/components/schemas/OfficialDocumentStatus/properties/institution_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'task_id' in schema 'OfficialDocumentStatus' should use camelCase",
+      "path": "/components/schemas/OfficialDocumentStatus/properties/task_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'reference_id' in schema 'OutreachAction' should use camelCase",
       "path": "/components/schemas/OutreachAction/properties/reference_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -5201,6 +5327,13 @@
       "category": "naming",
       "message": "Property 'intake_id' in schema 'PatchedApplication' should use camelCase",
       "path": "/components/schemas/PatchedApplication/properties/intake_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'student_number' in schema 'PatchedApplication' should use camelCase",
+      "path": "/components/schemas/PatchedApplication/properties/student_number",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {

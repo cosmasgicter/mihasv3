@@ -29,8 +29,6 @@ from rest_framework.views import APIView
 from apps.accounts.models import Profile
 from apps.accounts.permissions import IsAdmin, ROLE_HIERARCHY, is_super_admin
 from apps.accounts.services import hash_password
-from apps.catalog.models import UserInstitutionMembership
-from apps.catalog.services import AccessScopeService
 from apps.common.audit_network import build_audit_network_fields, decrypt_network_value
 from apps.common.models import AuditLog, Setting
 from apps.common.openapi_helpers import (
@@ -257,6 +255,8 @@ class AdminDashboardView(APIView):
             month_start = today_start.replace(day=1)
 
             from apps.applications.models import Application
+            from apps.catalog.models import UserInstitutionMembership
+            from apps.catalog.services import AccessScopeService
 
             scope_service = AccessScopeService()
             app_queryset = Application.objects.all()
@@ -441,6 +441,9 @@ class AdminUserListView(APIView):
     def get(self, request):
         queryset = Profile.objects.all().order_by("-created_at")
         if not is_super_admin(request.user):
+            from apps.catalog.models import UserInstitutionMembership
+            from apps.catalog.services import AccessScopeService
+
             filters = AccessScopeService().filters_for_user(request.user)
             scoped_user_ids = UserInstitutionMembership.objects.filter(
                 institution_id__in=filters.institution_ids,
