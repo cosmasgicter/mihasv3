@@ -1,0 +1,55 @@
+"""Acceptance-letter renderer (R8.3).
+
+Builds letterhead, body, commitment-fee block, bank-account block, fee chart,
+requirements list, and signatory/signature **solely** from the resolved
+``InstitutionDocumentProfile`` + tenant assets — never frontend constants. When
+no profile resolved, ``context.has_profile`` is ``False``; task 15.2 turns that
+into a ``failed`` generation status (``DOCUMENT_PROFILE_NOT_CONFIGURED``). Until
+15.2 lands this renderer still emits a minimal profile-or-template letter so the
+existing lifecycle tests keep working.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from ..layouts import render_fee_chart_letter
+from ..render_context import RenderContext
+from . import _common
+
+
+def render(context: RenderContext, *, template: dict[str, Any]):
+    from apps.applications.tasks.pdf_generation import DOCUMENT_CONFIG, _default_body
+
+    # R8.3: content comes from the resolved profile. The body and signatory fall
+    # back to the template only as a transitional measure until 15.2 enforces
+    # no-profile → failed; the fee chart / banks / requirements are profile-only.
+    body = (
+        _common.profile_section(context, "body")
+        or _common.template_body(template)
+        or _common.escape(_default_body(context.document_type, context.application, context.payment))
+    )
+    signatory = (
+        _common.profile_signatory(context)
+        or _common.escape((template.get("sections") or {}).get("signatory"))
+        or "Admissions Office"
+    )
+
+    buffer, logo_render, signature_render = render_fee_chart_letter(
+        document_title=DOCUMENT_CONFIG[context.document_type]["title"],
+        tenant=context.tenant,
+        application=context.application,
+        payment=context.payment,
+        body=body,
+        signatory=signatory,
+        logo_asset=context.logo_asset,
+        signature_asset=context.signature_asset,
+        fee_chart=_common.profile_fee_chart(context),
+        bank_accounts=_common.profile_bank_accounts(context),
+        requirements=_common.profile_requirements(context),
+        template_version=getattr(context.profile, "version", None)
+        if context.has_profile
+        else (template or {}).get("template_version"),
+    )
+    metadata = _common.build_metadata(context, template, logo_render, signature_render)
+    return buffer, metadata

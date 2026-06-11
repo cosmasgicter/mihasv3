@@ -46,6 +46,16 @@ _IDEM = "apps.common.models.IdempotencyKey.objects"
 _PAY = "apps.documents.models.Payment.objects"
 _TASK_LETTER = "apps.applications.tasks.generate_acceptance_letter_task"
 _TASK_RECEIPT = "apps.applications.tasks.generate_finance_receipt_task"
+# Multi-tenant scoping: document_views routes every fetch through
+# AccessScopeService().filter_applications(), which hits the DB. These property
+# tests mock Application.objects, so the scope service must be neutralised too
+# (it returns the queryset unchanged for the mocked single-tenant path).
+_SCOPE = "apps.applications.document_views.AccessScopeService"
+
+
+def _patch_scope(mock_scope):
+    """Make AccessScopeService().filter_applications(qs, user) return qs as-is."""
+    mock_scope.return_value.filter_applications.side_effect = lambda qs, _user: qs
 
 
 # ---------------------------------------------------------------------------
@@ -145,8 +155,10 @@ class TestDocumentVerificationStatusUpdate:
         document = _make_document(doc_id=doc_id, application_id=app_id)
 
         with patch(_APP) as mock_app_qs, \
+             patch(_SCOPE) as mock_scope, \
              patch(_DOC) as mock_doc_qs, \
              patch(_AUDIT):
+            _patch_scope(mock_scope)
             mock_app_qs.select_related.return_value.get.return_value = application
             mock_doc_qs.select_related.return_value.get.return_value = document
 
@@ -268,8 +280,10 @@ class TestAuditLogCreation:
         document = _make_document(doc_id=doc_id, application_id=app_id)
 
         with patch(_APP) as mock_app_qs, \
+             patch(_SCOPE) as mock_scope, \
              patch(_DOC) as mock_doc_qs, \
              patch(_AUDIT) as mock_audit:
+            _patch_scope(mock_scope)
             mock_app_qs.select_related.return_value.get.return_value = application
             mock_doc_qs.select_related.return_value.get.return_value = document
 
@@ -300,9 +314,11 @@ class TestAuditLogCreation:
         application = _make_application(app_id=app_id, status="approved")
 
         with patch(_APP) as mock_app_qs, \
+             patch(_SCOPE) as mock_scope, \
              patch(_TASK_LETTER) as mock_task, \
              patch(_IDEM) as mock_idem_qs, \
              patch(_AUDIT) as mock_audit:
+            _patch_scope(mock_scope)
             mock_app_qs.select_related.return_value.get.return_value = application
             mock_idem_qs.filter.return_value.first.return_value = None
             mock_result = MagicMock()
@@ -334,10 +350,12 @@ class TestAuditLogCreation:
         application = _make_application(app_id=app_id, status="approved")
 
         with patch(_APP) as mock_app_qs, \
+             patch(_SCOPE) as mock_scope, \
              patch(_PAY) as mock_pay_qs, \
              patch(_TASK_RECEIPT) as mock_task, \
              patch(_IDEM) as mock_idem_qs, \
              patch(_AUDIT) as mock_audit:
+            _patch_scope(mock_scope)
             mock_app_qs.select_related.return_value.get.return_value = application
             mock_pay_qs.filter.return_value.exists.return_value = True
             mock_idem_qs.filter.return_value.first.return_value = None
@@ -390,9 +408,11 @@ class TestAcceptanceLetter202Response:
         application = _make_application(app_id=app_id, status="approved")
 
         with patch(_APP) as mock_app_qs, \
+             patch(_SCOPE) as mock_scope, \
              patch(_TASK_LETTER) as mock_task, \
              patch(_IDEM) as mock_idem_qs, \
              patch(_AUDIT):
+            _patch_scope(mock_scope)
             mock_app_qs.select_related.return_value.get.return_value = application
             mock_idem_qs.filter.return_value.first.return_value = None
             mock_result = MagicMock()
@@ -446,10 +466,12 @@ class TestFinanceReceipt202Response:
         application = _make_application(app_id=app_id, status="approved")
 
         with patch(_APP) as mock_app_qs, \
+             patch(_SCOPE) as mock_scope, \
              patch(_PAY) as mock_pay_qs, \
              patch(_TASK_RECEIPT) as mock_task, \
              patch(_IDEM) as mock_idem_qs, \
              patch(_AUDIT):
+            _patch_scope(mock_scope)
             mock_app_qs.select_related.return_value.get.return_value = application
             mock_pay_qs.filter.return_value.exists.return_value = True
             mock_idem_qs.filter.return_value.first.return_value = None
@@ -502,7 +524,9 @@ class TestAcceptanceLetterRejectsNonApproved:
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id, status=app_status)
 
-        with patch(_APP) as mock_app_qs:
+        with patch(_APP) as mock_app_qs, \
+             patch(_SCOPE) as mock_scope:
+            _patch_scope(mock_scope)
             mock_app_qs.select_related.return_value.get.return_value = application
 
             request = _auth_request(
@@ -545,7 +569,9 @@ class TestFinanceReceiptRejectsNoPayment:
         application = _make_application(app_id=app_id, status=app_status)
 
         with patch(_APP) as mock_app_qs, \
+             patch(_SCOPE) as mock_scope, \
              patch(_PAY) as mock_pay_qs:
+            _patch_scope(mock_scope)
             mock_app_qs.select_related.return_value.get.return_value = application
             mock_pay_qs.filter.return_value.exists.return_value = False
 
@@ -592,9 +618,11 @@ class TestIdempotentGenerationRequests:
         original_task_id = f"celery-{uuid.uuid4().hex[:8]}"
 
         with patch(_APP) as mock_app_qs, \
+             patch(_SCOPE) as mock_scope, \
              patch(_TASK_LETTER) as mock_task, \
              patch(_IDEM) as mock_idem_qs, \
              patch(_AUDIT):
+            _patch_scope(mock_scope)
             mock_app_qs.select_related.return_value.get.return_value = application
 
             # First request: no existing idempotency key
@@ -648,10 +676,12 @@ class TestIdempotentGenerationRequests:
         original_task_id = f"celery-{uuid.uuid4().hex[:8]}"
 
         with patch(_APP) as mock_app_qs, \
+             patch(_SCOPE) as mock_scope, \
              patch(_PAY) as mock_pay_qs, \
              patch(_TASK_RECEIPT) as mock_task, \
              patch(_IDEM) as mock_idem_qs, \
              patch(_AUDIT):
+            _patch_scope(mock_scope)
             mock_app_qs.select_related.return_value.get.return_value = application
             mock_pay_qs.filter.return_value.exists.return_value = True
 

@@ -80,6 +80,7 @@ EXPECTED_TABLES = [
     "institution_domains",
     "user_institution_memberships",
     "access_grants",
+    "institution_document_profiles",
 ]
 
 # Expected foreign key relationships: (child_table.column -> parent_table)

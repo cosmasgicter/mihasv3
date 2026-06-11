@@ -32,6 +32,7 @@ import uuid
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.test import override_settings
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from rest_framework.test import APIClient
@@ -164,6 +165,7 @@ class TestCrossSurfaceMaskingProperty:
     **Validates: Requirements 3.3, 3.6, 4.3, 5.6, 5.8**
     """
 
+    @override_settings(RATELIMIT_ENABLE=False)
     @_ISOLATION_PROPERTY_SETTINGS
     @given(
         actor_kind=_ACTOR_KIND,

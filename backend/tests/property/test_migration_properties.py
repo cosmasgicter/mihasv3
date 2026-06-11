@@ -64,6 +64,9 @@ EXPECTED_TABLE_MAPPING: dict[str, set[str]] = {
         "institution_domains",
         "user_institution_memberships",
         "access_grants",
+        # Phase 4 (institution document profiles — rich tenant document content),
+        # backed by backend/scripts/2026_06_08_03_institution_document_profiles.sql.
+        "institution_document_profiles",
     },
     "common": {
         "audit_logs",

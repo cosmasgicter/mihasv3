@@ -245,6 +245,8 @@ _PROTECTED = {
     "apps.applications.document_views.ConditionalOfferView",
     "apps.applications.document_views.FinanceReceiptView",
     "apps.applications.document_views.PaymentReceiptView",
+    "apps.applications.official_document_views.OfficialDocumentListView",
+    "apps.applications.official_document_views.OfficialDocumentDetailView",
     "apps.applications.interview_views.ApplicationInterviewView",
     "apps.applications.interview_views.ApplicationInterviewListView",
     "apps.applications.history_views.TimelineHistoryView",

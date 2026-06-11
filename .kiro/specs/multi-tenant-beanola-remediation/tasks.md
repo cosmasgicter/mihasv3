@@ -266,21 +266,21 @@ Each phase ends in a verification block and a checkpoint that pauses for the use
     - In `backend/apps/catalog/services.py`, add `validate_profile_payload` reusing `validate_template_payload`'s machinery (allowlisted tokens, `html.escape` at render, `_contains_merge_document`/`_MERGE_FIELD_MARKERS`/`_MERGE_DOCUMENT_SIGNATURES` rejection, per-section size cap) and add the structural caps (≤30 sections × ≤5000 chars, ≤50 fee rows, ≤10 banks, ≤50 requirements) plus fee-chart/bank-account row-shape validation. Reject with the existing `TEMPLATE_TOKEN_REJECTED` 400 code naming the offending section/token; do not persist the version. Retain uploaded DOCX/PDF originals as admin-reference attachments only — never executed/merged.
     - _Requirements: R8.6, R8.7, R8.10_
 
-- [ ] 15. Backend renderer package (R8.3, R8.9)
+- [x] 15. Backend renderer package (R8.3, R8.9)
   - [x] 15.1 Build the `pdf/` renderer package
     - Create `backend/apps/applications/tasks/pdf/` with `render_context.py` (tenant + resolved profile + assets + payment context) and `renderers/{application_slip,acceptance_letter,conditional_offer,payment_receipt}.py` + `layouts/{simple_letter,fee_chart_letter}.py`. Replace the generic `_default_body` path in `pdf_generation.py`. The acceptance-letter renderer builds letterhead, date/address, ref line, body, commitment-fee block, bank-account block, fee chart, requirements list, notes, and signatory/signature **solely** from the resolved profile + tenant assets — never frontend constants.
     - _Requirements: R8.3_
 
-  - [ ] 15.2 No-profile → failed status (no frontend fallback)
+  - [x] 15.2 No-profile → failed status (no frontend fallback)
     - When no active profile resolves for institution + document type, set generation status `failed`, record error "no document profile configured for {institution} / {document_type}" (code `DOCUMENT_PROFILE_NOT_CONFIGURED`), and produce no document from frontend content.
     - _Requirements: R8.9_
 
-  - [ ] 15.3 Renderer unit tests
+  - [x] 15.3 Renderer unit tests
     - Cover fee-chart layout rendering, acceptance renderer reads only the resolved profile, structural-cap rejections (≤30/5000/50/10/50), and no-profile → `failed`. File: `backend/tests/unit/test_official_documents.py` (extend).
     - _Requirements: R8.3, R8.9_
 
 - [ ] 16. Seed tenant document profiles (R8.4) + versioning (R8.5)
-  - [ ] 16.1 Seed command + dev seed entry
+  - [-] 16.1 Seed command + dev seed entry
     - Create `backend/apps/catalog/management/commands/seed_tenant_document_profiles.py` and a dev entry in `backend/scripts/seed_tenant_dev_data.py` that create the MIHAS RN, KATC COG, and KATC EHT acceptance profiles as tenant rows, transcribed from `apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts` + `intakeSchedule.ts` (banking, fee charts, requirements). Data lives as configurable tenant rows, not tests/frontend.
     - _Requirements: R8.4_
 

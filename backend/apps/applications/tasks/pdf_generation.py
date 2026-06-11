@@ -83,6 +83,7 @@ def generate_payment_receipt_task(self, application_id):
 
 def _generate_official_document_task(task, application_id, document_type: str):
     from apps.applications.models import Application
+    from apps.applications.tasks.pdf.render_context import DocumentProfileNotConfigured
     from apps.documents.models import ApplicationDocument, Payment
     from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
 
@@ -173,6 +174,21 @@ def _generate_official_document_task(task, application_id, document_type: str):
         )
         logger.info("%s generated for application %s", document_type, application_id)
         _audit_document_generated(application, document_type, metadata)
+    except DocumentProfileNotConfigured as exc:
+        # R8.9: a profile-required document type (acceptance letter / conditional
+        # offer) has no active Institution_Document_Profile. This is a tenant
+        # *configuration* error, not a transient render failure: mark the
+        # generation failed, record a non-PII audit row, produce NO document
+        # from frontend/default content, and DO NOT retry (a missing profile
+        # will not resolve itself on a retry — fail fast rather than burn all
+        # three attempts).
+        logger.warning(
+            "%s generation failed for application %s: no document profile configured",
+            document_type,
+            application_id,
+        )
+        _audit_profile_not_configured(application, document_type, exc)
+        return
     except Exception as exc:
         logger.warning(
             "%s generation failed for application %s (attempt %d/%d): %s",
@@ -254,6 +270,46 @@ def _audit_render_failure(application, document_type: str, exc: Exception, *, at
         )
 
 
+def _audit_profile_not_configured(application, document_type: str, exc: Exception) -> None:
+    """Record a no-profile official-document failure as an Audit_Event (R8.9).
+
+    Writes a non-PII ``AuditLog`` row (``action="official_document_render_failed"``,
+    ``error_code="DOCUMENT_PROFILE_NOT_CONFIGURED"``) keyed on the application id
+    so a Super_Admin can configure the missing profile and re-trigger generation.
+    Mirrors :func:`_audit_render_failure` (no PII / secrets / document bodies):
+    only the institution id, document type, and stable error code are stored —
+    never the institution name carried by the exception message, applicant data,
+    or any document content. ``recoverable`` is ``True`` (configure a profile and
+    regenerate) but the render is NOT retried automatically. Best-effort: any
+    failure to write the audit row is swallowed so it never shadows the failure.
+    """
+    try:
+        from apps.common.models import AuditLog
+
+        institution_id = getattr(application, "institution_ref_id", None)
+        AuditLog.objects.create(
+            actor_id=None,  # system-generated background render, no human actor
+            action="official_document_render_failed",
+            entity_type="application_document",
+            entity_id=getattr(application, "id", None),
+            changes={
+                "document_type": document_type,
+                "institution_id": str(institution_id) if _is_valid_uuid(institution_id) else None,
+                "error_code": getattr(exc, "code", "DOCUMENT_PROFILE_NOT_CONFIGURED"),
+                "status": "failed",
+                "recoverable": True,
+                "retried": False,
+            },
+            retention_category="standard",
+        )
+    except Exception:  # pragma: no cover - audit must never block the task
+        logger.warning(
+            "Unable to record official-document no-profile audit for application %s",
+            getattr(application, "id", None),
+            exc_info=True,
+        )
+
+
 def _gather_render_inputs(application, document_type: str, payment=None):
     """Resolve the tenant context, template, and active assets for a render.
 
@@ -323,10 +379,20 @@ def _render_official_pdf(
     logo_asset=None,
     signature_asset=None,
 ):
-    from reportlab.lib.colors import HexColor
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.units import cm
-    from reportlab.pdfgen import canvas
+    """Render an Official_Document, routing through the tenant renderer package.
+
+    Content is built from the resolved ``InstitutionDocumentProfile`` + tenant
+    assets by the per-document-type renderers in ``pdf/renderers`` (R8.3); this
+    replaces the former inline ``_default_body`` drawing path. The
+    ``(buffer, metadata)`` return contract is unchanged, so the
+    fingerprint/current-version lifecycle (R6) and the provenance snapshot in
+    ``verification_notes.official_document`` are preserved. The pre-resolved
+    ``tenant``/``template``/``logo_asset``/``signature_asset`` inputs (used by the
+    fingerprint) are threaded into the render context so "what we hashed" and
+    "what we drew" stay identical.
+    """
+    from apps.applications.tasks.pdf.render_context import RenderContext
+    from apps.applications.tasks.pdf.renderers import render_official_document
 
     if tenant is None:
         tenant = _tenant_context(application)
@@ -337,77 +403,24 @@ def _render_official_pdf(
     if signature_asset is None:
         signature_asset = _active_asset(application, "signature")
 
-    buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-    primary = _safe_hex(tenant["primary_color"])
+    profile = None
+    try:
+        from apps.catalog.services import InstitutionDocumentProfileService
 
-    c.setFillColor(primary)
-    c.rect(0, height - 1.2 * cm, width, 1.2 * cm, fill=True, stroke=False)
-    c.setFillColor(HexColor("#111827"))
-    logo_render = _draw_asset(c, logo_asset, 2 * cm, height - 3.2 * cm, max_width=3.2 * cm, max_height=1.7 * cm)
+        profile = InstitutionDocumentProfileService().resolve(application, document_type)
+    except Exception:  # pragma: no cover - resolver must never break the render
+        profile = None
 
-    c.setFont("Helvetica-Bold", 17)
-    c.drawCentredString(width / 2, height - 2.25 * cm, DOCUMENT_CONFIG[document_type]["title"])
-    c.setFont("Helvetica", 10)
-    c.drawCentredString(width / 2, height - 2.85 * cm, tenant["name"])
-    contact = " | ".join(v for v in [tenant.get("admissions_email"), tenant.get("phone"), tenant.get("website")] if v)
-    if contact:
-        c.drawCentredString(width / 2, height - 3.35 * cm, contact)
-
-    y = height - 4.6 * cm
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(2 * cm, y, f"Generated: {timezone.now().strftime('%d %B %Y')}")
-    y -= 0.7 * cm
-
-    details = _document_details(application, payment)
-    for label, value in details:
-        c.setFont("Helvetica-Bold", 9.5)
-        c.drawString(2 * cm, y, f"{label}:")
-        c.setFont("Helvetica", 9.5)
-        c.drawString(6 * cm, y, str(value or "N/A"))
-        y -= 0.55 * cm
-
-    y -= 0.55 * cm
-    c.setFont("Helvetica", 10.5)
-    body = template["sections"].get("body") or _default_body(document_type, application, payment)
-    y = _draw_wrapped(c, str(body), 2 * cm, y, width - 4 * cm, line_height=0.55 * cm)
-
-    if y < 5 * cm:
-        c.showPage()
-        y = height - 2.5 * cm
-
-    signature_render = _draw_asset(c, signature_asset, 2 * cm, y - 1.6 * cm, max_width=4 * cm, max_height=1.4 * cm)
-    c.line(2 * cm, y - 1.9 * cm, 7 * cm, y - 1.9 * cm)
-    c.setFont("Helvetica", 9)
-    c.drawString(2 * cm, y - 2.35 * cm, template["sections"].get("signatory") or "Admissions Office")
-
-    c.setFont("Helvetica", 7.5)
-    c.setFillColor(HexColor("#6B7280"))
-    footer = f"Official Beanola admissions document"
-    if template["template_version"]:
-        footer += f" | Template v{template['template_version']}"
-    c.drawCentredString(width / 2, 1.3 * cm, footer)
-
-    c.showPage()
-    c.save()
-    buffer.seek(0)
-    metadata = {
-        "document_type": document_type,
-        "institution_id": tenant.get("institution_id"),
-        "institution_name": tenant.get("name"),
-        "template_id": template.get("template_id"),
-        "template_version": template.get("template_version"),
-        "logo_asset_id": str(logo_asset.id) if logo_asset else None,
-        "signature_asset_id": str(signature_asset.id) if signature_asset else None,
-        # R6.7: record how each asset was handled so an SVG (or otherwise
-        # undrawable) asset is explicitly marked "unsupported" in provenance
-        # rather than silently dropped. Values: "drawn" | "unsupported" |
-        # "error" | "none".
-        "logo_render": logo_render,
-        "signature_render": signature_render,
-    }
-    return buffer, metadata
+    context = RenderContext(
+        application=application,
+        document_type=document_type,
+        tenant=tenant,
+        profile=profile,
+        logo_asset=logo_asset,
+        signature_asset=signature_asset,
+        payment=payment,
+    )
+    return render_official_document(context, template=template)
 
 
 def _tenant_context(application) -> dict[str, Any]:

@@ -15,6 +15,7 @@ PASS.
 from __future__ import annotations
 
 import pytest
+from django.test import override_settings
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from rest_framework.test import APIClient
@@ -137,6 +138,7 @@ class TestOfficialDocumentDeletionProtectionProperty:
     **Validates: Requirements 4.1, 4.5**
     """
 
+    @override_settings(RATELIMIT_ENABLE=False)
     @_DELETION_PROPERTY_SETTINGS
     @given(
         actor_kind=_ACTOR_KIND,

@@ -33,6 +33,8 @@ from __future__ import annotations
 import html
 import io
 import uuid
+from contextlib import contextmanager
+from unittest.mock import patch
 
 import pytest
 from django.utils import timezone
@@ -40,13 +42,17 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from rest_framework.exceptions import ValidationError
 
-from apps.catalog.models import InstitutionDocumentTemplate
-from apps.catalog.services import DocumentTemplateService
+from apps.catalog.models import InstitutionDocumentProfile, InstitutionDocumentTemplate
+from apps.catalog.services import (
+    DocumentTemplateService,
+    TemplateValidationError,
+    validate_profile_payload,
+)
 from apps.documents.validators import (
     ALLOWED_ASSET_MIME_TYPES,
     validate_asset_magic_bytes,
 )
-from tests.tenant_fixtures import build_institution
+from tests.tenant_fixtures import build_institution, build_tenant_world
 
 # Tag the whole module so the Phase 0 ``-k "tenant or ..."`` selector picks it
 # up even though the filename carries no tenant/scope/assignment/canonical token.
@@ -396,3 +402,477 @@ class TestAssetMimeMagicByteValidation:
         **Validates: Requirements R6.1, R6.7, R14.5**
         """
         assert validate_asset_magic_bytes(io.BytesIO(safe_svg), "image/svg+xml") == "image/svg+xml"
+
+
+# ===========================================================================
+# Task 15.3 — Renderer unit tests
+#
+# Explicit example/boundary coverage for the tenant-aware official-document
+# renderer package (``apps/applications/tasks/pdf``) and the profile payload
+# structural caps (``apps.catalog.services.validate_profile_payload``):
+#
+#   1. Fee-chart layout rendering (acceptance / conditional offer) from a
+#      resolved profile carrying fee_chart + bank_accounts + requirements.
+#   2. The acceptance renderer reads ONLY the resolved profile (R8.3) — its
+#      sections / signatory / fee chart, never frontend constants / _default_body.
+#   3. Structural-cap rejections (≤30 sections × ≤5000 chars, ≤50 fee rows,
+#      ≤10 banks, ≤50 requirements) raise TemplateValidationError.
+#   4. No active profile → ``failed`` for a profile-required document type
+#      (R8.9): no ApplicationDocument row, an AuditLog row with
+#      error_code="DOCUMENT_PROFILE_NOT_CONFIGURED", and no retry.
+#
+# **Validates: Requirements R8.3, R8.9**
+# ===========================================================================
+
+
+# ---------------------------------------------------------------------------
+# In-memory storage so the renderer never reaches real R2/S3 (mirrors the
+# lifecycle property test's ``_fake_storage`` seam).
+# ---------------------------------------------------------------------------
+
+
+class _FakeStorage:
+    """Minimal in-memory ``MediaStorage`` stand-in (save/url/open)."""
+
+    _files: dict[str, bytes] = {}
+
+    def save(self, name, content):
+        content.seek(0)
+        self._files[name] = content.read()
+        return name
+
+    def url(self, name):
+        return f"https://test-storage.local/{name}"
+
+    def open(self, name, mode="rb"):
+        return io.BytesIO(self._files.get(name, b""))
+
+
+@contextmanager
+def _fake_storage():
+    """Patch the call-time ``MediaStorage`` import site for the renderer."""
+    _FakeStorage._files = {}
+    with patch("apps.common.storage.MediaStorage", _FakeStorage):
+        yield
+
+
+# A distinctive marker string we plant in the profile body so we can prove the
+# rendered content is derived from the resolved profile (not a default/frontend
+# body). It is unlikely to appear in any default copy.
+_PROFILE_BODY_MARKER = "PROFILE-BODY-MARKER-Zx9q"
+
+
+def _build_render_context(application, document_type, *, profile, tenant=None):
+    """Construct a RenderContext directly (no DB resolve) for renderer tests."""
+    from apps.applications.tasks.pdf.render_context import RenderContext
+
+    tenant = tenant or {
+        "institution_id": str(uuid.uuid4()),
+        "name": "Marker School of Health",
+        "primary_color": "#0F766E",
+        "admissions_email": "admissions@marker.example",
+        "phone": "+260970000000",
+        "website": "https://marker.example",
+    }
+    return RenderContext(
+        application=application,
+        document_type=document_type,
+        tenant=tenant,
+        profile=profile,
+        logo_asset=None,
+        signature_asset=None,
+        payment=None,
+    )
+
+
+def _profile_stub(
+    *,
+    sections=None,
+    signatory=None,
+    fee_chart=None,
+    bank_accounts=None,
+    requirements=None,
+    version=7,
+    profile_id=None,
+):
+    """A lightweight profile object exposing only the attributes the renderer
+    reads (``sections``/``signatory``/``fee_chart``/``bank_accounts``/
+    ``requirements``/``version``/``id``). No DB row needed — the renderer pulls
+    content purely off these attributes (R8.3)."""
+
+    class _ProfileStub:
+        pass
+
+    p = _ProfileStub()
+    p.id = profile_id or uuid.uuid4()
+    p.version = version
+    p.sections = sections if sections is not None else {"body": "Profile body text."}
+    p.signatory = signatory if signatory is not None else {"name": "Registrar", "role": "Admissions"}
+    p.fee_chart = fee_chart if fee_chart is not None else []
+    p.bank_accounts = bank_accounts if bank_accounts is not None else []
+    p.requirements = requirements if requirements is not None else []
+    return p
+
+
+def _application_stub():
+    """A minimal application object exposing the fields the layout reads via
+    ``_document_details`` (no DB row needed for a pure renderer test)."""
+
+    class _AppStub:
+        pass
+
+    app = _AppStub()
+    app.id = uuid.uuid4()
+    app.application_number = "APP-20260101-ABC123"
+    app.full_name = "Jane Applicant"
+    app.program = "Diploma in Nursing"
+    app.intake = "January 2026"
+    app.institution = "Marker School of Health"
+    app.status = "approved"
+    return app
+
+
+# ---------------------------------------------------------------------------
+# 1 + 2. Fee-chart layout rendering + acceptance renderer reads only the profile
+# ---------------------------------------------------------------------------
+
+
+class TestAcceptanceRendererProfileDriven:
+    """Acceptance / conditional-offer renderer fee-chart layout + R8.3 sourcing.
+
+    Exercises ``pdf/renderers/acceptance_letter.py`` and
+    ``pdf/layouts/fee_chart_letter.py`` directly via ``render_official_document``
+    with a hand-built ``RenderContext`` carrying a resolved profile. No DB rows
+    are required because the renderer reads content solely off the profile
+    object on the context (R8.3).
+
+    **Validates: Requirements R8.3, R8.9**
+    """
+
+    def _render(self, document_type="acceptance_letter", *, profile):
+        from apps.applications.tasks.pdf.renderers import render_official_document
+
+        context = _build_render_context(
+            _application_stub(), document_type, profile=profile
+        )
+        return render_official_document(context, template={"template_id": None, "sections": {}})
+
+    def test_fee_chart_layout_renders_nonempty_pdf(self):
+        """A resolved profile with fee_chart + bank_accounts + requirements
+        renders a non-empty PDF buffer through the fee-chart layout (R8.3)."""
+        profile = _profile_stub(
+            sections={"body": f"Dear applicant, {_PROFILE_BODY_MARKER}."},
+            fee_chart=[
+                {"item": "Tuition", "amount": 5000, "cadence": "per year"},
+                {"item": "Registration", "amount": 250, "cadence": "once"},
+            ],
+            bank_accounts=[
+                {
+                    "bank_name": "Zanaco",
+                    "account_name": "Marker School",
+                    "account_number": "0123456789",
+                    "branch": "Cairo Road",
+                }
+            ],
+            requirements=["Bring original NRC", "Two passport photos"],
+        )
+        buffer, metadata = self._render(profile=profile)
+
+        pdf_bytes = buffer.getvalue()
+        assert pdf_bytes.startswith(b"%PDF"), "renderer did not emit a PDF buffer"
+        assert len(pdf_bytes) > 0
+        # Provenance records the resolving profile's id + version (R8.3).
+        assert metadata["profile_id"] == str(profile.id)
+        assert metadata["profile_version"] == profile.version
+        assert metadata["template_version"] == profile.version
+
+    def test_conditional_offer_also_renders_from_profile(self):
+        """The conditional-offer type renders through the same profile-driven
+        fee-chart layout and records profile provenance (R8.3)."""
+        profile = _profile_stub(
+            sections={"body": f"Conditional: {_PROFILE_BODY_MARKER}"},
+            fee_chart=[{"item": "Deposit", "amount": 1000, "cadence": "once"}],
+        )
+        buffer, metadata = self._render(document_type="conditional_offer", profile=profile)
+
+        assert buffer.getvalue().startswith(b"%PDF")
+        assert metadata["document_type"] == "conditional_offer"
+        assert metadata["profile_id"] == str(profile.id)
+
+    def test_renderer_content_derives_from_profile_body_marker(self):
+        """R8.3: the body + signatory drawn into the letter come from the
+        resolved profile (carrying a distinctive marker), proving content is
+        sourced from the profile rather than the ``_default_body`` / frontend
+        constants path.
+
+        reportlab compresses the PDF content stream, so we assert the *path
+        taken* — the ``body``/``signatory`` the renderer hands to the layout —
+        rather than scanning compressed bytes."""
+        from apps.applications.tasks.pdf.renderers import acceptance_letter
+
+        marker_profile = _profile_stub(
+            sections={"body": f"Welcome. {_PROFILE_BODY_MARKER} See you soon."},
+            signatory={"name": "Dr Profile Signatory", "role": "Registrar"},
+        )
+        captured = {}
+
+        real_layout = acceptance_letter.render_fee_chart_letter
+
+        def _spy(**kwargs):
+            captured.update(kwargs)
+            return real_layout(**kwargs)
+
+        context = _build_render_context(_application_stub(), "acceptance_letter", profile=marker_profile)
+        with patch.object(acceptance_letter, "render_fee_chart_letter", _spy):
+            from apps.applications.tasks.pdf.renderers import render_official_document
+
+            buffer, _metadata = render_official_document(
+                context, template={"template_id": None, "sections": {}}
+            )
+
+        assert buffer.getvalue().startswith(b"%PDF")
+        # The body handed to the layout is the (escaped) profile body marker.
+        assert _PROFILE_BODY_MARKER in captured["body"]
+        # The default acceptance-letter copy must NOT drive a profile-backed render.
+        assert "We are pleased to inform you" not in captured["body"]
+        # Signatory is derived from the profile signatory dict, not a default.
+        assert "Dr Profile Signatory" in captured["signatory"]
+        assert captured["signatory"] != "Admissions Office"
+        # The fee-chart layout received profile-sourced version provenance.
+        assert captured["template_version"] == marker_profile.version
+
+    def test_metadata_signatory_path_uses_profile_not_default(self):
+        """R8.3: with a profile present, the profile body wins over a supplied
+        template body, and provenance reflects the profile id / version."""
+        from apps.applications.tasks.pdf.renderers import acceptance_letter, render_official_document
+
+        profile = _profile_stub(
+            sections={"body": f"Body {_PROFILE_BODY_MARKER}"},
+            version=42,
+        )
+        captured = {}
+        real_layout = acceptance_letter.render_fee_chart_letter
+
+        def _spy(**kwargs):
+            captured.update(kwargs)
+            return real_layout(**kwargs)
+
+        context = _build_render_context(_application_stub(), "acceptance_letter", profile=profile)
+        with patch.object(acceptance_letter, "render_fee_chart_letter", _spy):
+            buffer, metadata = render_official_document(
+                context,
+                template={
+                    "template_id": "tmpl-should-not-win",
+                    "template_version": 1,
+                    "sections": {"body": "TEMPLATE-BODY-SHOULD-NOT-APPEAR"},
+                },
+            )
+
+        # Even when a template body is supplied, the profile body wins (R8.3).
+        assert _PROFILE_BODY_MARKER in captured["body"]
+        assert "TEMPLATE-BODY-SHOULD-NOT-APPEAR" not in captured["body"]
+        assert metadata["profile_version"] == 42
+        assert metadata["template_version"] == 42  # profile version wins
+
+    def test_profile_required_type_without_profile_raises(self):
+        """R8.9 seam: a profile-required type with no resolved profile raises
+        ``DocumentProfileNotConfigured`` before any rendering."""
+        from apps.applications.tasks.pdf.render_context import DocumentProfileNotConfigured
+        from apps.applications.tasks.pdf.renderers import render_official_document
+
+        context = _build_render_context(_application_stub(), "acceptance_letter", profile=None)
+        with pytest.raises(DocumentProfileNotConfigured):
+            render_official_document(context, template={"template_id": None, "sections": {}})
+
+
+# ---------------------------------------------------------------------------
+# 3. Structural-cap rejections (≤30 / 5000 / 50 / 10 / 50)
+# ---------------------------------------------------------------------------
+
+
+class TestProfilePayloadStructuralCaps:
+    """Explicit boundary unit cases for ``validate_profile_payload`` caps.
+
+    Complements the Property 19 hypothesis test with at-the-boundary and
+    over-the-boundary examples for each structural cap: ≤30 sections,
+    ≤5000 chars/section, ≤50 fee rows, ≤10 bank accounts, ≤50 requirements.
+
+    **Validates: Requirements R8.3, R8.9**
+    """
+
+    # -- sections: ≤30 ------------------------------------------------------
+
+    def test_thirty_sections_is_accepted(self):
+        sections = {f"section_{i}": "ok" for i in range(30)}
+        assert validate_profile_payload(sections=sections) is None
+
+    def test_thirty_one_sections_is_rejected(self):
+        sections = {f"section_{i}": "ok" for i in range(31)}
+        with pytest.raises(TemplateValidationError):
+            validate_profile_payload(sections=sections)
+
+    # -- section length: ≤5000 chars ---------------------------------------
+
+    def test_section_of_5000_chars_is_accepted(self):
+        assert validate_profile_payload(sections={"body": "a" * 5000}) is None
+
+    def test_section_over_5000_chars_is_rejected(self):
+        with pytest.raises(TemplateValidationError):
+            validate_profile_payload(sections={"body": "a" * 5001})
+
+    # -- fee rows: ≤50 ------------------------------------------------------
+
+    def test_fifty_fee_rows_is_accepted(self):
+        fee_chart = [{"item": f"Fee {i}", "amount": i} for i in range(50)]
+        assert validate_profile_payload(fee_chart=fee_chart) is None
+
+    def test_fifty_one_fee_rows_is_rejected(self):
+        fee_chart = [{"item": f"Fee {i}", "amount": i} for i in range(51)]
+        with pytest.raises(TemplateValidationError):
+            validate_profile_payload(fee_chart=fee_chart)
+
+    # -- bank accounts: ≤10 -------------------------------------------------
+
+    def test_ten_bank_accounts_is_accepted(self):
+        banks = [
+            {"bank_name": f"Bank {i}", "account_number": f"{i:010d}"} for i in range(10)
+        ]
+        assert validate_profile_payload(bank_accounts=banks) is None
+
+    def test_eleven_bank_accounts_is_rejected(self):
+        banks = [
+            {"bank_name": f"Bank {i}", "account_number": f"{i:010d}"} for i in range(11)
+        ]
+        with pytest.raises(TemplateValidationError):
+            validate_profile_payload(bank_accounts=banks)
+
+    # -- requirements: ≤50 --------------------------------------------------
+
+    def test_fifty_requirements_is_accepted(self):
+        requirements = [f"Requirement {i}" for i in range(50)]
+        assert validate_profile_payload(requirements=requirements) is None
+
+    def test_fifty_one_requirements_is_rejected(self):
+        requirements = [f"Requirement {i}" for i in range(51)]
+        with pytest.raises(TemplateValidationError):
+            validate_profile_payload(requirements=requirements)
+
+
+# ---------------------------------------------------------------------------
+# 4. No active profile → failed (R8.9): no document row, audit row, no retry
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestNoProfileFailsAndAudits:
+    """A profile-required document type with NO active profile fails the render.
+
+    Drives ``_generate_official_document_task`` directly (no ``.delay()`` — there
+    is no broker in tests) against a DB-backed tenant world that has no
+    ``InstitutionDocumentProfile``. Asserts: no ``ApplicationDocument`` row is
+    created, an ``AuditLog`` row records the
+    ``DOCUMENT_PROFILE_NOT_CONFIGURED`` failure (action
+    ``official_document_render_failed``, status ``failed``, ``retried=False``),
+    and the render is not retried. Mirrors how task 15.2 wired
+    ``_audit_profile_not_configured``.
+
+    **Validates: Requirements R8.3, R8.9**
+    """
+
+    def _run(self, document_type, application):
+        from apps.applications.tasks.pdf_generation import _generate_official_document_task
+
+        # ``task`` only needs a request.retries / max_retries for the non-profile
+        # exception path; a simple object suffices since the no-profile branch
+        # returns before any retry decision.
+        class _TaskStub:
+            max_retries = 3
+
+            class request:
+                retries = 0
+
+        with _fake_storage():
+            return _generate_official_document_task(_TaskStub(), str(application.id), document_type)
+
+    @pytest.mark.parametrize("document_type", ["acceptance_letter", "conditional_offer"])
+    def test_no_profile_creates_no_document_and_audits_failure(self, document_type):
+        from apps.applications.models import Application
+        from apps.common.models import AuditLog
+        from apps.documents.models import ApplicationDocument
+
+        required_status = "approved" if document_type == "acceptance_letter" else "submitted"
+        world = build_tenant_world(application_status=required_status)
+        application = world.application
+
+        # Sanity: the world has no document profile of this type.
+        assert not InstitutionDocumentProfile.objects.filter(
+            institution=world.institution, document_type=document_type
+        ).exists()
+
+        before_docs = ApplicationDocument.objects.filter(
+            application=application, document_type=document_type
+        ).count()
+
+        result = self._run(document_type, application)
+        # The task swallows the no-profile failure and returns (no exception,
+        # no retry).
+        assert result is None
+
+        # R8.9: NO ApplicationDocument row is created from default/frontend copy.
+        after_docs = ApplicationDocument.objects.filter(
+            application=application, document_type=document_type
+        ).count()
+        assert after_docs == before_docs == 0
+
+        # R8.9: exactly the no-profile audit row exists with the stable code.
+        audit_rows = list(
+            AuditLog.objects.filter(
+                action="official_document_render_failed",
+                entity_id=application.id,
+            )
+        )
+        assert len(audit_rows) == 1
+        changes = audit_rows[0].changes
+        assert changes["error_code"] == "DOCUMENT_PROFILE_NOT_CONFIGURED"
+        assert changes["status"] == "failed"
+        assert changes["retried"] is False
+        assert changes["document_type"] == document_type
+        # Non-PII: institution id only (no applicant name / institution name).
+        assert changes["institution_id"] == str(application.institution_ref_id)
+
+        # The application itself is untouched.
+        application.refresh_from_db()
+        assert application.status == required_status
+
+    def test_resolved_profile_renders_and_creates_document(self):
+        """Counterpart: with an active institution-default profile the same
+        document type renders successfully and creates exactly one document —
+        proving the no-profile path is the discriminator, not a broken render."""
+        from apps.documents.models import ApplicationDocument
+
+        world = build_tenant_world(application_status="approved")
+        application = world.application
+        InstitutionDocumentProfile.objects.create(
+            id=uuid.uuid4(),
+            institution=world.institution,
+            document_type="acceptance_letter",
+            program=None,
+            canonical_program=None,
+            intake=None,
+            layout_key="fee_chart_letter",
+            sections={"body": f"Profile body {_PROFILE_BODY_MARKER}"},
+            fee_chart=[{"item": "Tuition", "amount": 5000, "cadence": "per year"}],
+            bank_accounts=[],
+            requirements=["Bring NRC"],
+            signatory={"name": "Registrar", "role": "Admissions"},
+            version=1,
+            is_active=True,
+            created_at=timezone.now(),
+        )
+
+        self._run("acceptance_letter", application)
+
+        docs = ApplicationDocument.objects.filter(
+            application=application, document_type="acceptance_letter"
+        )
+        assert docs.count() == 1

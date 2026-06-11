@@ -92,4 +92,16 @@ try:
 except Exception as e:
     print(f"  Required document skipped: {e}")
 
+# --- 7. Tenant document profiles (MIHAS RN, KATC COG, KATC EHT) ---
+# Reuse the idempotent, payload-validated management command so the dev data
+# set includes the acceptance-letter profiles as configurable tenant rows
+# (R8.4). The command resolves/creates the MIHAS and KATC institutions and
+# attaches each profile to its offering by program-name substring.
+try:
+    from django.core.management import call_command
+
+    call_command("seed_tenant_document_profiles")
+except Exception as e:
+    print(f"  Tenant document profiles skipped: {e}")
+
 print("\n✅ Tenant dev seed complete.")

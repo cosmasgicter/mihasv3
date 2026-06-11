@@ -82,7 +82,10 @@ class TestAdminPaymentStatusOverride(SimpleTestCase):
         mock_request = _build_mock_request(admin_id, {"payment_status": new_payment_status, "notes": notes})
 
         with patch("apps.applications.admin_views.Application.objects") as mock_qs, \
+             patch("apps.catalog.services.AccessScopeService") as mock_scope, \
              patch("apps.documents.payment_service.PaymentService.review_application_payment") as mock_review:
+            mock_scope.return_value.filter_applications.side_effect = lambda qs, _u: qs
+            mock_qs.all.return_value = mock_qs
             mock_qs.get.return_value = mock_app
             # Simulate PaymentService updating the app and returning it
             def side_effect(application_id, payment_status, reviewed_by_id, notes):
@@ -113,7 +116,10 @@ class TestAdminPaymentStatusOverride(SimpleTestCase):
         mock_request = _build_mock_request(admin_id, {"payment_status": new_payment_status, "notes": ""})
 
         with patch("apps.applications.admin_views.Application.objects") as mock_qs, \
+             patch("apps.catalog.services.AccessScopeService") as mock_scope, \
              patch("apps.documents.payment_service.PaymentService.review_application_payment") as mock_review:
+            mock_scope.return_value.filter_applications.side_effect = lambda qs, _u: qs
+            mock_qs.all.return_value = mock_qs
             mock_qs.get.return_value = mock_app
             def side_effect(application_id, payment_status, reviewed_by_id, notes):
                 mock_app.payment_status = payment_status

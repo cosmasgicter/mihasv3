@@ -412,7 +412,9 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
         request.META = {}
 
         with patch("apps.applications.admin_review_views.transaction.atomic"), \
-             patch("apps.applications.admin_review_views.Application.objects") as mock_qs:
+             patch("apps.applications.admin_review_views.Application.objects") as mock_qs, \
+             patch("apps.catalog.services.AccessScopeService") as mock_scope:
+            mock_scope.return_value.filter_applications.side_effect = lambda qs, _u: qs
             mock_qs.get.return_value = app
 
             with patch("apps.applications.admin_review_views.Payment.objects") as MockPaymentObjects:
@@ -441,10 +443,12 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
 
         with patch("apps.applications.admin_review_views.transaction.atomic"), \
              patch("apps.applications.admin_review_views.Application.objects") as mock_qs, \
+             patch("apps.catalog.services.AccessScopeService") as mock_scope, \
              patch("apps.applications.admin_review_views.transition_application_status", return_value="submitted"), \
              patch("apps.applications.admin_review_views.ApplicationStatusHistory.objects") as mock_history, \
              patch("apps.common.communication_service.CommunicationService") as mock_comms, \
              patch("apps.applications.admin_review_views.CommunicationService", mock_comms):
+            mock_scope.return_value.filter_applications.side_effect = lambda qs, _u: qs
             mock_qs.get.return_value = app
             mock_qs.select_for_update.return_value.get.return_value = app
             mock_history.create.return_value = MagicMock()
@@ -472,7 +476,9 @@ class TestUnverifiedPaymentApprovalGuard(SimpleTestCase):
         request.META = {}
 
         with patch("apps.applications.admin_review_views.transaction.atomic"), \
-             patch("apps.applications.admin_review_views.Application.objects") as mock_qs:
+             patch("apps.applications.admin_review_views.Application.objects") as mock_qs, \
+             patch("apps.catalog.services.AccessScopeService") as mock_scope:
+            mock_scope.return_value.filter_applications.side_effect = lambda qs, _u: qs
             mock_qs.get.return_value = app
             mock_qs.select_for_update.return_value.get.return_value = app
 

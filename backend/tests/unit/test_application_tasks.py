@@ -23,6 +23,24 @@ _APP_MODEL = "apps.applications.models.Application.objects"
 _DOC_CREATE = "apps.documents.models.ApplicationDocument.objects"
 _PAY_MODEL = "apps.documents.models.Payment.objects"
 _STORAGE = "apps.common.storage.MediaStorage"
+# Acceptance letters are profile-required (R8.9): with no resolved
+# Institution_Document_Profile the task fails and creates no document. These
+# ORM-mocked unit tests run without a DB, so patch the resolver to return an
+# active profile and exercise the success path.
+_PROFILE_RESOLVE = "apps.catalog.services.InstitutionDocumentProfileService.resolve"
+
+
+def _make_profile():
+    """Minimal active profile stand-in for the acceptance-letter renderer."""
+    profile = MagicMock()
+    profile.id = uuid.uuid4()
+    profile.version = 1
+    profile.sections = {"body": "Profile body"}
+    profile.fee_chart = []
+    profile.bank_accounts = []
+    profile.requirements = []
+    profile.signatory = {"name": "Registrar", "role": "Admissions"}
+    return profile
 
 
 # ---------------------------------------------------------------------------
@@ -73,16 +91,18 @@ def _mock_storage_instance():
 class TestGenerateAcceptanceLetterTask:
     """Tests for generate_acceptance_letter_task."""
 
+    @patch(_PROFILE_RESOLVE)
     @patch(_STORAGE)
     @patch(_DOC_CREATE)
     @patch(_APP_MODEL)
     def test_creates_application_document_with_correct_fields(
-        self, mock_app_qs, mock_doc_qs, mock_storage_cls
+        self, mock_app_qs, mock_doc_qs, mock_storage_cls, mock_resolve
     ):
         """Task creates an ApplicationDocument with document_type='acceptance_letter'."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
         mock_app_qs.get.return_value = application
+        mock_resolve.return_value = _make_profile()
 
         storage_instance = _mock_storage_instance()
         mock_storage_cls.return_value = storage_instance
@@ -97,16 +117,18 @@ class TestGenerateAcceptanceLetterTask:
         assert call_kwargs["verification_status"] == "verified"
         assert call_kwargs["mime_type"] == "application/pdf"
 
+    @patch(_PROFILE_RESOLVE)
     @patch(_STORAGE)
     @patch(_DOC_CREATE)
     @patch(_APP_MODEL)
     def test_document_name_contains_applicant_name(
-        self, mock_app_qs, mock_doc_qs, mock_storage_cls
+        self, mock_app_qs, mock_doc_qs, mock_storage_cls, mock_resolve
     ):
         """Document name includes the applicant's full name."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
         mock_app_qs.get.return_value = application
+        mock_resolve.return_value = _make_profile()
 
         storage_instance = _mock_storage_instance()
         mock_storage_cls.return_value = storage_instance
@@ -116,16 +138,18 @@ class TestGenerateAcceptanceLetterTask:
         call_kwargs = mock_doc_qs.create.call_args[1]
         assert "Test Applicant" in call_kwargs["document_name"]
 
+    @patch(_PROFILE_RESOLVE)
     @patch(_STORAGE)
     @patch(_DOC_CREATE)
     @patch(_APP_MODEL)
     def test_stores_pdf_in_r2_via_media_storage(
-        self, mock_app_qs, mock_doc_qs, mock_storage_cls
+        self, mock_app_qs, mock_doc_qs, mock_storage_cls, mock_resolve
     ):
         """Task uploads the generated PDF to R2 via MediaStorage."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
         mock_app_qs.get.return_value = application
+        mock_resolve.return_value = _make_profile()
 
         storage_instance = _mock_storage_instance()
         mock_storage_cls.return_value = storage_instance
@@ -138,16 +162,18 @@ class TestGenerateAcceptanceLetterTask:
         assert "acceptance-letters" in save_args[0][0]
         assert save_args[0][0].endswith(".pdf")
 
+    @patch(_PROFILE_RESOLVE)
     @patch(_STORAGE)
     @patch(_DOC_CREATE)
     @patch(_APP_MODEL)
     def test_file_url_set_from_storage(
-        self, mock_app_qs, mock_doc_qs, mock_storage_cls
+        self, mock_app_qs, mock_doc_qs, mock_storage_cls, mock_resolve
     ):
         """ApplicationDocument.file_url is set from storage.url()."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
         mock_app_qs.get.return_value = application
+        mock_resolve.return_value = _make_profile()
 
         storage_instance = _mock_storage_instance()
         mock_storage_cls.return_value = storage_instance

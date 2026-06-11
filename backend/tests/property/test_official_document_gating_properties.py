@@ -39,6 +39,7 @@ leaking the application's existence.
 from __future__ import annotations
 
 import pytest
+from django.test import override_settings
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from rest_framework.test import APIClient
@@ -182,6 +183,19 @@ _GATING_PROPERTY_SETTINGS = settings(
 )
 
 
+def _no_throttle_rest_framework() -> dict:
+    """Deprecated shim retained for import stability — see _RATELIMIT_OFF.
+
+    The 429s in this property come from the django-ratelimit
+    ``RateLimitMiddleware`` (coarse per-IP scope buckets), not DRF throttles,
+    so disabling DRF throttle classes had no effect. The real lever is
+    ``RATELIMIT_ENABLE=False`` applied via ``@override_settings`` on the test.
+    """
+    from django.conf import settings as dj_settings
+
+    return dict(getattr(dj_settings, "REST_FRAMEWORK", {}))
+
+
 @pytest.mark.django_db
 class TestOfficialDocumentGatingProperty:
     # Feature: multi-tenant-beanola-remediation, Property 18: Student official-document status gating
@@ -200,6 +214,7 @@ class TestOfficialDocumentGatingProperty:
     **Validates: Requirements 5.2, 5.3, 5.4, 5.5, 7.5**
     """
 
+    @override_settings(RATELIMIT_ENABLE=False)
     @_GATING_PROPERTY_SETTINGS
     @given(
         actor_kind=st.sampled_from(_ACTOR_KINDS),

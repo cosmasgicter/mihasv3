@@ -49,9 +49,16 @@ from apps.applications.tasks import (
     generate_application_slip_task,
     generate_conditional_offer_task,
 )
-from apps.catalog.models import InstitutionAsset, InstitutionDocumentTemplate
+from apps.catalog.models import InstitutionAsset, InstitutionDocumentProfile, InstitutionDocumentTemplate
 from apps.documents.models import ApplicationDocument
 from tests.tenant_fixtures import build_tenant_world
+
+
+# Document types whose render is profile-driven (R8.9): with no active
+# Institution_Document_Profile the generation fails and produces no document.
+# The lifecycle property exercises the *success* path, so for these types the
+# world must carry an active institution-default profile.
+_PROFILE_REQUIRED = {"acceptance_letter", "conditional_offer"}
 
 
 # ---------------------------------------------------------------------------
@@ -148,6 +155,29 @@ def _make_active_template(institution, document_type: str, version: int) -> Inst
     )
 
 
+def _make_active_profile(institution, document_type: str) -> InstitutionDocumentProfile:
+    """Persist an institution-default active profile so a profile-required
+    document type (acceptance letter / conditional offer) renders rather than
+    failing with DOCUMENT_PROFILE_NOT_CONFIGURED (R8.9)."""
+    return InstitutionDocumentProfile.objects.create(
+        id=uuid.uuid4(),
+        institution=institution,
+        document_type=document_type,
+        program=None,
+        canonical_program=None,
+        intake=None,
+        layout_key="fee_chart_letter",
+        sections={"body": "Profile-driven body text"},
+        fee_chart=[],
+        bank_accounts=[],
+        requirements=[],
+        signatory={"name": "Registrar", "role": "Admissions"},
+        version=1,
+        is_active=True,
+        created_at=timezone.now(),
+    )
+
+
 def _make_active_logo(institution, version: int) -> InstitutionAsset:
     return InstitutionAsset.objects.create(
         id=uuid.uuid4(),
@@ -206,6 +236,12 @@ class TestOfficialDocumentLifecycleProperty:
         world = build_tenant_world(application_status=required_status)
         application = world.application
         institution = world.institution
+
+        # R8.9: profile-required types need an active profile or generation
+        # fails (no document). Seed an institution-default profile so the
+        # success-path lifecycle invariants are exercised.
+        if document_type in _PROFILE_REQUIRED:
+            _make_active_profile(institution, document_type)
 
         # R6.7: a previously-superseded-and-deleted official document, stamped
         # with the *most recent* uploaded_at, must never be chosen as current.

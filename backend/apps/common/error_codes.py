@@ -327,6 +327,14 @@ ERROR_CODES.update({
         "message": "File storage operation failed",
         "category": "document",
     },
+    # Official (system-generated) documents are immutable to anyone who is not
+    # a super-admin (multi-tenant Beanola — R4.1). Students and ordinary school
+    # staff cannot delete a system-generated official document.
+    "OFFICIAL_DOCUMENT_IMMUTABLE": {
+        "http_status": status.HTTP_403_FORBIDDEN,
+        "message": "Official generated documents cannot be deleted",
+        "category": "document",
+    },
     # Tenant asset upload (multi-tenant Beanola — R5.3). Stable code for any
     # MIME / magic-byte / size validation failure on an institution asset
     # upload. Always 400 — an invalid asset is a client error, not a payload
@@ -344,6 +352,18 @@ ERROR_CODES.update({
     "TEMPLATE_TOKEN_REJECTED": {
         "http_status": status.HTTP_400_BAD_REQUEST,
         "message": "Disallowed section or token in document template",
+        "category": "document",
+    },
+    # Profile-driven official documents (multi-tenant Beanola — R8.9). Raised by
+    # the official-document renderer when a profile-required document type
+    # (acceptance letter / conditional offer) has no active
+    # Institution_Document_Profile resolved for the institution + document type.
+    # The generation is marked ``failed`` and NO document is produced from
+    # frontend/default content. 422 — the render input (tenant config) is
+    # missing, not a malformed client request.
+    "DOCUMENT_PROFILE_NOT_CONFIGURED": {
+        "http_status": status.HTTP_422_UNPROCESSABLE_ENTITY,
+        "message": "No document profile configured for this institution and document type",
         "category": "document",
     },
 })
