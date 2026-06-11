@@ -98,12 +98,34 @@ def _with_payment_summary(queryset):
 
 
 def _resolve_institution_code(institution_name: str) -> str:
-    """Resolve institution name to its short code (e.g., MIHAS, KATC)."""
+    """Resolve institution name (or code) to its short code (e.g., MIHAS, KATC).
+
+    Matches by code first, then exact name, then partial name. Treats a NULL
+    ``is_active`` as active so a tenant institution row that was created
+    without an explicit ``is_active`` (the column is nullable) still resolves
+    instead of silently falling back to MIHAS — the bug that produced
+    ``MIHAS...`` application numbers on KATC applications.
+    """
+    from django.db.models import Q
+
     from apps.catalog.models import Institution
-    inst = Institution.objects.filter(name__iexact=institution_name, is_active=True).first()
+
+    if not institution_name:
+        return 'MIHAS'
+
+    active = Q(is_active=True) | Q(is_active__isnull=True)
+    candidate = institution_name.strip()
+
+    # 1. Exact code match (caller may pass "KATC" directly).
+    inst = Institution.objects.filter(active, code__iexact=candidate).first()
     if inst:
         return inst.code.upper()
-    inst = Institution.objects.filter(name__icontains=institution_name, is_active=True).first()
+    # 2. Exact name match ("Kalulushi Training Centre").
+    inst = Institution.objects.filter(active, name__iexact=candidate).first()
+    if inst:
+        return inst.code.upper()
+    # 3. Partial name match.
+    inst = Institution.objects.filter(active, name__icontains=candidate).first()
     if inst:
         return inst.code.upper()
     return 'MIHAS'  # Default fallback

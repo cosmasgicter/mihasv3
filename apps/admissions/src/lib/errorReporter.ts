@@ -10,6 +10,24 @@
 import * as Sentry from '@sentry/react'
 
 /**
+ * In-memory dedup + volume guard so a single repeating error (or an error
+ * loop) cannot flood the GlitchTip free-tier ingest endpoint and trigger
+ * HTTP 429 on `…/envelope/`. State is per page-load; resets on reload.
+ */
+const MAX_EVENTS_PER_SESSION = 25
+const DEDUP_WINDOW_MS = 60_000
+let sessionEventCount = 0
+const recentSignatures = new Map<string, number>()
+
+function eventSignature(event: Sentry.ErrorEvent): string {
+  const ex = event.exception?.values?.[0]
+  const type = ex?.type ?? event.message ?? 'unknown'
+  const top = ex?.stacktrace?.frames?.at(-1)
+  const loc = top ? `${top.filename ?? ''}:${top.lineno ?? ''}` : ''
+  return `${type}|${loc}`
+}
+
+/**
  * Activate the global error reporter. Call once at app startup.
  * Respects `VITE_GLITCHTIP_DSN` — does nothing when the DSN is absent.
  */
@@ -23,8 +41,42 @@ export function initErrorReporter(): void {
     dsn,
     environment: import.meta.env.MODE,
     release: import.meta.env.VITE_APP_VERSION ?? 'unknown',
+    // Conserve GlitchTip free-tier quota: sample performance traces low and
+    // only forward a fraction of errors. Combined with the beforeSend guard
+    // below this keeps the ingest endpoint well under its rate limit.
     tracesSampleRate: 0.01,
+    sampleRate: 0.25,
     sendDefaultPii: false,
+    // Drop browser-extension / network noise that adds no signal but burns quota.
+    ignoreErrors: [
+      'ResizeObserver loop limit exceeded',
+      'ResizeObserver loop completed with undelivered notifications.',
+      'Non-Error promise rejection captured',
+      'Failed to fetch',
+      'NetworkError when attempting to fetch resource.',
+      'Load failed',
+      'AbortError',
+    ],
+    beforeSend(event) {
+      // Hard cap per page-load so an error loop can never flood ingest.
+      if (sessionEventCount >= MAX_EVENTS_PER_SESSION) return null
+
+      // Dedup identical errors within a rolling window.
+      const sig = eventSignature(event)
+      const now = Date.now()
+      const last = recentSignatures.get(sig)
+      if (last !== undefined && now - last < DEDUP_WINDOW_MS) return null
+
+      recentSignatures.set(sig, now)
+      // Prune old signatures to bound memory.
+      if (recentSignatures.size > 100) {
+        for (const [k, t] of recentSignatures) {
+          if (now - t > DEDUP_WINDOW_MS) recentSignatures.delete(k)
+        }
+      }
+      sessionEventCount += 1
+      return event
+    },
   })
 }
 

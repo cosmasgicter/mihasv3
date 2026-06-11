@@ -293,7 +293,7 @@ Each phase ends in a verification block and a checkpoint that pauses for the use
     - Extend `apps/admissions/src/pages/admin/tenants/TemplatesPanel.tsx` and `apps/admissions/src/services/admin/tenants.ts` to choose document type + optional applies-to offering/canonical-program/intake, choose a layout, edit structured sections, fee-chart rows, bank accounts, requirements, and signatory text, preview with sample data, clone the latest version, and activate/deactivate versions. Apply the UI guardrails (R7.7/R17.7) — load `PRODUCT.md`/`DESIGN.md` and consult the design skills first.
     - _Requirements: R8.8_
 
-  - [-] 17.2 Template panel UI tests
+  - [x] 17.2 Template panel UI tests
     - Tests for fee rows, bank rows, requirements, clone/version, and that preview does not assume MIHAS/KATC fallback.
     - _Requirements: R8.8_
 

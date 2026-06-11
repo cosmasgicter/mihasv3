@@ -17,10 +17,25 @@ from ..render_context import RenderContext
 
 
 def escape(value) -> str:
-    """HTML-escape any profile-derived value for safe PDF drawing (R8.6)."""
+    """Sanitise a value for drawing onto the reportlab PDF canvas.
+
+    The PDF layouts draw every string with the low-level ``canvas.drawString``
+    family, which renders glyphs literally and does NOT interpret any HTML/XML
+    markup. HTML-escaping here therefore corrupts the output (an apostrophe
+    becomes a literal ``&#x27;``, ``&`` becomes ``&amp;``) with zero security
+    benefit. We instead HTML-*unescape*: raw authored text is left untouched
+    (unescape is a no-op when there are no entities), while any value that was
+    already HTML-escaped upstream — e.g. profile/template sections that passed
+    through ``DocumentTemplateService._render_value`` — is restored to its
+    real glyphs for the canvas.
+
+    The genuine injection defense (R6.4 token allowlist + escape-at-
+    substitution) lives in ``DocumentTemplateService._render_value`` and is
+    unaffected by this canvas-side normalisation.
+    """
     if value is None:
         return ""
-    return html.escape(str(value))
+    return html.unescape(str(value))
 
 
 def profile_section(context: RenderContext, key: str) -> str | None:
