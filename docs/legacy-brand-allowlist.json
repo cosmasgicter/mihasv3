@@ -13,6 +13,10 @@
       "reason": "Tenant seed fixture (R8.4): seeds the MIHAS RN, KATC COG, KATC EHT acceptance-letter profiles as tenant rows. MIHAS/KATC are legitimate tenant data here."
     },
     {
+      "path": "backend/apps/catalog/management/commands/brand_institutions.py",
+      "reason": "Tenant branding seed command: seeds brand_name/colours/contacts for the existing MIHAS/KATC tenants so official documents render styled. MIHAS/KATC are legitimate tenant fixture data here, confined to this seed command."
+    },
+    {
       "path": "backend/apps/applications/_view_helpers.py",
       "reason": "Application-number resolver. MIHAS appears only behind the clearly-named, tested legacy single-tenant path (_resolve_institution_code_legacy) and in docstrings; the default flow uses the assigned institution code (R9.3/R9.4)."
     },

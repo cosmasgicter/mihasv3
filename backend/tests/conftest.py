@@ -118,6 +118,12 @@ def unmanaged_schema(django_db_setup, django_db_blocker):
                     CREATE UNIQUE INDEX IF NOT EXISTS uq_webhook_processed_reference_event
                     ON webhook_event_logs (reference, event_type)
                     WHERE processed IS TRUE;
+                    -- Tenant-aware communication_templates lookup, mirrors
+                    -- scripts/2026_06_08_04_communication_templates_tenant.sql
+                    -- (the model is managed=False so create_model does not emit
+                    -- this composite index; tests assert its presence).
+                    CREATE INDEX IF NOT EXISTS idx_comm_templates_tenant_lookup
+                    ON communication_templates (institution_id, template_key, is_active, version);
                     """
                 )
 
