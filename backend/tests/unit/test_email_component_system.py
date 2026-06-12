@@ -121,18 +121,25 @@ def test_notice_box_variants_apply_correct_palette():
     assert tokens.GREEN in success
 
 
-def test_signature_block_defaults_to_dr_solomon_musonda():
+def test_signature_block_defaults_to_beanola_admissions_office():
     html = signature_block()
-    # Default display name carries the MD postnominal inline, matching
-    # MIHAS's official form ("Dr Solomon Musonda, MD").
-    assert "Dr Solomon Musonda, MD" in html
-    # Managing Director is the actual title on MIHAS stationery.
-    assert "Managing Director" in html
-    assert "Mukuba Institute of Health and Applied Sciences" in html
+    # Beanola is multi-tenant: the default signatory is brand-neutral and
+    # must NOT inherit a single school's person/role/institution.
+    assert "Beanola Admissions Office" in html
+    assert "Dr Solomon Musonda" not in html
+    assert "Managing Director" not in html
+    assert "Mukuba" not in html
+    assert "MIHAS" not in html
+
+
+def test_signature_block_omits_optional_rows_by_default():
+    html = signature_block()
+    # With no explicit signatory context, only the neutral name line renders.
+    assert "School of" not in html
 
 
 def test_signature_block_omits_postnominal_when_cleared():
-    html = signature_block(postnominal="")
+    html = signature_block(name="Dr Solomon Musonda", postnominal="")
     assert "Dr Solomon Musonda" in html
     # No trailing comma+MD when postnominal is cleared
     assert "Dr Solomon Musonda, " not in html

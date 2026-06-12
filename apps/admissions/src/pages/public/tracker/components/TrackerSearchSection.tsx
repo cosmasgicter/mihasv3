@@ -55,7 +55,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
                 onChange={(e) => onSearchTermChange(e.target.value)}
                 onPaste={onPaste}
                 onKeyPress={onKeyPress}
-                placeholder="MIHAS123456 or TRK-XXXXXXXXXXXX"
+                placeholder="BNL123456 or TRK-XXXXXXXXXXXX"
                 autoComplete="off"
                 inputMode="text"
                 aria-describedby={error ? 'tracker-search-error' : 'tracker-search-hint'}
@@ -76,7 +76,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
             </Button>
           </div>
           <p id="tracker-search-hint" className="mt-2 text-sm text-muted-foreground">
-            Format: <span className="font-mono">MIHAS123456</span>, <span className="font-mono">KATC123456</span>, or <span className="font-mono">TRK-XXXXXXXXXXXX</span>
+            Format: your school code followed by 6 digits (e.g. <span className="font-mono">BNL123456</span>) or <span className="font-mono">TRK-XXXXXXXXXXXX</span>
           </p>
           
           {error && (
@@ -111,7 +111,7 @@ export const TrackerSearchSection: React.FC<TrackerSearchSectionProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-semibold text-foreground">Format Example</h3>
-              <p className="mt-0.5 text-sm font-mono text-muted-foreground">MIHAS123456</p>
+              <p className="mt-0.5 text-sm font-mono text-muted-foreground">BNL123456</p>
             </div>
           </div>
           <div className="flex items-start gap-3 rounded-lg border border-border bg-muted p-4">

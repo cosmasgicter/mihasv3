@@ -131,6 +131,33 @@ the explicitly-labelled legacy-fallback / pre-canonical branches in
 pre-existing admin display-string filter in `analytics/admissions_analytics.py`.
 The drift guard fails on any unlisted new occurrence.
 
+### Capacity policy: advisory until enrollment (R15.3, R15.4)
+
+Spec: `.kiro/specs/multi-tenant-beanola-remediation/` (R15). The authoritative
+decision for how capacity interacts with assignment and seats:
+
+| Stage | Behaviour | Source of truth |
+|-------|-----------|-----------------|
+| Application creation / assignment | **Reserves no seat.** Capacity is *advisory*: `OfferingAssignmentService._has_capacity` excludes a candidate `ProgramIntake` whose `current_enrollment >= capacity` (where `capacity = program_intake.max_capacity or intake.max_capacity`) at assignment time only. No row is locked and no counter is incremented during assignment. | `backend/apps/catalog/services.py:OfferingAssignmentService._has_capacity` |
+| Submission | Re-runs assignment against the locked application snapshot and atomically increments the intake/program-intake `current_enrollment` (`F()` expression) under the application's `select_for_update()` lock. A stale/full offering surfaces as recoverable 409 (`OFFERING_NO_LONGER_AVAILABLE` / `OFFERING_CAPACITY_FULL`). | `backend/apps/applications/services.py:submit_application` → `IntakeEnforcer.increment_enrollment` |
+| Enrollment confirmation | The committed seat is finalised: `EnrollmentService.confirm_enrollment` re-validates and transitions to `enrolled` under `Application.objects.select_for_update()`. | `backend/apps/applications/enrollment_service.py:EnrollmentService.confirm_enrollment` |
+
+**Decision rationale (R15.4):** the reserve-at-create alternative is rejected
+for V1 because it would require holding a lock across the multi-step wizard and
+would strand seats on abandoned drafts. Capacity therefore stays advisory at
+assignment time and is committed under a lock at the submission/enrollment
+stages, which prevents capacity races without blocking draft authoring.
+
+**Recoverable assignment failure (R15.5):** when no eligible offering exists,
+`OfferingAssignmentService.assign` raises
+`OfferingAssignmentError(code="NO_ELIGIBLE_OFFERING")`. The program-first wizard
+checkpoint (`GET /api/v1/catalog/assignment-preview/`) maps this to an HTTP
+**409** recoverable envelope `{"success": false, "code": "NO_ELIGIBLE_OFFERING",
+"guidance": ...}` — matching the canonical `NO_ELIGIBLE_OFFERING` (409) entry in
+`backend/apps/common/error_codes.py` — so the student gets a next step (choose
+another intake, join the interest list, contact admissions) rather than a
+dead-end.
+
 ## Backend Module Decomposition
 
 The following original modules are now thin re-export shims; the real

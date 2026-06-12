@@ -299,7 +299,8 @@ class CanonicalProgramListView(APIView):
         ],
         responses={
             200: OpenApiResponse(response=OpenApiTypes.OBJECT),
-            400: OpenApiResponse(response=ErrorResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer, description="Missing program_id/intake_id (VALIDATION_ERROR)."),
+            409: OpenApiResponse(response=ErrorResponseSerializer, description="No eligible offering (NO_ELIGIBLE_OFFERING) — recoverable, carries user-facing guidance."),
         },
     ),
 )
@@ -347,6 +348,16 @@ class AssignmentPreviewView(APIView):
             OfferingAssignmentService,
         )
 
+        # Recoverable NO_ELIGIBLE_OFFERING envelope (R15.5): a 409 with stable
+        # code + user-facing guidance so the program-first wizard presents a
+        # next step (choose another intake / interest list / contact admissions)
+        # rather than dead-ending. The 409 mirrors the canonical ERROR_CODES
+        # registry entry for NO_ELIGIBLE_OFFERING.
+        _no_offering_guidance = (
+            "No school offering is available for this program and intake. "
+            "Choose another intake, join the interest list, or contact admissions."
+        )
+
         try:
             assigned = OfferingAssignmentService().assign(
                 program_id=str(program_id),
@@ -357,19 +368,34 @@ class AssignmentPreviewView(APIView):
             )
         except OfferingAssignmentError as exc:
             return Response(
-                {"success": False, "error": str(exc), "code": getattr(exc, "code", "NO_ELIGIBLE_OFFERING")},
-                status=status.HTTP_400_BAD_REQUEST,
+                {
+                    "success": False,
+                    "error": str(exc),
+                    "code": getattr(exc, "code", "NO_ELIGIBLE_OFFERING"),
+                    "guidance": _no_offering_guidance,
+                },
+                status=status.HTTP_409_CONFLICT,
             )
         except (CanonicalProgram.DoesNotExist, Intake.DoesNotExist):
             return Response(
-                {"success": False, "error": "The selected program or intake is no longer available.", "code": "NO_ELIGIBLE_OFFERING"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {
+                    "success": False,
+                    "error": "The selected program or intake is no longer available.",
+                    "code": "NO_ELIGIBLE_OFFERING",
+                    "guidance": _no_offering_guidance,
+                },
+                status=status.HTTP_409_CONFLICT,
             )
         except Exception:
             logger.exception("Assignment preview failed for program %s intake %s", program_id, intake_id)
             return Response(
-                {"success": False, "error": "Unable to resolve the assigned school.", "code": "NO_ELIGIBLE_OFFERING"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {
+                    "success": False,
+                    "error": "Unable to resolve the assigned school.",
+                    "code": "NO_ELIGIBLE_OFFERING",
+                    "guidance": _no_offering_guidance,
+                },
+                status=status.HTTP_409_CONFLICT,
             )
 
         institution = assigned.institution

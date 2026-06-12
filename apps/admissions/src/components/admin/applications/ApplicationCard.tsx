@@ -13,17 +13,14 @@ import type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
 
 export type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
 
-// Institution code to name mapping
-export const INSTITUTION_NAMES: Record<string, string> = {
-  'KATC': 'Kalulushi Training Centre',
-  'katc': 'Kalulushi Training Centre',
-  'MIHAS': 'Mukuba Institute of Health and Applied Sciences',
-  'mihas': 'Mukuba Institute of Health and Applied Sciences'
-}
-
-export const getInstitutionName = (code?: string): string => {
-  if (!code) return 'Not specified'
-  return INSTITUTION_NAMES[code] || code
+// Institution display name resolver.
+// Beanola is a multi-school platform (R9): the backend supplies the canonical
+// institution display value on each application row, so there is no hard-coded
+// MIHAS/KATC fallback map here. Unknown/empty values fall through to a neutral
+// placeholder rather than a default school identity.
+export const getInstitutionName = (name?: string): string => {
+  const trimmed = name?.trim()
+  return trimmed && trimmed.length > 0 ? trimmed : 'Not specified'
 }
 
 export interface ApplicationCardProps {

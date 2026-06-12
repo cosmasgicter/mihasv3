@@ -84,7 +84,7 @@ def draft_expiry_reminder_task(self):
                             f"<p>Your draft application for <strong>{app.program}</strong> "
                             f"({app.intake}) has expired after 30 days of inactivity.</p>"
                             f"<p>You may start a new application at any time.</p>"
-                            f"<p>Best regards,<br>MIHAS Admissions</p>"
+                            f"<p>Best regards,<br>Beanola Admissions</p>"
                         ),
                     )
                     expired_count += 1
@@ -133,7 +133,7 @@ def draft_expiry_reminder_task(self):
                         body=(
                             f"<p>Dear {app.full_name},</p>"
                             f"<p>{message}</p>"
-                            f"<p>Best regards,<br>MIHAS Admissions</p>"
+                            f"<p>Best regards,<br>Beanola Admissions</p>"
                         ),
                     )
                     reminders_sent += 1

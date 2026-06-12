@@ -69,7 +69,8 @@ class TestAssignmentPreviewEndpoint:
 
     def test_unassignable_pair_returns_recoverable_error(self, tenant_world_factory):
         """An ineligible program + intake returns a recoverable
-        NO_ELIGIBLE_OFFERING (400), never a 500 dead-end (R10.4 groundwork)."""
+        NO_ELIGIBLE_OFFERING (409), never a 500 dead-end (R15.5). The 409
+        recoverable envelope carries user-facing guidance for the wizard."""
         world = tenant_world_factory(with_application=False)
         client = APIClient()
 
@@ -79,7 +80,8 @@ class TestAssignmentPreviewEndpoint:
             {"program_id": world.canonical_program_id, "intake_id": str(uuid.uuid4())},
         )
 
-        assert response.status_code == 400, (response.status_code, response.json())
+        assert response.status_code == 409, (response.status_code, response.json())
         body = response.json()
         assert body.get("success") is False
         assert body.get("code") == "NO_ELIGIBLE_OFFERING"
+        assert body.get("guidance"), body

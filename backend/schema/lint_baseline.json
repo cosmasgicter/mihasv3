@@ -1,12 +1,12 @@
 {
   "summary": {
     "total_endpoints": 220,
-    "endpoints_with_issues": 127,
-    "total_issues": 955,
+    "endpoints_with_issues": 129,
+    "total_issues": 958,
     "errors": 1,
-    "warnings": 824,
+    "warnings": 827,
     "info": 130,
-    "score": 88.13
+    "score": 88.09
   },
   "issues": [
     {
@@ -141,13 +141,6 @@
       "message": "Path parameter 'institution_id' should use camelCase or kebab-case in GET /api/v1/admin/institutions/{institution_id}/assets/",
       "path": "/paths//api/v1/admin/institutions/{institution_id}/assets//get/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/admin/institutions/{institution_id}/assets/",
-      "path": "/paths//api/v1/admin/institutions/{institution_id}/assets//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
     },
     {
       "severity": "warning",
@@ -603,6 +596,20 @@
       "message": "Path parameter 'membership_id' should use camelCase or kebab-case in PATCH /api/v1/admin/memberships/{membership_id}/",
       "path": "/paths//api/v1/admin/memberships/{membership_id}//patch/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Query parameter 'institution_id' should use camelCase or kebab-case in GET /api/v1/admin/templates/",
+      "path": "/paths//api/v1/admin/templates//get/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'pageSize') or kebab-case (e.g., 'page-size')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Query parameter 'institution_id' should use camelCase or kebab-case in PUT /api/v1/admin/templates/{key}/",
+      "path": "/paths//api/v1/admin/templates/{key}//put/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'pageSize') or kebab-case (e.g., 'page-size')"
     },
     {
       "severity": "warning",
@@ -1576,6 +1583,13 @@
       "message": "Path parameter 'run_id' should use camelCase or kebab-case in POST /api/v1/automation/runs/{run_id}/cancel/",
       "path": "/paths//api/v1/automation/runs/{run_id}/cancel//post/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "info",
+      "category": "responses",
+      "message": "Uncommon status code 409 for GET /api/v1/catalog/assignment-preview/",
+      "path": "/paths//api/v1/catalog/assignment-preview//get/responses/409",
+      "suggestion": "Consider using standard codes for GET: [200, 304, 404]"
     },
     {
       "severity": "warning",
@@ -4270,6 +4284,13 @@
       "category": "naming",
       "message": "Property 'template_key' in schema 'CommunicationTemplate' should use camelCase",
       "path": "/components/schemas/CommunicationTemplate/properties/template_key",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'institution_id' in schema 'CommunicationTemplate' should use camelCase",
+      "path": "/components/schemas/CommunicationTemplate/properties/institution_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {

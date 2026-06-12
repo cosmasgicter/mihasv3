@@ -173,6 +173,38 @@ def _audit_official_document_deleted(request, document):
         )
 
 
+def _audit_official_document_downloaded(request, document):
+    """Write an official-document download Audit_Event (R16.3, R16.4).
+
+    Routes through the existing ``TenantAuditService`` / ``audit_logs``
+    mechanism. Records the actor role (admin or student) so an operator can see
+    who pulled the document, but NEVER the applicant's PII (name, NRC/passport,
+    phone, email, address), the file bytes, or the signed URL/storage key —
+    only the document id, application id, document type, and institution id.
+    Audit-writer failures never propagate.
+    """
+    application = getattr(document, "application", None)
+    institution_id = getattr(application, "institution_ref_id", None) if application else None
+    try:
+        from apps.catalog.tenant_audit_service import TenantAuditService
+
+        TenantAuditService.record_official_document_downloaded(
+            document_id=getattr(document, "id", None),
+            application_id=getattr(application, "id", None) if application else None,
+            institution_id=institution_id,
+            document_type=getattr(document, "document_type", None),
+            actor_id=getattr(request.user, "id", None),
+            actor_role=getattr(request.user, "role", None),
+            request=request,
+        )
+    except Exception:  # pragma: no cover - audit writes must never block a download
+        logger.warning(
+            "Failed to emit official-document download audit for document %s",
+            getattr(document, "id", None),
+            exc_info=True,
+        )
+
+
 def _get_document_storage_key(document):
     """Compatibility shim - delegates to ``apps.common.storage.get_document_storage_key``.
 
@@ -480,6 +512,12 @@ class DocumentDownloadView(APIView):
                 {"success": False, "error": "Failed to generate download URL", "code": "STORAGE_ERROR"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+        # R16.3: a download of an official (system-generated) document is an
+        # auditable lifecycle event. Record the actor role (admin/student) but
+        # never the applicant PII, file bytes, or signed URL. Best-effort.
+        if getattr(document, "system_generated", False):
+            _audit_official_document_downloaded(request, document)
 
         return HttpResponseRedirect(signed_url)
 

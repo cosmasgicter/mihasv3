@@ -46,6 +46,20 @@ ACTION_ASSIGNMENT_FAILED = "assignment.failed"
 #: ``official_document_render_failed`` is emitted by ``pdf_generation``).
 ACTION_OFFICIAL_DOCUMENT_GENERATED = "official_document.generated"
 
+#: Official-document generation enqueued (R16.3). Emitted when a render task is
+#: queued (or the brokerless derived-pending fallback is returned) so the queued
+#: stage is observable alongside generated/failed/downloaded/emailed.
+ACTION_OFFICIAL_DOCUMENT_QUEUED = "official_document.queued"
+
+#: Official document downloaded by an admin or student (R16.3). The actor role
+#: is recorded; never the applicant's PII.
+ACTION_OFFICIAL_DOCUMENT_DOWNLOADED = "official_document.downloaded"
+
+#: Official-document details emailed to a recipient (R16.3). The recipient email
+#: address is applicant contact PII and is therefore NEVER recorded — only the
+#: application/institution ids and document type.
+ACTION_OFFICIAL_DOCUMENT_EMAILED = "official_document.emailed"
+
 #: A non-super-admin actor's out-of-scope read was masked as not-found.
 ACTION_SCOPE_DENIED = "scope.denied"
 
@@ -349,6 +363,102 @@ class TenantAuditService:
             request=request,
         )
 
+    @staticmethod
+    def record_official_document_queued(
+        *,
+        application_id: Any,
+        institution_id: Any,
+        document_type: str,
+        task_id: Optional[str] = None,
+        actor_id: Optional[Any] = None,
+        actor_role: Optional[str] = None,
+        request: Optional[Any] = None,
+    ) -> None:
+        """Record an official-document generation enqueue (R16.3).
+
+        Emitted when a render task is enqueued (or the brokerless
+        derived-pending fallback is returned). Carries only the application +
+        institution ids, the document type, and an opaque Celery ``task_id`` —
+        never applicant PII, credentials, or document content.
+        """
+        TenantAuditService.record_event(
+            action=ACTION_OFFICIAL_DOCUMENT_QUEUED,
+            entity_type="application_document",
+            entity_id=application_id,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            institution_id=institution_id,
+            metadata={
+                "document_type": document_type,
+                "task_id": str(task_id) if task_id else None,
+            },
+            request=request,
+        )
+
+    @staticmethod
+    def record_official_document_downloaded(
+        *,
+        document_id: Any,
+        application_id: Any,
+        institution_id: Any,
+        document_type: str,
+        actor_id: Optional[Any] = None,
+        actor_role: Optional[str] = None,
+        request: Optional[Any] = None,
+    ) -> None:
+        """Record an official-document download by an admin or student (R16.3).
+
+        The actor *role* (``student`` / ``admin`` / ``reviewer`` /
+        ``super_admin``) is recorded so an operator can tell who pulled the
+        document, but NEVER the applicant's name, NRC/passport, phone, email, or
+        address, the file bytes, or the storage key/URL — only the document,
+        application, and institution ids plus the document type.
+        """
+        TenantAuditService.record_event(
+            action=ACTION_OFFICIAL_DOCUMENT_DOWNLOADED,
+            entity_type="application_document",
+            entity_id=document_id,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            institution_id=institution_id,
+            metadata={
+                "document_id": _uuid_str(document_id),
+                "application_id": _uuid_str(application_id),
+                "document_type": document_type,
+            },
+            request=request,
+        )
+
+    @staticmethod
+    def record_official_document_emailed(
+        *,
+        application_id: Any,
+        institution_id: Any,
+        document_type: str,
+        actor_id: Optional[Any] = None,
+        actor_role: Optional[str] = None,
+        request: Optional[Any] = None,
+    ) -> None:
+        """Record that official-document details were emailed (R16.3).
+
+        The recipient email address is applicant contact PII and is therefore
+        NEVER recorded — neither as a value nor under an ``email`` key (the
+        shared redactor would mask it, but the payload omits it entirely). Only
+        the application + institution ids and the document type are stored.
+        """
+        TenantAuditService.record_event(
+            action=ACTION_OFFICIAL_DOCUMENT_EMAILED,
+            entity_type="application_document",
+            entity_id=application_id,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            institution_id=institution_id,
+            metadata={
+                "document_type": document_type,
+            },
+            request=request,
+        )
+
     # ------------------------------------------------------------------
     # Access-scope denials (R13.1)
     # ------------------------------------------------------------------
@@ -443,6 +553,9 @@ __all__ = [
     "ACTION_ASSIGNMENT_DECIDED",
     "ACTION_ASSIGNMENT_FAILED",
     "ACTION_OFFICIAL_DOCUMENT_GENERATED",
+    "ACTION_OFFICIAL_DOCUMENT_QUEUED",
+    "ACTION_OFFICIAL_DOCUMENT_DOWNLOADED",
+    "ACTION_OFFICIAL_DOCUMENT_EMAILED",
     "ACTION_SCOPE_DENIED",
     "TENANT_CONFIG_ACTION_PREFIX",
     "OBSERVABILITY_CONFIG_PREFIX",

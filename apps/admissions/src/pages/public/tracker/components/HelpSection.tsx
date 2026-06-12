@@ -32,7 +32,7 @@ export const HelpSection: React.FC = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">•</span>
-                  <span className="leading-relaxed">Look for format: <code className="bg-primary/10 px-1.5 py-0.5 rounded font-mono text-xs">MIHAS123456</code></span>
+                  <span className="leading-relaxed">Look for format: <code className="bg-primary/10 px-1.5 py-0.5 rounded font-mono text-xs">BNL123456</code></span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">•</span>
@@ -90,8 +90,8 @@ export const HelpSection: React.FC = () => {
                   <Mail className="h-4 w-4 text-primary" />
                   Email Support
                 </p>
-                <a href="mailto:info@mihas.edu.zm" className="text-primary font-medium hover:underline text-sm min-h-touch inline-flex items-center">
-                  info@mihas.edu.zm
+                <a href="mailto:admissions@beanola.com" className="text-primary font-medium hover:underline text-sm min-h-touch inline-flex items-center">
+                  admissions@beanola.com
                 </a>
               </div>
               
@@ -100,9 +100,8 @@ export const HelpSection: React.FC = () => {
                   <Phone className="h-4 w-4 text-secondary" />
                   Phone Support
                 </p>
-                <div className="space-y-1 text-sm">
-                  <p><strong>KATC:</strong> <a href="tel:0966992299" className="text-primary hover:underline inline-flex min-h-touch items-center">0966992299</a></p>
-                  <p><strong>MIHAS:</strong> <a href="tel:0961515151" className="text-primary hover:underline inline-flex min-h-touch items-center">0961515151</a></p>
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  <p>Contact the school you applied to — their phone number is on your offer or confirmation email.</p>
                 </div>
               </div>
             </div>

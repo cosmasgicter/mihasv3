@@ -250,7 +250,7 @@ class EmailSlipView(APIView):
             "Application record"
             "</div>"
             "<div style='padding-top:10px;font-size:16px;line-height:1.7;color:#334155;'>"
-            "Your application slip confirms that your submission has been received and recorded in the MIHAS admissions system."
+            "Your application slip confirms that your submission has been received and recorded in the Beanola admissions system."
             "</div>"
             "</div>"
             "<table role='presentation' style='width:100%;border-collapse:separate;border-spacing:0 0;"
@@ -287,6 +287,28 @@ class EmailSlipView(APIView):
             subject=f"Application Slip — {application.application_number}",
             body=body_html,
         )
+
+        # R16.3: emailing official-document (application slip) details is an
+        # auditable lifecycle event. Record only the application + institution
+        # ids and document type via TenantAuditService — never the recipient
+        # email address, applicant PII, or document body (R16.4). Best-effort.
+        try:
+            from apps.catalog.tenant_audit_service import TenantAuditService
+
+            TenantAuditService.record_official_document_emailed(
+                application_id=getattr(application, "id", None),
+                institution_id=getattr(application, "institution_ref_id", None),
+                document_type="application_slip",
+                actor_id=getattr(request.user, "id", None),
+                actor_role=getattr(request.user, "role", None),
+                request=request,
+            )
+        except Exception:  # pragma: no cover - audit must never block the email
+            logger.warning(
+                "Unable to record official-document emailed audit for application %s",
+                getattr(application, "id", None),
+                exc_info=True,
+            )
 
         return Response(
             {"success": True, "data": {"queued_id": str(email_record.id)}},

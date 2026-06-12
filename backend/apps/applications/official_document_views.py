@@ -202,6 +202,38 @@ def _institution_id(application) -> str | None:
     return str(institution_id) if institution_id else None
 
 
+def _signed_download_url(document) -> str | None:
+    """Return a time-limited signed download URL for a document's stored file.
+
+    The persisted ``file_url`` is a permanent, **unsigned** R2/S3 object URL and
+    the bucket is private (``AWS_DEFAULT_ACL = None``), so handing the raw URL to
+    the browser yields ``403 AccessDenied``. Mirror the working pattern in
+    ``DocumentDownloadView``/``DocumentSignedUrlView``: derive the storage key
+    from the stored ``file_url`` and presign it (default 15-minute expiry).
+
+    Returns ``None`` when the document has no file or signing is unavailable so
+    the caller can omit ``download_url`` (the UI then keeps surfacing a
+    non-ready state rather than offering a link that 403s).
+    """
+    if document is None or not getattr(document, "file_url", None):
+        return None
+    try:
+        from apps.common.storage import generate_signed_url, get_document_storage_key
+
+        file_key = get_document_storage_key(document)
+        if not file_key:
+            return None
+        return generate_signed_url(file_key)
+    except Exception:  # pragma: no cover - signing must never 500 the status read
+        logger.warning(
+            "Unable to sign official-document download URL for document %s; "
+            "omitting download_url",
+            getattr(document, "id", None),
+            exc_info=True,
+        )
+        return None
+
+
 def _build_envelope(application, document_type: str, *, document=None, status_value: str, task_id=None) -> dict:
     """Build the official-document data envelope (R5.1, R5.9)."""
     data: dict = {
@@ -220,16 +252,46 @@ def _build_envelope(application, document_type: str, *, document=None, status_va
     if document is not None:
         metadata = _official_document_metadata(document)
         data["template_version"] = metadata.get("template_version")
-        # ``download_url`` is the stored backend file URL (no network call
-        # required); omitted when the document carries no file yet.
-        file_url = getattr(document, "file_url", None)
-        if file_url:
-            data["download_url"] = file_url
+        # ``download_url`` must be a **signed** URL — the bucket is private, so
+        # the raw stored ``file_url`` 403s in the browser. Sign on read; omit
+        # the field when the document carries no file or signing is unavailable.
+        signed_url = _signed_download_url(document)
+        if signed_url:
+            data["download_url"] = signed_url
 
     if task_id is not None:
         data["task_id"] = task_id
 
     return data
+
+
+def _audit_official_document_queued(request, application, document_type: str, task_id) -> None:
+    """Record an official-document queued Audit_Event (R16.3). Never raises.
+
+    Emitted on the POST path when no Current_Official_Version exists and a
+    render is enqueued (or the brokerless derived-pending fallback fires), so
+    the queued lifecycle stage is observable. Carries only the application +
+    institution ids, the document type, and the opaque Celery ``task_id`` — no
+    applicant PII, credentials, or document bytes (R16.4).
+    """
+    try:
+        from apps.catalog.tenant_audit_service import TenantAuditService
+
+        TenantAuditService.record_official_document_queued(
+            application_id=getattr(application, "id", None),
+            institution_id=getattr(application, "institution_ref_id", None),
+            document_type=document_type,
+            task_id=task_id,
+            actor_id=getattr(request.user, "id", None),
+            actor_role=getattr(request.user, "role", None),
+            request=request,
+        )
+    except Exception:  # pragma: no cover - audit must never block the response
+        logger.info(
+            "Unable to record official-document queued audit for application %s",
+            getattr(application, "id", None),
+            exc_info=True,
+        )
 
 
 def _enqueue_generation(application, document_type: str):
@@ -370,6 +432,7 @@ class OfficialDocumentDetailView(APIView):
         # Not yet generated: enqueue the renderer (best-effort) and report a
         # queued status the client can poll. Brokerless env → no task_id.
         task_id = _enqueue_generation(application, document_type)
+        _audit_official_document_queued(request, application, document_type, task_id)
         return Response(
             {
                 "success": True,

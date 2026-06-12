@@ -288,7 +288,7 @@ Each phase ends in a verification block and a checkpoint that pauses for the use
     - Creating a new profile version inserts a new row with `version+1`; prior versions are retained as readable records and never alter documents already generated from earlier versions (fingerprint provenance preserves the producing version).
     - _Requirements: R8.5_
 
-- [ ] 17. Admin template/profile UI (R8.8)
+- [x] 17. Admin template/profile UI (R8.8)
   - [x] 17.1 Extend TemplatesPanel + tenants service
     - Extend `apps/admissions/src/pages/admin/tenants/TemplatesPanel.tsx` and `apps/admissions/src/services/admin/tenants.ts` to choose document type + optional applies-to offering/canonical-program/intake, choose a layout, edit structured sections, fee-chart rows, bank accounts, requirements, and signatory text, preview with sample data, clone the latest version, and activate/deactivate versions. Apply the UI guardrails (R7.7/R17.7) — load `PRODUCT.md`/`DESIGN.md` and consult the design skills first.
     - _Requirements: R8.8_
@@ -297,178 +297,178 @@ Each phase ends in a verification block and a checkpoint that pauses for the use
     - Tests for fee rows, bank rows, requirements, clone/version, and that preview does not assume MIHAS/KATC fallback.
     - _Requirements: R8.8_
 
-- [-] 18. Checkpoint — Phase 4
+- [x] 18. Checkpoint — Phase 4
   - `cd backend && python3 -m pytest tests/property/test_document_profile_resolution_properties.py tests/property/test_template_safety.py tests/unit/test_official_documents.py -q`; `python3 manage.py check`. `cd apps/admissions && bun run type-check && bun run lint && bun run test`. Confirm a new school can be configured without code changes and the acceptance renderer reads only tenant data. Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R8.2, R8.3, R8.4, R8.8, R8.9_
 
 ## Phase 5 — Brand fallback removal + brand drift guard (R9, R10)
 
-- [ ] 19. Backend brand fallback removal (R9)
-  - [ ] 19.1 Payment reference + application-number code
+- [x] 19. Backend brand fallback removal (R9)
+  - [x] 19.1 Payment reference + application-number code
     - In `backend/apps/documents/payment_helpers.py` `_generate_reference`, change `MIHAS-{app}-{ts}` → `BNL-{app}-{ts}`; confirm no Lenco reconciliation depends on `MIHAS-`; update payment tests. In `backend/apps/applications/_view_helpers.py` `_resolve_institution_code`, use the assigned institution's code; for a genuinely missing institution use a platform `BNL` code or raise a config error — never default to `MIHAS`. Keep `MIHAS` only behind a clearly named, tested legacy path.
     - _Requirements: R9.2, R9.3, R9.4, R15.8_
 
-  - [ ] 19.2 Communication + email-component defaults
+  - [x] 19.2 Communication + email-component defaults
     - In `backend/apps/common/communication_service.py`, change `_DEFAULT_SUBJECT`/`_DEFAULT_BODY`/`_DEFAULT_NOTIFICATION_TEXT` and `_build_context` `portal_url` to Beanola/tenant values; drop `https://apply.mihas.edu.zm`. In `backend/apps/common/email/components.py`, set `signature_block` default to "Beanola Admissions Office" (or require explicit signatory context) and remove "MIHAS/KATC are universal" assumptions.
     - _Requirements: R9.5, R9.6_
 
-  - [ ] 19.3 App-number prefix validation (backend)
+  - [x] 19.3 App-number prefix validation (backend)
     - Update application-number validators so valid prefixes are not restricted to `MIHAS`/`KATC`; accept any institution code.
     - _Requirements: R9.9_
 
-- [ ] 20. Frontend brand fallback removal (R9)
-  - [ ] 20.1 index.html + PDF theme + display mapping + tracker examples
+- [x] 20. Frontend brand fallback removal (R9)
+  - [x] 20.1 index.html + PDF theme + display mapping + tracker examples
     - `apps/admissions/index.html`: Beanola title/description/OG site name, preloader brand "Beanola Admissions" + Beanola logo; replace the hard-coded `api.mihas.edu.zm` preconnect with an env-driven host or remove it (keep school branding at React runtime). `apps/admissions/src/lib/pdf/theme/index.ts` `getInstitution`: unknown institution → Beanola-generic preview profile or raise for official documents, never silently MIHAS. `apps/admissions/src/pages/student/ApplicationDetail.tsx`: display `institution_name ?? institution ?? "Not provided"`, remove the hard-coded MIHAS/KATC map. Public tracker example components: neutral Beanola/tenant-derived examples. Apply UI guardrails; consult the design skills + `PRODUCT.md`/`DESIGN.md` first.
     - _Requirements: R9.1, R9.6, R9.7, R9.8_
 
-  - [ ] 20.2 App-number prefix validation (frontend)
+  - [x] 20.2 App-number prefix validation (frontend)
     - Update the frontend application-number validator so valid prefixes are not restricted to `MIHAS`/`KATC`.
     - _Requirements: R9.9_
 
-- [ ] 21. Brand_Allowlist + brand drift guard (R10)
-  - [ ] 21.1 Create the allowlist and guards
+- [x] 21. Brand_Allowlist + brand drift guard (R10)
+  - [x] 21.1 Create the allowlist and guards
     - Create `docs/legacy-brand-allowlist.json` enumerating the small reviewed set of files allowed to contain `MIHAS`/`KATC`/`Mukuba`/`Kalulushi`/`apply.mihas.edu.zm` (tenant seed fixtures, MIHAS/KATC-creating tests, historical docs/sample references, tenant logo assets). Add `backend/tests/unit/test_brand_drift_guard.py` (scans `backend/apps`) and `apps/admissions/tests/unit/brandDriftGuard.test.ts` (scans `apps/admissions/src` + `index.html`) that fail — reporting offending file + line — for any non-allowlisted hit and pass for allowlisted files.
     - _Requirements: R10.1, R10.2, R10.3, R10.4_
 
-- [ ] 22. Checkpoint — Phase 5
+- [x] 22. Checkpoint — Phase 5
   - `cd backend && python3 -m pytest tests/unit/test_brand_drift_guard.py -q`; `cd apps/admissions && bun run test -- --run tests/unit/brandDriftGuard`. Run `rg -n "MIHAS|KATC|Mukuba|Kalulushi|apply.mihas.edu.zm" apps/admissions/src apps/admissions/index.html backend/apps` and confirm every hit is allowlisted. Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R9.1, R9.2, R9.3, R10.1, R10.3_
 
 ## Phase 6 — Admin config validation (R11, R12, R13)
 
-- [ ] 23. Required-document + access-grant validation — test-first
-  - [ ] 23.1 Write validation property tests (test-first)
+- [x] 23. Required-document + access-grant validation — test-first
+  - [x] 23.1 Write validation property tests (test-first)
     - **Property 21: Required-document and access-grant validation correctness** — accept iff all canonical-relationship/target rules hold; on rejection a field-level error and no row created/modified.
     - **Validates: Requirements 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8** (`backend/tests/property/test_admin_validation_properties.py`; `--hypothesis-seed=0`, ≥100 examples)
     - _Requirements: R11.1, R11.2, R11.3, R11.4, R11.5, R11.6, R12.1, R12.2, R12.3, R12.4, R12.5, R12.6, R12.7, R12.8_
 
-  - [ ] 23.2 Strengthen `AdminRequiredDocumentSerializer.validate`
+  - [x] 23.2 Strengthen `AdminRequiredDocumentSerializer.validate`
     - In `backend/apps/catalog/admin_serializers.py`: institution exists + active; if `program_id`, program exists + active + belongs to institution; if `canonical_program_id`, canonical exists + active; if both, `program.canonical_program_id` matches; reject duplicate active row for `(institution, document_type, program_id, canonical_program_id)`; descriptive error and no row on failure.
     - _Requirements: R11.1, R11.2, R11.3, R11.4, R11.5, R11.6_
 
-  - [ ] 23.3 Strengthen `AdminAccessGrantSerializer.validate`
+  - [x] 23.3 Strengthen `AdminAccessGrantSerializer.validate`
     - Cover the full matrix: `institution` scope → existing active institution; `program_offering` → active program owned by a non-global institution (matches supplied `institution_id`); `application` → existing application (matches supplied institution/program); `expires_at` strictly future UTC; permission in the allowlist; reject duplicate active `(user, scope_type, target id)` except self-update; reject missing/invalid `scope_type`; field-level error and no mutation on failure.
     - _Requirements: R12.1, R12.2, R12.3, R12.4, R12.5, R12.6, R12.7, R12.8_
 
-- [ ] 24. Manual asset registration lockdown + SVG safety (R13)
-  - [ ] 24.1 Lock down the caller-metadata asset path
+- [x] 24. Manual asset registration lockdown + SVG safety (R13)
+  - [x] 24.1 Lock down the caller-metadata asset path
     - In `backend/apps/catalog/admin_serializers.py`/`admin_views.py`: disable the generic `storage_key`/`public_url`/`mime_type`/`checksum`-accepting create path for non-super-admins; where it remains (super-admin only) require `storage_key` under `institution-assets/{institution_id}/` and validate the stored object's bytes + checksum instead of trusting the caller. Keep the multipart `AdminTenantAssetUploadView` primary (MIME + magic bytes + SHA-256 + 2 MiB cap).
     - _Requirements: R13.1, R13.2, R13.3_
 
-  - [ ] 24.2 SVG admin warning (UI) + renderer unsupported status
+  - [x] 24.2 SVG admin warning (UI) + renderer unsupported status
     - Admin UI warns SVG won't render in backend PDFs and prompts for a raster version (apply UI guardrails; consult design skills first). Confirm the backend renderer records an `unsupported` render status for SVG and never executes it (verify in `_draw_asset`).
     - _Requirements: R13.4, R13.5_
 
-  - [ ] 24.3 Asset registration tests
+  - [x] 24.3 Asset registration tests
     - Cover non-super-admin generic-create rejection, super-admin storage-key constraint + byte/checksum validation, and SVG `unsupported` render status.
     - _Requirements: R13.1, R13.2, R13.5_
 
-- [ ] 25. Property test wiring — admin validation
-  - [ ] 25.1 Ensure Property 21 runs in the standard command
+- [x] 25. Property test wiring — admin validation
+  - [x] 25.1 Ensure Property 21 runs in the standard command
     - Confirm `backend/tests/property/test_admin_validation_properties.py` is collected by the standard backend test command and passes at `--hypothesis-seed=0`.
     - _Requirements: R11.6, R12.8_
 
-- [ ] 26. Checkpoint — Phase 6
+- [x] 26. Checkpoint — Phase 6
   - `cd backend && python3 -m pytest tests/property/test_admin_validation_properties.py tests/unit -k "required_document or access_grant or asset" -q`; `python3 manage.py check`; `python3 manage.py spectacular --file /tmp/schema.yaml`. Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R11.6, R12.8, R13.1_
 
 ## Phase 7 — Tenant-aware communication templates (R14)
 
-- [ ] 27. Author the communication-templates migration (additive, Neon-first)
-  - [ ] 27.1 Write and validate the migration SQL on a Neon branch
+- [x] 27. Author the communication-templates migration (additive, Neon-first)
+  - [x] 27.1 Write and validate the migration SQL on a Neon branch
     - Create `backend/scripts/2026_06_08_04_communication_templates_tenant.sql`: `ADD COLUMN IF NOT EXISTS institution_id uuid NULL`, `ADD COLUMN IF NOT EXISTS version integer NOT NULL DEFAULT 1`, `idx_comm_templates_tenant_lookup`, and a `NOT VALID` FK to `institutions(id)`. Additive/idempotent only. Validate on a Neon branch (dry-run + apply + re-apply no-op); capture the branch id. Do not apply to production.
     - _Requirements: R14.2_
 
-- [ ] 28. Tenant-aware resolution + brand-safe context (R14) — test-first
-  - [ ] 28.1 Write resolution + brand-safe property tests (test-first)
+- [x] 28. Tenant-aware resolution + brand-safe context (R14) — test-first
+  - [x] 28.1 Write resolution + brand-safe property tests (test-first)
     - **Property 22: Communication template resolution and brand-safe context** — resolve active institution-specific (highest version) → active Beanola platform (highest version) → safe Beanola default; built context complete and free of the MIHAS brand/contact and `https://apply.mihas.edu.zm` for any institution (including unknown/future and missing-setting cases).
     - **Validates: Requirements 14.1, 14.3, 14.4, 14.5, 14.7, 14.8** (`backend/tests/property/test_communication_template_properties.py`; `--hypothesis-seed=0`, ≥100 examples)
     - _Requirements: R14.1, R14.3, R14.4, R14.5, R14.7, R14.8_
 
-  - [ ] 28.2 Implement tenant-aware resolution + context
+  - [x] 28.2 Implement tenant-aware resolution + context
     - In `backend/apps/common/communication_service.py`, make `render_template`/`send` resolve in priority order using `application.institution_ref_id`; derive brand name/contact email/portal URL from the resolved institution's settings in `_build_context`, substituting Beanola platform defaults when missing and never emitting `https://apply.mihas.edu.zm`. The safe Beanola default contains only Beanola brand/contact/portal.
     - _Requirements: R14.1, R14.3, R14.4, R14.5, R14.7, R14.8_
 
-- [ ] 29. School-staff template management scope (R14.6, R14.9)
-  - [ ] 29.1 Scope template management to assigned institutions
+- [x] 29. School-staff template management scope (R14.6, R14.9)
+  - [x] 29.1 Scope template management to assigned institutions
     - The template management surface (`backend/apps/common/template_views.py` and related serializer/view) exposes and accepts changes only for institutions the acting School_Staff member is assigned to (via `AccessScopeService`); an out-of-scope view/modify is rejected with an authorization error and no mutation.
     - _Requirements: R14.6, R14.9_
 
-  - [ ] 29.2 Comms scope + schema tests
+  - [x] 29.2 Comms scope + schema tests
     - Assert the tenant columns/index are present and out-of-scope staff template management is rejected with no mutation.
     - _Requirements: R14.2, R14.6, R14.9_
 
-- [ ] 30. Checkpoint — Phase 7
+- [x] 30. Checkpoint — Phase 7
   - `cd backend && python3 -m pytest tests/property/test_communication_template_properties.py tests/unit/test_communication_service.py -q`; `python3 manage.py check`. Confirm unknown/future schools never see MIHAS brand or `apply.mihas.edu.zm`. Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R14.1, R14.5, R14.6_
 
 ## Phase 8 — Program-first assignment edge cases (R15)
 
-- [ ] 31. Formalize assignment determinism + edge cases (R15) — test-first
-  - [ ] 31.1 Write assignment determinism + app-number property test (test-first)
+- [x] 31. Formalize assignment determinism + edge cases (R15) — test-first
+  - [x] 31.1 Write assignment determinism + app-number property test (test-first)
     - **Property 24: Assignment determinism and institution-coded application numbers** — same `(canonical program, intake, residency, white-label)` always selects the same offering by program-intake priority → offering priority (lower wins) → stable tie-break on code/id; the generated application number begins with the assigned institution's code and never defaults to `MIHAS` (unavailable code → `BNL` or config error).
     - **Validates: Requirements 15.1, 15.8, 9.3, 9.4** (`backend/tests/property/test_assignment_properties.py` — extend existing; `--hypothesis-seed=0`, ≥100 examples)
     - _Requirements: R15.1, R15.8, R9.3, R9.4_
 
-  - [ ] 31.2 Formalize determinism, capacity policy, and recoverable errors
+  - [x] 31.2 Formalize determinism, capacity policy, and recoverable errors
     - In `backend/apps/catalog/services.py:OfferingAssignmentService`: confirm the sort key `(program_intake.assignment_priority, offering.assignment_priority, code, id)`; white-label `institution_id` restricts candidates; capacity is advisory until enrollment — creation reserves no seat, `_has_capacity` excludes `current_enrollment >= capacity` at assignment time, and `EnrollmentService` commits the seat under `select_for_update()` (document this decision in `docs/canonical-truth-map.md`). Surface `OfferingAssignmentError(code="NO_ELIGIBLE_OFFERING")` as a 409 recoverable envelope with guidance.
     - _Requirements: R15.1, R15.2, R15.3, R15.4, R15.5_
 
-  - [ ] 31.3 Assigned required documents + legacy-path metric
+  - [x] 31.3 Assigned required documents + legacy-path metric
     - Confirm `AssignmentResult.required_documents` exposes resolved offering/canonical/default requirements and missing docs block submission per the assigned config (R15.6). Emit a `legacy_string_create` warning/metric via `emit_metric` on the string-create path while keeping it functional (R15.7).
     - _Requirements: R15.6, R15.7_
 
-- [ ] 32. Property test wiring — assignment
-  - [ ] 32.1 Ensure Property 24 runs in the standard command
+- [x] 32. Property test wiring — assignment
+  - [x] 32.1 Ensure Property 24 runs in the standard command
     - Confirm the extended `test_assignment_properties.py` is collected and passes at `--hypothesis-seed=0`.
     - _Requirements: R15.1, R15.8_
 
-- [ ] 33. Checkpoint — Phase 8
+- [x] 33. Checkpoint — Phase 8
   - `cd backend && python3 -m pytest tests/property/test_assignment_properties.py tests/unit -k "assignment" -q`; `python3 manage.py check`. Confirm assignment is deterministic and app numbers are institution-coded. Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R15.1, R15.5, R15.8_
 
 ## Phase 9 — Official-document provenance + audit (R16)
 
-- [ ] 34. Full provenance snapshot + audit events (R16) — test-first
-  - [ ] 34.1 Write provenance/PII-exclusion property test (test-first)
+- [x] 34. Full provenance snapshot + audit events (R16) — test-first
+  - [x] 34.1 Write provenance/PII-exclusion property test (test-first)
     - **Property 23: Audit and provenance exclude PII, secrets, and document bodies** — every Official_Document carries the complete `verification_notes.official_document` snapshot; every Audit_Event payload excludes document bytes, applicant PII (NRC/passport, full DOB, phone, email, address), credentials/API keys/signing secrets, and bank account numbers.
     - **Validates: Requirements 4.6, 16.1, 16.4, 20.6** (`backend/tests/property/test_official_document_provenance_properties.py`; `--hypothesis-seed=0`, ≥100 examples)
     - _Requirements: R4.6, R16.1, R16.4, R20.6_
 
-  - [ ] 34.2 Extend the provenance snapshot
+  - [x] 34.2 Extend the provenance snapshot
     - In `pdf_generation.py`, extend `verification_notes.official_document` to the full R16.1 snapshot: document type, institution id + name, canonical program id, program offering id, intake id, application id, student number (where applicable), template/profile id + version, logo/signature/seal asset ids + checksums, payment id + receipt number (receipts), per-asset render status, generated-by user id + role (where human-triggered), generated-at timestamp, and the Document_Fingerprint. The snapshot is immutable once written and survives institution renames.
     - _Requirements: R16.1, R16.2_
 
-  - [ ] 34.3 Lifecycle audit events (no PII)
+  - [x] 34.3 Lifecycle audit events (no PII)
     - Write Audit_Events via `TenantAuditService` for queued, generated, generation-failed-permanently, downloaded (admin/student), emailed, and template/profile + asset create/update/activate/deactivate. Exclude document bytes, applicant PII, credentials, signing secrets, and bank account numbers. A render failure leaves any prior Official_Document unchanged, records a failing-stage audit, and returns a retry-able error; permanent failure after 3 attempts or >300s queued (task `max_retries=3`).
     - _Requirements: R16.3, R16.4, R16.5, R16.6_
 
-- [ ] 35. Property test wiring — provenance
-  - [ ] 35.1 Ensure Property 23 runs in the standard command
+- [x] 35. Property test wiring — provenance
+  - [x] 35.1 Ensure Property 23 runs in the standard command
     - Confirm `test_official_document_provenance_properties.py` is collected and passes at `--hypothesis-seed=0`.
     - _Requirements: R16.1, R16.4_
 
-- [ ] 36. Checkpoint — Phase 9
+- [x] 36. Checkpoint — Phase 9
   - `cd backend && python3 -m pytest tests/property/test_official_document_provenance_properties.py -q`; `python3 manage.py check`. Confirm provenance is complete and audit payloads carry no PII/secrets/bodies. Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R16.1, R16.3, R16.4_
 
 ## Phase 10 — Document UI states (R17)
 
-- [ ] 37. Student + admin document UI states
-  - [ ] 37.1 Student document UI reflects backend truth
+- [x] 37. Student + admin document UI states
+  - [x] 37.1 Student document UI reflects backend truth
     - Student document UI shows only status/payment-allowed actions (R17.1); `Queued`/`Generating`/`Ready`/`Failed` states with download + email of stored official documents (R17.2); MIHAS/KATC shown only when the assigned school is actually MIHAS/KATC (R17.3); production student components never use client PDF generators for official documents (R17.6). Apply UI guardrails (R17.7) — consult the design skills + `PRODUCT.md`/`DESIGN.md` first.
     - _Requirements: R17.1, R17.2, R17.3, R17.6, R17.7_
 
-  - [ ] 37.2 Admin document UI: queue → status, scoped views
+  - [x] 37.2 Admin document UI: queue → status, scoped views
     - Admin generation queues the backend document then shows status and lists latest official documents per application (R17.4); admin tenant views are scoped (school staff in-scope only; super-admin global) (R17.5). Apply UI guardrails (R17.7).
     - _Requirements: R17.4, R17.5, R17.7_
 
-  - [ ] 37.3 Document UI state tests
+  - [x] 37.3 Document UI state tests
     - Cover status-gated action visibility, queued/generating/ready/failed rendering, email-of-stored-document, and admin scoped listing.
     - _Requirements: R17.1, R17.2, R17.4_
 
 - [ ] 38. Frontend UI guardrail gate
-  - [ ] 38.1 Run impeccable detect on the changed surfaces
+  - [-] 38.1 Run impeccable detect on the changed surfaces
     - Run `impeccable detect apps/admissions/src/` and resolve P0 findings on the document UI surfaces.
     - _Requirements: R17.7_
 

@@ -206,20 +206,20 @@ describe('PDF theme — institutions', () => {
     expect(getInstitution('katc').code).toBe('KATC')
   })
 
-  it('getInstitution falls back to MIHAS for null or empty codes silently', () => {
+  it('getInstitution falls back to the Beanola-generic profile for null or empty codes silently', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    expect(getInstitution(null).code).toBe('MIHAS')
-    expect(getInstitution(undefined).code).toBe('MIHAS')
-    expect(getInstitution('').code).toBe('MIHAS')
+    expect(getInstitution(null).code).toBe('BEANOLA')
+    expect(getInstitution(undefined).code).toBe('BEANOLA')
+    expect(getInstitution('').code).toBe('BEANOLA')
     // Null/undefined/empty are explicit "no preference" — no warning expected.
     expect(warnSpy).not.toHaveBeenCalled()
     warnSpy.mockRestore()
   })
 
-  it('getInstitution falls back to MIHAS for unknown codes with a console warning', () => {
+  it('getInstitution falls back to the Beanola-generic profile for unknown codes with a console warning, never MIHAS', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    expect(getInstitution('UNZA').code).toBe('MIHAS')
-    expect(getInstitution('ZamPost').code).toBe('MIHAS')
+    expect(getInstitution('UNZA').code).toBe('BEANOLA')
+    expect(getInstitution('ZamPost').code).toBe('BEANOLA')
     // Each unknown code should produce exactly one warning.
     expect(warnSpy).toHaveBeenCalledTimes(2)
     expect(warnSpy.mock.calls[0]?.[0]).toContain('Unknown institution code')

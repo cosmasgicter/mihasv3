@@ -24,11 +24,18 @@ from decimal import Decimal
 def _generate_reference(application_number: str) -> str:
     """Build a unique payment reference.
 
-    Format: ``MIHAS-{application_number}-{unix_timestamp_ms}``
-    Example: ``MIHAS-APP-2025-0001-1719849600000``
+    Format: ``BNL-{application_number}-{unix_timestamp_ms}``
+    Example: ``BNL-APP-2025-0001-1719849600000``
+
+    The ``BNL-`` (Beanola) prefix is a platform-owned, brand-neutral marker
+    (R9.2). It carries no routing meaning: Lenco reconciliation, webhook
+    dedup, and verification all join on the exact stored
+    ``Payment.transaction_reference`` value, never on a prefix substring — so
+    legacy ``MIHAS-...`` references already issued remain valid and matchable
+    by their stored value.
     """
     ts_ms = int(time.time() * 1000)
-    return f"MIHAS-{application_number}-{ts_ms}"
+    return f"BNL-{application_number}-{ts_ms}"
 
 
 def _generate_receipt_number() -> str:

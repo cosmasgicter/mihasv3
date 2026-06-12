@@ -399,6 +399,74 @@ def _application_has_identity_document(application_id) -> bool:
     ).exists()
 
 
+def _missing_assigned_required_documents(application) -> list[dict[str, str]]:
+    """Return the assigned-config required documents missing from *application*.
+
+    Implements the submission half of R15.6: the offering/canonical/default
+    Required_Documents resolved by ``OfferingAssignmentService.required_documents``
+    (the most-specific scope ordering) gate submission — a required document
+    type with no uploaded, non-deleted/non-rejected ``ApplicationDocument`` row
+    blocks submission "per the assigned configuration".
+
+    Strictly additive (mirrors ``_revalidate_offering_assignment``):
+
+    * Legacy / non-canonical rows — any application missing the canonical
+      offering + program IDs (including ``MagicMock`` attributes in unit tests,
+      filtered by ``_coerce_uuid``) — return ``[]`` and keep the existing
+      hardcoded-identity-only behaviour.
+    * Any unexpected infrastructure error (unreadable offering/canonical row,
+      missing tenant table in a SQLite unit DB, ...) degrades to ``[]`` rather
+      than blocking a legitimate submission.
+
+    Returns the list of missing ``{"document_type", "label"}`` entries; an
+    empty list means the assigned required-document gate is satisfied.
+    """
+    offering_id = _coerce_uuid(getattr(application, "program_offering_id", None))
+    canonical_program_id = _coerce_uuid(getattr(application, "canonical_program_id", None))
+    if not (offering_id and canonical_program_id):
+        return []
+
+    try:
+        from apps.catalog.models import CanonicalProgram, Program
+        from apps.catalog.services import OfferingAssignmentService
+
+        offering = Program.objects.filter(id=offering_id).first()
+        canonical = CanonicalProgram.objects.filter(id=canonical_program_id).first()
+        if offering is None or canonical is None:
+            return []
+
+        required = OfferingAssignmentService.required_documents(offering, canonical)
+        required_types = {
+            row["document_type"]: row.get("label") or row["document_type"]
+            for row in required
+            if row.get("required")
+        }
+        if not required_types:
+            return []
+
+        present_types = set(
+            ApplicationDocument.objects.filter(
+                application_id=application.id,
+                document_type__in=list(required_types.keys()),
+            )
+            .exclude(verification_status__in=["deleted", "rejected"])
+            .values_list("document_type", flat=True)
+        )
+
+        return [
+            {"document_type": doc_type, "label": label}
+            for doc_type, label in sorted(required_types.items())
+            if doc_type not in present_types
+        ]
+    except Exception:
+        logger.warning(
+            "Assigned required-document gate degraded for app=%s",
+            getattr(application, "id", None),
+            exc_info=True,
+        )
+        return []
+
+
 def submit_application(
     *,
     application: Application,
@@ -439,6 +507,18 @@ def submit_application(
                 raise ApplicationSubmissionError(
                     "IDENTITY_DOCUMENT_REQUIRED",
                     "An NRC or Passport document must be uploaded before submission.",
+                )
+
+            # Assigned-config required-document gate (R15.6). Missing required
+            # documents resolved from the assigned offering/canonical/default
+            # configuration block submission. Strictly additive: legacy rows
+            # without canonical IDs return no missing docs and submit as before.
+            missing_required = _missing_assigned_required_documents(application)
+            if missing_required:
+                labels = ", ".join(doc["label"] for doc in missing_required)
+                raise ApplicationSubmissionError(
+                    "REQUIRED_DOCUMENT_MISSING",
+                    f"Required document(s) must be uploaded before submission: {labels}.",
                 )
         else:
             logger.warning(

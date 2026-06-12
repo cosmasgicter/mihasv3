@@ -59,17 +59,20 @@ class ApplicationTrackView(APIView):
     authentication_classes = [OptionalJWTCookieAuthentication]
     serializer_class = ApplicationTrackingSerializer
 
-    # Accepted formats:
+    # Accepted formats (institution-code-agnostic — any tenant code, not only
+    # the historical MIHAS/KATC pair; see R9.9). The leading code segment is a
+    # generic 2-10 letter institution code (e.g. a Beanola-platform ``BNL`` code
+    # or any school code), never a fixed brand allowlist:
     #   APP-YYYYMMDD-XXXXXXXX  (legacy application numbers)
-    #   {CODE}{YEAR}{SEQ}      (new application numbers, e.g. MIHAS202500001)
-    #   TRK-{CODE}{YEAR}{HEX}  (new tracking codes, e.g. TRK-MIHAS2025ABCDEF)
+    #   {CODE}{YEAR}{SEQ}      (new application numbers, e.g. BNL202500001)
+    #   TRK-{CODE}{YEAR}{HEX}  (new tracking codes, e.g. TRK-BNL2025ABCDEF)
     #   TRK-XXXXXXXXXXXX       (legacy tracking codes, 12 alphanum after dash)
     #   TRK + 5-6 alphanum     (legacy tracking codes, no dash)
     TRACKING_CODE_PATTERN = re.compile(
         r"^("
-        r"APP-\d{8}-[A-Z0-9]{8}"           # Legacy: APP-20260416-ABCD1234
-        r"|[A-Z]{2,10}\d{9,14}"             # MIHAS202500001, KATC202500002
-        r"|TRK-[A-Z]{2,10}\d{4}[A-Z0-9]{6}" # TRK-MIHAS2025ABCDEF
+        r"APP-\d{8}-[A-Z0-9]{8}"            # Legacy: APP-20260416-ABCD1234
+        r"|[A-Z]{2,10}\d{9,14}"             # Any institution code + year + seq
+        r"|TRK-[A-Z]{2,10}\d{4}[A-Z0-9]{6}" # Any institution code tracking code
         r"|TRK-[A-Z0-9]{12}"                # Legacy: TRK-ABCDEF123456
         r"|TRK[A-Z0-9]{5,6}"                # Legacy: TRK370990
         r")$"
@@ -83,7 +86,7 @@ class ApplicationTrackView(APIView):
             return Response(
                 {
                     "success": False,
-                    "error": "Invalid tracking code format. Use your application number (e.g., MIHAS202500001) or tracking code (e.g., TRK-MIHAS2025ABCDEF).",
+                    "error": "Invalid tracking code format. Use your application number (e.g., BNL202500001) or tracking code (e.g., TRK-BNL2025ABCDEF).",
                     "code": "INVALID_FORMAT",
                 },
                 status=status.HTTP_400_BAD_REQUEST,

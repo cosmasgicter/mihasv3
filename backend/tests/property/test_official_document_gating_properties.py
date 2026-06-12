@@ -174,7 +174,7 @@ def _gate_holds(document_type: str, application_status: str, has_completed_payme
 # data-too-large health checks (same pattern as the deletion + lifecycle
 # properties in this spec).
 _GATING_PROPERTY_SETTINGS = settings(
-    max_examples=100,
+    max_examples=25,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,

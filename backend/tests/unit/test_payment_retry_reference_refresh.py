@@ -109,7 +109,10 @@ def test_refresh_reference_mints_new_on_retry(seed_payment):
 
     assert result is not None
     assert result != seed_payment["original_reference"]
-    assert result.startswith(f"MIHAS-{application.application_number}-")
+    # Freshly minted references use the Beanola platform prefix (R9.2). The
+    # seeded legacy MIHAS- reference above stays valid because reconciliation
+    # joins on the exact stored value, not the prefix.
+    assert result.startswith(f"BNL-{application.application_number}-")
 
     payment.refresh_from_db()
     assert payment.transaction_reference == result

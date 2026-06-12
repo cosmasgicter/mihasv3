@@ -78,7 +78,7 @@ def condition_expiry_task(self):
                         f"<p><strong>{condition.description}</strong> "
                         f"(deadline: {condition.deadline})</p>"
                         f"<p>Please log in to check your application status.</p>"
-                        f"<p>Best regards,<br>MIHAS Admissions</p>"
+                        f"<p>Best regards,<br>Beanola Admissions</p>"
                     ),
                 )
 

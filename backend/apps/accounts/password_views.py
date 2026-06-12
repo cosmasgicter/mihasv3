@@ -166,7 +166,7 @@ class PasswordResetRequestView(APIView):
             )
             subject = "Password Reset Request"
             body = (
-                "<p>You requested a password reset for your MIHAS account.</p>"
+                "<p>You requested a password reset for your Beanola admissions account.</p>"
                 f'<p><a href="{reset_link}">Click here to reset your password</a></p>'
                 "<p>If you did not request this, you can safely ignore this email. "
                 "The link will expire in 1 hour.</p>"

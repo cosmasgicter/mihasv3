@@ -175,7 +175,7 @@ export default function PublicApplicationTracker() {
         return
       }
 
-      const payload = buildSlipPayload('no-email@mihas.local')
+      const payload = buildSlipPayload('no-email@beanola.local')
       if (!payload) {
         toast.error('Slip unavailable', 'Missing application details for slip generation.')
         return

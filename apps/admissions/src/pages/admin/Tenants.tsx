@@ -1,9 +1,11 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  AlertTriangle,
   Building2,
   CheckCircle2,
   FilePlus2,
+  FileStack,
   Globe2,
   Image as ImageIcon,
   KeyRound,
@@ -33,6 +35,7 @@ import {
 
 import { AuditPanel } from './tenants/AuditPanel'
 import { OfferingsPanel } from './tenants/OfferingsPanel'
+import { ProfilesPanel } from './tenants/ProfilesPanel'
 import { RoutingSimulatorPanel } from './tenants/RoutingSimulatorPanel'
 import { SettlementPanel } from './tenants/SettlementPanel'
 import { TemplatesPanel } from './tenants/TemplatesPanel'
@@ -216,15 +219,16 @@ export default function AdminTenants() {
     enabled: Boolean(selectedId),
     queryFn: async () => {
       const id = selectedId!
-      const [domains, assets, templates, requiredDocuments, memberships, grants] = await Promise.all([
+      const [domains, assets, templates, requiredDocuments, memberships, grants, documentProfiles] = await Promise.all([
         tenantAdminService.listDomains(id),
         tenantAdminService.listAssets(id),
         tenantAdminService.listTemplates(id),
         tenantAdminService.listRequiredDocuments(id),
         tenantAdminService.listMemberships(id),
         tenantAdminService.listAccessGrants({ institutionId: id }),
+        tenantAdminService.listDocumentProfiles(id),
       ])
-      return { domains, assets, templates, requiredDocuments, memberships, grants }
+      return { domains, assets, templates, requiredDocuments, memberships, grants, documentProfiles }
     },
   })
 
@@ -410,6 +414,16 @@ export default function AdminTenants() {
 
   const detail = detailQuery.data
 
+  // R13.4: SVG assets cannot be rasterised into backend-generated official PDFs
+  // (the renderer records an `unsupported` status and skips them — never executes
+  // untrusted SVG). Warn the operator and prompt for a raster version when the
+  // selected MIME type or chosen file is SVG.
+  const assetFileIsSvg =
+    assetForm.file != null &&
+    (assetForm.file.type === 'image/svg+xml' ||
+      assetForm.file.name.toLowerCase().endsWith('.svg'))
+  const assetIsSvg = assetForm.mime_type === 'image/svg+xml' || assetFileIsSvg
+
   return (
     <>
       <Seo title="Tenant Onboarding | Beanola Admissions" description="Manage Beanola client schools, brands, domains, and access." path="/admin/tenants" noindex />
@@ -521,6 +535,7 @@ export default function AdminTenants() {
                     <TabsTrigger value="routing">Test routing</TabsTrigger>
                     <TabsTrigger value="documents">Required docs</TabsTrigger>
                     <TabsTrigger value="templates">Templates</TabsTrigger>
+                    <TabsTrigger value="profiles">Document profiles</TabsTrigger>
                     <TabsTrigger value="assets">Assets</TabsTrigger>
                     <TabsTrigger value="staff">Staff access</TabsTrigger>
                     <TabsTrigger value="settlement">Settlement</TabsTrigger>
@@ -633,6 +648,10 @@ export default function AdminTenants() {
                     />
                   </TabsContent>
 
+                  <TabsContent value="profiles" className="space-y-6">
+                    <ProfilesPanel institutionId={selectedTenant.id} />
+                  </TabsContent>
+
                   <TabsContent value="assets" className="space-y-6">
                     <SectionCard
                       title="Assets"
@@ -694,6 +713,26 @@ export default function AdminTenants() {
                           aria-label="Asset file"
                           className="sm:col-span-2"
                         />
+                        {assetIsSvg && (
+                          <div
+                            role="alert"
+                            className="sm:col-span-2 flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/5 p-3 text-sm"
+                          >
+                            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
+                            <div className="min-w-0 space-y-1">
+                              <p className="font-semibold text-foreground">
+                                Warning — SVG will not render in official PDFs
+                              </p>
+                              <p className="text-muted-foreground">
+                                Backend-generated PDF documents (acceptance letters, receipts, application
+                                slips) cannot rasterise SVG logos or signatures. The renderer records an
+                                <span className="font-medium text-foreground"> unsupported</span> status and
+                                skips the asset, so it will be missing from official documents. Upload a raster
+                                version (PNG, JPEG, or WebP) for logos and signatures used in PDFs.
+                              </p>
+                            </div>
+                          </div>
+                        )}
                         <Input value={assetForm.storage_key} onChange={event => setAssetForm(prev => ({ ...prev, storage_key: event.target.value }))} placeholder="R2/storage key (manual registration)" aria-label="Asset storage key" />
                         <Input value={assetForm.public_url} onChange={event => setAssetForm(prev => ({ ...prev, public_url: event.target.value }))} placeholder="Public URL, optional" aria-label="Asset public URL" />
                         <Input value={assetForm.checksum_sha256} onChange={event => setAssetForm(prev => ({ ...prev, checksum_sha256: event.target.value }))} placeholder="SHA-256 checksum (manual registration)" aria-label="Asset checksum" className="sm:col-span-2" />
@@ -829,6 +868,7 @@ export default function AdminTenants() {
                   <div className="grid gap-3 md:grid-cols-3">
                     <ChecklistItem icon={ImageIcon} label="Logos and signatures" count={detail?.assets.length ?? 0} />
                     <ChecklistItem icon={ScrollText} label="Official templates" count={detail?.templates.length ?? 0} />
+                    <ChecklistItem icon={FileStack} label="Document profiles" count={detail?.documentProfiles.length ?? 0} />
                     <ChecklistItem icon={ShieldCheck} label="Required documents" count={detail?.requiredDocuments.length ?? 0} />
                     <ChecklistItem icon={Users} label="Staff memberships" count={detail?.memberships.length ?? 0} />
                     <ChecklistItem icon={KeyRound} label="Extra access grants" count={detail?.grants.length ?? 0} />

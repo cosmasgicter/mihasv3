@@ -128,7 +128,7 @@ def waitlist_cascade_task(self):
                             f"was not promoted from the waitlist.</p>"
                             f"<p>We've carried your application forward to <strong>{next_intake.name}</strong>. "
                             f"Please log in to review and submit your new application.</p>"
-                            f"<p>Best regards,<br>MIHAS Admissions</p>"
+                            f"<p>Best regards,<br>Beanola Admissions</p>"
                         )
 
                         queue_email(

@@ -11,6 +11,14 @@
  *   conditional_offer  → `conditionally_approved`        (R5.4)
  *   payment_receipt    → a verified/completed payment    (R5.5)
  *
+ * R17.1 ("UI reflects backend truth"): the `application_slip` gate mirrors the
+ * backend's *closed* submitted-state allowlist
+ * (`official_document_views._NON_DRAFT_SUBMITTED_STATUSES`), not a broad
+ * `!== 'draft'` test. Terminal statuses (`enrolled`, `rejected`, `withdrawn`,
+ * `expired`, `enrollment_expired`) are not "submitted" states, so the backend
+ * 404-masks a slip request for them — and so must the UI, rather than offering
+ * an action that degrades to a `Failed` state.
+ *
  * Extracted as a pure function so both the rewired student components
  * (`DocumentButtons`, `DownloadReceiptButton`, `ApplicationSlipActions`) and the
  * Property 18 frontend mirror test share one authority (no behavior duplication
@@ -29,6 +37,22 @@ export type OfficialDocumentGateType =
   | 'payment_receipt'
 
 /**
+ * The closed set of non-draft *submitted* statuses in which the application
+ * slip is offered (R5.2 / R17.1). Byte-for-byte mirror of the backend
+ * `official_document_views._NON_DRAFT_SUBMITTED_STATUSES`. Terminal statuses
+ * (`enrolled`, `rejected`, `withdrawn`, `expired`, `enrollment_expired`) are
+ * deliberately excluded — the backend 404-masks them, so the UI must not offer
+ * the action.
+ */
+export const NON_DRAFT_SUBMITTED_STATUSES: ReadonlySet<string> = new Set([
+  'submitted',
+  'under_review',
+  'waitlisted',
+  'conditionally_approved',
+  'approved',
+])
+
+/**
  * Whether the official document of `documentType` is offered/enabled for an
  * application in `applicationStatus` with `paymentStatus`.
  *
@@ -42,7 +66,7 @@ export function isOfficialDocumentOffered(
 ): boolean {
   switch (documentType) {
     case 'application_slip':
-      return applicationStatus !== 'draft'
+      return NON_DRAFT_SUBMITTED_STATUSES.has(applicationStatus)
     case 'acceptance_letter':
       return applicationStatus === 'approved'
     case 'conditional_offer':

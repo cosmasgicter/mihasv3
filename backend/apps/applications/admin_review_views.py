@@ -28,6 +28,7 @@ from apps.common.request_utils import get_client_ip
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin, is_super_admin
+from apps.common.metrics import emit_metric
 from apps.documents.payment_constants import RESOLVED_PAYMENT_STATUSES
 
 # Alias kept for backward-compat grep tests.
@@ -251,7 +252,23 @@ class ApplicationListCreateView(APIView):
             data["intake"] = assigned.intake.name
             data["institution"] = assigned.institution.name
             required_documents = assigned.required_documents
-
+        else:
+            # Legacy string-create path (R15.7): the application is created from
+            # the legacy ``program``/``intake``/``institution`` display strings
+            # rather than canonical ``program_id``/``intake_id``. This remains
+            # fully functional for backward compatibility; we only record a
+            # warning + metric so legacy-path usage is observable. Labels carry
+            # no PII — only the actor role and whether a legacy institution
+            # string was supplied.
+            emit_metric(
+                "legacy_string_create",
+                actor_role=getattr(request.user, "role", None) or "unknown",
+                has_institution=bool(data.get("institution")),
+            )
+            logger.warning(
+                "Legacy string-create path used for application creation "
+                "(no canonical program_id/intake_id supplied)."
+            )
         intake_check = IntakeEnforcer.check_draft_creation(data["intake"])
         if not intake_check.allowed:
             return Response(

@@ -243,7 +243,10 @@ def generate_student_preview_summary(application_data: dict) -> str | None:
         name = application_data.get('full_name', 'Student') or 'Student'
         first_name = name.split()[0] if name else 'Student'
     program = application_data.get('program', 'your chosen programme')
-    institution = application_data.get('institution', 'MIHAS')
+    # Beanola is multi-tenant: never default a missing institution to a single
+    # school's brand. Fall back to a neutral phrase so the AI summary stays
+    # tenant-agnostic when the legacy ``institution`` snapshot is blank.
+    institution = application_data.get('institution') or 'your chosen institution'
     grades = application_data.get('grades_summary', '')
     subjects_count = application_data.get('subjects_count', 0)
     intake = application_data.get('intake', '')

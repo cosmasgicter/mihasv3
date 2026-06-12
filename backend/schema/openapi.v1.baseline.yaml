@@ -609,7 +609,18 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Retrieve api v1 admin institutions assets
     post:
-      operationId: api_v1_admin_institutions_assets_create
+      operationId: admin_tenant_assets_create
+      description: |-
+        Manual (caller-metadata) asset registration — Super_Admin only (R13).
+
+        This generic path accepts a caller-supplied ``storage_key`` pointing at
+        an object already in storage. Per R13.1 it is disabled for
+        non-super-admins (``_write_allowed``); per R13.2, where it remains it
+        constrains ``storage_key`` to ``institution-assets/{institution_id}/``
+        and validates the stored object's bytes + checksum from storage rather
+        than trusting the caller-provided ``checksum_sha256``/``mime_type``. The
+        multipart :class:`AdminTenantAssetUploadView` stays the primary
+        creation path (R13.3).
       parameters:
       - in: path
         name: institution_id
@@ -635,7 +646,7 @@ paths:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
@@ -673,7 +684,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      summary: Create api v1 admin institutions assets
+      summary: Create admin tenant assets
   /api/v1/admin/institutions/{institution_id}/assets/{item_id}/:
     patch:
       operationId: api_v1_admin_institutions_assets_partial_update
@@ -2397,9 +2408,23 @@ paths:
   /api/v1/admin/templates/:
     get:
       operationId: api_v1_admin_templates_retrieve
-      description: GET /api/v1/admin/templates/ - list all communication templates
-        (admin only).
+      description: |-
+        GET /api/v1/admin/templates/ - list communication templates.
+
+        Tenant-scoped (R14.6): super-admins see every template (platform + all
+        institutions); a School_Staff member sees only templates for the
+        institutions they are assigned to (via ``AccessScopeService``). Platform
+        (``institution_id`` NULL) templates are visible only to super-admins because
+        only super-admins may manage them.
       summary: List communication templates
+      parameters:
+      - in: query
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        description: Filter to a single institution's templates (super-admins only;
+          'platform' selects Beanola platform templates).
       tags:
       - admin
       security:
@@ -2440,10 +2465,25 @@ paths:
   /api/v1/admin/templates/{key}/:
     put:
       operationId: api_v1_admin_templates_update
-      description: PUT /api/v1/admin/templates/{key}/ - update a template by key (admin
-        only).
+      description: |-
+        PUT /api/v1/admin/templates/{key}/ - update a template by key.
+
+        Tenant-scoped (R14.6, R14.9): the target institution is selected with the
+        optional ``institution_id`` query parameter (default: the Beanola platform
+        template). Super-admins may modify any template; a School_Staff member may
+        modify only templates for institutions they are assigned to. An out-of-scope
+        institution is rejected with an ``OUT_OF_SCOPE`` authorization error and no
+        mutation; platform templates require super-admin. The highest-version row
+        for ``(template_key, institution_id)`` is updated.
       summary: Update a communication template
       parameters:
+      - in: query
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        description: Target institution ('platform' or omitted selects the Beanola
+          platform template). Must be within the acting user's assigned scope.
       - in: path
         name: key
         schema:
@@ -2474,17 +2514,12 @@ paths:
           description: ''
         '400':
           description: Validation error
+        '403':
+          description: Out of scope / platform template
         '404':
           description: Template not found
         '401':
           description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
           content:
             application/json:
               schema:
@@ -7096,7 +7131,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: ''
+          description: Missing program_id/intake_id (VALIDATION_ERROR).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: No eligible offering (NO_ELIGIBLE_OFFERING) — recoverable,
+            carries user-facing guidance.
         '401':
           description: Authentication required — missing or invalid credentials.
           content:
@@ -15288,16 +15330,16 @@ components:
           maxLength: 20
         role:
           enum:
-          - super_admin
           - student
-          - reviewer
+          - super_admin
           - admin
+          - reviewer
           type: string
           description: |-
-            * `super_admin` - super_admin
             * `student` - student
-            * `reviewer` - reviewer
+            * `super_admin` - super_admin
             * `admin` - admin
+            * `reviewer` - reviewer
           x-spec-enum-id: 1a3817a8a61ce783
         password:
           type: string
@@ -15499,6 +15541,14 @@ components:
         template_key:
           type: string
           readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        version:
+          type: integer
+          readOnly: true
         subject_template:
           type: string
         body_template:
@@ -15527,8 +15577,10 @@ components:
       required:
       - created_at
       - id
+      - institution_id
       - template_key
       - updated_at
+      - version
     CommunicationTemplateListResponse:
       type: object
       description: Envelope for GET /api/v1/admin/templates/ - returns a list of templates.

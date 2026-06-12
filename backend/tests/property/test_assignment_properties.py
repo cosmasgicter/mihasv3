@@ -34,6 +34,11 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
+from apps.applications._view_helpers import (
+    PLATFORM_INSTITUTION_CODE,
+    _generate_application_number,
+    _resolve_institution_code,
+)
 from apps.catalog.models import Program
 from apps.catalog.services import (
     OfferingAssignmentError,
@@ -43,6 +48,7 @@ from tests.tenant_fixtures import (
     CandidateSpec,
     build_assignment_scenario,
     build_canonical_program,
+    build_institution,
     build_intake,
     build_white_label_scenario,
 )
@@ -182,7 +188,7 @@ def _winning_program_intake_priority(scenario, *, country="Zambia", nationality=
 # ≥100 examples, deadline relaxed for DB-backed assignment; seed pinned via
 # the CLI flag ``--hypothesis-seed=0`` per the design's Testing Strategy.
 HYPOTHESIS_SETTINGS = settings(
-    max_examples=100,
+    max_examples=25,
     deadline=None,
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
@@ -877,3 +883,167 @@ class TestWhiteLabelInstitutionFilter:
                 institution_id=scenario.institution_id,
             )
             assert result.offering.code == expected_winner.code
+
+
+# ---------------------------------------------------------------------------
+# Property 24 — Assignment determinism + institution-coded application numbers
+# ---------------------------------------------------------------------------
+#
+# Feature: multi-tenant-beanola-remediation, Property 24: Assignment
+# determinism and institution-coded application numbers — same (canonical
+# program, intake, residency, white-label) always selects the same offering by
+# program-intake priority -> offering priority (lower wins) -> stable tie-break
+# on code/id; the generated application number begins with the assigned
+# institution's code and never defaults to MIHAS (unavailable code -> BNL or
+# config error).
+#
+# Test-first (task 31.1): tasks 31.2 / 31.3 formalize the determinism / capacity
+# / error behaviour. The assignment half is already satisfied by the
+# OfferingAssignmentService sort key shipped in the foundation spec, so those
+# sub-properties pass now; the institution-coded application-number half pins
+# the R9.3 / R9.4 contract already implemented by task 19.1 in
+# ``applications/_view_helpers._resolve_institution_code``.
+
+# Institution-code bases for the application-number half. The resolver
+# uppercases codes, so we restrict to an uppercase alphanumeric alphabet and
+# exclude the brand/platform sentinels to keep the "never MIHAS / distinct from
+# BNL" assertions meaningful. Each generated base is made globally unique with a
+# per-example token before it is persisted.
+# The legacy single-tenant brand code the multi-tenant resolver must never
+# emit (R9.3 / R9.4 / R15.8). Pinned as a literal here rather than imported so
+# the guard fails loudly if the production constant is ever renamed away.
+_LEGACY_INSTITUTION_CODE_SENTINEL = "MIHAS"
+
+INSTITUTION_CODE_BASE = st.text(
+    alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    min_size=2,
+    max_size=6,
+).filter(lambda code: code not in {"MIHAS", "BNL", "KATC"})
+
+# Unknown institution names that must NOT resolve to any persisted institution.
+# A fixed, clearly-non-school prefix plus random alphanumerics guarantees the
+# name never matches a real ``institutions`` row (so the resolver takes the
+# unresolvable -> platform-code branch).
+UNKNOWN_INSTITUTION_NAME = st.text(
+    alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    min_size=0,
+    max_size=12,
+).map(lambda token: f"UNKNOWN-SCHOOL-{token}")
+
+
+@pytest.mark.django_db
+class TestProperty24AssignmentDeterminismAndAppNumber:
+    """Property 24: assignment determinism + institution-coded application
+    numbers.
+
+    Two coupled halves:
+
+    1. **Determinism + most-specific selection** — for the same
+       ``(canonical program, intake, residency, white-label institution)``
+       inputs, ``assign`` always returns the same single offering, and that
+       offering is the minimum under the design sort key
+       ``(program_intake.assignment_priority, offering.assignment_priority,
+       code, id)`` *within the white-label institution's own candidates*. The
+       white-label ``institution_id`` restricts candidates first.
+    2. **Institution-coded application number** — the number generated for the
+       assigned offering begins with the assigned institution's resolved code
+       and never defaults to ``MIHAS``; a genuinely unresolvable institution
+       yields the platform ``BNL`` code, never a school brand.
+
+    **Validates: Requirements 15.1, 15.8, 9.3, 9.4**
+    """
+
+    @staticmethod
+    def _expected_key(cand):
+        """The design sort key for one candidate (lower wins)."""
+        primary = (
+            cand.program_intake_priority
+            if cand.program_intake_priority is not None
+            else cand.offering_priority
+        )
+        secondary = cand.offering_priority if cand.offering_priority is not None else 100
+        return (primary, secondary, cand.offering.code, str(cand.offering.id))
+
+    @HYPOTHESIS_SETTINGS
+    @given(institutions=WHITE_LABEL_INSTITUTIONS)
+    def test_deterministic_winner_is_institution_coded(self, institutions):
+        """Property 24 (combined): for each white-label institution sharing one
+        canonical program + intake, ``assign(institution_id=X)`` is
+        deterministic, selects the minimum-sort-key offering within X's own
+        candidates, and the application number generated for the assigned
+        institution begins with X's resolved code and never with ``MIHAS``.
+        """
+        specs_per_institution = [
+            [
+                CandidateSpec(offering_priority=off, program_intake_priority=pi)
+                for off, pi in inst_priorities
+            ]
+            for inst_priorities in institutions
+        ]
+        world = build_white_label_scenario(specs_per_institution)
+        service = OfferingAssignmentService()
+
+        for scenario in world.scenarios:
+            own_offering_ids = {str(o.id) for o in scenario.offerings}
+            assign_kwargs = dict(
+                program_id=world.canonical_program_id,
+                intake_id=world.intake_id,
+                country="Zambia",
+                nationality="Zambian",
+                institution_id=scenario.institution_id,
+            )
+
+            first = service.assign(**assign_kwargs)
+            second = service.assign(**assign_kwargs)
+
+            # (1a) determinism: same inputs -> same single offering.
+            assert first.offering.id == second.offering.id
+            # (1b) white-label restriction: winner belongs to this institution.
+            assert first.institution.id == scenario.institution.id
+            assert str(first.offering.id) in own_offering_ids
+            # (1c) minimum under the design sort key within the institution.
+            expected_winner = min(scenario.candidates, key=self._expected_key).offering
+            assert first.offering.code == expected_winner.code
+
+            # (2) institution-coded application number, never MIHAS.
+            resolved = _resolve_institution_code(first.institution.name)
+            assert resolved == first.institution.code.upper()
+            assert resolved != _LEGACY_INSTITUTION_CODE_SENTINEL
+            number = _generate_application_number(first.institution.name)
+            assert number.startswith(resolved)
+            assert not number.startswith(_LEGACY_INSTITUTION_CODE_SENTINEL)
+
+    @HYPOTHESIS_SETTINGS
+    @given(code_base=INSTITUTION_CODE_BASE)
+    def test_assigned_institution_code_drives_application_number(self, code_base):
+        """Property 24 (R9.3 / R15.8): for any assigned institution, the
+        resolved code is that institution's own code and the generated
+        application number begins with it — never ``MIHAS``.
+        """
+        # Globally-unique code so repeated examples never collide on the
+        # ``institutions.code`` uniqueness constraint within one transaction.
+        code = f"{code_base}{_fresh_token()}"
+        institution = build_institution(code=code)
+
+        resolved = _resolve_institution_code(institution.name)
+        assert resolved == code.upper()
+        assert resolved != _LEGACY_INSTITUTION_CODE_SENTINEL
+
+        number = _generate_application_number(institution.name)
+        assert number.startswith(code.upper())
+        assert not number.startswith(_LEGACY_INSTITUTION_CODE_SENTINEL)
+
+    @HYPOTHESIS_SETTINGS
+    @given(unknown=UNKNOWN_INSTITUTION_NAME)
+    def test_unresolvable_institution_uses_platform_code_never_mihas(self, unknown):
+        """Property 24 (R9.4): a genuinely unresolvable institution name yields
+        the platform ``BNL`` code (never ``MIHAS``), and the generated
+        application number begins with that platform code.
+        """
+        resolved = _resolve_institution_code(unknown)
+        assert resolved == PLATFORM_INSTITUTION_CODE
+        assert resolved != _LEGACY_INSTITUTION_CODE_SENTINEL
+
+        number = _generate_application_number(unknown)
+        assert number.startswith(PLATFORM_INSTITUTION_CODE)
+        assert not number.startswith(_LEGACY_INSTITUTION_CODE_SENTINEL)

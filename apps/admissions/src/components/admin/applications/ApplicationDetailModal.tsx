@@ -16,6 +16,7 @@ import { CapacityWarning } from './CapacityWarning'
 import { ApplicationDetailHeader } from './ApplicationDetailHeader'
 import { ApplicationDetailTimeline } from './ApplicationDetailTimeline'
 import { ApplicationDetailDocuments } from './ApplicationDetailDocuments'
+import { AdminOfficialDocumentsPanel } from './AdminOfficialDocumentsPanel'
 import { ApplicationDetailPayment, FeeWaiverDialog } from './ApplicationDetailPayment'
 import { ApplicationDetailInterview } from './ApplicationDetailInterview'
 import { AISummaryPanel } from './AISummaryPanel'
@@ -819,6 +820,7 @@ onGeneratePaymentReceipt
  )}
 
  {activeTab === 'documents' && (
+ <div className="space-y-6">
  <ApplicationDetailDocuments 
  documents={applicationData?.documents || []} 
  loading={loading}
@@ -826,6 +828,10 @@ onGeneratePaymentReceipt
  applicationId={application.id}
  onDocumentVerified={() => { void refreshModalData(application.id) }}
  />
+ <div className="border-t border-border pt-6">
+ <AdminOfficialDocumentsPanel applicationId={application.id} />
+ </div>
+ </div>
  )}
 
  {activeTab === 'history' && (

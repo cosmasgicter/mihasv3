@@ -28,7 +28,7 @@ export const NoResultsView: React.FC<NoResultsViewProps> = ({ onTryAgain }) => {
             We could not find an application matching that number. Double-check the code in your confirmation email and try again.
           </p>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Codes look like <span className="font-mono">MIHAS123456</span> or <span className="font-mono">TRK-XXXXXXXXXXXX</span>.
+            Codes look like <span className="font-mono">BNL123456</span> or <span className="font-mono">TRK-XXXXXXXXXXXX</span>.
           </p>
         </div>
         

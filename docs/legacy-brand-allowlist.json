@@ -1,0 +1,200 @@
+{
+  "description": "Brand_Allowlist (R10.2). The small, reviewed set of files permitted to contain the legacy brand strings MIHAS / KATC / Mukuba / Kalulushi / apply.mihas.edu.zm. Every other file under apps/admissions/src, apps/admissions/index.html, and backend/apps is scanned by the brand drift guards (backend/tests/unit/test_brand_drift_guard.py and apps/admissions/tests/unit/brandDriftGuard.test.ts) and must NOT contain these strings. Paths are repo-root-relative. Keep this list small and reviewed: a new entry is a deliberate decision that MIHAS/KATC are legitimate tenant data, an allowlisted historical reference, or a tenant asset in that file, never a reintroduced platform fallback.",
+  "patterns": [
+    "MIHAS",
+    "KATC",
+    "Mukuba",
+    "Kalulushi",
+    "apply.mihas.edu.zm"
+  ],
+  "allowlist": [
+    {
+      "path": "backend/apps/catalog/management/commands/seed_tenant_document_profiles.py",
+      "reason": "Tenant seed fixture (R8.4): seeds the MIHAS RN, KATC COG, KATC EHT acceptance-letter profiles as tenant rows. MIHAS/KATC are legitimate tenant data here."
+    },
+    {
+      "path": "backend/apps/applications/_view_helpers.py",
+      "reason": "Application-number resolver. MIHAS appears only behind the clearly-named, tested legacy single-tenant path (_resolve_institution_code_legacy) and in docstrings; the default flow uses the assigned institution code (R9.3/R9.4)."
+    },
+    {
+      "path": "backend/apps/applications/models.py",
+      "reason": "Docstring example of the student-number format ('MIHAS/26/00001') - historical sample reference, not a runtime fallback."
+    },
+    {
+      "path": "backend/apps/applications/public_views.py",
+      "reason": "Comment documenting the historical MIHAS/KATC application-number pair (R9.9); the validator accepts any institution code, no hard-coded prefix."
+    },
+    {
+      "path": "backend/apps/documents/payment_helpers.py",
+      "reason": "Comment noting legacy MIHAS- references stay matchable, plus the Lenco 'User-Agent: MIHAS/2.0' product token. New references use the BNL- prefix (R9.2)."
+    },
+    {
+      "path": "backend/apps/documents/payment_service.py",
+      "reason": "Comment noting legacy MIHAS- payment references remain matchable by value (backward compatibility). No new MIHAS- references are generated."
+    },
+    {
+      "path": "backend/apps/common/email/__init__.py",
+      "reason": "Tenant email component system (historical module banner). MIHAS/KATC named as the launch tenants; covered by existing premium-email tests."
+    },
+    {
+      "path": "backend/apps/common/email/README.md",
+      "reason": "Historical documentation for the MIHAS-KATC email component system."
+    },
+    {
+      "path": "backend/apps/common/email/tokens.py",
+      "reason": "Tenant email design-token docstring referencing the MIHAS-KATC outbound emails."
+    },
+    {
+      "path": "backend/apps/common/email/shell.py",
+      "reason": "Tenant email shell with the launch-tenant (Mukuba/MIHAS) letterhead/footer; asserted by backend/tests/unit/test_email_templates_premium.py as accepted tenant identity."
+    },
+    {
+      "path": "backend/apps/common/email/messages/acceptance.py",
+      "reason": "Tenant acceptance email copy referencing Mukuba Institute (launch-tenant content)."
+    },
+    {
+      "path": "backend/apps/common/email/messages/application_submitted.py",
+      "reason": "Tenant application-submitted email copy referencing Mukuba Institute (launch-tenant content)."
+    },
+    {
+      "path": "backend/apps/common/email/messages/conditional_acceptance.py",
+      "reason": "Tenant conditional-acceptance email copy referencing Mukuba Institute (launch-tenant content)."
+    },
+    {
+      "path": "backend/apps/common/email/messages/rejection.py",
+      "reason": "Tenant rejection email copy referencing Mukuba Institute and the MIHAS-KATC portfolio (launch-tenant content)."
+    },
+    {
+      "path": "backend/apps/common/email/messages/password_reset.py",
+      "reason": "Tenant password-reset email copy referencing the MIHAS admissions account (launch-tenant content)."
+    },
+    {
+      "path": "backend/apps/common/views.py",
+      "reason": "API landing/docs HTML titled 'MIHAS Admissions API'; asserted by backend/tests/unit/test_api_docs.py. Historical product/API name, not an admissions data flow."
+    },
+    {
+      "path": "backend/apps/common/tasks.py",
+      "reason": "Uptime health-check alert email subjects ('MIHAS API Down/Recovered') - operational ops alerts, historical product name."
+    },
+    {
+      "path": "backend/apps/common/middleware.py",
+      "reason": "Module docstring banner ('Middleware chain for the MIHAS Django API') - historical product name."
+    },
+    {
+      "path": "backend/apps/common/permissions.py",
+      "reason": "Module docstring banner ('Custom permission classes for the MIHAS platform') - historical product name."
+    },
+    {
+      "path": "backend/apps/accounts/admin_serializers.py",
+      "reason": "Default value for a configurable platform-name setting ('MIHAS Application System') exposed as editable admin config, not a hard-coded brand in a generic flow."
+    },
+    {
+      "path": "apps/admissions/src/pages/dev/DocumentPreview.tsx",
+      "reason": "Dev-only, non-official document preview harness with MIHAS/KATC sample fixtures (R7.6). Not reachable from official-download paths."
+    },
+    {
+      "path": "apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx",
+      "reason": "Dev-only, non-official acceptance-letter preview harness with MIHAS/KATC sample fixtures (R7.6). Not reachable from official-download paths."
+    },
+    {
+      "path": "apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts",
+      "reason": "Client-side preview/draft acceptance profiles (MIHAS RN, KATC COG, KATC EHT). Preview-only per R7.6; backend tenant profiles are the official source. Allowlisted tenant sample content."
+    },
+    {
+      "path": "apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx",
+      "reason": "Client preview/draft renderer docstring referencing the historical MIHAS/KATC official letters it reproduces (R7.6)."
+    },
+    {
+      "path": "apps/admissions/src/lib/pdf/documents/intakeSchedule.ts",
+      "reason": "Client preview intake-schedule docstring referencing MIHAS/KATC's two annual intakes (preview content, R7.6)."
+    },
+    {
+      "path": "apps/admissions/src/lib/pdf/documents/PaymentReceipt.tsx",
+      "reason": "Client preview receipt docstring referencing the MIHAS FINANCE OFFICE tagline (preview content, R7.6)."
+    },
+    {
+      "path": "apps/admissions/src/lib/pdf/documents/types.ts",
+      "reason": "Client preview PDF type docstrings with MIHAS/KATC examples (preview content, R7.6)."
+    },
+    {
+      "path": "apps/admissions/src/lib/pdf/README.md",
+      "reason": "Historical documentation for the MIHAS-KATC client PDF document system."
+    },
+    {
+      "path": "apps/admissions/src/lib/pdf/theme/index.ts",
+      "reason": "Client preview PDF theme: MIHAS/KATC registered as tenant data (R9.7). Unknown institutions fall back to a Beanola-generic preview; MIHAS is not silently rendered. Tenant logo asset references live here."
+    },
+    {
+      "path": "apps/admissions/src/lib/pdf/theme/colors.ts",
+      "reason": "Client preview PDF theme banner ('MIHAS-KATC PDF Theme') - preview asset/theme reference."
+    },
+    {
+      "path": "apps/admissions/src/lib/pdf/theme/spacing.ts",
+      "reason": "Client preview PDF theme banner ('MIHAS-KATC PDF Theme') - preview asset/theme reference."
+    },
+    {
+      "path": "apps/admissions/src/lib/pdf/theme/typography.ts",
+      "reason": "Client preview PDF theme banner ('MIHAS-KATC PDF Theme') - preview asset/theme reference."
+    },
+    {
+      "path": "apps/admissions/src/lib/pdf/components/SignatureBlock.tsx",
+      "reason": "Client preview signature block referencing the shared MIHAS/KATC Managing Director signatory (preview content, R7.6)."
+    },
+    {
+      "path": "apps/admissions/src/pages/public/tracker/utils/trackerUtils.ts",
+      "reason": "Public tracker display-name aliases: MIHAS/KATC kept only as best-effort tenant aliases (R9.9). Unknown codes fall through to the code itself; no hard-coded default."
+    },
+    {
+      "path": "apps/admissions/src/pages/student/applicationWizard/components/SubmissionSuccess.tsx",
+      "reason": "Submission-success screen institution alias map and launch-tenant logo asset (tenant data / logo asset reference)."
+    },
+    {
+      "path": "apps/admissions/src/components/admin/applications/applicationDetailTypes.ts",
+      "reason": "Admin application-detail institution alias map (MIHAS/KATC tenant aliases) used for display when the backend code is not expanded."
+    },
+    {
+      "path": "apps/admissions/src/components/admin/applications/ApplicationCard.tsx",
+      "reason": "Comment only: explains why there is no hard-coded MIHAS/KATC fallback map here (the map was removed in R10/R9 remediation). Retained as a reviewed reference note."
+    },
+    {
+      "path": "apps/admissions/src/components/admin/programs/InstitutionDialogs.tsx",
+      "reason": "Admin institution-code field helper text using 'MIHAS' as an illustrative short-code example."
+    },
+    {
+      "path": "apps/admissions/src/pages/admin/tenants/ProfilesPanel.tsx",
+      "reason": "Admin tenant-profiles panel copy stating there is NO MIHAS/KATC fallback (official documents read only tenant data). Reviewed reference note."
+    },
+    {
+      "path": "apps/admissions/src/lib/constants/landing.ts",
+      "reason": "Public marketing landing content: MIHAS/KATC physical addresses and campus facts (tenant contact data shown on the contact page)."
+    },
+    {
+      "path": "apps/admissions/src/lib/institutionFacts.ts",
+      "reason": "Public marketing fact comment referencing the two campuses (Mukuba / Kalulushi) - tenant marketing data."
+    },
+    {
+      "path": "apps/admissions/src/lib/locationOptions.ts",
+      "reason": "Zambian town option list that legitimately includes 'Kalulushi' as a real geographic location, unrelated to brand fallback."
+    },
+    {
+      "path": "apps/admissions/src/lib/env.ts",
+      "reason": "Test-only env override global key (__MIHAS_IMPORT_META_ENV__) - historical internal identifier, not user-facing brand."
+    },
+    {
+      "path": "apps/admissions/src/lib/dateFormat.ts",
+      "reason": "Module docstring banner ('MIHAS Application System') - historical product name."
+    },
+    {
+      "path": "apps/admissions/src/types/auth.ts",
+      "reason": "Module docstring banner ('MIHAS Application System') - historical product name."
+    },
+    {
+      "path": "apps/admissions/src/design-system/tokens.ts",
+      "reason": "Design-token file banner ('MIHAS Design System') - historical product name."
+    },
+    {
+      "path": "apps/admissions/src/styles/design-tokens.css",
+      "reason": "Design-token CSS banner ('MIHAS Design System') - historical product name."
+    }
+  ]
+}

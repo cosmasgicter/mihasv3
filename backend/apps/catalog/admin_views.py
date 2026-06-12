@@ -78,10 +78,12 @@ def _scope_institution_ids(user) -> set[str]:
 
 
 def _verb_for_payload(data, *, created: bool) -> str:
-    """Resolve the config-change verb (R13.1).
+    """Resolve the config-change verb (R13.1, R16.3).
 
-    A PATCH that sets ``is_active`` falsey is a deactivation; a create is a
-    ``created``; any other update is ``updated``.
+    A create is ``created``; a PATCH that sets ``is_active`` falsey is a
+    ``deactivated`` and one that sets ``is_active`` truthy is an ``activated``
+    (so the activate/deactivate lifecycle is distinguishable from a plain
+    content ``updated`` — R16.3); any other update is ``updated``.
     """
     if created:
         return "created"
@@ -89,8 +91,7 @@ def _verb_for_payload(data, *, created: bool) -> str:
         if "is_active" in data:
             value = data.get("is_active")
             is_false = value in (False, "false", "False", 0, "0")
-            if is_false:
-                return "deactivated"
+            return "deactivated" if is_false else "activated"
     return "updated"
 
 
@@ -302,10 +303,171 @@ class AdminTenantDomainDetailView(_InstitutionChildDetailView):
     audit_resource = "domain"
 
 
+def _asset_invalid_response(message: str):
+    """Stable 400 for a failed manual-asset-registration validation (R13.2)."""
+    return Response(
+        {"success": False, "error": message, "code": "ASSET_INVALID"},
+        status=status.HTTP_400_BAD_REQUEST,
+    )
+
+
+def _validate_stored_asset_object(storage_key: str, declared_mime: str):
+    """Open the stored object and validate it from storage, not from the caller.
+
+    Reads the bytes already at ``storage_key`` (out-of-band uploaded), enforces
+    the same 2 MiB cap and MIME + magic-byte checks as the multipart upload
+    path, and returns ``(detected_mime, computed_sha256, public_url)`` computed
+    over / derived from the actual stored bytes. The caller-supplied
+    ``checksum_sha256``/``mime_type``/``public_url`` are never trusted (R13.2).
+
+    Raises ``rest_framework.exceptions.ValidationError`` on a missing/unreadable
+    object, an empty/oversized object, or a MIME/magic-byte mismatch.
+    """
+    from io import BytesIO
+
+    from apps.common.storage import MediaStorage
+
+    storage = MediaStorage()
+    try:
+        fh = storage.open(storage_key)
+    except Exception as exc:  # object missing/unreadable
+        raise ValidationError("Stored asset object could not be read.") from exc
+    try:
+        # Read one byte past the cap so an oversized object is detectable
+        # without loading an unbounded blob into memory. Within the cap, this
+        # holds the entire object, so the SHA-256 below is the full-file digest.
+        data = fh.read(_MAX_ASSET_BYTES + 1)
+    finally:
+        try:
+            fh.close()
+        except Exception:  # pragma: no cover - close best-effort
+            pass
+
+    if not data:
+        raise ValidationError("Stored asset object is empty.")
+    if len(data) > _MAX_ASSET_BYTES:
+        raise ValidationError("Stored asset object exceeds the 2MB limit.")
+
+    from apps.documents.validators import validate_asset_magic_bytes
+
+    detected_mime = validate_asset_magic_bytes(BytesIO(data), declared_mime)
+    computed_checksum = hashlib.sha256(data).hexdigest()
+    # Derive the public URL from storage rather than trusting a caller-supplied
+    # one (which could point anywhere); mirrors the multipart upload path.
+    try:
+        public_url = storage.url(storage_key)
+    except Exception:  # pragma: no cover - url derivation best-effort
+        public_url = None
+    return detected_mime, computed_checksum, public_url
+
+
 class AdminTenantAssetListCreateView(_InstitutionChildListCreateView):
     model = InstitutionAsset
     serializer_class = AdminInstitutionAssetSerializer
     audit_resource = "asset"
+
+    @extend_schema(
+        operation_id="admin_tenant_assets_create",
+        tags=["admin"],
+        request=AdminInstitutionAssetSerializer,
+        responses={201: OpenApiResponse(response=AdminInstitutionAssetSerializer)},
+    )
+    def post(self, request, institution_id):
+        """Manual (caller-metadata) asset registration — Super_Admin only (R13).
+
+        This generic path accepts a caller-supplied ``storage_key`` pointing at
+        an object already in storage. Per R13.1 it is disabled for
+        non-super-admins (``_write_allowed``); per R13.2, where it remains it
+        constrains ``storage_key`` to ``institution-assets/{institution_id}/``
+        and validates the stored object's bytes + checksum from storage rather
+        than trusting the caller-provided ``checksum_sha256``/``mime_type``. The
+        multipart :class:`AdminTenantAssetUploadView` stays the primary
+        creation path (R13.3).
+        """
+        # R13.1: only Super_Admins may register assets via this path.
+        if not _write_allowed(request.user):
+            return _forbidden_write_response()
+
+        try:
+            Institution.objects.get(id=institution_id)
+        except Institution.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Institution not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # R13.2: storage_key must live under this institution's asset prefix.
+        # Reject traversal segments so a constrained prefix cannot be escaped.
+        storage_key = str(request.data.get("storage_key") or "").strip().lstrip("/")
+        required_prefix = f"institution-assets/{institution_id}/"
+        if (
+            not storage_key
+            or ".." in storage_key
+            or not storage_key.startswith(required_prefix)
+            or storage_key == required_prefix
+        ):
+            return _asset_invalid_response(
+                "storage_key must be a path under institution-assets/{institution_id}/."
+            )
+
+        declared_mime = str(request.data.get("mime_type") or "").strip().lower()
+
+        # R13.2: validate the *stored object's* bytes + checksum from storage.
+        try:
+            detected_mime, computed_checksum, public_url = _validate_stored_asset_object(
+                storage_key, declared_mime
+            )
+        except ValidationError:
+            return _asset_invalid_response(
+                "Stored asset object failed bytes, MIME, or checksum validation."
+            )
+        except Exception:
+            return _asset_invalid_response("Stored asset object could not be validated.")
+
+        # Build a payload from server-validated values; the caller-supplied
+        # checksum/mime/public_url are overwritten so they are never persisted
+        # as-is.
+        payload = request.data.copy()
+        payload["institution_id"] = str(institution_id)
+        payload["storage_key"] = storage_key
+        payload["mime_type"] = detected_mime
+        payload["checksum_sha256"] = computed_checksum
+        if public_url is not None:
+            payload["public_url"] = public_url
+
+        serializer = self.serializer_class(data=payload)
+        serializer.is_valid(raise_exception=True)
+
+        asset_type = serializer.validated_data.get("asset_type")
+        current_version = (
+            InstitutionAsset.objects.filter(institution_id=institution_id, asset_type=asset_type)
+            .order_by("-version")
+            .values_list("version", flat=True)
+            .first()
+            or 0
+        )
+        save_kwargs = dict(
+            checksum_sha256=computed_checksum,
+            mime_type=detected_mime,
+            storage_key=storage_key,
+            version=current_version + 1,
+            created_at=timezone.now(),
+            created_by_id=getattr(request.user, "id", None),
+        )
+        if public_url is not None:
+            save_kwargs["public_url"] = public_url
+        instance = serializer.save(**save_kwargs)
+        _audit_config_change(
+            request,
+            resource=self.audit_resource,
+            verb="created",
+            entity_id=getattr(instance, "id", None),
+            institution_id=institution_id,
+        )
+        return Response(
+            {"success": True, "data": self.serializer_class(instance).data},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class AdminTenantAssetUploadView(APIView):

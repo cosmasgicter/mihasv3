@@ -261,7 +261,7 @@ def _send_promotion_notification(application: Application) -> None:
             f"<strong>{application.program}</strong> ({application.intake}) "
             f"has been <strong>approved</strong>!</p>"
             f"<p>Please log in to confirm your enrollment.</p>"
-            f"<p>Best regards,<br>MIHAS Admissions</p>"
+            f"<p>Best regards,<br>Beanola Admissions</p>"
         )
 
         queue_email(

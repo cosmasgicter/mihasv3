@@ -214,7 +214,7 @@ describe('Public tracker page verification', () => {
   it('renders contact information in the help section', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('info@mihas.edu.zm')
+    expect(text).toContain('admissions@beanola.com')
     expect(text).toContain('Contact Information')
   })
 

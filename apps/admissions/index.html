@@ -6,20 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="referrer" content="no-referrer-when-downgrade" />
     <meta name="robots" content="index, follow" />
-    <meta name="description" content="Apply to Mukuba Institute of Health and Applied Sciences (MIHAS). Complete your student application online with real-time eligibility checking for nursing, midwifery, and allied health programs." />
+    <meta name="description" content="Apply online through Beanola, the shared admissions platform for partner institutions. Complete your student application with real-time eligibility checking." />
 
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="MIHAS Application System" />
-    <meta property="og:description" content="Apply online to Mukuba Institute of Health and Applied Sciences. Nursing, Clinical Medicine, and allied health programs in Zambia." />
+    <meta property="og:title" content="Beanola Admissions" />
+    <meta property="og:description" content="Apply online through Beanola, the shared admissions platform for partner institutions." />
     <meta property="og:image" content="https://apply.beanola.com/images/og-image.png" />
     <meta property="og:url" content="https://apply.beanola.com" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="MIHAS Admissions" />
+    <meta property="og:site_name" content="Beanola Admissions" />
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="MIHAS Admissions Portal" />
-    <meta name="twitter:description" content="Apply online to Mukuba Institute of Health and Applied Sciences. Nursing, Clinical Medicine, and allied health programs in Zambia." />
+    <meta name="twitter:title" content="Beanola Admissions" />
+    <meta name="twitter:description" content="Apply online through Beanola, the shared admissions platform for partner institutions." />
     <meta name="twitter:image" content="https://apply.beanola.com/images/og-image.png" />
 
     <!-- Performance: Preconnect to critical origins -->
@@ -58,13 +58,15 @@
       and cssCodeSplit enabled for optimal loading.
     -->
 
-    <title>MIHAS Application System</title>
+    <title>Beanola Admissions</title>
 
     <!--
       Branded inline preloader. Renders before any JS or external CSS loads,
-      so the user sees the MIHAS identity within ~100ms of page arrival.
-      All visual assets inlined (SVG logo, CSS) to eliminate extra HTTP
-      requests on first paint.
+      so the user sees the Beanola identity within ~100ms of page arrival.
+      Beanola is the shared-platform brand; school-specific branding is
+      applied at React runtime once the tenant is resolved. All visual
+      assets inlined (logo, CSS) to eliminate extra HTTP requests on first
+      paint.
     -->
     <style>
       html, body { margin: 0; background: #f8fafc; }
@@ -191,28 +193,32 @@
   </head>
   <body>
     <!--
-      Preloader — first thing the browser paints. Shows MIHAS identity and a
-      reassuring "we're loading" signal so students on slow mobile networks
-      don't think the site is broken and bounce. The outer id="preloader"
-      plus .fade-out className keep the existing __dismissPreloader contract
-      (main.tsx + preloader.js don't need to change).
+      Preloader — first thing the browser paints. Shows the Beanola
+      shared-platform identity and a reassuring "we're loading" signal so
+      students on slow mobile networks don't think the site is broken and
+      bounce. School-specific branding is applied at React runtime once the
+      tenant resolves. The outer id="preloader" plus .fade-out className keep
+      the existing __dismissPreloader contract (main.tsx + preloader.js don't
+      need to change). The internal .mihas-pre-* class names are retained only
+      to preserve that JS/CSS contract — they are not a brand reference.
     -->
     <div
       id="preloader"
       class="mihas-preloader"
       role="status"
       aria-live="polite"
-      aria-label="Loading MIHAS Admissions Portal"
+      aria-label="Loading Beanola Admissions"
     >
       <div class="mihas-pre-card">
         <div class="mihas-pre-logo">
-          <!-- Real MIHAS logo. webp with png fallback; served same-origin
-               from /public so it paints before the JS bundle loads. -->
+          <!-- Beanola shared-platform logo. webp with png fallback; served
+               same-origin from /public so it paints before the JS bundle
+               loads. School-specific logos are applied at React runtime. -->
           <picture>
-            <source srcset="/images/logos/mihas-logo.webp" type="image/webp" />
+            <source srcset="/images/logos/beanolalogo.webp" type="image/webp" />
             <img
-              src="/images/logos/mihas-logo.png"
-              alt="MIHAS logo"
+              src="/images/logos/beanolalogo.png"
+              alt="Beanola logo"
               width="40"
               height="40"
               decoding="async"
@@ -220,7 +226,7 @@
           </picture>
         </div>
         <div class="mihas-pre-wordmark">
-          Mukuba Institute of Health &amp; Applied Sciences
+          Beanola Admissions
         </div>
         <div
           id="mihas-pre-sub"

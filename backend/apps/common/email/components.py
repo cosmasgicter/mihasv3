@@ -1,8 +1,13 @@
-"""Reusable HTML fragments for MIHAS-KATC transactional emails.
+"""Reusable HTML fragments for Beanola transactional emails.
 
 Each function returns a raw HTML string. Keep them small and opinionated:
 one concept per function, no branching on optional styles beyond what the
 caller explicitly passes.
+
+Beanola is a multi-tenant admissions platform. These components are
+brand-neutral by default — school-specific identity (signatory name, role,
+institution, division) is supplied by the caller from tenant/institution
+context, never baked in as a universal default.
 
 All components are compatible with:
    - Gmail (web, iOS, Android)
@@ -187,9 +192,9 @@ def derive_division(program: str | None) -> str | None:
     """Map a program name to its originating school/division.
 
     Mirror of `deriveSignatoryDivision()` in
-    `apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx`. Matches
-    MIHAS's paper-form convention where the footer for a nursing
-    acceptance reads "On behalf of … , School of Nursing".
+    `apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx`. Matches the
+    paper-form convention where the footer for a nursing acceptance reads
+    "On behalf of … , School of Nursing".
 
     Returns None when no mapping is found - caller omits the division line.
     """
@@ -210,24 +215,37 @@ def derive_division(program: str | None) -> str | None:
 
 
 def signature_block(
-    name: str = "Dr Solomon Musonda",
-    role: str = "Managing Director",
-    postnominal: str = "MD",
-    institution: str = "Mukuba Institute of Health and Applied Sciences",
+    name: str = "Beanola Admissions Office",
+    role: str = "",
+    postnominal: str = "",
+    institution: str = "",
     division: str | None = None,
 ) -> str:
     """Closing signature block at the bottom of letter-style emails.
 
-    Dr Solomon Musonda is the Managing Director for both MIHAS and KATC.
-    The "MD" postnominal matches the signature convention on MIHAS's
-    official application form - "Dr Solomon Musonda, MD".
+    Beanola is a multi-tenant platform, so the default signatory is the
+    neutral "Beanola Admissions Office" — no school, person, or postnominal
+    is assumed. Callers that send on behalf of a specific institution SHOULD
+    pass explicit signatory context derived from the tenant/institution
+    (``name``, ``role``, ``postnominal``, ``institution`` and, for nursing-style
+    programmes, ``division="School of Nursing"``).
 
-    Callers should pass the specific institution name for the document
-    being sent (MIHAS for MIHAS applicants, KATC for KATC applicants).
-    For nursing programs pass division="School of Nursing" to add a
-    line below the institution, matching the form footer convention.
+    The ``role``, ``institution`` and ``division`` rows render only when a
+    value is supplied, so the brand-neutral default stays a clean single line.
     """
     display_name = f"{name}, {postnominal}" if postnominal else name
+    role_row = (
+        f'<div style="color:{t.INK_500};font-size:{t.TYPE_CAPTION_SIZE};'
+        f'margin-top:{t.SPACE_XS};">{escape(role)}</div>'
+        if role
+        else ""
+    )
+    institution_row = (
+        f'<div style="color:{t.INK_500};font-size:{t.TYPE_CAPTION_SIZE};">'
+        f"{escape(institution)}</div>"
+        if institution
+        else ""
+    )
     division_row = (
         f'<div style="color:{t.INK_500};font-size:{t.TYPE_CAPTION_SIZE};">'
         f"{escape(division)}</div>"
@@ -242,11 +260,8 @@ def signature_block(
                line-height:{t.TYPE_BODY_LINE};color:{t.INK_900};
                padding-top:{t.SPACE_LG};border-top:1px solid {t.INK_100};">
       <div style="font-weight:{t.WEIGHT_BOLD};">{escape(display_name)}</div>
-      <div style="color:{t.INK_500};font-size:{t.TYPE_CAPTION_SIZE};
-                  margin-top:{t.SPACE_XS};">{escape(role)}</div>
-      <div style="color:{t.INK_500};font-size:{t.TYPE_CAPTION_SIZE};">
-        {escape(institution)}
-      </div>
+      {role_row}
+      {institution_row}
       {division_row}
     </td>
   </tr>

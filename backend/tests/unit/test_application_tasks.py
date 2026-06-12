@@ -59,12 +59,21 @@ def _make_application(app_id=None, status="approved"):
     app.program = "Computer Science"
     app.intake = "January 2025"
     app.institution = "Test University"
+    # Provenance snapshot fields (R16.1) — set explicit JSON-serialisable
+    # scalars so the MagicMock does not leak unserialisable attributes into
+    # verification_notes.official_document. Real Applications carry UUIDs/None
+    # here; None is the correct value for a fresh mock.
+    app.student_number = None
+    app.canonical_program_id = None
+    app.program_offering_id = None
+    app.intake_ref_id = None
     return app
 
 
 def _make_payment():
     """Build a mock Payment object matching the fields used by the receipt PDF."""
     pay = MagicMock()
+    pay.id = uuid.uuid4()
     pay.amount = 500
     pay.currency = "ZMW"
     pay.payment_method = "mobile_money"
@@ -217,7 +226,7 @@ class TestGenerateFinanceReceiptTask:
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
         mock_app_qs.get.return_value = application
-        mock_pay_qs.filter.return_value.first.return_value = _make_payment()
+        mock_pay_qs.filter.return_value.order_by.return_value.first.return_value = _make_payment()
 
         storage_instance = _mock_storage_instance()
         mock_storage_cls.return_value = storage_instance
@@ -243,7 +252,7 @@ class TestGenerateFinanceReceiptTask:
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
         mock_app_qs.get.return_value = application
-        mock_pay_qs.filter.return_value.first.return_value = _make_payment()
+        mock_pay_qs.filter.return_value.order_by.return_value.first.return_value = _make_payment()
 
         storage_instance = _mock_storage_instance()
         mock_storage_cls.return_value = storage_instance
@@ -264,7 +273,7 @@ class TestGenerateFinanceReceiptTask:
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
         mock_app_qs.get.return_value = application
-        mock_pay_qs.filter.return_value.first.return_value = _make_payment()
+        mock_pay_qs.filter.return_value.order_by.return_value.first.return_value = _make_payment()
 
         storage_instance = _mock_storage_instance()
         mock_storage_cls.return_value = storage_instance
@@ -287,7 +296,7 @@ class TestGenerateFinanceReceiptTask:
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
         mock_app_qs.get.return_value = application
-        mock_pay_qs.filter.return_value.first.return_value = _make_payment()
+        mock_pay_qs.filter.return_value.order_by.return_value.first.return_value = _make_payment()
 
         storage_instance = _mock_storage_instance()
         storage_instance.url.return_value = "https://r2.example.com/media/finance-receipts/test.pdf"
@@ -323,7 +332,7 @@ class TestGenerateFinanceReceiptTask:
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
         mock_app_qs.get.return_value = application
-        mock_pay_qs.filter.return_value.first.return_value = None
+        mock_pay_qs.filter.return_value.order_by.return_value.first.return_value = None
 
         storage_instance = _mock_storage_instance()
         mock_storage_cls.return_value = storage_instance

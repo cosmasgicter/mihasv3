@@ -46,23 +46,32 @@ timestamps_ms = st.integers(
 
 
 class TestPaymentReferenceFormat(SimpleTestCase):
-    """Payment references must follow the MIHAS-{app_number}-{timestamp_ms} format.
+    """Payment references must follow the BNL-{app_number}-{timestamp_ms} format.
 
-    **Validates: Requirements 1.6**
+    The ``BNL-`` (Beanola) platform prefix replaced the legacy ``MIHAS-``
+    prefix (R9.2). Reconciliation joins on the exact stored reference, never
+    on the prefix, so legacy ``MIHAS-`` references stay valid.
+
+    **Validates: Requirements 1.6, R9.2**
     """
 
     @given(app_number=application_numbers, ts_ms=timestamps_ms)
     @settings(max_examples=5)
-    def test_reference_contains_mihas_prefix(self, app_number, ts_ms):
+    def test_reference_contains_beanola_prefix(self, app_number, ts_ms):
         """For any application number and timestamp, the generated reference
-        should start with 'MIHAS-'."""
+        should start with 'BNL-'."""
         with patch("apps.documents.payment_service.time") as mock_time:
             mock_time.time.return_value = ts_ms / 1000.0
             ref = _generate_reference(app_number)
 
         self.assertTrue(
+            ref.startswith("BNL-"),
+            f"Reference should start with 'BNL-', got: {ref}",
+        )
+        # Brand-neutral platform prefix: must not reintroduce MIHAS.
+        self.assertFalse(
             ref.startswith("MIHAS-"),
-            f"Reference should start with 'MIHAS-', got: {ref}",
+            f"Reference must not use the legacy 'MIHAS-' prefix, got: {ref}",
         )
 
     @given(app_number=application_numbers, ts_ms=timestamps_ms)
@@ -84,15 +93,15 @@ class TestPaymentReferenceFormat(SimpleTestCase):
     @settings(max_examples=5)
     def test_reference_matches_expected_format(self, app_number, ts_ms):
         """For any application number and timestamp, the generated reference
-        should match the format MIHAS-{app_number}-{digits}."""
+        should match the format BNL-{app_number}-{digits}."""
         with patch("apps.documents.payment_service.time") as mock_time:
             mock_time.time.return_value = ts_ms / 1000.0
             ref = _generate_reference(app_number)
 
-        # Verify structural format: MIHAS-{app_number}-{digits}
+        # Verify structural format: BNL-{app_number}-{digits}
         # Note: we check the pattern rather than exact timestamp because
         # float64 precision can cause ±1ms drift for large timestamps.
-        expected_prefix = f"MIHAS-{app_number}-"
+        expected_prefix = f"BNL-{app_number}-"
         self.assertTrue(
             ref.startswith(expected_prefix),
             f"Reference should start with '{expected_prefix}', got: {ref}",

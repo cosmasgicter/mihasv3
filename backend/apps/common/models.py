@@ -242,10 +242,28 @@ class MigrationHistory(models.Model):
 
 
 class CommunicationTemplate(models.Model):
-    """Maps to 'communication_templates' table."""
+    """Maps to 'communication_templates' table.
+
+    Tenant-aware columns (``institution_id`` + ``version``) are added by the
+    additive migration ``2026_06_08_04_communication_templates_tenant.sql`` and
+    modelled here so ``CommunicationService`` can resolve, in priority order:
+    the active institution-specific template (highest version) →
+    the active Beanola platform template (``institution_id`` NULL, highest
+    version) → the safe Beanola default.
+
+    ``template_key`` is intentionally **not** marked ``unique`` at the model
+    level: a single key now legitimately maps to several rows (one Beanola
+    platform row plus per-institution rows, each with its own ``version``). The
+    table is ``managed = False`` so this only governs the ephemeral test-DB
+    schema and ORM metadata; the production UNIQUE constraint is managed by SQL
+    and relaxed in a separately-reviewed migration step.
+    """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    template_key = models.CharField(max_length=100, unique=True)
+    template_key = models.CharField(max_length=100, db_index=True)
+    # NULL institution_id == Beanola platform template for this key.
+    institution_id = models.UUIDField(null=True, blank=True, db_index=True)
+    version = models.IntegerField(default=1)
     subject_template = models.TextField(default='')
     body_template = models.TextField(default='')
     channel = models.CharField(max_length=20, default='both')
@@ -258,4 +276,4 @@ class CommunicationTemplate(models.Model):
         db_table = 'communication_templates'
 
     def __str__(self):
-        return f"Template: {self.template_key} ({self.channel})"
+        return f"Template: {self.template_key} v{self.version} ({self.channel})"

@@ -69,6 +69,7 @@ class RenderContext:
     logo_asset: Any
     signature_asset: Any
     payment: Any = None
+    seal_asset: Any = None
 
     @property
     def has_profile(self) -> bool:
@@ -121,4 +122,5 @@ def build_render_context(application, document_type: str, *, payment=None) -> Re
         logo_asset=_active_asset(application, "logo"),
         signature_asset=_active_asset(application, "signature"),
         payment=payment,
+        seal_asset=_active_asset(application, "seal"),
     )

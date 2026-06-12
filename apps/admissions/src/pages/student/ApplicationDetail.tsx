@@ -35,6 +35,7 @@ type ApplicationRecord = ApplicationDetailResponse['application']
 /** Fields that come from the Django API but aren't in the base Application interface */
 type ApplicationRecordWithExtras = ApplicationRecord & {
   institution?: string
+  institution_name?: string
   application_fee?: string | number
   public_tracking_code?: string
 }
@@ -279,13 +280,7 @@ export default function ApplicationDetail() {
               <DetailRow label="Program" value={application.program || 'Not provided'} />
               <DetailRow
                 label="Institution"
-                value={
-                  application.institution === 'KATC'
-                    ? 'Kalulushi Training Centre'
-                    : application.institution === 'MIHAS'
-                      ? 'Mukuba Institute of Health and Applied Sciences'
-                      : application.institution || 'Not provided'
-                }
+                value={application.institution_name ?? application.institution ?? 'Not provided'}
               />
               <DetailRow label="Intake" value={application.intake || 'Not provided'} />
               <DetailRow

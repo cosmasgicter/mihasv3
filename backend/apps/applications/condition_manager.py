@@ -363,7 +363,7 @@ def _send_conditions_notification(
             f"You must meet the following conditions:</p>"
             f"<ul>{conditions_html}</ul>"
             f"<p>Please log in for details and deadlines.</p>"
-            f"<p>Best regards,<br>MIHAS Admissions</p>"
+            f"<p>Best regards,<br>Beanola Admissions</p>"
         )
 
         queue_email(
@@ -406,7 +406,7 @@ def _send_approval_notification(application: Application) -> None:
             f"have been met.</p>"
             f"<p>Your application is now <strong>fully approved</strong>. "
             f"Please log in to confirm your enrollment.</p>"
-            f"<p>Best regards,<br>MIHAS Admissions</p>"
+            f"<p>Best regards,<br>Beanola Admissions</p>"
         )
 
         queue_email(

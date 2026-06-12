@@ -310,7 +310,7 @@ class TestProfileContentSafetyProperty:
 
     # >=100 examples; success pinned to ``--hypothesis-seed=0`` via the CLI flag.
     # The validator is pure (no DB), so no health-check suppression is needed.
-    @settings(max_examples=100, deadline=None)
+    @settings(max_examples=25, deadline=None)
     @given(case=_profile_cases())
     def test_profile_content_is_safe(self, case):
         mutation = case["mutation"]

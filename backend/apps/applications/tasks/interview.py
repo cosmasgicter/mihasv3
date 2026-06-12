@@ -118,7 +118,7 @@ def interview_reminder_task(self):
                     f"<p><strong>Date:</strong> {scheduled_display}<br>"
                     f"<strong>Mode:</strong> {mode_display}<br>"
                     f"<strong>Location:</strong> {location_display}</p>"
-                    f"<p>Best regards,<br>MIHAS Admissions</p>"
+                    f"<p>Best regards,<br>Beanola Admissions</p>"
                 )
 
                 queue_email(

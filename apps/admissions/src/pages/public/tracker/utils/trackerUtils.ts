@@ -1,5 +1,12 @@
 import { formatDate } from '@/lib/dateFormat'
 
+/**
+ * Display-name aliases for known tenants. Beanola is a multi-school platform
+ * (R9.9): the backend resolves the canonical institution name, so this map is
+ * only a best-effort alias for codes the API may not expand. Unknown codes
+ * fall through to the code itself — never a hardcoded MIHAS/KATC default.
+ * MIHAS/KATC remain here only as legitimate tenant aliases (brand-allowlisted).
+ */
 export const INSTITUTION_NAMES: Record<string, string> = {
   'KATC': 'Kalulushi Training Centre',
   'katc': 'Kalulushi Training Centre',
@@ -15,14 +22,19 @@ export const getInstitutionName = (code?: string | null) => {
 export const validateSearchTerm = (term: string): boolean => {
   const trimmed = term.trim()
   if (!trimmed || trimmed.length > 50) return false
-  const appNumberPattern = /^(KATC|MIHAS)\d{6}$/
+  // Application numbers begin with the assigned institution's code (R9.9) —
+  // any 2-10 letter tenant code (e.g. BNL, KATC, MIHAS), never a fixed
+  // MIHAS/KATC allowlist. Mirrors the backend ApplicationTrackView pattern.
+  const appNumberPattern = /^[A-Za-z]{2,10}\d{6,14}$/
   if (appNumberPattern.test(trimmed)) return true
   return /^[a-zA-Z0-9\-_]+$/.test(trimmed)
 }
 
 export const normalizeSearchTerm = (term: string): string => {
   const trimmed = term.trim()
-  return trimmed.replace(/^(katc|mihas)(\d{6})$/i, (_, prefix, serial) => `${String(prefix).toUpperCase()}${serial}`)
+  // Upper-case any institution-code prefix on an application number so the
+  // lookup is case-insensitive (R9.9: not restricted to MIHAS/KATC).
+  return trimmed.replace(/^([A-Za-z]{2,10})(\d{6,14})$/, (_, prefix, serial) => `${String(prefix).toUpperCase()}${serial}`)
 }
 
 export const displayValue = (value?: string | null, fallback = 'Not available') => {

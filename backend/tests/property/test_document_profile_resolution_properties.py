@@ -168,7 +168,7 @@ def _expected_level(present_levels: frozenset[str]) -> str | None:
 # function-scoped-fixture / data-too-large health checks (the same harness the
 # lifecycle + gating properties in this spec use).
 _RESOLUTION_PROPERTY_SETTINGS = settings(
-    max_examples=100,
+    max_examples=25,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,

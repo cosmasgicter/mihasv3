@@ -464,7 +464,7 @@ def _send_interview_notification(
             f"<strong>Mode:</strong> {mode_display}<br>"
             f"<strong>Location:</strong> {location_display}</p>"
             f"<p>Please log in for details.</p>"
-            f"<p>Best regards,<br>MIHAS Admissions</p>"
+            f"<p>Best regards,<br>Beanola Admissions</p>"
         )
 
         subject_map = {

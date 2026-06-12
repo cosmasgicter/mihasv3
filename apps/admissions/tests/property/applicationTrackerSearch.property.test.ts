@@ -18,7 +18,7 @@ import * as fc from 'fast-check'
 function validateSearchTerm(term: string): boolean {
   const trimmed = term.trim()
   if (!trimmed || trimmed.length > 50) return false
-  const appNumberPattern = /^(KATC|MIHAS)\d{6}$/
+  const appNumberPattern = /^[A-Za-z]{2,10}\d{6,14}$/
   if (appNumberPattern.test(trimmed)) return true
   return /^[a-zA-Z0-9\-_]+$/.test(trimmed)
 }
@@ -26,7 +26,7 @@ function validateSearchTerm(term: string): boolean {
 function normalizeSearchTerm(term: string): string {
   const trimmed = term.trim()
   return trimmed.replace(
-    /^(katc|mihas)(\d{6})$/i,
+    /^([A-Za-z]{2,10})(\d{6,14})$/,
     (_, prefix, serial) => `${String(prefix).toUpperCase()}${serial}`,
   )
 }

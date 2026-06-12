@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from django.utils import timezone
 from rest_framework import serializers
 
 from apps.catalog.models import (
     AccessGrant,
+    CanonicalProgram,
     Institution,
     InstitutionAsset,
     InstitutionDocumentProfile,
@@ -14,6 +16,19 @@ from apps.catalog.models import (
     InstitutionRequiredDocument,
     Program,
     UserInstitutionMembership,
+)
+
+# Access_Grant permission allowlist (R12.5). This is the authoritative copy
+# pinned in the serializer module; the Property 21 test
+# (``tests/property/test_admin_validation_properties.py``) oracles against an
+# equal set. Any permission value outside this allowlist is rejected.
+GRANT_PERMISSION_ALLOWLIST = frozenset(
+    {"view", "review", "manage", "verify_documents", "verify_payments", "export"}
+)
+
+# The three scope_type values R12 / the API contract accept.
+VALID_GRANT_SCOPE_TYPES = frozenset(
+    {"institution", "program_offering", "application"}
 )
 
 
@@ -46,6 +61,36 @@ class AdminInstitutionSerializer(serializers.ModelSerializer):
         if queryset.exists():
             raise serializers.ValidationError("Institution code is already in use.")
         return value
+
+    # Branding defaults seeded at creation so a newly onboarded school always
+    # produces non-bare official documents (the reportlab renderer reads these).
+    # The renderer's own fallback teal is a last resort; seeding here means the
+    # admin's chosen brand colours (or these sensible defaults) always win.
+    _DEFAULT_PRIMARY_COLOR = "#0F766E"
+    _DEFAULT_SECONDARY_COLOR = "#334155"
+
+    def create(self, validated_data):
+        now = timezone.now()
+        validated_data.setdefault("created_at", now)
+        validated_data.setdefault("updated_at", now)
+        # Seed branding defaults so documents are styled from day one. A
+        # brand_name falls back to the short name; colours fall back to the
+        # platform defaults when the operator left them blank.
+        if not validated_data.get("brand_name"):
+            validated_data["brand_name"] = validated_data.get("name")
+        if not validated_data.get("primary_color"):
+            validated_data["primary_color"] = self._DEFAULT_PRIMARY_COLOR
+        if not validated_data.get("secondary_color"):
+            validated_data["secondary_color"] = self._DEFAULT_SECONDARY_COLOR
+        if not validated_data.get("admissions_email"):
+            validated_data["admissions_email"] = validated_data.get("email")
+        if validated_data.get("is_active") is None:
+            validated_data["is_active"] = True
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.setdefault("updated_at", timezone.now())
+        return super().update(instance, validated_data)
 
 
 class AdminInstitutionDomainSerializer(serializers.ModelSerializer):
@@ -146,11 +191,90 @@ class AdminRequiredDocumentSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
-        program_id = attrs.get("program_id")
-        institution_id = attrs.get("institution_id")
-        if program_id and institution_id:
-            if not Program.objects.filter(id=program_id, institution_id=institution_id).exists():
-                raise serializers.ValidationError({"program_id": "Program offering does not belong to this institution."})
+
+        # Resolve effective values, falling back to the instance under edit so
+        # partial updates validate against the persisted scope (R11.1–R11.5).
+        def _effective(field):
+            if field in attrs:
+                return attrs[field]
+            if self.instance is not None:
+                return getattr(self.instance, field, None)
+            return None
+
+        institution_id = _effective("institution_id")
+        program_id = _effective("program_id")
+        canonical_program_id = _effective("canonical_program_id")
+        document_type = _effective("document_type")
+
+        # R11.1: institution must exist and be active.
+        institution = (
+            Institution.objects.filter(id=institution_id).first()
+            if institution_id
+            else None
+        )
+        if institution is None:
+            raise serializers.ValidationError(
+                {"institution_id": "Institution does not exist."}
+            )
+        if not institution.is_active:
+            raise serializers.ValidationError(
+                {"institution_id": "Institution is not active."}
+            )
+
+        # R11.2: if program_id supplied, program must exist, be active, and
+        # belong to the referenced institution.
+        program = None
+        if program_id:
+            program = Program.objects.filter(id=program_id).first()
+            if program is None:
+                raise serializers.ValidationError(
+                    {"program_id": "Program offering does not exist."}
+                )
+            if not program.is_active:
+                raise serializers.ValidationError(
+                    {"program_id": "Program offering is not active."}
+                )
+            if str(program.institution_id) != str(institution_id):
+                raise serializers.ValidationError(
+                    {"program_id": "Program offering does not belong to this institution."}
+                )
+
+        # R11.3: if canonical_program_id supplied, canonical must exist + active.
+        if canonical_program_id:
+            canonical = CanonicalProgram.objects.filter(id=canonical_program_id).first()
+            if canonical is None:
+                raise serializers.ValidationError(
+                    {"canonical_program_id": "Canonical program does not exist."}
+                )
+            if not canonical.is_active:
+                raise serializers.ValidationError(
+                    {"canonical_program_id": "Canonical program is not active."}
+                )
+
+        # R11.4: if both supplied, program's canonical must match the supplied
+        # canonical program.
+        if program is not None and canonical_program_id:
+            if str(program.canonical_program_id) != str(canonical_program_id):
+                raise serializers.ValidationError(
+                    {"canonical_program_id": "Program offering does not belong to this canonical program."}
+                )
+
+        # R11.5: reject a duplicate active row for the same
+        # (institution, document_type, program_id, canonical_program_id) scope.
+        duplicate_qs = InstitutionRequiredDocument.objects.filter(
+            institution_id=institution_id,
+            document_type=document_type,
+            program_id=program_id,
+            canonical_program_id=canonical_program_id,
+            is_active=True,
+        )
+        if self.instance is not None:
+            duplicate_qs = duplicate_qs.exclude(id=self.instance.id)
+        if duplicate_qs.exists():
+            raise serializers.ValidationError(
+                {"document_type": "An active required document already exists for this scope."}
+            )
+
         return attrs
 
 
@@ -184,15 +308,157 @@ class AdminAccessGrantSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
-        scope_type = attrs.get("scope_type")
+
+        # Resolve effective values, falling back to the instance under edit so
+        # partial updates validate against the persisted grant (R12.6
+        # self-update). Mirrors the required-document serializer pattern.
+        def _effective(field):
+            if field in attrs:
+                return attrs[field]
+            if self.instance is not None:
+                return getattr(self.instance, field, None)
+            return None
+
+        scope_type = _effective("scope_type")
+        institution_id = _effective("institution_id")
+        program_id = _effective("program_id")
+        application_id = _effective("application_id")
+        permissions = _effective("permissions")
+        expires_at = _effective("expires_at")
+
+        # R12.7: scope_type must be present and one of the accepted values.
+        if not scope_type:
+            raise serializers.ValidationError(
+                {"scope_type": "scope_type is required."}
+            )
+        if scope_type not in VALID_GRANT_SCOPE_TYPES:
+            raise serializers.ValidationError(
+                {"scope_type": "scope_type must be one of institution, program_offering, application."}
+            )
+
+        # R12.1/2/3: the target id required by the scope must be present.
         required_by_scope = {
             "institution": "institution_id",
             "program_offering": "program_id",
             "application": "application_id",
         }
-        required = required_by_scope.get(scope_type)
-        if required and not attrs.get(required):
-            raise serializers.ValidationError({required: f"{required} is required for {scope_type} grants."})
+        required = required_by_scope[scope_type]
+        if not _effective(required):
+            raise serializers.ValidationError(
+                {required: f"{required} is required for {scope_type} grants."}
+            )
+
+        # The target id used for the duplicate-guard tuple (R12.6).
+        target_id = None
+
+        if scope_type == "institution":
+            # R12.1: institution must exist and be active.
+            institution = (
+                Institution.objects.filter(id=institution_id).first()
+                if institution_id
+                else None
+            )
+            if institution is None:
+                raise serializers.ValidationError(
+                    {"institution_id": "Institution does not exist."}
+                )
+            if not institution.is_active:
+                raise serializers.ValidationError(
+                    {"institution_id": "Institution is not active."}
+                )
+            target_id = str(institution_id)
+
+        elif scope_type == "program_offering":
+            # R12.2: program must exist, be active, and be owned by a school
+            # (non-global) institution; if institution_id is supplied the
+            # program must belong to it.
+            program = (
+                Program.objects.filter(id=program_id).first()
+                if program_id
+                else None
+            )
+            if program is None:
+                raise serializers.ValidationError(
+                    {"program_id": "Program offering does not exist."}
+                )
+            if not program.is_active:
+                raise serializers.ValidationError(
+                    {"program_id": "Program offering is not active."}
+                )
+            if program.institution_id is None:
+                raise serializers.ValidationError(
+                    {"program_id": "Program offering is not owned by a school institution."}
+                )
+            if institution_id and str(program.institution_id) != str(institution_id):
+                raise serializers.ValidationError(
+                    {"institution_id": "Program offering does not belong to this institution."}
+                )
+            target_id = str(program_id)
+
+        else:  # scope_type == "application"
+            # R12.3: application must exist; if institution_id/program_id are
+            # supplied, the application's institution and program-offering must
+            # match the supplied value(s).
+            # Imported lazily to avoid a module-level apps.catalog → apps.applications
+            # → apps.catalog import cycle (caught by scripts/check_circular_imports.py).
+            from apps.applications.models import Application
+
+            application = (
+                Application.objects.filter(id=application_id).first()
+                if application_id
+                else None
+            )
+            if application is None:
+                raise serializers.ValidationError(
+                    {"application_id": "Application does not exist."}
+                )
+            if institution_id and str(application.institution_ref_id) != str(institution_id):
+                raise serializers.ValidationError(
+                    {"institution_id": "Application does not belong to this institution."}
+                )
+            if program_id and str(application.program_offering_id) != str(program_id):
+                raise serializers.ValidationError(
+                    {"program_id": "Application does not belong to this program offering."}
+                )
+            target_id = str(application_id)
+
+        # R12.4: expires_at, when supplied, must be strictly later than the
+        # current server time in UTC.
+        if expires_at is not None:
+            if expires_at <= timezone.now():
+                raise serializers.ValidationError(
+                    {"expires_at": "expires_at must be strictly in the future."}
+                )
+
+        # R12.5: every permission value must be in the allowlist.
+        if permissions:
+            invalid = [p for p in permissions if p not in GRANT_PERMISSION_ALLOWLIST]
+            if invalid:
+                raise serializers.ValidationError(
+                    {"permissions": f"Unsupported permission value(s): {sorted(set(invalid))}."}
+                )
+
+        # R12.6: reject a new active grant whose (user, scope_type, target id)
+        # matches an existing active grant, except when updating that same row.
+        user_id = _effective("user_id")
+        scope_column = {
+            "institution": "institution_id",
+            "program_offering": "program_id",
+            "application": "application_id",
+        }[scope_type]
+        duplicate_qs = AccessGrant.objects.filter(
+            user_id=user_id,
+            scope_type=scope_type,
+            is_active=True,
+            **{scope_column: target_id},
+        )
+        if self.instance is not None:
+            duplicate_qs = duplicate_qs.exclude(id=self.instance.id)
+        if duplicate_qs.exists():
+            raise serializers.ValidationError(
+                {scope_column: "An active access grant already exists for this user and target."}
+            )
+
         return attrs
 
 

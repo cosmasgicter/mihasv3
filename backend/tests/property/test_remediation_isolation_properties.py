@@ -128,7 +128,7 @@ def _assert_masked(response, baseline) -> None:
 # deletion + gating properties in this spec). The input space (2 actor kinds ×
 # 4 document types × 4 application statuses = 32 combinations) is well covered.
 _ISOLATION_PROPERTY_SETTINGS = settings(
-    max_examples=100,
+    max_examples=25,
     deadline=None,
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,

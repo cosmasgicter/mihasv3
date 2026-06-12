@@ -248,7 +248,10 @@ class ApplicationPreviewSummaryView(APIView):
                 raw = {
                     "full_name": app.full_name,
                     "program": program,
-                    "institution": getattr(app, "institution", "MIHAS"),
+                    # Pass through the legacy institution snapshot as-is; the AI
+                    # service substitutes a neutral phrase when it is blank
+                    # rather than defaulting to a single school's brand.
+                    "institution": getattr(app, "institution", "") or "",
                     "intake": intake,
                     "grades_summary": build_grades_summary(app),
                     "subjects_count": subjects_count,

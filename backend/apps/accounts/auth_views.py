@@ -403,7 +403,7 @@ class RegisterView(APIView):
                 from django.core.mail import send_mail
 
                 send_mail(
-                    subject="MIHAS Account — Sign-in Attempt",
+                    subject="Beanola Account — Sign-in Attempt",
                     message=(
                         "Someone tried to create an account with this email address. "
                         "If this was you, try signing in instead at https://apply.beanola.com/signin. "

@@ -96,14 +96,27 @@ def _with_payment_summary(queryset):
 # Identifier generation
 # ---------------------------------------------------------------------------
 
+#: Platform-level, brand-neutral institution code used when no school
+#: institution can be resolved for an identifier (R9.4). Beanola owns this
+#: prefix; it never implies a specific school identity. Unknown/unassigned
+#: institutions get ``BNL...`` identifiers rather than silently inheriting a
+#: school brand.
+PLATFORM_INSTITUTION_CODE = 'BNL'
 
-def _resolve_institution_code(institution_name: str) -> str:
-    """Resolve institution name (or code) to its short code (e.g., MIHAS, KATC).
+#: Legacy single-tenant default. Retained ONLY for the explicitly named,
+#: tested legacy resolution path (``_resolve_institution_code_legacy``) so
+#: historical single-tenant call sites can be migrated deliberately. The
+#: default multi-tenant path (``_resolve_institution_code``) never emits this.
+_LEGACY_INSTITUTION_CODE = 'MIHAS'
+
+
+def _match_institution_code(institution_name: str) -> str | None:
+    """Return the resolved institution code, or ``None`` when unresolvable.
 
     Matches by code first, then exact name, then partial name. Treats a NULL
-    ``is_active`` as active so a tenant institution row that was created
-    without an explicit ``is_active`` (the column is nullable) still resolves
-    instead of silently falling back to MIHAS — the bug that produced
+    ``is_active`` as active so a tenant institution row created without an
+    explicit ``is_active`` (the column is nullable) still resolves instead of
+    falling through to the platform/legacy fallback — the bug that produced
     ``MIHAS...`` application numbers on KATC applications.
     """
     from django.db.models import Q
@@ -111,10 +124,12 @@ def _resolve_institution_code(institution_name: str) -> str:
     from apps.catalog.models import Institution
 
     if not institution_name:
-        return 'MIHAS'
+        return None
 
     active = Q(is_active=True) | Q(is_active__isnull=True)
     candidate = institution_name.strip()
+    if not candidate:
+        return None
 
     # 1. Exact code match (caller may pass "KATC" directly).
     inst = Institution.objects.filter(active, code__iexact=candidate).first()
@@ -128,7 +143,38 @@ def _resolve_institution_code(institution_name: str) -> str:
     inst = Institution.objects.filter(active, name__icontains=candidate).first()
     if inst:
         return inst.code.upper()
-    return 'MIHAS'  # Default fallback
+    return None
+
+
+def _resolve_institution_code(institution_name: str) -> str:
+    """Resolve an institution name (or code) to its short code (e.g. KATC).
+
+    Returns the *assigned* institution's code whenever one resolves (R9.3).
+    For a genuinely missing or unresolvable institution it returns the
+    Beanola platform-level code ``BNL`` (R9.4) — it NEVER silently defaults to
+    a school brand such as ``MIHAS``. The brand-specific legacy default lives
+    behind :func:`_resolve_institution_code_legacy`.
+    """
+    code = _match_institution_code(institution_name)
+    if code:
+        return code
+    return PLATFORM_INSTITUTION_CODE
+
+
+def _resolve_institution_code_legacy(institution_name: str) -> str:
+    """Legacy single-tenant resolver — falls back to ``MIHAS``.
+
+    Behaviour-preserving copy of the pre-multi-tenant resolver: resolves the
+    assigned institution if possible, otherwise returns the legacy ``MIHAS``
+    code. This path is **opt-in only** and exists so historical single-tenant
+    callers can be migrated deliberately; the brand drift guard allowlists it
+    explicitly. New/default flows must use :func:`_resolve_institution_code`,
+    which falls back to the brand-neutral platform code instead.
+    """
+    code = _match_institution_code(institution_name)
+    if code:
+        return code
+    return _LEGACY_INSTITUTION_CODE
 
 
 def _generate_application_number(institution_name: str = '') -> str:

@@ -41,10 +41,14 @@ logger = logging.getLogger(__name__)
 
 
 def _generate_reference(application_number: str) -> str:
-    """Build a unique payment reference - uses module-level ``time`` for testability."""
+    """Build a unique payment reference - uses module-level ``time`` for testability.
+
+    Uses the Beanola-owned ``BNL-`` platform prefix (R9.2). Reconciliation
+    joins on the exact stored reference, never on the prefix.
+    """
     import time
     ts_ms = int(time.time() * 1000)
-    return f"MIHAS-{application_number}-{ts_ms}"
+    return f"BNL-{application_number}-{ts_ms}"
 
 
 class PaymentInitiationMixin:

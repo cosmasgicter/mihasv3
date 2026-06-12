@@ -434,6 +434,11 @@ def _render_official_pdf(
     if signature_asset is None:
         signature_asset = _active_asset(application, "signature")
 
+    # R16.1: the active seal asset participates in the provenance snapshot. It
+    # is resolved here (not a fingerprint input) so the snapshot records its id
+    # + checksum; institutions without a seal collapse to a null pair.
+    seal_asset = _active_asset(application, "seal")
+
     profile = None
     try:
         from apps.catalog.services import InstitutionDocumentProfileService
@@ -450,6 +455,7 @@ def _render_official_pdf(
         logo_asset=logo_asset,
         signature_asset=signature_asset,
         payment=payment,
+        seal_asset=seal_asset,
     )
     return render_official_document(context, template=template)
 

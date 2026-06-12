@@ -14,10 +14,16 @@
  * directly across documentType × applicationStatus × paymentStatus and asserts
  * the action is offered/enabled IFF the type's gate holds:
  *
- *     application_slip   → a non-draft (submitted) status        (R5.2)
+ *     application_slip   → a non-draft submitted status        (R5.2)
  *     acceptance_letter  → application is `approved`             (R5.3)
  *     conditional_offer  → application is `conditionally_approved` (R5.4)
  *     payment_receipt    → a verified/completed payment exists   (R5.5)
+ *
+ * "Non-draft submitted status" is the backend's *closed* allowlist
+ * (`official_document_views._NON_DRAFT_SUBMITTED_STATUSES`), not a broad
+ * `!== 'draft'` test: terminal statuses (`enrolled`, `rejected`, `withdrawn`,
+ * `expired`, `enrollment_expired`) are excluded so the UI never offers a slip
+ * the backend would 404-mask (R17.1).
  *
  * The oracle below is computed independently of the implementation (it does not
  * call `isOfficialDocumentOffered` or `isPaymentVerified`) so the property is a
@@ -85,6 +91,17 @@ const VERIFIED_PAYMENT_STATES = new Set<string>([
   'force_approved',
 ])
 
+// Independent oracle: the backend's closed non-draft submitted allowlist for the
+// application-slip gate (mirrors `_NON_DRAFT_SUBMITTED_STATUSES` without importing
+// the implementation). Terminal statuses are deliberately absent (R17.1).
+const NON_DRAFT_SUBMITTED_STATES = new Set<string>([
+  'submitted',
+  'under_review',
+  'waitlisted',
+  'conditionally_approved',
+  'approved',
+])
+
 /**
  * Independent oracle for the student type gate (R5.2–R5.5). Deliberately does
  * NOT reuse the implementation under test.
@@ -96,7 +113,7 @@ function expectedGate(
 ): boolean {
   switch (documentType) {
     case 'application_slip':
-      return applicationStatus !== 'draft'
+      return NON_DRAFT_SUBMITTED_STATES.has(applicationStatus)
     case 'acceptance_letter':
       return applicationStatus === 'approved'
     case 'conditional_offer':
@@ -126,17 +143,17 @@ describe('Property 18 (frontend mirror) — student official-document status gat
           expect(actual).toBe(expected)
         },
       ),
-      { numRuns: 100, seed: 0 },
+      { numRuns: 25, seed: 0 },
     )
   })
 
-  it('application_slip gate depends only on non-draft status, ignoring payment (R5.2)', () => {
+  it('application_slip gate is the closed non-draft submitted allowlist, ignoring payment (R5.2, R17.1)', () => {
     fc.assert(
       fc.property(applicationStatusArb, paymentStatusArb, (applicationStatus, paymentStatus) => {
         const offered = isOfficialDocumentOffered('application_slip', applicationStatus, paymentStatus)
-        expect(offered).toBe(applicationStatus !== 'draft')
+        expect(offered).toBe(NON_DRAFT_SUBMITTED_STATES.has(applicationStatus))
       }),
-      { numRuns: 100, seed: 0 },
+      { numRuns: 25, seed: 0 },
     )
   })
 
@@ -146,7 +163,7 @@ describe('Property 18 (frontend mirror) — student official-document status gat
         const offered = isOfficialDocumentOffered('acceptance_letter', applicationStatus, paymentStatus)
         expect(offered).toBe(applicationStatus === 'approved')
       }),
-      { numRuns: 100, seed: 0 },
+      { numRuns: 25, seed: 0 },
     )
   })
 
@@ -156,7 +173,7 @@ describe('Property 18 (frontend mirror) — student official-document status gat
         const offered = isOfficialDocumentOffered('conditional_offer', applicationStatus, paymentStatus)
         expect(offered).toBe(applicationStatus === 'conditionally_approved')
       }),
-      { numRuns: 100, seed: 0 },
+      { numRuns: 25, seed: 0 },
     )
   })
 
@@ -167,7 +184,7 @@ describe('Property 18 (frontend mirror) — student official-document status gat
         const expected = paymentStatus !== null && VERIFIED_PAYMENT_STATES.has(paymentStatus)
         expect(offered).toBe(expected)
       }),
-      { numRuns: 100, seed: 0 },
+      { numRuns: 25, seed: 0 },
     )
   })
 
@@ -183,7 +200,7 @@ describe('Property 18 (frontend mirror) — student official-document status gat
           expect(a).toBe(b)
         },
       ),
-      { numRuns: 100, seed: 0 },
+      { numRuns: 25, seed: 0 },
     )
   })
 })

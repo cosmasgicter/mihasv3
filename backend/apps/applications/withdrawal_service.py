@@ -158,7 +158,7 @@ def _send_withdrawal_notification(application: Application, reason: str) -> None
             f"for {application.program} ({application.intake}) has been "
             f"withdrawn as requested.</p>"
             f"<p>You may submit a new application at any time.</p>"
-            f"<p>Best regards,<br>MIHAS Admissions</p>"
+            f"<p>Best regards,<br>Beanola Admissions</p>"
         )
 
         queue_email(
