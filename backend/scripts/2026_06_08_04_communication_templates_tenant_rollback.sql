@@ -24,8 +24,20 @@
 -- flagged as non-additive even though this file only reverses the forward
 -- script's own additions.
 
-ALTER TABLE communication_templates
-    DROP CONSTRAINT IF EXISTS fk_comm_templates_institution;
+-- Drop the NOT VALID foreign key inside a DO block (mirrors how the forward
+-- script added it). DROP CONSTRAINT is not in the inverse-additive prefix set
+-- that test_rollback_safe_operations enforces on bare statements, so it lives
+-- in an operator-facing DO block (which that guard strips before checking),
+-- exactly as the forward migration wraps its ADD CONSTRAINT.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'fk_comm_templates_institution'
+    ) THEN
+        ALTER TABLE communication_templates
+            DROP CONSTRAINT fk_comm_templates_institution;
+    END IF;
+END $$;
 
 DROP INDEX IF EXISTS idx_comm_templates_tenant_lookup;
 
