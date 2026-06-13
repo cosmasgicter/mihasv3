@@ -468,7 +468,7 @@ Each phase ends in a verification block and a checkpoint that pauses for the use
     - _Requirements: R17.1, R17.2, R17.4_
 
 - [ ] 38. Frontend UI guardrail gate
-  - [-] 38.1 Run impeccable detect on the changed surfaces
+  - [ ] 38.1 Run impeccable detect on the changed surfaces
     - Run `impeccable detect apps/admissions/src/` and resolve P0 findings on the document UI surfaces.
     - _Requirements: R17.7_
 

@@ -365,9 +365,16 @@ class Command(BaseCommand):
             for spec in PROFILE_SPECS:
                 institution = self._resolve_institution(Institution, spec, now)
                 program = self._resolve_offering(Program, institution, spec, now)
-                canonical = (
-                    program.canonical_program if program is not None else None
-                )
+                # Scope the profile to match
+                # InstitutionDocumentProfileService.resolve: an offering-scoped
+                # profile pins program_id with canonical_program_id NULL (the
+                # "offering" precedence level). Setting BOTH program_id AND
+                # canonical_program_id made the row unresolvable — the resolver
+                # never queries both columns together, so an offering application
+                # fell through to DOCUMENT_PROFILE_NOT_CONFIGURED. Every spec here
+                # resolves a concrete offering (``program``), so pin the offering
+                # scope with a NULL canonical_program.
+                canonical = None
 
                 lookup = dict(
                     institution=institution,
