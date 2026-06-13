@@ -582,6 +582,18 @@ def _compute_document_fingerprint(
         "status": _canonical_fingerprint_value(getattr(application, "status", None)),
         "updated_at": _canonical_fingerprint_value(getattr(application, "updated_at", None)),
         "institution_id": (tenant or {}).get("institution_id"),
+        # Tenant branding participates in the fingerprint so a rebrand (colour,
+        # brand name, admissions contact, website) regenerates the stored
+        # Current_Official_Version on the next request rather than serving a
+        # stale, unbranded document. These are exactly the tenant fields the
+        # layouts draw (letterhead band, heading, contact line).
+        "brand": {
+            "name": (tenant or {}).get("name"),
+            "primary_color": (tenant or {}).get("primary_color"),
+            "admissions_email": (tenant or {}).get("admissions_email"),
+            "phone": (tenant or {}).get("phone"),
+            "website": (tenant or {}).get("website"),
+        },
         "template_id": (template or {}).get("template_id"),
         "template_version": (template or {}).get("template_version"),
         # R6.1 / R6.5: the resolved tenant document profile's id + version are
