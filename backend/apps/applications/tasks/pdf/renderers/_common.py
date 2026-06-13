@@ -11,6 +11,7 @@ asset render status) so the fingerprint/provenance lifecycle is unchanged.
 from __future__ import annotations
 
 import html
+import re
 from typing import Any
 
 from django.utils import timezone
@@ -20,6 +21,10 @@ from ..render_context import RenderContext
 # Receipt document types additionally carry the payment id + receipt number in
 # the provenance snapshot (R16.1).
 _RECEIPT_DOCUMENT_TYPES = {"payment_receipt", "finance_receipt"}
+
+# ``{{token}}`` matcher — mirrors DocumentTemplateService's substitution pattern
+# so profile-section token substitution agrees with the template path.
+_TOKEN_RE = re.compile(r"\{\{(\w+)\}\}")
 
 
 def escape(value) -> str:
@@ -44,8 +49,56 @@ def escape(value) -> str:
     return html.unescape(str(value))
 
 
+def _substitute_profile_tokens(value: str, context: RenderContext) -> str:
+    """Substitute allowlisted ``{{token}}`` refs in a profile section body.
+
+    Profile section prose authored in the Tenant UI carries the same
+    ``{{student_name}}`` / ``{{program}}`` / ``{{intake}}`` / ``{{institution}}``
+    tokens as Document_Templates. The template path substitutes them via
+    ``DocumentTemplateService._render_value``, but profile sections are read
+    straight off the row — so without this they render literally (e.g. a raw
+    ``{{intake}}`` on the acceptance letter). Reuse the exact allowlist + inert-
+    unknown-token + single-pass semantics: only ``ALLOWED_TEMPLATE_TOKENS`` are
+    replaced, unknown tokens are left untouched, and substituted output is never
+    re-scanned (no second-order injection). HTML-escaping is intentionally NOT
+    applied here because the caller (``escape``) HTML-*unescapes* for the canvas;
+    values are drawn literally by reportlab ``drawString`` which interprets no
+    markup.
+    """
+    application = context.application
+    tenant = context.tenant or {}
+    payment = context.payment
+
+    token_context = {
+        "student_name": getattr(application, "full_name", "") or "",
+        "application_number": getattr(application, "application_number", "") or "",
+        "program": getattr(application, "program", "") or "",
+        "intake": getattr(application, "intake", "") or "",
+        "institution": tenant.get("name") or "",
+        "receipt_number": getattr(payment, "receipt_number", "") or "" if payment else "",
+        "amount": str(getattr(payment, "amount", "") or "") if payment else "",
+        "currency": getattr(payment, "currency", "") or "" if payment else "",
+        "date": timezone.now().strftime("%d %B %Y"),
+    }
+
+    try:
+        from apps.catalog.services import ALLOWED_TEMPLATE_TOKENS
+
+        allowed = ALLOWED_TEMPLATE_TOKENS
+    except Exception:  # pragma: no cover - allowlist import must never break a render
+        allowed = frozenset(token_context)
+
+    def _sub(match) -> str:
+        token = match.group(1)
+        if token in allowed and token in token_context:
+            return str(token_context.get(token) or "")
+        return match.group(0)
+
+    return _TOKEN_RE.sub(_sub, value)
+
+
 def profile_section(context: RenderContext, key: str) -> str | None:
-    """Return an escaped profile section value, or ``None`` when absent."""
+    """Return an escaped, token-substituted profile section value, or ``None``."""
     profile = context.profile
     if profile is None:
         return None
@@ -53,7 +106,7 @@ def profile_section(context: RenderContext, key: str) -> str | None:
     value = sections.get(key) if isinstance(sections, dict) else None
     if value is None or not str(value).strip():
         return None
-    return escape(value)
+    return _substitute_profile_tokens(escape(value), context)
 
 
 def profile_signatory(context: RenderContext) -> str | None:
