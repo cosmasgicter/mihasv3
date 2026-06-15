@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: MIHAS Platform APIs
+  title: Beanola Platform APIs
   version: 1.0.0
   description: |-
     Creator: Cosmas Kanchepa
@@ -33,12 +33,12 @@ info:
     - a bearer access token for direct API testing
     - or the `access_token` cookie issued by the login flow
   contact:
-    name: MIHAS Admissions Platform Team
-    email: admissions@mihas.edu.zm
-    url: https://mihas.edu.zm
+    name: Beanola Admissions Platform Team
+    email: admissions@beanola.com
+    url: https://beanola.com
   license:
     name: Proprietary
-    url: https://mihas.edu.zm
+    url: https://beanola.com
 paths:
   /api/v1/admin/access-grants/:
     get:
@@ -760,6 +760,7 @@ paths:
   /api/v1/admin/institutions/{institution_id}/assets/upload/:
     post:
       operationId: api_v1_admin_institutions_assets_upload_create
+      summary: Upload a tenant institution asset (logo, signature, or seal)
       parameters:
       - in: path
         name: institution_id
@@ -769,12 +770,30 @@ paths:
         required: true
       tags:
       - admin
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                asset_type:
+                  type: string
+                  enum:
+                  - logo
+                  - signature
+                  - seal
+                  default: logo
+              required:
+              - file
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
       responses:
-        '200':
-          description: No response body
+        '201':
+          description: Asset uploaded and stored.
         '400':
           description: Bad request — validation error. Response body follows the platform
             error envelope.
@@ -807,7 +826,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      summary: Create api v1 admin institutions assets upload
   /api/v1/admin/institutions/{institution_id}/audit/:
     get:
       operationId: admin_institution_audit_list
@@ -15330,16 +15348,16 @@ components:
           maxLength: 20
         role:
           enum:
-          - student
-          - super_admin
-          - admin
           - reviewer
+          - admin
+          - super_admin
+          - student
           type: string
           description: |-
-            * `student` - student
-            * `super_admin` - super_admin
-            * `admin` - admin
             * `reviewer` - reviewer
+            * `admin` - admin
+            * `super_admin` - super_admin
+            * `student` - student
           x-spec-enum-id: 1a3817a8a61ce783
         password:
           type: string
@@ -19177,4 +19195,4 @@ tags:
   description: Frontend error reporting endpoints.
 externalDocs:
   description: Operator documentation
-  url: https://mihas.edu.zm/docs/api/
+  url: https://beanola.com/docs/api/

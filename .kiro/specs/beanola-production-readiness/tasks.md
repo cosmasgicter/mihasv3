@@ -166,7 +166,7 @@ closes.
 > It authors **no new schema** — all four scripts already exist as additive/idempotent SQL. Steps
 > 6.1–6.2 run on Neon (authoring/staging). Step 6.3 is the **gated operator production apply**.
 
-- [x] 6. Execute the gated Neon-first production cutover
+- [ ] 6. Execute the gated Neon-first production cutover
   - [x] 6.1 Neon validation: dry-run discovery + apply + reapply + validation SQL
     - On a Neon branch (`create_branch`), run `apply_sql_migrations --dry-run` and confirm the four
       top-level scripts are discovered in correct lexical order
@@ -187,7 +187,7 @@ closes.
       row); otherwise the Migration_Runner refuses to run with `MIGRATION_HISTORY_NOT_EXTENDED` (R3.6).
     - _Requirements: 3.6, 3.8_
 
-  - [x] 6.3 GATED OPERATOR PRODUCTION APPLY — NON-AUTOMATIC, requires explicit user confirmation
+  - [ ] 6.3 GATED OPERATOR PRODUCTION APPLY — NON-AUTOMATIC, requires explicit user confirmation
     - **⚠️ OPERATOR STEP — DO NOT RUN FROM THIS DEVELOPMENT ENVIRONMENT. An agent MUST NOT execute this
       task. It is gated on explicit user confirmation and performed by the Operator on the EC2 box
       (`ssh … ec2-13-244-37-190.af-south-1.compute.amazonaws.com`) during a maintenance window** (R3.4).
@@ -198,7 +198,7 @@ closes.
       runbook's "Migration-history reconciliation" section (R3.10).
     - _Requirements: 3.4, 3.5, 3.6, 3.7, 3.8, 3.10, 16.8_
 
-  - [x] 6.4 Capture the production evidence block
+  - [ ] 6.4 Capture the production evidence block
     - Record into `docs/multi-tenant-beanola-progress.md` and the runbook's Phase-1 evidence section:
       migration names applied, `migration_history` rows + checksums, counts (institutions / canonical
       programs / offerings / intakes / applications-with-canonical-IDs / unlinked legacy rows),
@@ -213,7 +213,7 @@ closes.
       non-property verification for the operator cutover.
     - _Requirements: 3.2, 3.3_
 
-- [x] 7. Checkpoint — Phase 3 (Neon side only; production apply remains operator-gated)
+- [ ] 7. Checkpoint — Phase 3 (Neon side only; production apply remains operator-gated)
   - Confirm the Neon validation evidence (6.1) is complete and the production evidence block (6.4) is
     captured **only after** the operator completes 6.3. Until 6.3 is done, this phase is "staging
     validated, production pending". Ensure all checks pass, ask the user if questions arise.
@@ -654,7 +654,7 @@ closes.
 
 ## Phase 15 — Definition-of-Done exit gate (R15) — Component 15
 
-- [x] 31. Definition-of-Done aggregation + final sign-off
+- [ ] 31. Definition-of-Done aggregation + final sign-off
   - [x] 31.1 Implement the all-or-nothing Definition-of-Done evaluator
     - Implement the Definition_of_Done as an all-or-nothing aggregation over the Component 1–14 exit
       conditions: canonical map accurate + allowlist reviewed (R15.1); clean brand scans (R15.2); all
@@ -671,14 +671,14 @@ closes.
       `Feature: beanola-production-readiness, Property 33: The Definition-of-Done exit gate is all-or-nothing`.
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7, 15.8_
 
-  - [x] 31.2 Final sign-off and `.config.kiro` status (after operator rollout only)
+  - [ ] 31.2 Final sign-off and `.config.kiro` status (after operator rollout only)
     - Aggregate the Component 1–14 artifacts; the gate passes only when all conditions hold. **Set
       `"status": "completed"` in `.kiro/specs/beanola-production-readiness/.config.kiro` only after the
       operator completes the gated production rollout (task 6.3) and every Definition-of-Done condition
       is true** (R15.3, R15.8). Until then, leave no completed status.
     - _Requirements: 15.3, 15.8_
 
-- [x] 32. Final checkpoint — Definition-of-Done exit gate
+- [ ] 32. Final checkpoint — Definition-of-Done exit gate
   - Run the full Verification_Gate (Phase 13 checkpoint) plus
     `cd backend && DJANGO_SETTINGS_MODULE=config.settings.test python3 -m pytest tests/property/test_definition_of_done_gate.py -q`.
     Confirm the gate evaluates true only when every condition holds and that `.config.kiro` is not

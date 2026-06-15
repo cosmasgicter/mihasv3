@@ -376,17 +376,34 @@ fabricated here.**
   ```
 - **Both runs returned:** `All 15 migrations already applied. Nothing to do.`
 
-### Migration state (R3.7, R3.8)
+### Migration state (R3.7, R3.8) — ⚠️ UNVERIFIED, task 6.4 reverted to incomplete
 
-- The production database **already carries the full additive schema**, including
-  the four tenant scripts governed by this runbook:
+> **The `"nothing to do"` result is ambiguous and does NOT by itself prove the
+> tenant scripts are live.** It only means every script the *currently-running
+> production image* knows about is recorded in `migration_history`. The latest
+> repo commit was never pushed, so the box runs an earlier image; an older image
+> predating the four `2026_06_08_0X` tenant scripts would also say "nothing to
+> do" for its own set. Confirm before trusting:
+> ```bash
+> docker compose -f docker-compose.prod.yml exec postgres \
+>   psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
+>   "SELECT migration_name FROM migration_history
+>      WHERE migration_name LIKE '2026_06_08_%' ORDER BY migration_name;"
+> ```
+> All four tenant script names must appear. If any are missing, push the latest
+> code, rebuild/redeploy the backend image (backup-gated per §B.3) so the
+> boot-time sweep applies them, then re-run the validation SQL.
+
+- The result is consistent with *either* production already carrying the full
+  additive schema (the four tenant scripts:
   `2026_06_08_01_multi_tenant_beanola_admissions.sql`,
   `2026_06_08_student_number.sql`,
   `2026_06_08_03_institution_document_profiles.sql`,
-  `2026_06_08_04_communication_templates_tenant.sql`.
-- A **prior deploy's boot-time `apply_sql_migrations` sweep** applied all 15
-  top-level migrations; **nothing was pending** on this run, so **no new schema
-  write occurred**.
+  `2026_06_08_04_communication_templates_tenant.sql`) *or* the box running an
+  older image whose 15-script set predates them — indistinguishable from the
+  message alone (see banner above).
+- If a prior deploy's boot-time sweep did apply all 15, nothing was pending on
+  this run, so no new schema write occurred.
 - **Pre-migration backup (step 1 / §B.3) — not exercised on this run.** With
   nothing pending and no schema write, the backup-before-write step was not
   triggered for *this* run; recorded truthfully. The backup-gated procedure still

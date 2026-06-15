@@ -2,10 +2,10 @@
   "summary": {
     "total_endpoints": 220,
     "endpoints_with_issues": 129,
-    "total_issues": 958,
+    "total_issues": 957,
     "errors": 1,
     "warnings": 827,
-    "info": 130,
+    "info": 129,
     "score": 88.09
   },
   "issues": [
@@ -211,13 +211,6 @@
       "message": "Missing description for POST /api/v1/admin/institutions/{institution_id}/assets/upload/",
       "path": "/paths//api/v1/admin/institutions/{institution_id}/assets/upload//post/description",
       "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "rest_conventions",
-      "message": "POST request typically should have request body: POST /api/v1/admin/institutions/{institution_id}/assets/upload/",
-      "path": "/paths//api/v1/admin/institutions/{institution_id}/assets/upload//post",
-      "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
     },
     {
       "severity": "warning",

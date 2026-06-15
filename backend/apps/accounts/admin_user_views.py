@@ -665,6 +665,25 @@ class AdminUserDetailView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        # Actor-invariant guard (no tenant scope needed): an admin can never
+        # deactivate their OWN account, regardless of institution scope. This
+        # runs before the scope query below so it holds even for an actor with
+        # no membership rows, and so self-deactivation is rejected with a clear
+        # 400 rather than being masked as a 404 by the scope check.
+        if (
+            "is_active" in data
+            and not data["is_active"]
+            and str(getattr(request.user, "pk", "")) == str(user.pk)
+        ):
+            return Response(
+                {
+                    "success": False,
+                    "error": "You cannot deactivate your own account.",
+                    "code": "SELF_DEACTIVATION_FORBIDDEN",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         # R5.2/R5.4: after the RBAC role-escalation guards, a scoped admin may
         # only mutate users within their institution membership scope. An
         # out-of-scope target is masked as a genuine not-found before any field
@@ -682,15 +701,6 @@ class AdminUserDetailView(APIView):
             user.role = data["role"]
 
         if "is_active" in data:
-            if not data["is_active"] and str(getattr(request.user, "pk", "")) == str(user.pk):
-                return Response(
-                    {
-                        "success": False,
-                        "error": "You cannot deactivate your own account.",
-                        "code": "SELF_DEACTIVATION_FORBIDDEN",
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
             changes["is_active"] = {"old": user.is_active, "new": data["is_active"]}
             user.is_active = data["is_active"]
 

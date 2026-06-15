@@ -291,6 +291,16 @@ class TestProperty26TenantIsolation:
         client = _client_for(actor)
         template = _DOC_ENDPOINTS[endpoint_key]
 
+        # The document-extract endpoint carries a per-user AI throttle (5/hour).
+        # Hypothesis drives many examples through this one function with the same
+        # actor, so without resetting the shared rate-limit cache per example the
+        # throttle eventually returns 429 instead of the scope layer's 404 mask.
+        # The autouse conftest reset only fires once per test function, not per
+        # Hypothesis example — clear here so each example starts unthrottled.
+        from django.core.cache import cache
+
+        cache.clear()
+
         in_scope = _read(client, "doc", template, str(doc_a.id))
         _assert_permitted(endpoint_key, *in_scope)
 

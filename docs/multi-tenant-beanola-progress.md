@@ -736,20 +736,45 @@ filled in. No counts are fabricated here.
     python manage.py apply_sql_migrations             # apply
   ```
 
+> ⚠️ **CORRECTION (2026-06-15, later same day) — THIS EVIDENCE IS NOT YET
+> CONCLUSIVE. Task 6.4 reverted to incomplete.** The `"All 15 migrations already
+> applied. Nothing to do."` result is **ambiguous**: it only proves that every
+> script the *currently-running production image* knows about is already recorded
+> in `migration_history`. Because the latest repo commit was **never pushed**, the
+> EC2 box runs an **earlier built image**, and an older image that predates the
+> four `2026_06_08_0X` tenant scripts would *also* report "nothing to do" for its
+> own smaller set — it would not even list the tenant scripts as pending. The
+> claim below that the tenant scripts are live is therefore **UNVERIFIED**. To
+> confirm, run the read-only `migration_history` name check (see "Verification
+> still required" at the end of this block) and the validation-count SELECTs. Do
+> not treat 6.3/6.4/7/31.2/32 as complete until that check shows the four tenant
+> script names present.
+
 ### Migration-state confirmation (R3.7, R3.8)
 
 - **Both the `--dry-run` and the apply returned:**
   `All 15 migrations already applied. Nothing to do.`
-- **Interpretation (truthful):** the production database **already carries the
-  full additive schema**, including the four tenant scripts this rollout governs:
-  - `2026_06_08_01_multi_tenant_beanola_admissions.sql`
-  - `2026_06_08_student_number.sql`
-  - `2026_06_08_03_institution_document_profiles.sql`
-  - `2026_06_08_04_communication_templates_tenant.sql`
-- A **prior deploy's boot-time `apply_sql_migrations` sweep** (the production
-  image runs the runner on boot) had already applied all 15 top-level migrations.
-  On this run **nothing was pending**, so the runner performed **no new schema
-  write**.
+- **Interpretation (UNVERIFIED — see correction banner above):** the result is
+  consistent with *either* (a) production already carrying the full additive
+  schema including the four tenant scripts this rollout governs
+  (`2026_06_08_01_multi_tenant_beanola_admissions.sql`,
+  `2026_06_08_student_number.sql`,
+  `2026_06_08_03_institution_document_profiles.sql`,
+  `2026_06_08_04_communication_templates_tenant.sql`), *or* (b) the box running an
+  older image whose own 15-script set predates the tenant scripts. The two cases
+  are indistinguishable from the "nothing to do" message alone.
+- **Verification still required:** confirm which migration names are actually in
+  `migration_history` on the box (read-only):
+  ```bash
+  docker compose -f docker-compose.prod.yml exec postgres \
+    psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
+    "SELECT migration_name FROM migration_history
+       WHERE migration_name LIKE '2026_06_08_%' ORDER BY migration_name;"
+  ```
+  All four tenant script names must appear. If they do not, the box is running an
+  older image: push the latest code, rebuild/redeploy the backend image so the
+  boot-time sweep applies the tenant scripts (backup-gated per §B.3), then re-run
+  the validation SQL.
 - **Pre-migration backup step (R3.5) — not exercised on this run.** Because the
   dry-run showed nothing pending and the apply made no schema change, the
   backup-before-write step was not triggered on this particular run. This is
@@ -833,28 +858,43 @@ all legacy readability.)
 
 ### Status
 
-**Production applied — confirmed by the operator (no pending migrations on
-2026-06-15; full additive schema present, including the four tenant scripts).**
-Phase 3 production side is now satisfied; the detailed validation counts above
-are the operator's post-apply confirmation to paste in from the embedded
-read-only SQL.
+**Production migration state UNVERIFIED — Phase 3 production side NOT yet
+confirmed (task 6.4 reverted to incomplete on 2026-06-15).** The
+`"All 15 migrations already applied. Nothing to do."` result is ambiguous: the
+latest repo commit was never pushed, so the EC2 box runs an earlier built image,
+and an older image predating the four `2026_06_08_0X` tenant scripts would report
+the same message for its own set. Whether the tenant scripts are actually present
+in production `migration_history` must be confirmed with the read-only
+name-check SELECT in the task 6.4 evidence block before Phase 3 production can be
+signed off. The detailed validation counts above are likewise still to be
+captured.
 
-## Final sign-off (Beanola Production Readiness — task 31.2: Definition-of-Done + `.config.kiro` completed) — 2026-06-15
+## Final sign-off (Beanola Production Readiness — task 31.2) — RETRACTED 2026-06-15
+
+> ⚠️ **THIS SIGN-OFF WAS RETRACTED THE SAME DAY AND `.config.kiro` REVERTED to
+> NO completed status.** It was recorded on the mistaken assumption that the
+> production `"All 15 migrations already applied. Nothing to do."` message proved
+> the four `2026_06_08_0X` tenant scripts are live. It does not: the latest repo
+> commit was never pushed, the EC2 box runs an earlier built image, and an older
+> image predating those scripts would emit the identical message. Until the
+> read-only `migration_history` name-check (task 6.4 evidence block) shows all
+> four tenant script names present in production, tasks 6.3 / 6.4 / 7 / 31.2 / 32
+> remain **incomplete** and the platform is **not** signed off as
+> production-ready. The basis text below is retained only for the audit trail.
 
 Spec `.kiro/specs/beanola-production-readiness/` Phase 15, task 31.2 (R15.3,
 R15.8). Aggregated the Component 1–14 exit conditions and recorded the final
 sign-off.
 
-### Basis for sign-off
+### Basis for sign-off (RETRACTED — see banner)
 
-- **Production migrations applied (R15.3).** The gated operator production
-  cutover (task 6.3) is complete: on 2026-06-15 the operator ran
-  `apply_sql_migrations --dry-run` then the apply on the production EC2 box
-  (`ip-172-31-8-104` / `ec2-13-244-37-190.af-south-1.compute.amazonaws.com`);
-  both returned `All 15 migrations already applied. Nothing to do.` — the full
-  additive schema, including the four tenant scripts, is present in production.
-  Evidence block captured (task 6.4) above and in
-  `docs/runbooks/multi-tenant-beanola-rollout.md` "Production evidence (task 6.4)".
+- **Production migrations applied (R15.3) — UNVERIFIED.** On 2026-06-15 the
+  operator ran `apply_sql_migrations --dry-run` then the apply on the production
+  EC2 box (`ip-172-31-8-104` / `ec2-13-244-37-190.af-south-1.compute.amazonaws.com`);
+  both returned `All 15 migrations already applied. Nothing to do.` — which is
+  **ambiguous** (see retraction banner) and does not by itself prove the four
+  tenant scripts are present in production. Confirmation pending the read-only
+  `migration_history` name-check.
 - **All prior phases green.** Phases 1–14 are code-complete and verified locally
   / Neon-validated (see the "spec-run status summary" table above); the
   Verification_Gate passes with zero errors (task 28); the all-or-nothing DoD

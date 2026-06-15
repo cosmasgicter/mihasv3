@@ -498,8 +498,9 @@ class TestTimelineHistoryView:
 
     # --- Requirement 3.8: Admin with user_id param sees that user's history ---
 
+    @patch("apps.applications.history_views.AccessScopeService")
     @patch("apps.applications.history_views.ApplicationStatusHistory.objects")
-    def test_admin_with_user_id_param(self, mock_manager):
+    def test_admin_with_user_id_param(self, mock_manager, mock_scope):
         """Admin with user_id query param sees that specific user's history."""
         admin_user = _make_user(role="admin")
         target_user_id = str(uuid.uuid4())
@@ -511,7 +512,15 @@ class TestTimelineHistoryView:
                 new_status="approved",
             ),
         ]
-        mock_manager.filter.return_value = _build_history_mock_queryset(entries)
+        history_qs = _build_history_mock_queryset(entries)
+        mock_manager.filter.return_value = history_qs
+        # The staff (non-super-admin) override path intersects with the actor's
+        # AccessScopeService scope, which queries the DB. Mock it so this stays a
+        # no-DB unit test: scope returns an id list. The history mock queryset's
+        # own ``.filter(application_id__in=...)`` already returns itself.
+        mock_scope.return_value.filter_applications.return_value.values_list.return_value = [
+            uuid.uuid4()
+        ]
 
         request = _auth_get(
             self.factory,
