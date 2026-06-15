@@ -25,6 +25,39 @@ from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
 
 logger = logging.getLogger(__name__)
 
+
+def _institution_name_for_program(program_value):
+    """Return the canonical institution name that owns ``program_value``, or None.
+
+    Used as a fallback when a supplied institution label does not resolve on its
+    own (e.g. a cosmetic frontend default like "Beanola Admissions", or a stale
+    draft value). The program is the authoritative link to a school, so a valid
+    program always yields a valid institution. ``program_value`` may be a name,
+    code, or UUID — resolution goes through ``IdentifierResolver`` first.
+    """
+    if not program_value:
+        return None
+    try:
+        from apps.catalog.models import Program
+
+        resolved = IdentifierResolver.resolve_program(program_value)
+        program = None
+        if resolved.source != "not_found" and resolved.id:
+            program = Program.objects.select_related("institution").filter(id=resolved.id).first()
+        if program is None:
+            program = (
+                Program.objects.select_related("institution")
+                .filter(name__iexact=str(program_value), is_active=True)
+                .first()
+            )
+        institution = getattr(program, "institution", None) if program else None
+        if institution is not None and getattr(institution, "is_active", True):
+            return institution.name
+    except Exception:  # pragma: no cover - fallback must never 500 a draft save
+        logger.warning("institution-from-program fallback failed for %r", program_value, exc_info=True)
+    return None
+
+
 DRAFT_SAFE_FIELDS = frozenset({
     "full_name", "nrc_number", "passport_number", "date_of_birth", "sex",
     "phone", "email", "residence_town", "nationality", "country",
@@ -453,20 +486,44 @@ class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSer
     def validate_institution(self, value):
         """Validate and canonicalize institution via IdentifierResolver.
 
+        A value that cannot be resolved on its own is NOT rejected here — it is
+        deferred to ``validate()``, which can derive the institution from the
+        chosen program (the program owns an institution). This prevents a
+        cosmetic frontend fallback label (e.g. "Beanola Admissions") or a
+        stale draft value from blocking an otherwise-valid draft save. The
+        canonical name is substituted when resolution succeeds.
+
         Requirements: 2.1, 2.4
         """
         resolved = IdentifierResolver.resolve_institution(value)
         if resolved.source == "not_found":
-            raise serializers.ValidationError(
-                "Invalid institution reference.",
-                code="INVALID_INSTITUTION",
-            )
+            # Defer to cross-field validate() for program-derived fallback.
+            return value
         return resolved.name
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
         program_name = attrs.get("program")
         intake_name = attrs.get("intake")
+        # Institution fallback: if the supplied institution did not resolve to a
+        # real catalog record (validate_institution returned it unchanged),
+        # derive it from the chosen program's owning institution. Only raise
+        # "Invalid institution reference." when neither path yields a real
+        # institution — so a valid program always carries a valid institution.
+        institution_value = attrs.get("institution")
+        if institution_value:
+            resolved_inst = IdentifierResolver.resolve_institution(institution_value)
+            if resolved_inst.source == "not_found":
+                derived = _institution_name_for_program(program_name)
+                if derived:
+                    attrs["institution"] = derived
+                else:
+                    raise serializers.ValidationError(
+                        {"institution": "Invalid institution reference."},
+                        code="INVALID_INSTITUTION",
+                    )
+            else:
+                attrs["institution"] = resolved_inst.name
         if program_name and intake_name:
             validate_program_intake_compatibility(program_name, intake_name)
         return attrs
@@ -549,14 +606,16 @@ class ApplicationCreateSerializer(serializers.Serializer):
     def validate_institution(self, value):
         """Validate and canonicalize institution via IdentifierResolver.
 
+        A value that cannot resolve on its own is deferred to ``validate()``,
+        which derives the institution from the chosen program. This mirrors the
+        update serializer so a cosmetic frontend fallback label never blocks a
+        create either.
+
         Requirements: 2.1, 2.4
         """
         resolved = IdentifierResolver.resolve_institution(value)
         if resolved.source == "not_found":
-            raise serializers.ValidationError(
-                "Invalid institution reference.",
-                code="INVALID_INSTITUTION",
-            )
+            return value
         return resolved.name
 
     def validate(self, attrs):
@@ -582,6 +641,22 @@ class ApplicationCreateSerializer(serializers.Serializer):
                 {"institution": "Institution is required for legacy program/intake submissions."},
                 code="INVALID_INSTITUTION",
             )
+        # If the supplied institution did not resolve on its own, derive it from
+        # the program's owning school; only reject when neither path yields a
+        # real institution (mirrors ApplicationSerializer.validate).
+        institution_value = attrs.get("institution")
+        resolved_inst = IdentifierResolver.resolve_institution(institution_value)
+        if resolved_inst.source == "not_found":
+            derived = _institution_name_for_program(program_name)
+            if derived:
+                attrs["institution"] = derived
+            else:
+                raise serializers.ValidationError(
+                    {"institution": "Invalid institution reference."},
+                    code="INVALID_INSTITUTION",
+                )
+        else:
+            attrs["institution"] = resolved_inst.name
         if program_name and intake_name:
             validate_program_intake_compatibility(program_name, intake_name)
         return attrs

@@ -52,7 +52,7 @@ export function NextActionCards({
             </Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
-            <Link to="/student/application-wizard">
+            <Link to="/student/application-wizard?new=true">
               Start new application
             </Link>
           </Button>

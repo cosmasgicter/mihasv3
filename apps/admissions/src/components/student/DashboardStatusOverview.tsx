@@ -258,7 +258,7 @@ export function DashboardStatusOverview({
           <p className="text-xs text-muted-foreground mb-4">
             Start your admissions journey by creating your first application.
           </p>
-          <Link to="/student/application-wizard">
+          <Link to="/student/application-wizard?new=true">
             <Button variant="primary" size="sm" className="min-h-touch transition-colors duration-150">
               <Plus className="mr-2 h-4 w-4" />
               New Application

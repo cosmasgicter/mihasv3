@@ -51,7 +51,19 @@ class IdentifierResolver:
 
     @staticmethod
     def resolve_institution(value: str) -> ResolvedIdentifier:
-        """Try code first, then name (case-insensitive), then full_name."""
+        """Try UUID id first, then code, then name, then full_name (all case-insensitive)."""
+        # UUID id first — the white-label wizard path and assigned-school
+        # checkpoint carry the institution as its primary-key UUID, not a name.
+        # Without this, a UUID falls straight through to ``not_found`` and the
+        # serializer raises "Invalid institution reference." on an otherwise
+        # valid draft (the reported production bug).
+        if IdentifierResolver._looks_like_uuid(value):
+            try:
+                inst = Institution.objects.filter(id=value, is_active=True).first()
+                if inst:
+                    return ResolvedIdentifier(str(inst.id), inst.code, inst.name, "id")
+            except (ValidationError, ValueError):
+                pass
         inst = Institution.objects.filter(code__iexact=value, is_active=True).first()
         if inst:
             return ResolvedIdentifier(str(inst.id), inst.code, inst.name, "code")

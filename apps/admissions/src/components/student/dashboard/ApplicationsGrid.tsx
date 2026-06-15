@@ -102,7 +102,7 @@ export function ApplicationsGrid({
                 description="Start your journey by submitting your first application. We'll guide you every step of the way."
                 action={{
                   label: 'New Application',
-                  onClick: () => navigate('/student/application-wizard'),
+                  onClick: () => navigate('/student/application-wizard?new=true'),
                   variant: 'primary',
                 }}
               />
