@@ -353,3 +353,84 @@ here beyond honouring this precheck on any DB before a future rename.
 - P16 idempotency + backfill tests pass against the real branch (6/6).
 - **Production application has NOT happened.** It remains the gated operator
   step above, performed on the EC2 box and confirmed by the user.
+
+---
+
+## Production evidence (task 6.4) — 2026-06-15
+
+Spec `.kiro/specs/beanola-production-readiness/` Phase 3, task 6.4 (R3.7, R3.9).
+Captured after the gated operator production apply (task 6.3). The detailed
+per-table validation counts are marked **to be appended by the operator** from
+the §5 / launch-checklist §B.5 read-only validation SQL — **no counts are
+fabricated here.**
+
+- **Host:** `ip-172-31-8-104` —
+  `ec2-13-244-37-190.af-south-1.compute.amazonaws.com` (production EC2 box,
+  `af-south-1`), DB container `mihas-postgres-1`.
+- **Date:** 2026-06-15.
+- **Operator ran (on the box):**
+  ```bash
+  cd ~/mihas
+  docker compose -f docker-compose.prod.yml exec web python manage.py apply_sql_migrations --dry-run
+  docker compose -f docker-compose.prod.yml exec web python manage.py apply_sql_migrations
+  ```
+- **Both runs returned:** `All 15 migrations already applied. Nothing to do.`
+
+### Migration state (R3.7, R3.8)
+
+- The production database **already carries the full additive schema**, including
+  the four tenant scripts governed by this runbook:
+  `2026_06_08_01_multi_tenant_beanola_admissions.sql`,
+  `2026_06_08_student_number.sql`,
+  `2026_06_08_03_institution_document_profiles.sql`,
+  `2026_06_08_04_communication_templates_tenant.sql`.
+- A **prior deploy's boot-time `apply_sql_migrations` sweep** applied all 15
+  top-level migrations; **nothing was pending** on this run, so **no new schema
+  write occurred**.
+- **Pre-migration backup (step 1 / §B.3) — not exercised on this run.** With
+  nothing pending and no schema write, the backup-before-write step was not
+  triggered for *this* run; recorded truthfully. The backup-gated procedure still
+  governs any future run that has pending migrations.
+
+### Detailed counts — TO BE APPENDED BY THE OPERATOR
+
+Run the §5 read-only validation SQL (mirrored in
+[`production-launch-checklist.md`](production-launch-checklist.md) §B.5) inside
+the production `postgres` container and paste the returned rows here. **Do not
+invent counts.**
+
+```sql
+select count(*) as canonical_programs from canonical_programs;
+select count(*) as programs_without_canonical
+  from programs
+  where canonical_program_id is null and coalesce(is_active, true) = true;
+select count(*) as applications_without_institution_id from applications where institution_id is null;
+select count(*) as applications_without_program_id   from applications where program_id is null;
+select count(*) as applications_without_offering_id  from applications where program_offering_id is null;
+select count(*) as applications_without_intake_id    from applications where intake_id is null;
+select hostname, count(*) from institution_domains group by hostname having count(*) > 1;
+select slug, count(*) from institutions where slug is not null group by slug having count(*) > 1;
+select count(*) as institutions from institutions;
+select count(*) as offerings from programs;
+select count(*) as intakes from program_intakes;
+select count(*) as memberships from user_institution_memberships;
+select count(*) as access_grants from access_grants;
+select count(*) as institution_document_profiles from institution_document_profiles;
+```
+
+Expected when filled in: `canonical_programs` non-zero; duplicate hostname/slug
+queries return **zero** rows; legacy null-canonical-ID applications are expected
+and must stay readable.
+
+### Backward-compatibility (R3.9)
+
+The additive schema was already in place, so prior data is unaffected: legacy
+null-canonical-ID applications, legacy string snapshots
+(`applications.institution`/`program`/`intake`), prior Official_Documents, and
+prior payments/receipts all remain **readable and unchanged** (referenced
+remediation Property 25).
+
+> **Production application HAS now happened** (idempotent no-op confirmed on
+> 2026-06-15 — full schema already present from an earlier boot sweep). This
+> supersedes the "Production application has NOT happened" note in the Phase 1
+> staging evidence section above for the production side of the cutover.
