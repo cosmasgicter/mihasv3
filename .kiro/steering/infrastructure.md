@@ -65,6 +65,66 @@ production container's database as the first step.
 - Production is **not Neon, not Koyeb, not Vercel** — the platform migrated to
   this self-hosted stack. The backend image runs `apply_sql_migrations` on boot.
 
+### Logging in to the production EC2 box
+
+The production box is reached over SSH with the `.pem` key that lives in
+`/home/cosmas/Downloads/` (never in the repo, never committed):
+
+```bash
+# 1) Ensure the key is private, then connect
+chmod 600 /home/cosmas/Downloads/mihasapplication2026.pem
+ssh -i /home/cosmas/Downloads/mihasapplication2026.pem \
+  ubuntu@ec2-13-244-37-190.af-south-1.compute.amazonaws.com
+# On the box, the stack lives in ~/mihas
+cd ~/mihas
+docker compose -f docker-compose.prod.yml ps    # container health
+```
+
+Notes:
+- The hostname resolves to internal `ip-172-31-8-104` once inside the VPC.
+- `$POSTGRES_USER` / `$POSTGRES_DB` are **not** set in the interactive host
+  shell — they live in the container env. Run psql/Django *inside* the
+  container (examples below) so those vars expand, or a bare `psql -U root`
+  fails with `role "root" does not exist`.
+
+**Read-only verification (safe to run anytime)** — confirm which migrations are
+applied and the tenant invariants hold:
+
+```bash
+# Which migrations are recorded (e.g. confirm the 2026_06_08 tenant scripts)
+docker compose -f docker-compose.prod.yml exec -T postgres bash -lc \
+  'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c \
+   "SELECT migration_name FROM migration_history ORDER BY 1;"'
+
+# Tenant data sanity (canonical_programs non-zero, no dup hostnames/slugs, etc.)
+docker compose -f docker-compose.prod.yml exec -T postgres bash -lc \
+  'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -x -c \
+   "SELECT (SELECT count(*) FROM canonical_programs) canonical_programs,
+           (SELECT count(*) FROM institutions WHERE is_active) institutions_active,
+           (SELECT count(*) FROM user_institution_memberships WHERE is_active) memberships;"'
+```
+
+**Operator-gated writes (backup-first, confirm before running).** Apply pending
+additive migrations and seed per-school admins inside the `web` container:
+
+```bash
+# Migrations (the boot sweep also runs this; manual run lets you watch output)
+docker compose -f docker-compose.prod.yml exec web python manage.py apply_sql_migrations --dry-run
+docker compose -f docker-compose.prod.yml exec web python manage.py apply_sql_migrations
+
+# Seed one institution-admin per active school (idempotent; password via flag/env,
+# never hardcoded — bcrypt-hashed by the platform's own hasher):
+docker compose -f docker-compose.prod.yml exec web \
+  python manage.py seed_school_admins \
+    --admin MIHAS=admin@mihas.edu.zm --admin KATC=admin@katc.edu.zm \
+    --password "$SCHOOL_ADMIN_PASSWORD"
+```
+
+Per the Hard Rules below, **production writes are operator steps**: take a backup
+first (`./deploy/backup-db.sh`), prove the change on Neon, and never author a
+schema/data change on production as the first step. Never echo or commit secret
+values (DB passwords, the admin password, the `.pem`).
+
 ### Reaching the production DB (on the box)
 
 ```bash

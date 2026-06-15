@@ -1,19 +1,29 @@
-# MIHAS Platform
+# Beanola Platform
 
-Mukuba Institute of Health and Applied Sciences — multi-application monorepo powering student admissions, AI job operations, and institutional services.
+Beanola is a multi-tenant admissions platform. A single deployment serves many
+schools, each white-labelled with its own branding, programmes, fees, documents,
+and staff scopes. The currently seeded tenant schools are **MIHAS** (Mukuba
+Institute of Health and Applied Sciences) and **KATC** (Kalulushi Training
+Centre). The monorepo also powers AI job operations and shared institutional
+services.
+
+> Branding rule: "Beanola" is the platform identity. School names such as MIHAS
+> and KATC are **tenant data**, never platform-level branding — see
+> `docs/canonical-truth-map.md` and the brand drift guards.
 
 ## Repository Structure
 
 ```
 apps/
-  admissions/          React 18 admissions portal (Vercel → apply.mihas.edu.zm)
+  admissions/          React 18 admissions portal (Vercel → apply.beanola.com)
   jobs-ops/            React 18 operator dashboard for AI job operations
   website/             Future public website (placeholder)
   student-portal/      Future student management system (placeholder)
   librarymanagement/   Reserved app directory (not yet wired)
-backend/               Django 5 + DRF API (Koyeb → api.mihas.edu.zm)
+backend/               Django 5 + DRF API (self-hosted EC2 Docker stack → api.beanola.com)
 shared/                Shared package scaffold (lightly used)
 docs/                  Project documentation, runbooks, and reports
+deploy/                Production Docker Compose stack, RUNBOOK, and backup scripts
 .kiro/                 Kiro specs, steering files, hooks, skills, and MCP config
 .agents/               Agent skills (accessibility, performance, security, etc.)
 ```
@@ -57,7 +67,7 @@ Every domain concept in the admissions system (application statuses, payment sta
 | Framework | Django 5 + Django REST Framework |
 | Runtime | Python 3.12+ |
 | App Server | Uvicorn (ASGI) |
-| Database | Neon Postgres (serverless) |
+| Database | Neon Postgres (authoring/staging) · self-hosted Postgres 17 container (production) |
 | Async Tasks | Celery + Redis |
 | Storage | Cloudflare R2 via django-storages |
 | Email | Zoho SMTP (primary) + Resend (fallback) |
@@ -152,17 +162,37 @@ cd apps/jobs-ops && bun run type-check && bun run lint
 
 ## Deployment
 
-| Service | Platform | Config |
-|---------|----------|--------|
-| Backend API | Koyeb (Docker) | `backend/Dockerfile` |
-| Celery Worker | Koyeb (Docker) | Same image, different entrypoint |
-| Celery Beat | Koyeb (1 instance) | Periodic task scheduler |
-| Admissions | Vercel | `apps/admissions/vercel.json` |
-| Jobs Ops | Vercel (planned) | Independent deploy |
+Production runs as a **self-hosted Docker Compose stack on a single AWS EC2 box**
+(`af-south-1`), fronted by Caddy. It is **not** Koyeb/Vercel for the backend.
 
-Each app deploys independently. Backend health checks at `/health/live/` and `/health/ready/`.
+| Service | Container | Role |
+|---------|-----------|------|
+| Edge / TLS | `mihas-caddy-1` | Only service with published ports (80/443) |
+| Backend API | `mihas-web-1` | Django + Uvicorn (`api.beanola.com`) |
+| Celery worker | `mihas-celery-1` | Background tasks |
+| Celery beat | `mihas-beat-1` | Periodic scheduler (exactly 1 instance) |
+| Redis | `mihas-redis-1` | Broker + cache |
+| Postgres | `mihas-postgres-1` | Production database (internal network only) |
+| Admissions frontend | Vercel | `apps/admissions/vercel.json` → `apply.beanola.com` |
+| Jobs Ops frontend | Vercel (planned) | Independent deploy |
 
-Staging settings are available at `backend/config/settings/staging.py` for pre-production validation.
+The stack is defined in `deploy/docker-compose.prod.yml`; the backend image runs
+`apply_sql_migrations` (additive SQL under `backend/scripts/`) on boot. Full
+migration/restore procedure is in `deploy/RUNBOOK.md`. Database authoring is
+**Neon-first** (serverless), then copied to the production Postgres container —
+see [`.kiro/steering/infrastructure.md`](.kiro/steering/infrastructure.md). Backend
+health checks at `/health/live/` and `/health/ready/`.
+
+Staging settings are available at `backend/config/settings/staging.py` for
+pre-production validation.
+
+### Production access (EC2)
+
+The production box, the Neon-vs-production topology, the SSH command, and the
+read-only verification + seeding commands are documented in
+[`.kiro/steering/infrastructure.md`](.kiro/steering/infrastructure.md)
+("Logging in to the production EC2 box"). Production DB writes are operator-gated
+and backup-first; never authored directly on production.
 
 ## AI Features
 
@@ -227,7 +257,7 @@ Completed and in-progress spec-driven development workflows. Each spec directory
 
 | Task | Schedule | Purpose |
 |------|----------|---------|
-| `keep_alive_task` | Every 4 minutes | Lightweight ping to prevent Koyeb cold starts |
+| `keep_alive_task` | Every 4 minutes | Lightweight health ping to keep the service warm |
 | `check_uptime_task` | Every 15 minutes | Internal health check with alert on failure/recovery |
 | `cleanup_stale_sessions_task` | Daily at 02:30 UTC | Deactivate expired device sessions |
 | `cleanup_audit_logs_task` | Daily at 03:00 UTC | Purge expired audit logs (90d standard, 365d security) |
@@ -268,7 +298,7 @@ Key integrations requiring configuration:
 | Platform contract | `shared/PLATFORM_CONTRACT.md` | Cross-app API and data contract |
 | Secrets rotation | `docs/runbooks/secrets-rotation.md` | Production secret rotation runbook |
 | Redis recovery | `docs/runbooks/redis-recovery.md` | Redis failure recovery procedures |
-| Scaling playbook | `docs/runbooks/scaling-playbook.md` | Scaling playbook for Koyeb workers and Neon |
+| Scaling playbook | `docs/runbooks/scaling-playbook.md` | Scaling playbook for the self-hosted EC2 workers and Neon |
 | Release & rollback | `docs/runbooks/release-and-rollback.md` | Release process and rollback procedures |
 | Post-deploy smoke | `docs/runbooks/post-deploy-smoke-check.md` | Post-deployment verification checklist |
 | Database backup | `docs/runbooks/database-backup-restore.md` | Neon database backup and restore |
