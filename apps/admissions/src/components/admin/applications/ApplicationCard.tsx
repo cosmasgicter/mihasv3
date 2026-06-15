@@ -16,7 +16,7 @@ export type { ApplicationSummary } from '@/hooks/admin/useApplicationsData'
 // Institution display name resolver.
 // Beanola is a multi-school platform (R9): the backend supplies the canonical
 // institution display value on each application row, so there is no hard-coded
-// MIHAS/KATC fallback map here. Unknown/empty values fall through to a neutral
+// client fallback map here. Unknown/empty values fall through to a neutral
 // placeholder rather than a default school identity.
 export const getInstitutionName = (name?: string): string => {
   const trimmed = name?.trim()

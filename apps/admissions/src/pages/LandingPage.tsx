@@ -28,7 +28,7 @@ const landingStructuredData = [
     name: 'Beanola Admissions',
     alternateName: 'Beanola Technologies Admissions Platform',
     url: 'https://apply.beanola.com',
-    logo: 'https://apply.beanola.com/images/logos/beanola-logo.svg',
+    logo: 'https://apply.beanola.com/images/logos/beanolalogo.webp',
     email: 'admissions@beanola.com',
     address: {
       '@type': 'PostalAddress',
@@ -58,9 +58,9 @@ const landingStructuredData = [
 
 /** Rotating phrases displayed in the hero via TextRotate */
 const heroRotatingPhrases = [
-  'Registered Nursing',
-  'Clinical Medicine',
-  'Environmental Health',
+  'College Programmes',
+  'University Programmes',
+  'Professional Courses',
 ];
 
 function LandingSectionsFallback() {
@@ -126,7 +126,7 @@ export default function LandingPage() {
   return (
     <PublicLayout>
       <Seo
-        title="Beanola Admissions | Apply to Accredited Health Science Programs"
+        title="Beanola Admissions | Apply to Partner College and University Programs"
         description="Apply online through Beanola Admissions. Choose a program and intake first, then Beanola routes your application to the right school."
         path="/"
         structuredData={landingStructuredData}

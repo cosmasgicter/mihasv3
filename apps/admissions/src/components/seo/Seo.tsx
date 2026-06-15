@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 const DEFAULT_SITE_NAME = 'Beanola Admissions'
-const DEFAULT_IMAGE = '/images/logos/beanola-logo.svg'
+const DEFAULT_IMAGE = '/images/logos/beanolalogo.webp'
 
 const resolveSiteUrl = () => {
   const configuredUrl = import.meta.env.VITE_APP_BASE_URL || import.meta.env.VITE_SITE_URL

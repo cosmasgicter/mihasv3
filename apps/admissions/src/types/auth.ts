@@ -1,5 +1,5 @@
 /**
- * Custom Auth Types for MIHAS Application System
+ * Custom auth types for the Beanola admissions platform
  * 
  * These types define app-level User and Session contracts.
  * All authentication is handled via HTTP-only cookies and /api/auth endpoints.

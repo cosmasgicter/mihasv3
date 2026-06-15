@@ -27,6 +27,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin, is_super_admin
 from apps.common.throttling import AIUserScopedRateThrottle
+from apps.catalog.services import AccessScopeService
 from apps.applications.document_intelligence import DocumentIntelligence
 from apps.applications.filters import ApplicationFilter, annotate_activity_at
 from apps.applications.models import (
@@ -171,6 +172,22 @@ class ApplicationBulkStatusView(APIView):
         try:
             with transaction.atomic():
                 applications = list(Application.objects.filter(id__in=app_ids).select_for_update())
+
+                # R5.2/R5.9: narrow the batch through AccessScopeService so a
+                # scoped admin can never transition another school's
+                # applications. Out-of-scope ids are reported as NOT_FOUND —
+                # byte-identical to a genuinely missing id — so existence
+                # cannot be inferred (R5.4, R16.4). Super-admins keep all ids.
+                in_scope_ids = set(
+                    str(pk)
+                    for pk in AccessScopeService()
+                    .filter_applications(
+                        Application.objects.filter(id__in=[a.id for a in applications]),
+                        request.user,
+                    )
+                    .values_list("id", flat=True)
+                )
+                applications = [a for a in applications if str(a.id) in in_scope_ids]
 
                 found_ids = {str(a.id) for a in applications}
                 for aid in app_ids:

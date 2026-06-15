@@ -780,6 +780,38 @@ class AdminNotificationHistoryView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        # R5.2/R5.9: a scoped admin may only read notification history for users
+        # within their institution membership scope. An out-of-scope (or
+        # unknown) target user is masked as a genuine not-found so existence
+        # cannot be inferred (R5.4, R16.4). Super-admins see all. Scope is
+        # obtained from AccessScopeService, never legacy strings (R5.8).
+        from apps.accounts.permissions import is_super_admin
+
+        if not is_super_admin(request.user):
+            from apps.catalog.models import UserInstitutionMembership
+            from apps.catalog.services import AccessScopeService
+
+            scope_filters = AccessScopeService().filters_for_user(request.user)
+            scoped_user_ids = set(
+                str(uid)
+                for uid in UserInstitutionMembership.objects.filter(
+                    institution_id__in=scope_filters.institution_ids,
+                    is_active=True,
+                ).values_list("user_id", flat=True)
+            )
+            own_id = str(getattr(request.user, "id", "") or getattr(request.user, "pk", ""))
+            if own_id:
+                scoped_user_ids.add(own_id)
+            if str(user_id) not in scoped_user_ids:
+                return Response(
+                    {
+                        "success": False,
+                        "error": "User not found",
+                        "code": "NOT_FOUND",
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
         notifications = (
             Notification.objects.filter(user_id=user_id)
             .order_by("-created_at")

@@ -80,12 +80,58 @@ Rollback when:
 
 Do not improvise manual SQL reversal during an incident unless the change is trivial and verified.
 
-Preferred path:
+The database rollback posture is **forward-only**: all production schema ships as
+additive, idempotent SQL scripts under `backend/scripts/`, so a routine rollback
+rolls back **code only** and leaves the additive columns/tables in place — old
+code simply ignores the new columns and legacy rows stay readable (R14.7). There
+is no schema revert in a routine rollback, and tenant tables/columns are never
+dropped as part of one. A genuine destructive teardown is a separately reviewed
+non-additive script applied manually with `--allow-non-additive` after a fresh
+backup, never through the container-startup sweep.
+
+Preferred path for data-level recovery (corruption or a bad data write only):
 
 1. Follow [database-backup-restore.md](database-backup-restore.md)
 2. Restore to a Neon branch
 3. Validate
 4. Repoint services
+
+> The **canonical rollback posture** — code rollback, forward-only schema,
+> feature-flag disable, and the graceful-degradation levers below — lives in
+> [database-backup-restore.md](database-backup-restore.md) §"Rollback Posture".
+
+## Graceful-Degradation Posture (R14.4–R14.7)
+
+If a risky surface fails after launch, degrade it safely **without destroying the
+underlying data** — hide or gate the surface, never delete the records behind it.
+
+- **A tenant feature fails (R14.4):** disable the feature route/action and keep
+  the data intact. Prefer a feature-flag flip back to `False` (then redeploy) or
+  gating the route over any data change.
+- **Payment fails after launch (R14.5):** stop payment initiation while keeping
+  application submission safe — students may defer payment and submit. Do **not**
+  block submission on the payment gateway, and a failed payment never produces a
+  paid receipt.
+- **Official-document generation fails (R14.6):** the system shows "generation
+  failed" and **blocks the download** rather than serving a stale or
+  client-rendered PDF. Official documents are backend-generated and backend-only;
+  they never fall back to the `@/lib/pdf` preview/draft generators. A failed
+  generation records a `failed` status and leaves any prior Official_Document
+  unchanged.
+- **Database rollback is forward-only (R14.7)** unless a tested rollback script
+  exists; **code rollback is always allowed** and is the first lever.
+
+### Rollback decision order
+
+1. **Code rollback first** (previous image SHA) — fixes most regressions, zero
+   data risk.
+2. **Flip the relevant feature flag(s) to `False`** and redeploy — disables a
+   risky surface without dropping data.
+3. **Graceful-degradation lever** — stop payment initiation / block official-doc
+   download while keeping submission and reads working.
+4. **Neon branch restore** (last resort, data-level) — only for corruption or a
+   bad data write; restore to a new branch, validate, repoint. Never improvise
+   destructive SQL during an incident.
 
 ## Post-Rollback Checks
 

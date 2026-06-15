@@ -1,7 +1,7 @@
 [project]
-name = "mihas-django-api"
+name = "beanola-django-api"
 version = "0.1.0"
-description = "MIHAS Admissions Portal — Django 5 + DRF backend"
+description = "Beanola Admissions Platform — Django 5 + DRF backend"
 requires-python = ">=3.12"
 license = {text = "Proprietary"}
 

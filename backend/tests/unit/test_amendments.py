@@ -317,7 +317,15 @@ class TestAmendmentReviewEndpoint:
         mock_amendment.field_name = "phone"
         mock_amendment.status = "approved"
 
-        with patch("apps.applications.amendment_service.AmendmentService.review_amendment") as ms:
+        # The view now scope-masks an out-of-scope application as not-found
+        # (R5.2/R5.9) before mutating, so patch the application load + scope
+        # check alongside the service. The in-scope path then reaches the
+        # mocked ``review_amendment``.
+        with (
+            patch("apps.applications.amendment_service.AmendmentService.review_amendment") as ms,
+            patch("apps.applications.admin_amendment_views.Application.objects.get", return_value=MagicMock()),
+            patch("apps.applications.admin_amendment_views._staff_can_access_application", return_value=True),
+        ):
             ms.return_value = mock_amendment
 
             aid = uuid.uuid4()

@@ -328,7 +328,7 @@ class TestGenerateFinanceReceiptTask:
     def test_handles_no_payment_gracefully(
         self, mock_app_qs, mock_doc_qs, mock_pay_qs, mock_storage_cls
     ):
-        """Task still creates document even when no payment found (payment=None)."""
+        """Task exits without a document when no successful payment exists."""
         app_id = uuid.uuid4()
         application = _make_application(app_id=app_id)
         mock_app_qs.get.return_value = application
@@ -339,8 +339,5 @@ class TestGenerateFinanceReceiptTask:
 
         generate_finance_receipt_task(str(app_id))
 
-        # Task still creates the document even without payment details
-        mock_doc_qs.create.assert_called_once()
-        call_kwargs = mock_doc_qs.create.call_args[1]
-        assert call_kwargs["document_type"] == "finance_receipt"
-        assert call_kwargs["system_generated"] is True
+        mock_doc_qs.create.assert_not_called()
+        mock_storage_cls.assert_not_called()

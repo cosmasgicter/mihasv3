@@ -85,7 +85,7 @@ export default function ContactPage() {
                   </div>
                 </div>
                 <Button asChild size="lg" className="min-h-touch bg-success text-white hover:bg-success/90 sm:w-auto">
-                  <a href={`https://wa.me/${contactInfo.katcPhone.replace(/[\s+]/g, '')}`}>
+                  <a href={`https://wa.me/${contactInfo.admissionsPhone.replace(/[\s+]/g, '')}`}>
                     <MessageCircle className="mr-2 h-5 w-5" aria-hidden="true" />
                     Chat on WhatsApp
                   </a>
@@ -96,7 +96,7 @@ export default function ContactPage() {
             {/* Contact grid */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <a
-                href={`tel:${contactInfo.katcPhone.replace(/\s/g, '')}`}
+                href={`tel:${contactInfo.admissionsPhone.replace(/\s/g, '')}`}
                 className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-muted"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -104,12 +104,12 @@ export default function ContactPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Call admissions</p>
-                  <p className="font-medium text-foreground">{contactInfo.katcPhone}</p>
+                  <p className="font-medium text-foreground">{contactInfo.admissionsPhone}</p>
                 </div>
               </a>
 
               <a
-                href={`tel:${contactInfo.mihasPhone.replace(/\s/g, '')}`}
+                href={`tel:${contactInfo.supportPhone.replace(/\s/g, '')}`}
                 className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30 hover:bg-muted"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -117,7 +117,7 @@ export default function ContactPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Call support</p>
-                  <p className="font-medium text-foreground">{contactInfo.mihasPhone}</p>
+                  <p className="font-medium text-foreground">{contactInfo.supportPhone}</p>
                 </div>
               </a>
 
@@ -140,7 +140,7 @@ export default function ContactPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Admissions office</p>
-                  <p className="text-sm text-foreground leading-5">{contactInfo.mihasAddress}</p>
+                  <p className="text-sm text-foreground leading-5">{contactInfo.admissionsAddress}</p>
                 </div>
               </div>
 
@@ -150,7 +150,7 @@ export default function ContactPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Student support office</p>
-                  <p className="text-sm text-foreground leading-5">{contactInfo.katcAddress}</p>
+                  <p className="text-sm text-foreground leading-5">{contactInfo.supportAddress}</p>
                 </div>
               </div>
 

@@ -14,7 +14,7 @@ class APIHomeView(View):
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MIHAS Admissions API</title>
+    <title>Beanola Admissions API</title>
     <style>
       :root {
         --bg: #f4efe5;
@@ -168,7 +168,7 @@ class APIHomeView(View):
     <main>
       <section class="hero">
         <span class="eyebrow">Live Platform Surface</span>
-        <h1>MIHAS Admissions API</h1>
+        <h1>Beanola Admissions API</h1>
         <p class="lede">
           This API powers a design-led admissions platform shaped for institutions that need
           trust, speed, and operational clarity. It reflects a builder who treats software as
@@ -230,7 +230,7 @@ GET  /api/v1/applications/
 GET  /api/v1/catalog/programs/</pre>
       </section>
       <p class="footer">
-        Built for reliable admissions operations across MIHAS, KATC, Beanola-linked brands, and adjacent institutional platforms.
+        Built for reliable admissions operations across Beanola-linked colleges, universities, and institutional platforms.
       </p>
     </main>
   </body>

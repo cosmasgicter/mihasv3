@@ -59,7 +59,7 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
             <Link to="/" className="inline-flex items-center gap-3 font-semibold text-foreground" aria-label="Beanola Admissions - Home">
               <span className="inline-flex items-center gap-2">
                 <img
-                  src="/images/logos/beanola-logo.svg"
+                  src="/images/logos/beanolalogo.webp"
                   alt="Beanola Admissions"
                   width={40}
                   height={40}

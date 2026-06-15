@@ -225,19 +225,28 @@ class TestApplicationInterviewListView:
         queryset.filter.assert_called_once_with(application__user_id=str(student.id))
         filtered_queryset.order_by.assert_called_once_with("scheduled_at", "-created_at")
 
+    @patch("apps.applications.interview_views.AccessScopeService")
     @patch("apps.applications.interview_views.ApplicationInterviewSerializer")
     @patch("apps.applications.interview_views.ApplicationInterview.objects")
-    def test_admin_list_without_mine_uses_unfiltered_queryset(
+    def test_admin_list_without_mine_is_scope_narrowed(
         self,
         mock_interview_objects,
         mock_interview_serializer,
+        mock_scope_service,
     ):
+        """GAP-2 (R5.2/R5.9): the admin (non-`mine`) path narrows the interview
+        queryset through ``AccessScopeService.filter_applications`` rather than
+        returning every school's interviews unfiltered."""
         admin = _admin_user()
         queryset = MagicMock()
+        scoped_queryset = MagicMock()
 
         mock_interview_objects.select_related.return_value = queryset
-        queryset.order_by.return_value = []
+        queryset.filter.return_value = scoped_queryset
+        scoped_queryset.order_by.return_value = []
         mock_interview_serializer.return_value.data = []
+        # The scope service resolves a set of in-scope application ids.
+        mock_scope_service.return_value.filter_applications.return_value.values_list.return_value = ["app-1"]
 
         request = _auth_request(
             self.factory,
@@ -248,8 +257,10 @@ class TestApplicationInterviewListView:
         response = self.view(request)
 
         assert response.status_code == 200
-        queryset.filter.assert_not_called()
-        queryset.order_by.assert_called_once_with("scheduled_at", "-created_at")
+        # The admin queryset is narrowed to the scoped application ids (R5.2).
+        mock_scope_service.return_value.filter_applications.assert_called_once()
+        queryset.filter.assert_called_once_with(application_id__in=["app-1"])
+        scoped_queryset.order_by.assert_called_once_with("scheduled_at", "-created_at")
 
 
 class TestStudentPostSubmissionMutationGuards:

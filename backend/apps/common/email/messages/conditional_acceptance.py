@@ -48,8 +48,8 @@ def render(context: dict) -> tuple[str, str]:
             paragraph(f"Dear {student},"),
             paragraph(
                 f"We are pleased to offer you admission to "
-                f"<strong>{escape(program)}</strong> at Mukuba Institute of "
-                f"Health and Applied Sciences for the <strong>{escape(intake)}</strong> "
+                f"<strong>{escape(program)}</strong> for the "
+                f"<strong>{escape(intake)}</strong> "
                 "intake, subject to the conditions listed below."
             ),
             section_heading("Your offer"),

@@ -186,7 +186,7 @@ export default function AdminDashboard() {
   // explicit "No school access assigned" state with a support path — never the
   // (correct-but-misleading) zero counts the backend returns for an empty scope.
   if (scope === 'no-scope') {
-    const supportEmail = portalBrand.supportEmail || 'admissions@mihas.edu.zm'
+    const supportEmail = portalBrand.supportEmail || 'admissions@beanola.com'
     return (
       <>
         <Seo

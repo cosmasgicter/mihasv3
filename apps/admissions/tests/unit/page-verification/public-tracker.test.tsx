@@ -111,26 +111,6 @@ vi.mock('@/lib/apiErrorLogger', () => ({
   logApiError: vi.fn(),
 }))
 
-// -- Mock toast store --
-vi.mock('@/hooks/useToast', () => ({
-  useToastStore: () => ({
-    success: vi.fn(),
-    error: vi.fn(),
-    warning: vi.fn(),
-    info: vi.fn(),
-    errorWithRetry: vi.fn(),
-  }),
-}))
-
-// -- Mock slip service (not under test) --
-vi.mock('@/lib/slipService', () => ({
-  createApplicationSlip: vi.fn().mockResolvedValue({ error: null }),
-}))
-
-vi.mock('@/lib/applicationSlip', () => ({
-  repairLegacyDocumentReference: vi.fn().mockResolvedValue({}),
-}))
-
 // -- Django API response shape for application tracking --
 const MOCK_DJANGO_TRACK_RESPONSE = {
   application: {
@@ -256,7 +236,7 @@ describe('Public tracker page verification', () => {
     expect(text).not.toContain('Payment Status')
   })
 
-  it('renders action buttons when application is found', async () => {
+  it('renders share/copy actions without anonymous slip controls when application is found', async () => {
     mockRequest.mockResolvedValue(MOCK_DJANGO_TRACK_RESPONSE)
     mockSearchParams.set('code', 'MIHAS202500042')
 
@@ -265,8 +245,8 @@ describe('Public tracker page verification', () => {
     const text = container.textContent || ''
     expect(text).toContain('Share')
     expect(text).toContain('Copy #')
-    expect(text).toContain('Download Slip')
-    expect(text).toContain('Email Slip')
+    expect(text).not.toContain('Download Slip')
+    expect(text).not.toContain('Email Slip')
   })
 
   // -- No results state --

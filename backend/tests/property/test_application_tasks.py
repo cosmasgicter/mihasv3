@@ -106,7 +106,7 @@ class TestCeleryTaskApplicationDocumentCreation:
              patch("apps.applications.tasks.pdf_generation._render_official_pdf") as mock_render, \
              patch(_STORAGE) as mock_storage_cls:
             mock_app_qs.get.return_value = application
-            mock_pay_qs.filter.return_value.first.return_value = _make_payment()
+            mock_pay_qs.filter.return_value.order_by.return_value.first.return_value = _make_payment()
             # Render seam is exercised by the dedicated renderer/profile tests.
             # Here we only assert ApplicationDocument.create wiring, so return a
             # clean PDF buffer + JSON-serialisable metadata (bypassing the

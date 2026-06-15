@@ -1,11 +1,47 @@
-# MIHAS Canonical Truth Map
+# Beanola Canonical Truth Map
 
-This is the master index of canonical sources of truth in the admissions system.
-Every domain concept has exactly one source of truth; every other reference is a
-consumer. Drift-guard tests catch divergence at CI time.
+This is the master index of canonical sources of truth in the Beanola
+multi-school admissions platform. **Beanola Technologies is the platform owner
+and platform identity; MIHAS, KATC, and any future school are tenants, never
+platform identity.** Every domain concept has exactly one source of truth; every
+other reference is a consumer. Drift-guard tests catch divergence at CI time.
 
 **Rule:** Any new domain concept added to the platform must register in this map
-before merging. If it has a frontend mirror, a drift-guard test is required.
+before merging. If it has a frontend mirror, a drift-guard test is required (see
+"No New Mirrors Without Guard" below).
+
+## No New Mirrors Without Guard (R1.2)
+
+Any **enum, status, error code, document type, route name, role, permission,
+payment state, or tenant scope** that is shared by both the frontend and the
+backend requires a registered Drift_Guard test. A concept is allowed to live in
+only one layer without a guard **only** when it is explicitly recorded here as
+backend-only (no frontend data mirror) — in which case the "Frontend mirror /
+drift guard" note must say so.
+
+- If a domain concept or frontend mirror exists in active runtime source without
+  a corresponding entry in this map and (where a mirror exists) a Drift_Guard
+  test, the Verification_Gate fails (R1.4).
+- A cross-layer mirror is registered with either a Drift_Guard test or an
+  explicit backend-only note (R1.3).
+- Legacy-fallback branches are governed by the "Legacy-string fallback
+  allowlist (R1.3)" subsection under Multi-Tenant: named as legacy, test-covered,
+  non-executing for new canonical records, and with a documented removal
+  condition (R1.5).
+
+## Platform Identity, Routes, and Operational Config
+
+| Concept | Source of truth | Consumers / drift guard |
+|---------|-----------------|--------------------------|
+| Platform brand (owner identity) | `backend/apps/catalog/services.py:InstitutionContextService.BEANOLA_BRAND` (`name="Beanola Admissions"`, `owner="Beanola Technologies"`) | `GET /api/v1/catalog/context/` shared-portal default; frontend `apps/admissions/src/lib/constants/landing.ts:contactInfo`; brand drift guards (`backend/tests/unit/test_brand_drift_guard.py` + `apps/admissions/tests/unit/brandDriftGuard.test.ts`) |
+| Tenant brand (school identity) | `backend/apps/catalog/models.py:Institution` rows (per-tenant brand name/colors/emails/domains; seeded by `management/commands/brand_institutions.py`) | white-label host resolution via `InstitutionContextService`; tenant data only — never platform identity |
+| Platform attribution metadata | `backend/apps/common/meta_views.py` (`creator: Cosmas Kanchepa`, `developer: Beanola Technologies`, `https://beanola.com`) | `GET /api/v1/meta/platform/` |
+| Product admin tenant surface (route) | `apps/admissions/src/routes/config.tsx` → `{ path: '/admin/tenants', guard: 'admin' }` (lazy `@/pages/admin/Tenants`) | **Beanola product admin** UI for tenant onboarding / school management; **authoritative for the launch smoke check (R14.3)**. No route rename. |
+| Django operational admin surface (route) | `backend/config/urls.py` → `path("beanola-admin-panel/", admin.site.urls)` | low-level Django framework admin; checked separately from `/admin/tenants` per the R1 two-surface decision. No route rename. |
+| Email sender / default contact | `backend/config/settings/base.py` (`DEFAULT_FROM_EMAIL` ← `ZOHO_FROM_EMAIL`/`EMAIL_FROM`, default `admin@beanola.com`; `EMAIL_FROM` default `noreply@beanola.com`; `ERROR_ALERT_EMAIL` default `admin@beanola.com`) | outbound email (`apps/common/tasks.py`, `apps/common/email/`); default contact `apps/common/communication_service.py:_DEFAULT_CONTACT_EMAIL` (`admissions@beanola.com`); admin setting `accounts/admin_serializers.py` `contact_email` |
+| OpenAPI metadata | `backend/config/settings/base.py:SPECTACULAR_SETTINGS` (`TITLE`, `DESCRIPTION`, `VERSION`, `SERVERS`) | `python3 manage.py spectacular`; `/api/v1/` docs. **Note:** `TITLE` is currently `"MIHAS Platform APIs"` — R4.1 owns rebranding the metadata to Beanola; this row records the single source, not the final value. |
+| Public routes / SEO | `apps/admissions/src/components/seo/Seo.tsx` (`DEFAULT_SITE_NAME="Beanola Admissions"`, default image `/images/logos/beanolalogo.webp`, site URL ← `VITE_APP_BASE_URL`/`VITE_SITE_URL`, default `https://apply.beanola.com`) | per-page `<Seo>` usage across public/student routes (`LandingPage`, `tracker`, `Privacy`/`Terms`/`Contact`, auth, dashboard) |
+| Brand_Allowlist | `docs/legacy-brand-allowlist.json` (reviewed single-file entries permitted to contain MIHAS/KATC/Mukuba/Kalulushi/legacy-domain strings) | Brand_Drift_Guard pair (`backend/tests/unit/test_brand_drift_guard.py` + `apps/admissions/tests/unit/brandDriftGuard.test.ts`); R2 owns tightening |
 
 ## Application Lifecycle
 
@@ -124,12 +160,34 @@ never the authority for new business logic (R1.2, R1.3).
 | Official document provenance | `verification_notes.official_document` (template id+version, asset ids) | `DocumentTemplateService` + `tasks/pdf_generation.py` |
 | Drift guard | `backend/tests/unit/test_canonical_tenant_drift_guard.py` (no new runtime logic matches `applications.institution/program/intake` legacy strings outside migration/legacy-fallback) |
 
-**Legacy-string fallback allowlist (R1.3):** the only runtime modules permitted
-to match on the `applications.program / intake / institution` legacy strings are
-the explicitly-labelled legacy-fallback / pre-canonical branches in
-`duplicate_checker.py`, `waitlist_manager.py`, `intake_enforcer.py`, and the
-pre-existing admin display-string filter in `analytics/admissions_analytics.py`.
-The drift guard fails on any unlisted new occurrence.
+**Legacy-string fallback allowlist (R1.3, R1.5):** the only runtime modules
+permitted to match on the `applications.program / intake / institution` legacy
+strings are the explicitly-labelled legacy-fallback / pre-canonical branches
+listed below. Each is named as legacy, is covered by the drift guard
+`backend/tests/unit/test_canonical_tenant_drift_guard.py` (every entry is pinned
+in `_ALLOWED_PREDICATES`), does **not** execute for new canonical records (the
+canonical-ID path is taken whenever the id is present), and carries the shared
+removal condition stated below. The drift guard fails on any unlisted new
+occurrence.
+
+| Module (`backend/apps/…`) | Allowlisted predicate(s) | Branch label / why legacy | Non-executing for new canonical records |
+|---------------------------|--------------------------|---------------------------|------------------------------------------|
+| `applications/duplicate_checker.py` | `program=program`, `intake=intake` | "Canonical-only keying (R8.1) … fall back to the legacy string only for an id that is absent (R8.5)." | Yes — `Q(canonical_program_id=program_id) if program_id else Q(program=program)` (and the same for `intake`); the legacy `program=`/`intake=` predicate is only reached when the canonical id is `None`. |
+| `applications/waitlist_manager.py` | `program=program`, `intake=intake`, `program=application.program`, `intake=application.intake` | Pre-Beanola waitlist position/promotion keyed on the program+intake display strings. | Yes for new records — waitlist position is keyed on the snapshot strings carried alongside the canonical IDs; canonical IDs remain the routing/scoping authority and no canonical record is keyed off the legacy string for routing. |
+| `applications/intake_enforcer.py` | `intake=intake_name`, `program=program_name` | Pre-canonical enrollment counting (capacity counts by intake/program name string). | Yes — the intake/program is first resolved to a canonical id via `IdentifierResolver`; the legacy-string `count()` is the pre-canonical capacity tally only. |
+| `applications/tasks/waitlist.py` | `intake=intake.name`, `program=app.program`, `intake=next_intake.name` | `waitlist_cascade_task` carries waitlisted rows to the next intake using the pre-canonical display strings (existing pre-Beanola cascade logic; the `Application.create()` writes the snapshot and is correctly **not** a match). | Yes — cascade is a pre-canonical batch job over the display snapshots; new canonical routing/scoping never depends on it. |
+| `analytics/admissions_analytics.py` | `institution__icontains=filters['institution']`, `program__icontains=filters['program']` | Admin display-string `__icontains` filter over the pre-canonical institution/program snapshots (reporting only). | Yes — read-only admin reporting filter; never drives create/assign/scope decisions for canonical records. |
+
+**Removal condition (R1.5):** each branch is retained only while
+`applications` rows with **null canonical IDs** (`canonical_program_id` /
+`intake_ref_id` / `institution_id`) still exist — these are the legacy/historical
+applications created before the multi-tenant conversion. The branches become
+removable once a backfill sets canonical IDs on all remaining legacy rows and a
+verification query confirms zero null-canonical-ID `applications` rows on
+production (the same count captured in the Production_Cutover evidence block,
+R3.7/R3.9). When that count reaches zero, drop the legacy-string predicate from
+each module (keeping the canonical-ID path), delete the corresponding
+`_ALLOWED_PREDICATES` entries, and confirm the drift guard still passes.
 
 ### Capacity policy: advisory until enrollment (R15.3, R15.4)
 
@@ -147,6 +205,20 @@ for V1 because it would require holding a lock across the multi-step wizard and
 would strand seats on abandoned drafts. Capacity therefore stays advisory at
 assignment time and is committed under a lock at the submission/enrollment
 stages, which prevents capacity races without blocking draft authoring.
+
+### Document profiles, official-document lifecycle, and tenant templates (R8, R14, R16)
+
+Spec: `.kiro/specs/multi-tenant-beanola-remediation/`. These concepts extend
+the Multi-Tenant truth map registered above. Each names the single authoritative
+backend source plus its consumers; the "Frontend mirror / drift guard" column
+records the guard backing the concept (or states it is backend-only).
+
+| Concept | Source of truth | Consumers | Frontend mirror / drift guard |
+|---------|-----------------|-----------|-------------------------------|
+| Institution document profile | `backend/apps/catalog/models.py:InstitutionDocumentProfile` (table `institution_document_profiles`, migration `backend/scripts/2026_06_08_03_institution_document_profiles.sql`, `managed=False`) resolved most-specific-first by `backend/apps/catalog/services.py:InstitutionDocumentProfileService.resolve` | official-document render context (`backend/apps/applications/tasks/pdf/render_context.py`); `pdf_generation._attach_profile_provenance` folds `profile_id`+`profile_version` into the fingerprint | Backend-only config (no frontend data mirror). The student/admin document UI that consumes the rendered PDF is drift-guarded by `apps/admissions/tests/unit/documentFlowDriftGuard.test.ts` (R18.1, no client-only official PDFs); brand safety of resolved content is covered by the brand drift guard (`backend/tests/unit/test_brand_drift_guard.py` + `apps/admissions/tests/unit/brandDriftGuard.test.ts`). |
+| Official-document current-version / fingerprint lifecycle | `backend/apps/applications/tasks/pdf_generation.py:_compute_document_fingerprint` (deterministic SHA-256 over render inputs, R6.1), `_current_official_version` (latest non-deleted `system_generated` doc), and the stored fingerprint at `verification_notes.official_document.fingerprint` (read by `_stored_fingerprint`) | `_generate_official_document_task` reuses the current version on an unchanged fingerprint and creates a new `ApplicationDocument` only on change (R6.3/R6.4); never mutates prior documents | Frontend mirror = student/admin document UI reflecting backend `Queued`/`Generating`/`Ready`/`Failed` status and downloading the stored official record — drift-guarded by `apps/admissions/tests/unit/documentFlowDriftGuard.test.ts` (R18.1). Dedup invariant (one persisted record per fingerprint) drift-guarded by `backend/tests/unit/test_official_document_dedup_guard.py` (R18.2). |
+| Tenant-aware communication templates | `backend/apps/common/models.py:CommunicationTemplate` (`institution_id` + `version` columns added by `backend/scripts/2026_06_08_04_communication_templates_tenant.sql`, `managed=False`); tenant-aware resolution in `backend/apps/common/communication_service.py:_resolve_template` (active institution-specific highest version → active Beanola platform highest version → safe Beanola default, R14.1/R14.4/R14.5) | `CommunicationService.render_template`/`send`; template context derives brand/contact/portal from the resolved institution, never the hard-coded `apply.mihas.edu.zm` (R14.3/R14.8) | Backend-only (no frontend mirror — no admissions frontend module references `communication_templates`/`template_key`); no frontend drift guard required. Brand safety of rendered content is enforced by the backend brand drift guard `backend/tests/unit/test_brand_drift_guard.py`. |
+| Capacity advisory until enrollment | See the "Capacity policy: advisory until enrollment (R15.3, R15.4)" subsection above (registered by task 31.2) | `OfferingAssignmentService._has_capacity`, `IntakeEnforcer.increment_enrollment`, `EnrollmentService.confirm_enrollment` | Backend-only decision; no frontend mirror. Recoverable assignment failure surfaces via the canonical `NO_ELIGIBLE_OFFERING` error code (already error-code drift-guarded). |
 
 **Recoverable assignment failure (R15.5):** when no eligible offering exists,
 `OfferingAssignmentService.assign` raises
@@ -200,6 +272,11 @@ CI-blocking tests that fail when canonical truth diverges:
 - `backend/tests/unit/test_withdrawal_eligibility.py`
 - `backend/tests/integration/test_system_actor_transitions.py`
 - `backend/tests/unit/test_canonical_tenant_drift_guard.py`
+- `backend/tests/unit/test_brand_drift_guard.py` + `apps/admissions/tests/unit/brandDriftGuard.test.ts`
+- `apps/admissions/tests/unit/documentFlowDriftGuard.test.ts`
+- `backend/tests/unit/test_official_document_dedup_guard.py`
+- `backend/tests/unit/test_scope_drift_guard.py` + `backend/tests/unit/test_unscoped_endpoint_guard.py`
+- `backend/tests/unit/test_migration_drift_guard.py`
 
 ## How To Add A New Domain Concept
 

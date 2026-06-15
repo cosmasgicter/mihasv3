@@ -58,7 +58,10 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsOwnerOrAdmin, is_super_admin
 from apps.applications.models import Application
-from apps.applications.tasks.pdf_generation import _current_official_version
+from apps.applications.tasks.pdf_generation import (
+    _current_official_version,
+    official_document_matches_current_inputs,
+)
 from apps.catalog.services import AccessScopeService
 from apps.common.openapi_helpers import ErrorResponseSerializer, envelope_serializer
 from apps.documents.models import ApplicationDocument, Payment
@@ -172,8 +175,10 @@ def _student_gate_open(document_type: str, application) -> bool:
         return app_status == "approved"
     if document_type == "conditional_offer":
         return app_status == "conditionally_approved"
-    if document_type in ("payment_receipt", "finance_receipt"):
+    if document_type == "payment_receipt":
         return _has_completed_payment(application)
+    if document_type == "finance_receipt":
+        return False
     return False
 
 
@@ -414,11 +419,13 @@ class OfficialDocumentDetailView(APIView):
         if error_response is not None:
             return error_response
 
-        # Reuse the Current_Official_Version when one already exists — input
-        # driven idempotency lives in the generator, so the endpoint never
-        # forces a duplicate render.
+        # Reuse Current_Official_Version only when its stored fingerprint still
+        # matches today's application/tenant/template/asset inputs. Otherwise
+        # enqueue regeneration so stale branding/content is never served.
         current = _current_official_version(ApplicationDocument, application, document_type)
-        if current is not None:
+        if current is not None and official_document_matches_current_inputs(
+            application, document_type, current
+        ):
             return Response(
                 {
                     "success": True,
@@ -462,7 +469,9 @@ class OfficialDocumentDetailView(APIView):
             return error_response
 
         current = _current_official_version(ApplicationDocument, application, document_type)
-        if current is not None:
+        if current is not None and official_document_matches_current_inputs(
+            application, document_type, current
+        ):
             data = _build_envelope(application, document_type, document=current, status_value="ready")
         else:
             # Permitted but not yet generated → a pending/queued status the
@@ -498,7 +507,9 @@ class OfficialDocumentListView(APIView):
         results = []
         for document_type in _DOCUMENT_TASK_NAMES:
             current = _current_official_version(ApplicationDocument, application, document_type)
-            if current is not None:
+            if current is not None and official_document_matches_current_inputs(
+                application, document_type, current
+            ):
                 results.append(
                     _build_envelope(
                         application, document_type, document=current, status_value="ready"

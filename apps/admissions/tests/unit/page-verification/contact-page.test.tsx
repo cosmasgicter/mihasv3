@@ -168,18 +168,14 @@ describe('Contact page verification', () => {
   it('renders contact email', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    expect(text).toContain('info@mihas.edu.zm')
+    expect(text).toContain('admissions@beanola.com')
   })
 
-  it('renders both campus addresses', async () => {
+  it('renders Beanola admissions and support addresses', async () => {
     await renderAndWait()
     const text = container.textContent || ''
-    // MIHAS address — the one the institution actually operates from
-    expect(text).toContain('Plot 3375 Off President Avenue, Kalulushi')
-    expect(text).toContain('Civic Centre')
-    // KATC address — distinct location (Dag Hammarskjöld Road)
-    expect(text).toContain('Dag Hammarskjöld')
-    expect(text).toContain('10101')
+    expect(text).toContain('Beanola Technologies Admissions Desk, Lusaka, Zambia')
+    expect(text).toContain('Beanola Technologies Support Desk, Lusaka, Zambia')
   })
 
   // ── Contact form rendering ──────────────────────────────────────────
@@ -296,9 +292,9 @@ describe('Contact page verification', () => {
     expect(text).toContain('Open Email App')
     expect(text).toContain('Update Email Draft')
 
-    const emailLink = container.querySelector('a[href^="mailto:info@mihas.edu.zm?subject="]') as HTMLAnchorElement | null
+    const emailLink = container.querySelector('a[href^="mailto:admissions@beanola.com?subject="]') as HTMLAnchorElement | null
     expect(emailLink).toBeTruthy()
-    expect(emailLink?.href).toContain('mailto:info@mihas.edu.zm?subject=')
+    expect(emailLink?.href).toContain('mailto:admissions@beanola.com?subject=')
   })
 
   it('keeps an editable handoff state after preparing the draft', async () => {

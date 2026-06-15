@@ -49,7 +49,7 @@ class TestAdminURLNotPredictable(SimpleTestCase):
             admin_url,
             "/admin/",
             "Admin URL resolves to the predictable path /admin/ — "
-            "expected a non-standard path like /mihas-admin-panel/",
+            "expected a non-standard path like /beanola-admin-panel/",
         )
 
 

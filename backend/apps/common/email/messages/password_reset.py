@@ -21,14 +21,14 @@ def render(context: dict) -> tuple[str, str]:
     url = context.get("reset_url") or "#"
     minutes = context.get("expires_in_minutes") or 30
 
-    subject = "Reset your MIHAS admissions password"
+    subject = "Reset your Beanola admissions password"
 
     body = "\n".join(
         [
             paragraph(f"Hi {student},"),
             paragraph(
                 "We received a request to reset the password for your "
-                "MIHAS admissions account. Use the button below to set a "
+                "Beanola admissions account. Use the button below to set a "
                 "new password."
             ),
             cta_button("Reset password", url),
@@ -44,7 +44,7 @@ def render(context: dict) -> tuple[str, str]:
                 "safety, consider signing in and reviewing recent sessions.",
                 muted=True,
             ),
-            signature_block(role="Admissions Support", name="MIHAS Admissions"),
+            signature_block(role="Admissions Support", name="Beanola Admissions"),
         ]
     )
 

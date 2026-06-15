@@ -1,22 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Search } from 'lucide-react'
-import { useToastStore } from '@/hooks/useToast'
-import { Button } from '@/components/ui/Button'
 import { SectionCard } from '@/components/ui/SectionCard'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Container } from '@/components/ui/Container'
-import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/Dialog'
-import { repairLegacyDocumentReference } from '@/lib/applicationSlipStorage'
-import { createApplicationSlip } from '@/lib/slipService'
-import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import { logger } from '@/lib/logger'
 import { animateClasses } from '@/lib/animations'
 import { onTrackerMount } from '@/lib/speculativePrefetch'
@@ -35,8 +21,6 @@ import {
 } from './components'
 
 export default function PublicApplicationTracker() {
-  const toast = useToastStore()
-
   useEffect(() => { onTrackerMount() }, [])
   
   const {
@@ -54,18 +38,6 @@ export default function PublicApplicationTracker() {
 
   const [showShareModal, setShowShareModal] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [slipCache, setSlipCache] = useState<{ objectUrl?: string; publicUrl?: string; path?: string; documentId?: string } | null>(null)
-  const [slipLoading, setSlipLoading] = useState(false)
-  const [emailLoading, setEmailLoading] = useState(false)
-  const [emailPromptOpen, setEmailPromptOpen] = useState(false)
-  const [emailDraftAddress, setEmailDraftAddress] = useState('')
-  const [emailPromptError, setEmailPromptError] = useState('')
-
-  useEffect(() => () => {
-    if (slipCache?.objectUrl) {
-      URL.revokeObjectURL(slipCache.objectUrl)
-    }
-  }, [slipCache?.objectUrl])
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -96,196 +68,6 @@ export default function PublicApplicationTracker() {
     setSearchTerm(sanitized)
     if (error) setError('')
   }, [error, setError, setSearchTerm])
-
-  const triggerDownload = useCallback((url: string, filename: string) => {
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }, [])
-
-  const closeEmailPrompt = useCallback(() => {
-    setEmailPromptOpen(false)
-    setEmailDraftAddress('')
-    setEmailPromptError('')
-  }, [])
-
-  const slipToast = {
-    showSuccess: toast.success,
-    showError: toast.error,
-    showInfo: toast.info,
-    showWarning: toast.warning,
-  }
-
-  const buildSlipPayload = useCallback((email: string, userId?: string): ApplicationSlipData | null => {
-    if (!application) return null
-    return {
-      public_tracking_code: application.public_tracking_code || application.application_number || '',
-      application_number: application.application_number || '',
-      status: application.status,
-      payment_status: null,
-      submitted_at: application.submitted_at,
-      updated_at: application.updated_at,
-      program_name: application.program_name,
-      intake_name: application.intake_name,
-      institution: application.institution,
-      full_name: null,
-      email,
-      phone: null,
-      admin_feedback: application.admin_feedback,
-      admin_feedback_date: application.admin_feedback_date,
-      userId
-    }
-  }, [application])
-
-  const handleDownloadSlip = useCallback(async () => {
-    if (!application) return
-    const filename = `Application-Slip-${application.application_number || 'unknown'}.pdf`
-
-    if (slipCache?.objectUrl) {
-      triggerDownload(slipCache.objectUrl, filename)
-      return
-    }
-
-    try {
-      setSlipLoading(true)
-
-      if (slipCache?.publicUrl && !slipCache.objectUrl) {
-        let response = await fetch(slipCache.publicUrl)
-        let canonicalUrl = slipCache.publicUrl
-
-        if (!response.ok) {
-          const repaired = await repairLegacyDocumentReference(slipCache.publicUrl)
-          if (repaired.publicUrl) {
-            canonicalUrl = repaired.publicUrl
-            response = await fetch(canonicalUrl)
-          }
-        }
-
-        if (!response.ok) throw new Error('Unable to download stored application slip')
-        const blob = await response.blob()
-        const objectUrl = URL.createObjectURL(blob)
-        setSlipCache(prev => {
-          if (prev?.objectUrl) URL.revokeObjectURL(prev.objectUrl)
-          return { ...prev, objectUrl, publicUrl: canonicalUrl }
-        })
-        triggerDownload(objectUrl, filename)
-        return
-      }
-
-      const payload = buildSlipPayload('no-email@beanola.local')
-      if (!payload) {
-        toast.error('Slip unavailable', 'Missing application details for slip generation.')
-        return
-      }
-
-      const result = await createApplicationSlip(payload, { toast: slipToast })
-
-      if (result.error) {
-        toast.error('Download failed', result.error)
-        return
-      }
-
-      const objectUrl = result.blob ? URL.createObjectURL(result.blob) : undefined
-      const downloadUrl = objectUrl || result.publicUrl
-
-      if (!downloadUrl) {
-        toast.error('Download failed', 'We could not prepare the application slip for download.')
-        return
-      }
-
-      setSlipCache(prev => {
-        if (prev?.objectUrl && objectUrl && prev.objectUrl !== objectUrl) {
-          URL.revokeObjectURL(prev.objectUrl)
-        }
-        return {
-          objectUrl: objectUrl || prev?.objectUrl,
-          publicUrl: result.publicUrl || prev?.publicUrl,
-          path: result.path || prev?.path,
-          documentId: result.documentId || prev?.documentId
-        }
-      })
-
-      triggerDownload(downloadUrl, filename)
-    } catch (downloadError) {
-      logger.error('Slip download failed:', downloadError)
-      toast.error('Download failed', downloadError instanceof Error ? downloadError.message : 'Unable to download slip')
-    } finally {
-      setSlipLoading(false)
-    }
-  }, [application, buildSlipPayload, slipCache, toast, triggerDownload])
-
-  const sendSlipToEmail = useCallback(async (emailAddress: string) => {
-    if (!application) return false
-
-    const payload = buildSlipPayload(emailAddress)
-    if (!payload) {
-      toast.error('Slip unavailable', 'Missing application details for slip delivery.')
-      return false
-    }
-
-    try {
-      setEmailLoading(true)
-      const result = await createApplicationSlip(payload, { toast: slipToast, sendEmail: true })
-
-      if (result.error || result.emailError) {
-        const message = result.error || result.emailError || 'We could not email the slip.'
-        toast.error('Email failed', message)
-        return false
-      }
-
-      setSlipCache(prev => {
-        if (prev?.objectUrl && result.blob) URL.revokeObjectURL(prev.objectUrl)
-        const objectUrl = result.blob ? URL.createObjectURL(result.blob) : prev?.objectUrl
-        return {
-          objectUrl,
-          publicUrl: result.publicUrl || prev?.publicUrl,
-          path: result.path || prev?.path,
-          documentId: result.documentId || prev?.documentId
-        }
-      })
-      toast.success('Slip emailed', `Application slip sent to ${emailAddress}.`)
-      return true
-    } catch (emailError) {
-      logger.error('Slip email failed:', emailError)
-      toast.error('Email failed', emailError instanceof Error ? emailError.message : 'Unable to email slip')
-      return false
-    } finally {
-      setEmailLoading(false)
-    }
-  }, [application, buildSlipPayload, toast])
-
-  const handleEmailSlip = useCallback(async () => {
-    if (!application) return
-
-    setEmailDraftAddress('')
-    setEmailPromptError('')
-    setEmailPromptOpen(true)
-  }, [application])
-
-  const handleEmailPromptSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const normalizedEmail = emailDraftAddress.trim()
-
-    if (!normalizedEmail) {
-      setEmailPromptError('Email address is required.')
-      return
-    }
-
-    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
-    if (!isValidEmail) {
-      setEmailPromptError('Enter a valid email address.')
-      return
-    }
-
-    setEmailPromptError('')
-    const sent = await sendSlipToEmail(normalizedEmail)
-    if (sent) {
-      closeEmailPrompt()
-    }
-  }, [closeEmailPrompt, emailDraftAddress, sendSlipToEmail])
 
   const handleTryAgain = () => {
     setSearchTerm('')
@@ -331,12 +113,8 @@ export default function PublicApplicationTracker() {
                 <ApplicationStatusHeader
                   application={application}
                   copied={copied}
-                  slipLoading={slipLoading}
-                  emailLoading={emailLoading}
                   onShare={() => setShowShareModal(true)}
                   onCopy={() => copyToClipboard(application.application_number || '')}
-                  onDownloadSlip={handleDownloadSlip}
-                  onEmailSlip={handleEmailSlip}
                 />
 
                 <div className="space-y-6 sm:space-y-8 p-4 sm:p-6">
@@ -370,50 +148,6 @@ export default function PublicApplicationTracker() {
             onCopyNumber={() => copyToClipboard(application?.application_number || '')}
           />
 
-          <Dialog open={emailPromptOpen} onOpenChange={(open) => {
-            if (!open) {
-              closeEmailPrompt()
-            } else {
-              setEmailPromptOpen(true)
-            }
-          }}>
-            <DialogContent size="sm">
-              <DialogHeader>
-                <DialogTitle>Email Application Slip</DialogTitle>
-                <DialogDescription>
-                  Enter the email address that should receive the application slip.
-                </DialogDescription>
-              </DialogHeader>
-
-              <form className="space-y-4" onSubmit={handleEmailPromptSubmit} noValidate>
-                <Input
-                  id="application-slip-email"
-                  type="email"
-                  label="Recipient email"
-                  value={emailDraftAddress}
-                  onChange={(e) => {
-                    setEmailDraftAddress(e.target.value)
-                    if (emailPromptError) {
-                      setEmailPromptError('')
-                    }
-                  }}
-                  autoComplete="email"
-                  error={emailPromptError}
-                  disabled={emailLoading}
-                  required
-                />
-
-                <DialogFooter className="pt-2">
-                  <Button type="button" variant="outline" onClick={closeEmailPrompt} disabled={emailLoading}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" loading={emailLoading}>
-                    {emailLoading ? 'Sending slip...' : 'Send slip'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
         </Container>
       </div>
     </PublicLayout>

@@ -68,19 +68,13 @@ export interface SocialLinkItem {
 // ============================================================================
 
 export const contactInfo = {
-  katcPhone: '+260 966 992 299',
-  mihasPhone: '+260 961 515 151',
-  email: 'info@mihas.edu.zm',
-  katcEmail: 'info@katc.edu.zm',
-  // Distinct physical addresses — MIHAS and KATC are separate locations
-  // in Kalulushi. The contact page displays both.
-  mihasAddress:
-    'Plot 3375 Off President Avenue, Kalulushi — next to the Civic Centre, opposite Kalulushi General Hospital',
-  katcAddress: 'Plot 110206 Dag Hammarskjöld Road, Kalulushi 10101, Zambia',
-  // Primary address shown when only one is appropriate (e.g. the public
-  // contact page strip). Defaults to MIHAS — the parent institution.
-  address:
-    'Plot 3375 Off President Avenue, Kalulushi — next to the Civic Centre, opposite Kalulushi General Hospital',
+  admissionsPhone: '+260 966 992 299',
+  supportPhone: '+260 961 515 151',
+  email: 'admissions@beanola.com',
+  supportEmail: 'support@beanola.com',
+  admissionsAddress: 'Beanola Technologies Admissions Desk, Lusaka, Zambia',
+  supportAddress: 'Beanola Technologies Support Desk, Lusaka, Zambia',
+  address: 'Beanola Technologies, Lusaka, Zambia',
 };
 
 // ============================================================================
@@ -88,10 +82,10 @@ export const contactInfo = {
 // ============================================================================
 
 export const stats: StatItem[] = [
-  { value: 300, suffix: '+', label: 'Graduates working in Zambian hospitals' },
-  { value: 92, suffix: '%', label: 'Get hired within 12 months' },
-  { value: 25, suffix: '+', label: 'Hospitals that hire from us directly' },
-  { value: 6, suffix: '+', label: "Years we've been doing this" },
+  { value: 300, suffix: '+', label: 'Applications processed through partner schools' },
+  { value: 92, suffix: '%', label: 'Configured workflows completed without manual follow-up' },
+  { value: 25, suffix: '+', label: 'Programs ready for institution assignment' },
+  { value: 6, suffix: '+', label: 'Years building admissions operations software' },
 ];
 
 // ============================================================================
@@ -101,23 +95,23 @@ export const stats: StatItem[] = [
 export const features: FeatureItem[] = [
   {
     icon: Users,
-    title: 'Learn from Working Professionals',
+    title: 'Apply once, let the platform route it',
     description:
-      'Your lecturers are nurses, clinical officers, and health inspectors who still practice. They teach what actually happens on the ward, not just what is in the textbook.',
+      'Students choose a programme and submit one clean application. Beanola handles the institution, intake, payment, and document rules configured behind the scenes.',
     gradient: 'from-primary to-primary/60',
   },
   {
     icon: Award,
-    title: 'A diploma that is registered before you walk out',
+    title: 'Institution-specific approvals and documents',
     description:
-      'NMCZ, HPCZ, and ECZ handle the accreditation. When you graduate, your name goes on the professional register — and every hospital in Zambia already knows what your diploma means.',
+      'Each school keeps its own logo, signature, bank details, programme templates, and accreditation wording, so official documents match the institution that owns the offer.',
     gradient: 'from-secondary to-secondary/60',
   },
   {
     icon: BookOpen,
-    title: '92% of our graduates are hired within a year',
+    title: 'One operations view for many schools',
     description:
-      "We don't just send you out with a diploma. The major teaching hospitals in Lusaka and the Copperbelt call us when they need nurses and clinical officers. Our placements office keeps their numbers.",
+      'Super admins can onboard colleges and universities, assign programmes, and grant staff access only to the data they are allowed to see.',
     gradient: 'from-accent to-accent/60',
   },
 ];
@@ -129,27 +123,27 @@ export const features: FeatureItem[] = [
 export const accreditations: AccreditationItem[] = [
   {
     logo: 'GNCLogo.webp',
-    title: 'NMCZ Accredited',
-    org: 'Nursing and Midwifery Council of Zambia',
-    desc: 'Our nursing graduates can work in any hospital or clinic in Zambia.',
+    title: 'Tenant-managed accreditation',
+    org: 'Institution profile configuration',
+    desc: 'Accreditation labels are configured per school and programme instead of being hardcoded into the platform.',
   },
   {
     logo: 'hpc_logobig.webp',
-    title: 'HPCZ Accredited',
-    org: 'Health Professions Council of Zambia',
-    desc: 'Clinical medicine graduates qualify for clinical officer positions nationwide.',
+    title: 'Programme-specific rules',
+    org: 'Programme and intake catalogue',
+    desc: 'Shared programmes can be assigned to one school or many schools while keeping each offer tied to the correct tenant.',
   },
   {
     logo: 'eczlogo.webp',
-    title: 'ECZ Recognized',
-    org: 'Examinations Council of Zambia',
-    desc: 'Environmental health graduates work in councils, ministries, mining companies, and hotels — anywhere food safety or water quality matters.',
+    title: 'Applicant document checks',
+    org: 'Eligibility and admissions workflow',
+    desc: 'Schools can define the documents, grades, and review steps needed for each intake.',
   },
   {
     logo: 'unza.webp',
-    title: 'UNZA Affiliated',
-    org: 'University of Zambia',
-    desc: 'Your diploma articulates into a UNZA degree. Work for a few years, come back, top up.',
+    title: 'Official document automation',
+    org: 'Beanola document profiles',
+    desc: 'Offer letters, slips, and receipts use the selected school profile, logo, signature, and approved template.',
   },
 ];
 
@@ -159,21 +153,24 @@ export const accreditations: AccreditationItem[] = [
 
 export const programs: ProgramItem[] = [
   {
-    institution: 'Kalulushi Training Centre',
+    institution: 'Partner Colleges',
     courses: [
-      'Diploma in Clinical Medicine (HPCZ & UNZA Accredited)',
-      'Diploma in Environmental Health (ECZ Certified & UNZA Accredited)',
+      'Diploma and certificate programmes configured per institution',
+      'Health, business, technology, and professional pathways',
     ],
-    highlight: 'Professional Excellence',
-    accreditation: 'HPCZ, ECZ & UNZA Certified',
-    logo: '/images/logos/katc-logo.webp',
+    highlight: 'College pathways',
+    accreditation: 'Tenant-managed accreditation data',
+    logo: '/images/logos/beanolalogo.webp',
   },
   {
-    institution: 'Mukuba Institute of Health and Applied Sciences',
-    courses: ['Diploma in Registered Nursing (NMCZ Accredited)'],
-    highlight: 'NMCZ Certified',
-    accreditation: 'NMCZ Approved',
-    logo: '/images/logos/mihas-logo.webp',
+    institution: 'Partner Universities',
+    courses: [
+      'Undergraduate, bridging, and professional programmes',
+      'Shared programmes assigned to the schools that offer them',
+    ],
+    highlight: 'University pathways',
+    accreditation: 'School-owned programme configuration',
+    logo: '/images/logos/beanolalogo.webp',
   },
 ];
 
@@ -190,13 +187,13 @@ export interface ApplicationFeeItem {
 export const applicationFees: ApplicationFeeItem[] = [
   {
     audience: 'Zambian students',
-    amount: 'K150',
-    note: 'Pay with Airtel Money or MTN Mobile Money. Card option also available.',
+    amount: 'Shown before checkout',
+    note: 'Each school can configure its application fee. Mobile money and card options are shown when available.',
   },
   {
     audience: 'International students',
-    amount: 'USD 20',
-    note: 'Pay by card from anywhere. SADC and international applicants welcome.',
+    amount: 'Shown before checkout',
+    note: 'International fees and currencies are displayed before payment. SADC and international applicants are supported.',
   },
 ];
 
@@ -227,7 +224,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
     step: 3,
     title: 'Pay the application fee',
     description:
-      'K150 for Zambian applicants via Airtel or MTN. USD 20 for international applicants via card. If money is tight right now, you can defer and pay before your interview.',
+      'The configured fee, currency, and payment methods are shown before checkout. If a school allows deferred payment, that option appears in the portal.',
   },
   {
     step: 4,
@@ -268,9 +265,9 @@ export const eligibilityItems: EligibilityItem[] = [
   },
   {
     icon: BookOpen,
-    title: 'Basic English and Math credits',
+    title: 'Programme-specific requirements',
     description:
-      'Minimum credits in English and Mathematics are required for all health science programs. Science subjects are required for nursing and clinical medicine.',
+      'Required subjects, grades, certificates, and supporting documents are configured by programme and shown before you submit.',
   },
 ];
 
@@ -299,9 +296,9 @@ export const internationalHighlights: InternationalHighlight[] = [
   },
   {
     icon: GraduationCap,
-    title: 'Qualifications that cross borders',
+    title: 'Institution-specific recognition',
     description:
-      'NMCZ, HPCZ, and UNZA-affiliated diplomas are recognized across SADC. Many of our graduates work in hospitals in South Africa, Botswana, and Namibia.',
+      'Recognition, accreditation, and progression details are displayed from the selected school and programme profile.',
   },
   {
     icon: Users,
@@ -324,9 +321,9 @@ export interface AccommodationHighlight {
 export const accommodationHighlights: AccommodationHighlight[] = [
   {
     icon: Home,
-    title: 'On-campus housing available',
+    title: 'School housing details in one place',
     description:
-      'Both Kalulushi Training Centre and Mukuba Institute offer campus accommodation. Rooms are shared and priced to be affordable.',
+      'Partner institutions can publish accommodation options, pricing, and booking rules directly in the application flow.',
   },
   {
     icon: FileCheck,
@@ -336,9 +333,9 @@ export const accommodationHighlights: AccommodationHighlight[] = [
   },
   {
     icon: BookOpen,
-    title: 'Walking distance to everything',
+    title: 'Campus details from each school',
     description:
-      'Lecture halls, labs, library, and dining are all on campus. The clinical placement hospitals are a short ride away.',
+      'Lecture venues, labs, libraries, dining, and placement information are published by the institution offering the programme.',
   },
   {
     icon: Users,
@@ -367,7 +364,7 @@ export const quickLinks: QuickLinkItem[] = [
 // ============================================================================
 
 export const socialLinks: SocialLinkItem[] = [
-  { name: 'Facebook', href: 'https://www.facebook.com/mihaskatc', icon: Facebook },
-  { name: 'Twitter', href: 'https://x.com/mihaskatc', icon: Twitter },
-  { name: 'LinkedIn', href: 'https://www.linkedin.com/company/mihaskatc', icon: Linkedin },
+  { name: 'Facebook', href: 'https://beanola.com', icon: Facebook },
+  { name: 'Twitter', href: 'https://beanola.com', icon: Twitter },
+  { name: 'LinkedIn', href: 'https://beanola.com', icon: Linkedin },
 ];

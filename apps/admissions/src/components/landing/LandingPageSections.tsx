@@ -222,14 +222,14 @@ function AccreditationSection() {
     >
       <div className="container-responsive px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="mb-10 max-w-3xl">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">Accredited by</p>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">Configured by school</p>
           <TextEffect effect="fadeUp">
             <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Your diploma gets you registered. Here is who backs it.
+              Each programme carries the school details that matter.
             </h2>
           </TextEffect>
           <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
-            Our graduates work in Zambian hospitals, plus Botswana, Namibia, and South Africa. UNZA affiliation means you can top up to a degree later.
+            Accreditation, progression, fee, and document wording comes from the institution profile assigned to the programme.
           </p>
         </ScrollReveal>
 
@@ -358,11 +358,11 @@ function AccommodationSection() {
         <ScrollReveal className="mb-10 max-w-3xl sm:mb-12">
           <TextEffect effect="fadeUp">
             <h2 id="accommodation-heading" className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Coming from out of town? We have a bed for you.
+              Coming from out of town? Check school housing options early.
             </h2>
           </TextEffect>
           <p className="mt-3 text-base leading-7 text-muted-foreground sm:text-lg">
-            On-campus accommodation at both campuses. If you are coming from Lusaka, Livingstone, or outside Zambia, you do not need to hunt for a hostel.
+            Partner institutions can publish accommodation availability, fees, and booking requirements directly in the application flow.
           </p>
         </ScrollReveal>
 

@@ -12,9 +12,13 @@ DB, broker, or live storage — the signer is mocked.
 
 from __future__ import annotations
 
+import uuid
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from rest_framework.test import APIRequestFactory, force_authenticate
+
+from apps.accounts.authentication import JWTUser
 from apps.applications import official_document_views as odv
 
 
@@ -34,6 +38,19 @@ _RAW_URL = (
     "application-slips/abc/def.pdf"
 )
 _SIGNED_URL = _RAW_URL + "?X-Amz-Signature=deadbeef&X-Amz-Expires=900"
+
+
+def _super_admin():
+    user_id = uuid.uuid4()
+    return JWTUser(
+        {
+            "user_id": str(user_id),
+            "email": "super@example.com",
+            "role": "super_admin",
+            "first_name": "Super",
+            "last_name": "Admin",
+        }
+    )
 
 
 def test_download_url_is_signed_not_raw():
@@ -84,3 +101,78 @@ def test_signer_helper_returns_none_on_failure():
 def test_signer_helper_returns_none_for_fileless_document():
     assert odv._signed_download_url(_Doc("")) is None
     assert odv._signed_download_url(None) is None
+
+
+def test_generate_requeues_when_current_document_is_stale():
+    """POST must not return a ready/downloadable stale current version."""
+    factory = APIRequestFactory()
+    application = SimpleNamespace(
+        id=uuid.uuid4(),
+        institution_ref_id=uuid.uuid4(),
+        status="submitted",
+    )
+    doc = _Doc(_RAW_URL)
+    request = factory.post(
+        f"/api/v1/applications/{application.id}/official-documents/application_slip/"
+    )
+    force_authenticate(request, user=_super_admin())
+
+    with patch.object(odv, "_get_authorized_application", return_value=(application, None)), patch.object(
+        odv, "_current_official_version", return_value=doc
+    ), patch.object(
+        odv, "official_document_matches_current_inputs", return_value=False
+    ) as freshness, patch.object(
+        odv, "_enqueue_generation", return_value="task-stale"
+    ) as enqueue, patch.object(
+        odv, "_audit_official_document_queued"
+    ) as audit:
+        response = odv.OfficialDocumentDetailView.as_view()(
+            request,
+            application_id=application.id,
+            document_type="application_slip",
+        )
+
+    assert response.status_code == 202
+    assert response.data["success"] is True
+    assert response.data["data"]["status"] == "queued"
+    assert response.data["data"]["document_id"] is None
+    assert "download_url" not in response.data["data"]
+    freshness.assert_called_once_with(application, "application_slip", doc)
+    enqueue.assert_called_once_with(application, "application_slip")
+    audit.assert_called_once()
+
+
+def test_status_reports_queued_when_current_document_is_stale():
+    """GET must not expose a signed URL for a stale current version."""
+    factory = APIRequestFactory()
+    application = SimpleNamespace(
+        id=uuid.uuid4(),
+        institution_ref_id=uuid.uuid4(),
+        status="submitted",
+    )
+    doc = _Doc(_RAW_URL)
+    request = factory.get(
+        f"/api/v1/applications/{application.id}/official-documents/application_slip/"
+    )
+    force_authenticate(request, user=_super_admin())
+
+    with patch.object(odv, "_get_authorized_application", return_value=(application, None)), patch.object(
+        odv, "_current_official_version", return_value=doc
+    ), patch.object(
+        odv, "official_document_matches_current_inputs", return_value=False
+    ) as freshness, patch.object(
+        odv, "_signed_download_url", return_value=_SIGNED_URL
+    ) as signer:
+        response = odv.OfficialDocumentDetailView.as_view()(
+            request,
+            application_id=application.id,
+            document_type="application_slip",
+        )
+
+    assert response.status_code == 200
+    assert response.data["success"] is True
+    assert response.data["data"]["status"] == "queued"
+    assert response.data["data"]["document_id"] is None
+    assert "download_url" not in response.data["data"]
+    freshness.assert_called_once_with(application, "application_slip", doc)
+    signer.assert_not_called()

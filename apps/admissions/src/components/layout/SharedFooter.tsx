@@ -38,7 +38,7 @@ export function SharedFooter({ className }: SharedFooterProps) {
           <div>
             <div className="flex items-center space-x-2 mb-6">
               <img
-                src="/images/logos/beanola-logo.svg"
+                src="/images/logos/beanolalogo.webp"
                 alt="Beanola Admissions"
                 width={32}
                 height={32}
@@ -55,25 +55,25 @@ export function SharedFooter({ className }: SharedFooterProps) {
                 <span className="text-white">{contactInfo.address}</span>
               </p>
               <a
-                href={`tel:${contactInfo.katcPhone.replace(/\s/g, '')}`}
+                href={`tel:${contactInfo.admissionsPhone.replace(/\s/g, '')}`}
                 className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
               >
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <span><strong>Admissions:</strong> {contactInfo.katcPhone}</span>
+                <span><strong>Admissions:</strong> {contactInfo.admissionsPhone}</span>
               </a>
               <a
-                href={`tel:${contactInfo.mihasPhone.replace(/\s/g, '')}`}
+                href={`tel:${contactInfo.supportPhone.replace(/\s/g, '')}`}
                 className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
               >
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <span><strong>Support:</strong> {contactInfo.mihasPhone}</span>
+                <span><strong>Support:</strong> {contactInfo.supportPhone}</span>
               </a>
               <a
                 href={`mailto:${contactInfo.email}`}
                 className="flex min-h-touch items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white hover:underline underline-offset-4"
               >
                 <Mail className="h-4 w-4 flex-shrink-0" />
-                <span>{contactInfo.katcEmail} | {contactInfo.email}</span>
+                <span>{contactInfo.supportEmail} | {contactInfo.email}</span>
               </a>
             </div>
           </div>

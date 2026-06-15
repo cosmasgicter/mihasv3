@@ -1,4 +1,4 @@
-# MIHAS Django API — local container runtime
+# Beanola Django API — local container runtime
 #
 # Runtime configuration comes from `backend/.env`.
 # - `DATABASE_URL` can point at Neon or another Postgres instance.

@@ -529,7 +529,7 @@ export default function AdminTenants() {
                 </NeedsAttentionGrid>
 
                 <Tabs defaultValue="domains" className="w-full">
-                  <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
+                  <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 [&>button]:min-h-touch [&>button]:px-3.5">
                     <TabsTrigger value="domains">Domains</TabsTrigger>
                     <TabsTrigger value="offerings">Offerings &amp; rules</TabsTrigger>
                     <TabsTrigger value="routing">Test routing</TabsTrigger>

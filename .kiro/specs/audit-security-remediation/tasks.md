@@ -229,13 +229,13 @@
     - _Requirements: 2.14_
 
   - [x] 15.2 Update `backend/config/urls.py`
-    - Change `path("admin/", admin.site.urls)` to `path("mihas-admin-panel/", admin.site.urls)`
+    - Change `path("admin/", admin.site.urls)` to `path("beanola-admin-panel/", admin.site.urls)`
     - Update OpenAPI views to use `permission_classes=[IsAuthenticatedOrDebug]`:
       - `SpectacularAPIView.as_view(permission_classes=[IsAuthenticatedOrDebug])`
       - `SpectacularSwaggerView.as_view(url_name="schema", permission_classes=[IsAuthenticatedOrDebug])`
       - `SpectacularRedocView.as_view(url_name="schema", permission_classes=[IsAuthenticatedOrDebug])`
     - _Bug_Condition: admin at "/admin/" (predictable) AND OpenAPI docs publicly accessible in production_
-    - _Expected_Behavior: admin at "/mihas-admin-panel/", OpenAPI requires auth when DEBUG=False_
+    - _Expected_Behavior: admin at "/beanola-admin-panel/", OpenAPI requires auth when DEBUG=False_
     - _Preservation: Health checks, public endpoints unchanged. Admin works at new path. Docs accessible in DEBUG=True_
     - _Requirements: 2.13, 2.14_
 

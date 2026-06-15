@@ -34,15 +34,15 @@ def render(context: dict) -> tuple[str, str]:
             paragraph(f"Dear {student},"),
             paragraph(
                 f"It is our great pleasure to offer you admission to "
-                f"<strong>{escape(program)}</strong> at Mukuba Institute of "
-                f"Health and Applied Sciences for the <strong>{escape(intake)}</strong> "
+                f"<strong>{escape(program)}</strong> for the "
+                f"<strong>{escape(intake)}</strong> "
                 "intake."
             ),
             paragraph(
                 "This offer recognises the quality of your application and "
-                "the strength of your preparation. We look forward to welcoming "
-                "you to a learning community where you will train alongside "
-                "experienced clinicians."
+                "the strength of your preparation. Please check the portal for "
+                "your institution-specific offer letter, registration steps, "
+                "and any documents issued by the school."
             ),
             section_heading("Your offer"),
             metadata_card(

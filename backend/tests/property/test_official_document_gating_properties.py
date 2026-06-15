@@ -26,6 +26,7 @@ not-permitted students (R5.8):
     acceptance_letter  → permitted only when application is ``approved``  (R5.3)
     conditional_offer  → permitted only when ``conditionally_approved``   (R5.4)
     payment_receipt    → permitted only when a completed payment exists   (R5.5)
+    finance_receipt    → never student-permitted; staff/super-admin only
 
 A student (owner) is permitted to generate/retrieve the Official_Document **iff**
 the type's gate holds; when the gate does not hold, when the requester is not the
@@ -57,12 +58,13 @@ from tests.tenant_fixtures import (
 # not-found baseline that the masked responses are compared against.
 _MISSING_ID = "00000000-0000-4000-8000-000000000000"
 
-# The four official document types subject to a student status gate (R5.2–R5.5).
+# The official document types subject to a student status gate (R5.2–R5.5).
 _DOCUMENT_TYPES = [
     "application_slip",
     "acceptance_letter",
     "conditional_offer",
     "payment_receipt",
+    "finance_receipt",
 ]
 
 # Application statuses spanning the full gate surface: ``draft`` (no slip),
@@ -165,6 +167,8 @@ def _gate_holds(document_type: str, application_status: str, has_completed_payme
         return application_status == "conditionally_approved"
     if document_type == "payment_receipt":
         return has_completed_payment
+    if document_type == "finance_receipt":
+        return False
     raise AssertionError(f"unexpected document type: {document_type!r}")
 
 
@@ -205,7 +209,8 @@ class TestOfficialDocumentGatingProperty:
     (owner) is permitted to generate/retrieve the Official_Document if and only
     if the type's gate holds: application_slip → a non-draft submitted status,
     acceptance_letter → ``approved``, conditional_offer →
-    ``conditionally_approved``, payment_receipt → a completed payment exists.
+    ``conditionally_approved``, payment_receipt → a completed payment exists,
+    finance_receipt → staff-only and never student-permitted.
     When the gate does not hold, when the requester is not the owner, or when a
     school-staff requester is out of scope, the generate and status endpoints
     return the 404 not-found envelope byte-identical to the genuine-not-found

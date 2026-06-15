@@ -77,6 +77,37 @@ def _redact_email(value: str | None) -> str:
     return f"{local[:1]}***@{domain}"
 
 
+def _scoped_user_ids(user):
+    """Return the set of profile ids a non-super-admin actor may access (R5.2).
+
+    Mirrors the membership-scope narrowing already used by ``AdminUserListView``:
+    the actor sees users who hold an active membership in one of the actor's
+    in-scope institutions, plus the actor's own profile. Super-admins get
+    ``None`` (meaning "all users", no narrowing). The scope comes from
+    ``AccessScopeService`` so authorization never depends on legacy strings
+    (R5.8) and out-of-scope users are masked as a genuine not-found (R5.4,
+    R16.4).
+    """
+    if is_super_admin(user):
+        return None
+
+    from apps.catalog.models import UserInstitutionMembership
+    from apps.catalog.services import AccessScopeService
+
+    filters = AccessScopeService().filters_for_user(user)
+    scoped = set(
+        str(uid)
+        for uid in UserInstitutionMembership.objects.filter(
+            institution_id__in=filters.institution_ids,
+            is_active=True,
+        ).values_list("user_id", flat=True)
+    )
+    own_id = str(getattr(user, "id", "") or getattr(user, "pk", ""))
+    if own_id:
+        scoped.add(own_id)
+    return scoped
+
+
 # ---------------------------------------------------------------------------
 # Serializers (co-located for admin views)
 # ---------------------------------------------------------------------------
@@ -573,6 +604,14 @@ class AdminUserDetailView(APIView):
                 {"success": False, "error": "User not found", "code": "NOT_FOUND"},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        # R5.2/R5.4: a scoped admin may only read users within their membership
+        # scope; an out-of-scope target is masked as a genuine not-found.
+        scoped_ids = _scoped_user_ids(request.user)
+        if scoped_ids is not None and str(user.pk) not in scoped_ids:
+            return Response(
+                {"success": False, "error": "User not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         return Response({"success": True, "data": AdminUserSerializer(user).data})
 
     def patch(self, request, pk):
@@ -602,6 +641,10 @@ class AdminUserDetailView(APIView):
         actor_level = _role_level(actor_role)
         target_level = _role_level(user.role)
 
+        # RBAC role-escalation guards (global safety property, report 403)
+        # MUST precede the tenant scope mask. Check both the target role and
+        # any requested role here so a privilege-escalation attempt is rejected
+        # with 403 regardless of tenant scope.
         if target_level > actor_level:
             return Response(
                 {
@@ -612,17 +655,29 @@ class AdminUserDetailView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        if "role" in data and _role_level(data["role"]) > actor_level:
+            return Response(
+                {
+                    "success": False,
+                    "error": "You cannot assign a role higher than your own.",
+                    "code": "INSUFFICIENT_PRIVILEGES",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # R5.2/R5.4: after the RBAC role-escalation guards, a scoped admin may
+        # only mutate users within their institution membership scope. An
+        # out-of-scope target is masked as a genuine not-found before any field
+        # change or write so existence cannot be inferred (R16.4). Super-admins
+        # are unscoped.
+        scoped_ids = _scoped_user_ids(request.user)
+        if scoped_ids is not None and str(user.pk) not in scoped_ids:
+            return Response(
+                {"success": False, "error": "User not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
         if "role" in data:
-            requested_level = _role_level(data["role"])
-            if requested_level > actor_level:
-                return Response(
-                    {
-                        "success": False,
-                        "error": "You cannot assign a role higher than your own.",
-                        "code": "INSUFFICIENT_PRIVILEGES",
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
             changes["role"] = {"old": user.role, "new": data["role"]}
             user.role = data["role"]
 
@@ -706,6 +761,13 @@ class AdminUserExportView(APIView):
     def get(self, request):
         full_export = is_super_admin(request.user)
         queryset = Profile.objects.all().order_by("-created_at")
+
+        # R5.2: narrow the export row set to the actor's membership scope for
+        # non-super-admins (parity with AdminUserListView). PII is additionally
+        # redacted below, but the row set itself must not leak other schools.
+        scoped_ids = _scoped_user_ids(request.user)
+        if scoped_ids is not None:
+            queryset = queryset.filter(Q(id__in=scoped_ids) | Q(id=request.user.id))
 
         # Apply same filters as list view
         role = request.query_params.get("role")

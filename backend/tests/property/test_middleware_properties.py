@@ -276,6 +276,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
             ("/api/v1/auth/", "60/5m"),
             ("/api/v1/admin/", "60/10m"),
             ("/api/v1/documents/", "20/10m"),
+            ("/api/v1/applications/bulk-status/", "20/10m"),
             ("/api/v1/applications/track/", "20/10m"),
             ("/api/v1/sessions/", "30/10m"),
             ("/api/v1/notifications/", "50/10m"),
@@ -290,7 +291,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
             ("/api/v1/payments/webhook/", None),
             ("/api/v1/payments/", "60/10m"),
             ("/api/v1/", "120/10m"),
-            ("/mihas-admin-panel/", "10/1m"),
+            ("/beanola-admin-panel/", "10/1m"),
         ]
         self.assertEqual(RateLimitMiddleware.SCOPE_LIMITS, expected_scopes)
 

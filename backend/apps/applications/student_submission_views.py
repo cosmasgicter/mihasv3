@@ -75,6 +75,7 @@ from ._view_helpers import (
     WithdrawalResponseSerializer,
     _generate_application_number,
     _generate_tracking_code,
+    _staff_can_access_application,
     _with_payment_summary,
 )
 
@@ -326,6 +327,13 @@ class ApplicationSummaryView(APIView):
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
+        # R5.2/R5.9: a staff caller authorized by role must also be in
+        # AccessScopeService scope for this application; out-of-scope staff
+        # reads are masked as not-found (R5.4, R16.4). The owner path is
+        # unaffected (the owner is not staff).
+        role = getattr(request.user, "role", "student")
+        if role in ("admin", "super_admin") and str(app.user_id) != str(getattr(request.user, "id", "")) and not _staff_can_access_application(request, app):
+            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         docs_count = ApplicationDocument.objects.filter(application_id=application_id).count()
         grades_count = ApplicationGrade.objects.filter(application_id=application_id).count()
         history_rows = (
@@ -440,6 +448,9 @@ class ApplicationGradesView(APIView):
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
+        role = getattr(request.user, "role", "student")
+        if role in ("admin", "super_admin") and str(app.user_id) != str(getattr(request.user, "id", "")) and not _staff_can_access_application(request, app):
+            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         grades = ApplicationGrade.objects.filter(application_id=application_id)
         data = [
             {
@@ -460,6 +471,8 @@ class ApplicationGradesView(APIView):
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
         role = getattr(request.user, 'role', 'student')
+        if role in ("admin", "super_admin") and str(app.user_id) != str(getattr(request.user, "id", "")) and not _staff_can_access_application(request, app):
+            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         if role not in ("admin", "super_admin") and app.status != "draft":
             return Response(
                 {"success": False, "error": "Application is not editable", "code": "APPLICATION_NOT_EDITABLE"},

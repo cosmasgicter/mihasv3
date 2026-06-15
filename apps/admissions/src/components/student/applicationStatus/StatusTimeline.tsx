@@ -51,12 +51,12 @@ export function StatusTimeline({ timeline }: StatusTimelineProps) {
         return (
           <div
             key={`${step.status}-${index}`}
-            className={`flex items-start gap-4 rounded-lg border-l-2 px-3 py-3 ${
+            className={`flex items-start gap-4 rounded-lg px-3 py-3 ${
               isActive
-                ? 'border-l-primary bg-primary/5'
+                ? 'bg-primary/5 ring-1 ring-primary/20'
                 : step.completed
-                  ? 'border-l-success/40'
-                  : 'border-l-border'
+                  ? 'bg-success/5'
+                  : 'bg-transparent'
             } ${animateClasses.slideUp}`}
             style={staggerChild(index, 50)}
           >

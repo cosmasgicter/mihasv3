@@ -44,7 +44,15 @@ def test_generated_invalid_interview_statuses_are_rejected(status_value):
     serializer.is_valid.return_value = True
     serializer.validated_data = {"status": status_value}
 
+    application = MagicMock()
+
     with patch(
+        "apps.applications.interview_views.Application.objects.get",
+        return_value=application,
+    ), patch(
+        "apps.applications.interview_views._staff_can_access_application",
+        return_value=True,
+    ), patch(
         "apps.applications.interview_views.ApplicationInterview.objects.select_related",
         return_value=queryset,
     ), patch(

@@ -58,6 +58,7 @@ from apps.applications.models import Application
 from apps.catalog.models import (
     Institution,
     InstitutionAsset,
+    InstitutionDocumentProfile,
     UserInstitutionMembership,
 )
 from apps.documents.models import ApplicationDocument, Payment
@@ -72,6 +73,44 @@ from tests.tenant_fixtures import (
 )
 
 pytestmark = pytest.mark.tenant
+
+
+# Document types whose content is built *solely* from a resolved
+# InstitutionDocumentProfile (acceptance letter / conditional offer). Without an
+# active profile their render is a hard ``DOCUMENT_PROFILE_NOT_CONFIGURED``
+# failure (R6.4 / R8.5), so the happy-path drill must seed one — exactly the gap
+# this drill previously had at step 13.
+_PROFILE_REQUIRED_DOCUMENT_TYPES = ("acceptance_letter", "conditional_offer")
+
+
+def _seed_document_profile(institution, document_type: str) -> InstitutionDocumentProfile:
+    """Persist an institution-default active document profile.
+
+    A profile-required official document (acceptance letter / conditional offer)
+    renders solely from a resolved ``InstitutionDocumentProfile``; with none it
+    fails with ``DOCUMENT_PROFILE_NOT_CONFIGURED``. Seeding an institution-
+    default ``version=1`` profile keeps the template-id provenance from the
+    template service intact while letting the happy-path render succeed.
+    """
+    now = timezone.now()
+    return InstitutionDocumentProfile.objects.create(
+        id=uuid.uuid4(),
+        institution=institution,
+        document_type=document_type,
+        program=None,
+        canonical_program=None,
+        intake=None,
+        layout_key="fee_chart_letter",
+        sections={"body": "Dear {{student_name}}, welcome to {{institution}}."},
+        fee_chart=[],
+        bank_accounts=[],
+        requirements=[],
+        signatory={"name": "Registrar", "role": "Admissions"},
+        version=1,
+        is_active=True,
+        created_at=now,
+        updated_at=now,
+    )
 
 
 # A real 1x1 transparent PNG so both the upload magic-byte validator AND the
@@ -439,6 +478,15 @@ class TestTenantLifecycleDrill:
         #   synchronously via .apply() (Celery is not eager under test).     #
         # ----------------------------------------------------------------- #
         Application.objects.filter(id=shared_app_id).update(status="approved")
+
+        # Seed the institution-default document profiles the profile-required
+        # letters render from. Without these the acceptance-letter / conditional-
+        # offer renders correctly fail with DOCUMENT_PROFILE_NOT_CONFIGURED (the
+        # gap this drill previously hit) — seeding makes the happy-path admin
+        # drill green while leaving the negative no-profile path to
+        # test_negative_flow_boundaries.py (R8.5).
+        for profile_document_type in _PROFILE_REQUIRED_DOCUMENT_TYPES:
+            _seed_document_profile(institution, profile_document_type)
 
         from apps.applications.tasks import (
             generate_acceptance_letter_task,

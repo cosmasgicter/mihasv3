@@ -1,5 +1,5 @@
 /**
- * Centralized date formatting utilities for the MIHAS Application System.
+ * Centralized date formatting utilities for the Beanola admissions platform.
  * All components should use these functions instead of inline date formatting.
  *
  * @module dateFormat

@@ -1,4 +1,4 @@
-"""Design tokens for MIHAS-KATC outbound emails.
+"""Design tokens for Beanola outbound emails.
 
 Mirror of ``apps/admissions/src/lib/pdf/theme`` - identical palette, typography
 scale, and spacing units - so that emails and PDFs feel like they come from

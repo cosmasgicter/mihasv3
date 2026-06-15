@@ -362,7 +362,7 @@ export default function AuditTrailPage() {
         entries: response.entries,
         filters: appliedFilters,
         summary: response.summary,
-        filenameBase: `mihas-audit-${new Date().toISOString().slice(0, 10)}`,
+        filenameBase: `beanola-audit-${new Date().toISOString().slice(0, 10)}`,
       }
 
       if (format === 'csv') {
@@ -617,7 +617,7 @@ export default function AuditTrailPage() {
                   label="Actor email"
                   value={formFilters.actorEmail}
                   onChange={(event) => setFormFilters((current) => ({ ...current, actorEmail: event.target.value }))}
-                  placeholder="staff@mihas.edu.zm"
+                  placeholder="staff@beanola.com"
                   icon={<User className="h-4 w-4" />}
                 />
 

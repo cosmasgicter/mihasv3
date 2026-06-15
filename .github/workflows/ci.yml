@@ -71,6 +71,25 @@ jobs:
       - name: Django checks
         run: python manage.py check
         working-directory: backend
+      # Verification_Gate (R13.1): manage.py spectacular must generate the
+      # OpenAPI schema with ZERO errors. drf-spectacular exits 0 even when it
+      # reports schema errors, so assert the "Errors: N" summary is zero.
+      - name: OpenAPI schema generation (zero errors)
+        run: |
+          python manage.py spectacular --file /tmp/openapi.yaml 2> /tmp/spectacular.stderr || {
+            echo "::error::spectacular failed to run"
+            cat /tmp/spectacular.stderr
+            exit 1
+          }
+          errors=$(grep -oE '^Errors:[[:space:]]+[0-9]+' /tmp/spectacular.stderr | grep -oE '[0-9]+' | head -1 || true)
+          errors="${errors:-0}"
+          echo "drf-spectacular reported ${errors} error(s)"
+          if [ "${errors}" -ne 0 ]; then
+            echo "::error::OpenAPI schema generation reported ${errors} error(s) — Verification_Gate (R13.1) requires zero."
+            grep -E ': Error' /tmp/spectacular.stderr || true
+            exit 1
+          fi
+        working-directory: backend
       - name: Critical backend slice
         run: python -m pytest tests/unit/test_drf_csrf_authentication.py tests/unit/test_auth_csrf_headers.py tests/unit/test_session_hardening.py tests/unit/test_device_session_lifecycle.py tests/unit/test_cleanup_stale_sessions_task.py -q
         working-directory: backend
@@ -216,6 +235,98 @@ jobs:
         run: bun pm scan
         working-directory: apps/jobs-ops
         continue-on-error: true
+
+  # Verification_Gate Drift_Guard inventory (R13.2, R13.3, R13.6).
+  #
+  # This job names EVERY required backend Drift_Guard explicitly so the inventory
+  # is visible in the pipeline and no guard can be silently dropped. It is a
+  # blocking gate: there is no `continue-on-error`, so any brand drift,
+  # unscoped-endpoint drift, scope drift, schema drift, or any other guard
+  # regression fails CI (R13.3). The list is cross-checked against the
+  # "Drift_Guard inventory" in docs/canonical-truth-map.md and the design's
+  # Component 13 inventory.
+  backend-drift-guards:
+    runs-on: ubuntu-latest
+    name: Drift guards (backend inventory)
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: test_mihas
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mihas
+      REDIS_URL: redis://localhost:6379/0
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      JWT_SIGNING_KEY: ci-test-key-not-for-production
+      SECRET_KEY: ci-test-secret-not-for-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+        working-directory: backend
+      # Each guard below is REQUIRED (R13.6 — no guard is optional). Running them
+      # in a single pytest invocation keeps the inventory explicit and fails the
+      # job (and the pipeline) on the first drift regression (R13.3).
+      - name: Backend Drift_Guard inventory (brand, document, scope, canonical, payment, error, schema, lifecycle)
+        run: |
+          python -m pytest \
+            tests/unit/test_brand_drift_guard.py \
+            tests/unit/test_official_document_dedup_guard.py \
+            tests/unit/test_scope_drift_guard.py \
+            tests/unit/test_unscoped_endpoint_guard.py \
+            tests/unit/test_canonical_tenant_drift_guard.py \
+            tests/unit/test_payment_status_canonical.py \
+            tests/unit/test_error_codes_canonical.py \
+            tests/unit/test_migration_drift_guard.py \
+            tests/property/test_lifecycle_canonical.py \
+            tests/property/test_schema_drift_strict.py \
+            -q --tb=short
+        working-directory: backend
+
+  # Frontend half of the Drift_Guard inventory (R13.2). Mirrors the backend job:
+  # every required frontend guard is named explicitly and the job is blocking
+  # (no `continue-on-error`), so frontend brand drift, document-flow drift,
+  # payment-status drift, error-code drift, role-mirror drift, or
+  # application-lifecycle drift fails CI (R13.3, R13.6).
+  frontend-drift-guards:
+    runs-on: ubuntu-latest
+    name: Drift guards (frontend inventory)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+        working-directory: apps/admissions
+      - name: Frontend Drift_Guard inventory (brand, document-flow, payment-status, error-code, role mirror, application-lifecycle)
+        run: |
+          bunx vitest run \
+            tests/unit/brandDriftGuard.test.ts \
+            tests/unit/documentFlowDriftGuard.test.ts \
+            tests/unit/paymentStatusMappingDriftGuard.test.ts \
+            tests/unit/errorCodesDriftGuard.test.ts \
+            tests/unit/rolesBackendMirror.test.ts \
+            tests/unit/applicationStatusDriftGuard.test.ts
+        working-directory: apps/admissions
 
   design-audit:
     runs-on: ubuntu-latest

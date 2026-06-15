@@ -1,4 +1,4 @@
-"""Celery app configuration for MIHAS Django API."""
+"""Celery app configuration for Beanola Django API."""
 import os
 
 from celery import Celery

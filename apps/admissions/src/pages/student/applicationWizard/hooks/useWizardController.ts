@@ -13,8 +13,6 @@ import { useEligibilityChecker } from '@/hooks/useEligibilityChecker'
 import { normalizePaymentStatusValue, usePaymentStatus } from '@/hooks/usePaymentStatus'
 // eslint-disable-next-line no-restricted-imports -- eligibilityEngine is still used until API-backed replacement is ready
 import { checkEligibility, getRecommendedSubjects } from '@/lib/eligibilityEngine'
-import { createApplicationSlip } from '@/lib/slipService'
-import type { ApplicationSlipData } from '@/lib/applicationSlip'
 import { sanitizeForLog, sanitizeInput } from '@/lib/security'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { toError } from '@/lib/toError'
@@ -684,38 +682,11 @@ const useWizardController = (): UseWizardControllerResult => {
     preserveDraftBeforeAuthRedirect,
   })
 
-  const slipPayload: ApplicationSlipData | null = useMemo(() => {
-    if (!submittedApplication || !submittedApplication.trackingCode || !submittedApplication.applicationNumber) return null
-    const now = new Date().toISOString()
-    return {
-      application_id: applicationId || undefined,
-      public_tracking_code: submittedApplication.trackingCode,
-      application_number: submittedApplication.applicationNumber,
-      status: submittedApplication.status || 'submitted',
-      payment_status: submittedApplication.paymentStatus ?? null,
-      submitted_at: submittedApplication.submittedAt || now,
-      updated_at: submittedApplication.updatedAt || now,
-      program_name: submittedApplication.program || null,
-      intake_name: submittedApplication.intake || null,
-      institution: submittedApplication.institution || null,
-      institution_name: submittedApplication.institution || null,
-      full_name: submittedApplication.fullName || null,
-      email: submittedApplication.email || user?.email || 'no-email@mihas.local',
-      phone: submittedApplication.phone || null,
-      nationality: submittedApplication.nationality || 'Zambian',
-      admin_feedback: null,
-      admin_feedback_date: null,
-      userId: user?.id
-    }
-  }, [applicationId, submittedApplication, user?.email, user?.id])
-
   const { persistingSlip, slipLoading, emailLoading, handleDownloadSlip, handleEmailSlip, dismissSlipProgress } = useApplicationSlip({
     submittedApplication,
-    slipPayload,
+    applicationId,
     success,
     toast: { showError, showWarning, showSuccess, showInfo },
-    createApplicationSlip,
-    onEmailUpdate: email => setSubmittedApplication(prev => (prev ? { ...prev, email } : prev))
   })
 
   useEffect(() => {

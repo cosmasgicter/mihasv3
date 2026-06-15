@@ -1,4 +1,4 @@
-# Koyeb Deployment Guide - MIHAS Django API
+# Koyeb Deployment Guide - Beanola Django API
 
 ## Required topology
 

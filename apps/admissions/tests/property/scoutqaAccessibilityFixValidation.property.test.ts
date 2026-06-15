@@ -91,9 +91,12 @@ vi.mock('@/components/layout/PublicLayout', () => ({
 
 vi.mock('@/lib/constants/landing', () => ({
   contactInfo: {
-    katcPhone: '+260 123 456 789',
-    mihasPhone: '+260 987 654 321',
+    admissionsPhone: '+260 123 456 789',
+    supportPhone: '+260 987 654 321',
     email: 'test@example.com',
+    supportEmail: 'support@example.com',
+    admissionsAddress: '123 Admissions Street',
+    supportAddress: '456 Support Street',
     address: '123 Test Street',
   },
 }))

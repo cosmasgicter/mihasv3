@@ -38,6 +38,32 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
+# Scope helpers (R5.2 / R5.9)
+# ---------------------------------------------------------------------------
+
+
+def _staff_can_access_application(request, application) -> bool:
+    """Return True when a staff caller is in scope for ``application`` (R5.2).
+
+    Mirrors the 404-mask pattern used by ``ApplicationDetailView`` and
+    ``_get_authorized_application``: a super-admin always passes; any other
+    caller must have the application present in their
+    ``AccessScopeService.filter_applications`` set. This is the canonical-ID
+    scope check (never ``Legacy_String_Fields``) used by staff-gated
+    object endpoints that previously authorized on ``role`` alone (GAP-2, 4,
+    5, 6, 7, 8). Out-of-scope callers are masked as a genuine not-found by the
+    caller, so existence cannot be inferred (R5.4, R16.4).
+    """
+    from apps.catalog.services import AccessScopeService
+
+    scoped = AccessScopeService().filter_applications(
+        Application.objects.filter(pk=application.pk),
+        request.user,
+    )
+    return scoped.exists()
+
+
+# ---------------------------------------------------------------------------
 # QuerySet helpers
 # ---------------------------------------------------------------------------
 

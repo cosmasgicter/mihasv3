@@ -1,4 +1,4 @@
-# MIHAS backend development targets.
+# Beanola backend development targets.
 
 PY ?= python3
 VENV_PY ?= $(PY)
@@ -7,7 +7,7 @@ DJANGO_SETTINGS_MODULE ?= config.settings.dev
 .PHONY: help api-quality schema-baseline api-quality-baseline test
 
 help:
-	@echo "MIHAS backend targets:"
+	@echo "Beanola backend targets:"
 	@echo "  make test                  Run pytest (unit + property)"
 	@echo "  make api-quality           Run schema-regen + linter + breaking-change detector vs baseline"
 	@echo "  make schema-baseline       Regenerate backend/schema/openapi.v1.baseline.yaml"

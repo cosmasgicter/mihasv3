@@ -18,6 +18,7 @@
  *     acceptance_letter  → application is `approved`             (R5.3)
  *     conditional_offer  → application is `conditionally_approved` (R5.4)
  *     payment_receipt    → a verified/completed payment exists   (R5.5)
+ *     finance_receipt    → staff-only, never student-offered
  *
  * "Non-draft submitted status" is the backend's *closed* allowlist
  * (`official_document_views._NON_DRAFT_SUBMITTED_STATUSES`), not a broad
@@ -40,12 +41,13 @@ import {
   type OfficialDocumentGateType,
 } from '@/lib/officialDocumentGate'
 
-// The four official-document types subject to a student status gate (R5.2–R5.5).
+// The official-document types subject to a student status gate (R5.2–R5.5).
 const DOCUMENT_TYPES: readonly OfficialDocumentGateType[] = [
   'application_slip',
   'acceptance_letter',
   'conditional_offer',
   'payment_receipt',
+  'finance_receipt',
 ]
 
 // Application statuses spanning the full gate surface: `draft` (no slip), the
@@ -120,6 +122,8 @@ function expectedGate(
       return applicationStatus === 'conditionally_approved'
     case 'payment_receipt':
       return paymentStatus !== null && VERIFIED_PAYMENT_STATES.has(paymentStatus)
+    case 'finance_receipt':
+      return false
     default:
       return false
   }
@@ -183,6 +187,16 @@ describe('Property 18 (frontend mirror) — student official-document status gat
         const offered = isOfficialDocumentOffered('payment_receipt', applicationStatus, paymentStatus)
         const expected = paymentStatus !== null && VERIFIED_PAYMENT_STATES.has(paymentStatus)
         expect(offered).toBe(expected)
+      }),
+      { numRuns: 25, seed: 0 },
+    )
+  })
+
+  it('finance_receipt is never student-offered even when payment is verified', () => {
+    fc.assert(
+      fc.property(applicationStatusArb, paymentStatusArb, (applicationStatus, paymentStatus) => {
+        const offered = isOfficialDocumentOffered('finance_receipt', applicationStatus, paymentStatus)
+        expect(offered).toBe(false)
       }),
       { numRuns: 25, seed: 0 },
     )

@@ -163,7 +163,7 @@ interface ProfilesPanelProps {
  * structured sections / fee-chart rows / bank accounts / requirements /
  * signatory, preview with sample data, clone the latest version, and
  * activate/deactivate versions. Profiles drive backend-generated official
- * documents (no MIHAS/KATC fallback). Structural caps mirror the backend
+ * documents (no launch-client fallback). Structural caps mirror the backend
  * `validate_profile_payload`.
  */
 export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
@@ -316,7 +316,7 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
   return (
     <SectionCard
       title="Document profiles"
-      description="Rich, versioned document configuration (sections, fee charts, bank accounts, requirements, signatory) for backend-generated official documents. No MIHAS/KATC fallback — official documents read only this tenant data."
+      description="Rich, versioned document configuration (sections, fee charts, bank accounts, requirements, signatory) for backend-generated official documents. No launch-client fallback - official documents read only this tenant data."
       icon={<FileStack className="h-5 w-5" />}
     >
       <form className="grid gap-4" onSubmit={handleSubmit}>

@@ -32,10 +32,9 @@ def render(context: dict) -> tuple[str, str]:
         [
             paragraph(f"Dear {student},"),
             paragraph(
-                "Thank you for submitting your application to "
-                "Mukuba Institute of Health and Applied Sciences. "
-                "Your details are now recorded in our admissions system and "
-                "will be reviewed in the coming working days."
+                "Thank you for submitting your application through Beanola "
+                "Admissions. Your details are now recorded for your selected "
+                "programme and will be reviewed in the coming working days."
             ),
             section_heading("Your application at a glance"),
             metadata_card(

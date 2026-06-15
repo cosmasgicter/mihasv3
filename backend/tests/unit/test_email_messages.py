@@ -349,7 +349,7 @@ def test_password_reset_contains_link_and_expiry():
             "expires_in_minutes": 45,
         },
     )
-    assert "Reset your MIHAS admissions password" in subject
+    assert "Reset your Beanola admissions password" in subject
     assert "https://apply.beanola.com/auth/reset?token=abc123" in html
     assert "45 minutes" in html
 

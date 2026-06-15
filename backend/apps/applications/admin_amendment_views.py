@@ -70,6 +70,7 @@ from ._view_helpers import (
     ConditionVerifyRequestSerializer,
     _generate_application_number,
     _generate_tracking_code,
+    _staff_can_access_application,
     _with_payment_summary,
 )
 
@@ -144,6 +145,22 @@ class ApplicationAmendmentReviewView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # R5.2/R5.9: mask out-of-scope applications as not-found before any
+        # amendment mutation (a scoped admin cannot review another school's
+        # amendment).
+        try:
+            application = Application.objects.get(id=application_id)
+        except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        if not _staff_can_access_application(request, application):
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
         try:
             amendment = AmendmentService.review_amendment(
                 amendment_id=str(amendment_id),
@@ -190,8 +207,17 @@ class ApplicationConditionVerifyView(APIView):
         from apps.applications.condition_manager import ConditionError, ConditionManager
 
         try:
-            Application.objects.get(id=application_id)
+            application = Application.objects.get(id=application_id)
         except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # R5.2/R5.9: mask out-of-scope applications as not-found before any
+        # condition mutation (a scoped admin cannot verify another school's
+        # condition).
+        if not _staff_can_access_application(request, application):
             return Response(
                 {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
                 status=status.HTTP_404_NOT_FOUND,
@@ -262,6 +288,15 @@ class ApplicationAdminSummaryView(APIView):
         try:
             app = Application.objects.get(id=application_id)
         except Application.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # R5.2/R5.9: a scoped admin must not receive an AI review brief of
+        # another school's application. Mask out-of-scope reads as a genuine
+        # not-found so existence cannot be inferred (R5.4, R16.4).
+        if not _staff_can_access_application(request, app):
             return Response(
                 {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
                 status=status.HTTP_404_NOT_FOUND,

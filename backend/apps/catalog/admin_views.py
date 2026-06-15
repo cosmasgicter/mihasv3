@@ -474,6 +474,25 @@ class AdminTenantAssetUploadView(APIView):
     permission_classes = [IsAdmin]
     parser_classes = [MultiPartParser, FormParser]
 
+    @extend_schema(
+        tags=["admin"],
+        summary="Upload a tenant institution asset (logo, signature, or seal)",
+        request={
+            "multipart/form-data": {
+                "type": "object",
+                "properties": {
+                    "file": {"type": "string", "format": "binary"},
+                    "asset_type": {
+                        "type": "string",
+                        "enum": ["logo", "signature", "seal"],
+                        "default": "logo",
+                    },
+                },
+                "required": ["file"],
+            }
+        },
+        responses={201: OpenApiResponse(description="Asset uploaded and stored.")},
+    )
     def post(self, request, institution_id):
         if not _write_allowed(request.user):
             return _forbidden_write_response()

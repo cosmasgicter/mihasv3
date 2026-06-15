@@ -191,6 +191,27 @@ class AdminAuditLogView(APIView):
     def get(self, request):
         queryset = AuditLog.objects.all().order_by("-created_at")
 
+        # R5.2/R5.9: a scoped admin must not read the platform-wide audit feed.
+        # Narrow non-super-admins to audit entries authored by actors within
+        # their institution membership scope (scope comes from
+        # AccessScopeService, never legacy strings). Super-admins see all.
+        if not is_super_admin(request.user):
+            from apps.catalog.models import UserInstitutionMembership
+            from apps.catalog.services import AccessScopeService
+
+            scope_filters = AccessScopeService().filters_for_user(request.user)
+            scoped_actor_ids = set(
+                str(uid)
+                for uid in UserInstitutionMembership.objects.filter(
+                    institution_id__in=scope_filters.institution_ids,
+                    is_active=True,
+                ).values_list("user_id", flat=True)
+            )
+            own_id = str(getattr(request.user, "id", "") or getattr(request.user, "pk", ""))
+            if own_id:
+                scoped_actor_ids.add(own_id)
+            queryset = queryset.filter(actor_id__in=list(scoped_actor_ids))
+
         entity_type = request.query_params.get("entity_type") or request.query_params.get("filter_entity_type")
         if entity_type:
             queryset = queryset.filter(entity_type=entity_type)

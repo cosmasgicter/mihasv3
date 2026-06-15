@@ -32,7 +32,7 @@ SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Cookie domain — staging uses its own subdomain, not production .mihas.edu.zm
+# Cookie domain - staging uses its own subdomain, not the production apex.
 _staging_domain = os.environ.get("COOKIE_DOMAIN", "")  # noqa: F405
 if _staging_domain:
     SESSION_COOKIE_DOMAIN = _staging_domain

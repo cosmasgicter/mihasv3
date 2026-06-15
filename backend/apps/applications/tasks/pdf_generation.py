@@ -84,8 +84,7 @@ def generate_payment_receipt_task(self, application_id):
 def _generate_official_document_task(task, application_id, document_type: str):
     from apps.applications.models import Application
     from apps.applications.tasks.pdf.render_context import DocumentProfileNotConfigured
-    from apps.documents.models import ApplicationDocument, Payment
-    from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
+    from apps.documents.models import ApplicationDocument
 
     config = DOCUMENT_CONFIG[document_type]
     try:
@@ -103,13 +102,13 @@ def _generate_official_document_task(task, application_id, document_type: str):
 
         payment = None
         if document_type in {"finance_receipt", "payment_receipt"}:
-            payment = (
-                Payment.objects.filter(application_id=application.id, status__in=RECEIPT_ELIGIBLE_STATUSES)
-                .order_by("-verified_at", "-created_at")
-                .first()
-            )
-            if document_type == "payment_receipt" and not payment:
-                logger.warning("Skipped payment receipt for application %s without successful payment", application_id)
+            payment = _latest_receipt_payment(application)
+            if not payment:
+                logger.warning(
+                    "Skipped %s for application %s without successful payment",
+                    document_type,
+                    application_id,
+                )
                 return
 
         # R6.1: gather the render inputs once and derive the Document_Fingerprint
@@ -398,6 +397,72 @@ def _stored_fingerprint(document) -> str | None:
         return None
     fingerprint = official.get("fingerprint")
     return fingerprint if isinstance(fingerprint, str) else None
+
+
+def _latest_receipt_payment(application):
+    """Return the payment row that participates in receipt fingerprints.
+
+    The official-document endpoint and renderer must agree on exactly which
+    payment input makes a receipt current. Keep the query in one place so status
+    checks do not serve a stale receipt after a newer eligible payment arrives.
+    """
+    from apps.documents.models import Payment
+    from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
+
+    return (
+        Payment.objects.filter(
+            application_id=getattr(application, "id", None),
+            status__in=RECEIPT_ELIGIBLE_STATUSES,
+        )
+        .order_by("-verified_at", "-created_at")
+        .first()
+    )
+
+
+def official_document_matches_current_inputs(application, document_type: str, current=None) -> bool:
+    """Whether ``current`` still matches today's render inputs.
+
+    ``Current_Official_Version`` is a row-selection rule, not a freshness proof.
+    Before an endpoint exposes a ready/downloadable official document, it must
+    recompute the fingerprint over the current application, tenant, template,
+    asset, and receipt inputs. Any mismatch returns ``False`` so the endpoint
+    can enqueue regeneration instead of serving stale branding or content.
+    """
+    from apps.documents.models import ApplicationDocument
+
+    if current is None:
+        current = _current_official_version(ApplicationDocument, application, document_type)
+    if current is None:
+        return False
+
+    payment = _latest_receipt_payment(application) if document_type in _RECEIPT_DOCUMENT_TYPES else None
+    if document_type in _RECEIPT_DOCUMENT_TYPES and payment is None:
+        return False
+
+    try:
+        tenant, template, logo_asset, signature_asset = _gather_render_inputs(
+            application, document_type, payment
+        )
+        fingerprint = _compute_document_fingerprint(
+            application,
+            document_type,
+            tenant,
+            template,
+            logo_asset,
+            signature_asset,
+            payment,
+        )
+    except Exception:
+        logger.info(
+            "Unable to compute official-document fingerprint for application %s (%s); "
+            "treating current document as stale",
+            getattr(application, "id", None),
+            document_type,
+            exc_info=True,
+        )
+        return False
+
+    return _stored_fingerprint(current) == fingerprint
 
 
 def _render_official_pdf(

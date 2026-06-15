@@ -52,7 +52,7 @@ Deltas:
 
 ## Scorecard dimensions that are intentionally NOT targeted
 
-The scorecard's automated scoring does not understand MIHAS platform conventions.
+The scorecard's automated scoring does not understand Beanola platform conventions.
 The following dimensions will remain "low" by the vanilla REST scoring rubric and
 are documented exceptions, not regressions:
 

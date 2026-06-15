@@ -6,7 +6,7 @@ info:
     Creator: Cosmas Kanchepa
     Developed by Beanola Technologies - https://beanola.com
 
-    The MIHAS platform API surface now includes the existing admissions backend plus the implemented
+    The Beanola platform API surface now includes the existing admissions backend plus the implemented
     Jobs Ops v1 domain for AI-driven job discovery, application operations, outreach, and reporting.
 
     ## What this API demonstrates

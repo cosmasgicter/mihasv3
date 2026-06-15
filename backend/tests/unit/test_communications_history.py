@@ -700,7 +700,7 @@ class TestAdminNotificationHistoryView:
     @patch("apps.accounts.models.Profile.objects")
     def test_admin_sees_only_target_user_notifications(self, mock_profile_manager, mock_notif_manager):
         """Admin sees only notifications belonging to the specified user_id."""
-        admin = _make_user(role="admin")
+        admin = _make_user(role="super_admin")  # R5.7: authorized global reader (scope covered by test_scoped_access_matrix)
         mock_profile_manager.filter.return_value.exists.return_value = True
 
         target_notifs = [
@@ -731,7 +731,7 @@ class TestAdminNotificationHistoryView:
     @patch("apps.accounts.models.Profile.objects")
     def test_results_ordered_by_created_at_descending(self, mock_profile_manager, mock_notif_manager):
         """Results are returned in created_at descending order."""
-        admin = _make_user(role="admin")
+        admin = _make_user(role="super_admin")  # R5.7: authorized global reader (scope covered by test_scoped_access_matrix)
         mock_profile_manager.filter.return_value.exists.return_value = True
 
         notifs = [
@@ -764,7 +764,7 @@ class TestAdminNotificationHistoryView:
     @patch("apps.accounts.models.Profile.objects")
     def test_pagination_envelope_structure(self, mock_profile_manager, mock_notif_manager):
         """Response has correct pagination envelope: page, pageSize, totalCount, results."""
-        admin = _make_user(role="admin")
+        admin = _make_user(role="super_admin")  # R5.7: authorized global reader (scope covered by test_scoped_access_matrix)
         mock_profile_manager.filter.return_value.exists.return_value = True
 
         notifs = [
@@ -792,7 +792,7 @@ class TestAdminNotificationHistoryView:
     @patch("apps.accounts.models.Profile.objects")
     def test_pagination_page_2_returns_remaining(self, mock_profile_manager, mock_notif_manager):
         """Page 2 returns remaining results."""
-        admin = _make_user(role="admin")
+        admin = _make_user(role="super_admin")  # R5.7: authorized global reader (scope covered by test_scoped_access_matrix)
         mock_profile_manager.filter.return_value.exists.return_value = True
 
         notifs = [

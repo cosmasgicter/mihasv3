@@ -10,6 +10,7 @@
  *   acceptance_letter  → `approved`                      (R5.3)
  *   conditional_offer  → `conditionally_approved`        (R5.4)
  *   payment_receipt    → a verified/completed payment    (R5.5)
+ *   finance_receipt    → staff-only, never student-offered
  *
  * R17.1 ("UI reflects backend truth"): the `application_slip` gate mirrors the
  * backend's *closed* submitted-state allowlist
@@ -35,6 +36,7 @@ export type OfficialDocumentGateType =
   | 'acceptance_letter'
   | 'conditional_offer'
   | 'payment_receipt'
+  | 'finance_receipt'
 
 /**
  * The closed set of non-draft *submitted* statuses in which the application
@@ -72,8 +74,9 @@ export function isOfficialDocumentOffered(
     case 'conditional_offer':
       return applicationStatus === 'conditionally_approved'
     case 'payment_receipt':
-    case 'finance_receipt':
       return isPaymentVerified(paymentStatus)
+    case 'finance_receipt':
+      return false
     default:
       return false
   }

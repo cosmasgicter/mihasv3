@@ -124,7 +124,7 @@ END FUNCTION
 - Bug 3: `GET /api/v1/applications/` by authenticated user returns no `Cache-Control` header — expected: `Cache-Control: no-store, private`
 - Bug 3: `GET /api/v1/catalog/programs/` by anonymous user — expected: no `Cache-Control: no-store, private` added (preservation)
 - Bug 4: `GET /api/v1/analytics/sources/` returns 200 without auth — expected: 403
-- Bug 5: `GET /admin/` shows Django admin login — expected: 404 (admin moved to `/mihas-admin-panel/`)
+- Bug 5: `GET /admin/` shows Django admin login — expected: 404 (admin moved to `/beanola-admin-panel/`)
 - Bug 5: `GET /api/v1/docs/` in production without auth returns Swagger UI — expected: 403
 
 ## Expected Behavior
@@ -283,7 +283,7 @@ _For any_ session-authenticated admin user accessing the new admin URL path, the
 **Bug 5: Admin URL and OpenAPI Gating**
 
 **File**: `backend/config/urls.py`
-- Change `path("admin/", admin.site.urls)` to `path("mihas-admin-panel/", admin.site.urls)`
+- Change `path("admin/", admin.site.urls)` to `path("beanola-admin-panel/", admin.site.urls)`
 - Wrap OpenAPI views with a conditional permission class:
 
 **File**: `backend/apps/common/permissions.py` (new file)
@@ -408,7 +408,7 @@ FOR ALL view IN [FunnelAnalyticsView, ResumeVariantCreateView, ...] DO
 END FOR
 
 -- Bug 5: Admin works at new path, docs work in DEBUG
-response := GET("/mihas-admin-panel/", session_authenticated_admin)
+response := GET("/beanola-admin-panel/", session_authenticated_admin)
 ASSERT response.status_code IN [200, 302]
 FOR ALL path IN ["/api/v1/schema/", "/api/v1/docs/", "/api/v1/redoc/"] DO
   response := GET(path, DEBUG=True)
@@ -427,7 +427,7 @@ END FOR
 - **Bug 2**: Parse `vercel.json`, assert CSP risk documentation exists alongside `unsafe-inline`; assert CSP directive values are unchanged
 - **Bug 3**: Test `SecurityHeadersMiddleware` with mock authenticated request → assert `Cache-Control: no-store, private`; test with anonymous request → assert no `Cache-Control` added
 - **Bug 4**: For each of the 7 views, instantiate and check `permission_classes == [IsAuthenticated]` and `authentication_classes` is not `[]`
-- **Bug 5**: Test URL resolution — `/admin/` returns 404, `/mihas-admin-panel/` resolves to admin; test `IsAuthenticatedOrDebug` permission class with `DEBUG=True` (allow) and `DEBUG=False` + anonymous (deny) and `DEBUG=False` + authenticated (allow)
+- **Bug 5**: Test URL resolution — `/admin/` returns 404, `/beanola-admin-panel/` resolves to admin; test `IsAuthenticatedOrDebug` permission class with `DEBUG=True` (allow) and `DEBUG=False` + anonymous (deny) and `DEBUG=False` + authenticated (allow)
 
 ### Property-Based Tests
 
@@ -439,4 +439,4 @@ END FOR
 
 - **Bug 3**: Full request cycle through Django test client with authenticated user → verify `Cache-Control` header in response
 - **Bug 4**: Full request cycle to each of the 7 endpoints without auth → verify 403; with auth → verify 200
-- **Bug 5**: Full request cycle to `/admin/` → 404; to `/mihas-admin-panel/` → admin page; to `/api/v1/docs/` without auth in production settings → 403; to `/api/v1/docs/` in dev settings → 200
+- **Bug 5**: Full request cycle to `/admin/` → 404; to `/beanola-admin-panel/` → admin page; to `/api/v1/docs/` without auth in production settings → 403; to `/api/v1/docs/` in dev settings → 200

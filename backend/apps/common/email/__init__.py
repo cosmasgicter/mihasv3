@@ -1,4 +1,4 @@
-"""MIHAS-KATC Email Component System.
+"""Beanola email component system.
 
 A small, opinionated framework for building transactional emails that match
 the PDF document design language. Import tokens, components, and the shell

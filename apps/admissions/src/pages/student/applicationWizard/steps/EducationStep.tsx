@@ -189,14 +189,17 @@ const EducationStep = ({
     const alevel = subjects.filter(s => s.level === 'alevel')
 
     const categoryOrder = ['core', 'sciences', 'commercial', 'humanities', 'technology', 'practical', 'languages']
+    // Plain-text category labels. Emoji are not used as structural icons
+    // (DESIGN.md §5 / R7.5); these are option-group headings inside a native
+    // select where Lucide JSX cannot render, so plain text is the canonical fix.
     const categoryLabels: Record<string, string> = {
-      core: '★ Core Subjects',
-      sciences: '🔬 Sciences',
-      commercial: '💼 Commercial',
-      humanities: '📚 Humanities',
-      technology: '💻 Technology & Technical',
-      practical: '🎨 Practical & Creative',
-      languages: '🌍 Languages',
+      core: 'Core Subjects',
+      sciences: 'Sciences',
+      commercial: 'Commercial',
+      humanities: 'Humanities',
+      technology: 'Technology & Technical',
+      practical: 'Practical & Creative',
+      languages: 'Languages',
     }
 
     const buildGroupedOptions = (list: typeof subjects) => {

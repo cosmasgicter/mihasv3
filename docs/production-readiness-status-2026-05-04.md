@@ -15,7 +15,7 @@ The admissions flow is production-usable and materially hardened. Final producti
 - `/health/redis/` reports Redis readiness.
 - Frontend CSP does not allow `script-src 'unsafe-inline'`.
 - OpenAPI docs are anonymous-gated.
-- Default `/admin/` is absent; Django admin is on `/mihas-admin-panel/`.
+- Default `/admin/` is absent; Django admin is on `/beanola-admin-panel/`.
 - Public tracking returns minimized fields only.
 - Curl-based admissions E2E has been manually proven with controlled dev accounts.
 

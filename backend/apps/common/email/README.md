@@ -1,4 +1,4 @@
-# MIHAS-KATC Email Component System
+# Beanola Email Component System
 
 Transactional emails are built from a small set of Python components that
 share design tokens with the PDF document system. Render one through the

@@ -115,15 +115,7 @@ export interface ApplicationDetailResponse {
   interview?: ApplicationInterview | null
 }
 
-// Institution code to name mapping
-export const INSTITUTION_NAMES: Record<string, string> = {
-  'KATC': 'Kalulushi Training Centre',
-  'katc': 'Kalulushi Training Centre',
-  'MIHAS': 'Mukuba Institute of Health and Applied Sciences',
-  'mihas': 'Mukuba Institute of Health and Applied Sciences'
-}
-
 export const getInstitutionName = (code?: string) => {
-  if (!code) return 'Not specified'
-  return INSTITUTION_NAMES[code] || code
+  const value = code?.trim()
+  return value && value.length > 0 ? value : 'Not specified'
 }

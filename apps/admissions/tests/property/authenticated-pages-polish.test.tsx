@@ -78,99 +78,99 @@ const AUTHENTICATED_PAGES: PageConfig[] = [
   // Student pages (7)
   {
     name: 'Settings',
-    title: 'My Settings | MIHAS-KATC Admissions',
-    description: 'Manage your profile details, residence information, and security settings for your MIHAS-KATC admissions account.',
+    title: 'My Settings | Beanola Admissions',
+    description: 'Manage your profile details, residence information, and security settings for your Beanola admissions account.',
     path: '/student/settings',
     role: 'student',
   },
   {
     name: 'NotificationSettings',
-    title: 'Notification Settings | MIHAS-KATC Admissions',
-    description: 'Manage your notification preferences and SMS alerts for your MIHAS-KATC admissions portal.',
+    title: 'Notification Settings | Beanola Admissions',
+    description: 'Manage your notification preferences and SMS alerts for your Beanola admissions portal.',
     path: '/student/notifications',
     role: 'student',
   },
   {
     name: 'Payment',
-    title: 'Payment | MIHAS-KATC Admissions',
-    description: 'View your application payment history and payment status for MIHAS-KATC admissions.',
+    title: 'Payment | Beanola Admissions',
+    description: 'View your application payment history and payment status for Beanola admissions.',
     path: '/student/payment',
     role: 'student',
   },
   {
     name: 'Interview',
-    title: 'My Interview | MIHAS-KATC Admissions',
-    description: 'View your scheduled interviews and prepare for your MIHAS-KATC admission process.',
+    title: 'My Interview | Beanola Admissions',
+    description: 'View your scheduled interviews and prepare for your Beanola admission process.',
     path: '/student/interviews',
     role: 'student',
   },
   {
     name: 'ApplicationStatus',
-    title: 'Application Status | MIHAS-KATC Admissions',
-    description: 'Track the status and progress of your MIHAS-KATC admissions application.',
+    title: 'Application Status | Beanola Admissions',
+    description: 'Track the status and progress of your Beanola admissions application.',
     path: '/student/application/1/status',
     role: 'student',
   },
   {
     name: 'ApplicationDetail',
-    title: 'Application Details | MIHAS-KATC Admissions',
-    description: 'View the full details of your MIHAS-KATC admissions application.',
+    title: 'Application Details | Beanola Admissions',
+    description: 'View the full details of your Beanola admissions application.',
     path: '/student/application/1',
     role: 'student',
   },
   {
     name: 'ApplicationWizard',
-    title: 'Application Wizard | MIHAS-KATC Admissions',
-    description: 'Complete your MIHAS-KATC admissions application step by step.',
+    title: 'Application Wizard | Beanola Admissions',
+    description: 'Complete your Beanola admissions application step by step.',
     path: '/student/application-wizard',
     role: 'student',
   },
   // Admin pages (7)
   {
     name: 'Applications',
-    title: 'Applications | MIHAS-KATC Admissions',
+    title: 'Applications | Beanola Admissions',
     description: 'Review and manage student admissions applications.',
     path: '/admin/applications',
     role: 'admin',
   },
   {
     name: 'Programs',
-    title: 'Programs & Intakes | MIHAS-KATC Admissions',
+    title: 'Programs & Intakes | Beanola Admissions',
     description: 'Manage academic programs and intake configurations.',
     path: '/admin/programs',
     role: 'admin',
   },
   {
     name: 'Intakes',
-    title: 'Intakes | MIHAS-KATC Admissions',
+    title: 'Intakes | Beanola Admissions',
     description: 'Manage admission intake periods and deadlines.',
     path: '/admin/intakes',
     role: 'admin',
   },
   {
     name: 'Users',
-    title: 'User Management | MIHAS-KATC Admissions',
+    title: 'User Management | Beanola Admissions',
     description: 'Manage admin users, roles, and access permissions.',
     path: '/admin/users',
     role: 'admin',
   },
   {
     name: 'AuditTrail',
-    title: 'Audit Trail | MIHAS-KATC Admissions',
+    title: 'Audit Trail | Beanola Admissions',
     description: 'Review system activity logs and administrative actions.',
     path: '/admin/audit-trail',
     role: 'admin',
   },
   {
     name: 'ProgramFees',
-    title: 'Program Fees | MIHAS-KATC Admissions',
+    title: 'Program Fees | Beanola Admissions',
     description: 'Configure and manage program fee structures.',
     path: '/admin/program-fees',
     role: 'admin',
   },
   {
     name: 'AdminSettings',
-    title: 'Operational Settings | MIHAS-KATC Admissions',
+    title: 'Operational Settings | Beanola Admissions',
     description: 'Configure operational settings for the admissions platform.',
     path: '/admin/settings',
     role: 'admin',
@@ -229,7 +229,7 @@ describe('Feature: authenticated-pages-polish, Property 1: Authenticated pages s
  * Property 2: Authenticated page titles include site name suffix
  *
  * For any authenticated page that renders a Seo component, the `document.title`
- * must contain the substring `"MIHAS-KATC Admissions"`.
+ * must contain the substring `"Beanola Admissions"`.
  *
  * The Seo component sets `document.title = title` directly via `useEffect`.
  * This test renders the Seo component with each page's title prop, then asserts
@@ -239,7 +239,7 @@ describe('Feature: authenticated-pages-polish, Property 1: Authenticated pages s
  */
 
 describe('Feature: authenticated-pages-polish, Property 2: Authenticated page titles include site name suffix', () => {
-  it('document.title contains "MIHAS-KATC Admissions" for any authenticated page', () => {
+  it('document.title contains "Beanola Admissions" for any authenticated page', () => {
     fc.assert(
       fc.property(pageArb, (page) => {
         setup()
@@ -257,8 +257,8 @@ describe('Feature: authenticated-pages-polish, Property 2: Authenticated page ti
 
         expect(
           document.title,
-          `Expected document.title to contain "MIHAS-KATC Admissions" for ${page.name} (${page.role}), got "${document.title}"`,
-        ).toContain('MIHAS-KATC Admissions')
+          `Expected document.title to contain "Beanola Admissions" for ${page.name} (${page.role}), got "${document.title}"`,
+        ).toContain('Beanola Admissions')
 
         cleanup()
       }),

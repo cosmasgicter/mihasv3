@@ -45,6 +45,6 @@ class ApiDocsTests(SimpleTestCase):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
         html = response.content.decode("utf-8")
-        self.assertIn("MIHAS Admissions API", html)
+        self.assertIn("Beanola Admissions API", html)
         self.assertIn("/api/v1/docs/", html)
         self.assertIn("Django ASGI on Uvicorn", html)

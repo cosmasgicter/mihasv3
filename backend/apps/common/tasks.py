@@ -174,7 +174,7 @@ def _send_via_resend(email_record):
         resend.api_key = api_key
         resend.Emails.send(
             {
-                "from": getattr(settings, "EMAIL_FROM", "noreply@mihas.edu.zm"),
+                "from": getattr(settings, "EMAIL_FROM", "noreply@beanola.com"),
                 "to": [email_record.recipient_email],
                 "subject": email_record.subject,
                 "html": email_record.body,
@@ -357,7 +357,7 @@ def check_uptime_task(self):
 
     health_url = getattr(settings, "HEALTH_CHECK_URL", "https://api.beanola.com/health/ready/")
     alert_email = settings.ERROR_ALERT_EMAIL
-    email_from = getattr(settings, "EMAIL_FROM", "noreply@mihas.edu.zm")
+    email_from = getattr(settings, "EMAIL_FROM", "noreply@beanola.com")
 
     # Determine current health status.
     current_status = UPTIME_STATUS_DOWN
@@ -391,7 +391,7 @@ def check_uptime_task(self):
         try:
             queue_email(
                 recipient_email=alert_email,
-                subject="🔴 MIHAS API Down — Health Check Failed",
+                subject="Beanola API Down - Health Check Failed",
                 body=(
                     f"<p>The internal health check to <code>{health_url}</code> has failed.</p>"
                     "<p>The API may be experiencing an outage. Please investigate immediately.</p>"
@@ -407,7 +407,7 @@ def check_uptime_task(self):
         try:
             queue_email(
                 recipient_email=alert_email,
-                subject="🟢 MIHAS API Recovered — Health Check Passed",
+                subject="Beanola API Recovered - Health Check Passed",
                 body=(
                     f"<p>The internal health check to <code>{health_url}</code> is now passing.</p>"
                     "<p>The API has recovered from the previous outage.</p>"

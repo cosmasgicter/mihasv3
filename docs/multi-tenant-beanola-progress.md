@@ -1,15 +1,48 @@
 # Multi-Tenant Beanola Admissions Progress
 
-Last updated: 2026-06-10
+Last updated: 2026-06-09
+Handoff date: 2026-06-09
 
 ## Current Status
 
-**Code- and test-complete; production rollout deferred to the human operator.** Every implementation, isolation, assignment, migration, document, settlement, frontend, and observability task (tasks 1–27, 29, 30) is done and proven green by the full verification gate suite (see the task-30 final-verification entry below). The two remaining non-optional tasks are **operator-driven production rollout steps**, intentionally left for a human per the infrastructure steering ("author on Neon, then copy to production; never make production the first place a change lands"):
+This tracker covers two specs that share these docs: the foundation spec
+(`.kiro/specs/multi-tenant-beanola-admissions/`) and the remediation spec
+(`.kiro/specs/multi-tenant-beanola-remediation/`). State is reported against
+three **distinct** stages so "done in code" is never confused with "live in
+production":
 
-- **Task 28 — production migration application + post-deploy QA** (`[~]`, deferred): the additive tenant migration is validated on a staging Neon branch (`br-tiny-bonus-ahz81bof`, 33/33 applications backfilled, all 21 FKs validated, idempotency proven) but has **not** been applied to the production EC2 Postgres. Applying it is a manual, backup-gated maintenance-window operation.
-- **Task 31 — final rollout checkpoint** (`[~]`, deferred): the spec-complete sign-off with the user, gated on task 28.
+| Stage | Meaning | Where proven |
+|-------|---------|--------------|
+| **Code complete** | The implementation and its tests exist in the repo and pass locally. | `pytest`, `bun run test/type-check/lint/build`, `manage.py check` |
+| **Staging / Neon validated** | The additive schema is applied and proven (apply + idempotent re-apply + backfill + FK validation) on a Neon branch. | Neon branch `br-tiny-bonus-ahz81bof` |
+| **Production applied** | The schema is applied to the production EC2 Postgres (`mihas-postgres-1`). | **NOT DONE — gated operator step** |
 
-Because tasks 28 and 31 are non-optional and not yet done, `.config.kiro` is **deliberately left without `"status": "completed"`** — the completion condition ("only when all non-optional tasks are done") is not met. The marker should be set by whoever completes the production rollout.
+### Work-item state matrix
+
+| Work item | Code complete | Neon validated | Production applied |
+|-----------|:---:|:---:|:---:|
+| Migrations deployable (relocated to `backend/scripts/2026_06_08_0X_*.sql`, discovered by `apply_sql_migrations`) | ✅ | ✅ | ⛔ pending operator |
+| Cross-tenant security holes closed (OCR extract scope, official-doc deletion protection, out-of-scope = 404) | ✅ | ✅ (schema-level) | ⛔ pending operator |
+| Official documents consolidated to the backend (students fetch backend-stored official docs; no client-side official PDFs) | ✅ | n/a (code path) | ⛔ pending operator |
+| Tenant document profiles replace hard-coded frontend content | ✅ | ✅ | ⛔ pending operator |
+| Brand fallbacks removed (`BNL-` payment prefix, institution-coded application numbers, Beanola defaults) | ✅ | n/a (code path) | ⛔ pending operator |
+| Admin config validation, tenant-aware comms, assignment edge cases, provenance/audit, document UI, drift guards | ✅ | ✅ where schema-backed | ⛔ pending operator |
+
+**Production is NOT yet applied.** Per the infrastructure steering ("author on
+Neon, then copy to production; never make production the first place a change
+lands"), applying the additive multi-tenant schema to the production EC2
+Postgres is a manual, backup-gated, maintenance-window operation gated on
+explicit operator confirmation. It is the remediation spec's **Phase 12 task
+43.2** (the rollout runbook), never an automatic task in this environment.
+
+Because production application and the final rollout sign-off are non-optional
+and not yet done, `.config.kiro` for both specs is **deliberately left without
+`"status": "completed"`** — the completion condition ("only when all
+non-optional tasks are done") is not met. The marker should be set by whoever
+completes the production rollout. Migrations are deployable, the cross-tenant
+security holes are closed, and students do use the backend official-document
+flow, so those items are honestly marked code-complete and (where schema-backed)
+Neon-validated — but each remains **production-applied: pending**.
 
 ## Done
 
@@ -290,3 +323,388 @@ Because tasks 28 and 31 are non-optional and not yet done, `.config.kiro` is **d
 
 - `apply_sql_migrations --dry-run` is blocked in this checkout until `2026_05_22_migration_history_extend.sql` has been applied.
 - V1 document templates are safe section/token templates, not arbitrary DOCX/PDF merge engines.
+
+## Done (Beanola Production Readiness — task 3.1: brand `rg` scan + hit classification) — 2026-06-14
+
+Spec `.kiro/specs/beanola-production-readiness/` Phase 2, task 3.1 (R2.2, R2.6,
+R16.1). Ran the plan's brand scans over the four active-runtime surfaces
+(`apps/admissions/src`, `apps/admissions/index.html`, `backend/apps`,
+`backend/config`) and classified every hit. No code was changed by this task —
+it is the brand-scan evidence note required by R2.6.
+
+### Scans executed
+
+```
+# 1) Primary brand/domain scan
+rg -n "MIHAS|KATC|Mukuba|Kalulushi|mihas\.edu\.zm|katc\.edu\.zm|apply\.mihas|api\.mihas|mihas-admin-panel" \
+   apps/admissions/src apps/admissions/index.html backend/apps backend/config
+
+# 2) Sender/address scan
+rg -n "info@mihas|info@katc|@mihas\.edu\.zm|@katc\.edu\.zm|admissions@mihas|noreply@mihas|support@mihas|mihas\.beanola|mihas\.local|apply\.mihas\.edu\.zm|api\.mihas" \
+   apps/admissions/src apps/admissions/index.html backend/apps backend/config
+```
+
+`apps/admissions/index.html` returned **zero hits**. 23 files matched across the
+other three roots. Classification key (R2.2): **platform-default (must remove)**,
+**seeded tenant data**, **dev/PDF-preview fixture** (not reachable from
+official-document download paths), **historical/archived doc**, **named
+legacy-compatibility code with a guard**, or **intentional test fixture /
+non-brand data**.
+
+### Classification — `backend/config` (NOT covered by the backend brand guard)
+
+| File:line | Hit | Classification | Allowlisted? |
+|-----------|-----|----------------|--------------|
+| `backend/config/settings/base.py:411` | `SPECTACULAR_SETTINGS["TITLE"] = "MIHAS Platform APIs"` | **platform-default (must remove)** — OpenAPI title presents MIHAS as platform identity; R4.1 requires Beanola-branded metadata. The `DESCRIPTION` already reads "Beanola"; only `TITLE` is stale. | **No** |
+
+> **⚠️ Finding F-3.1-A (gap for R4.1 / task 8.1 + R2.1 guard coverage):** This is
+> the only **non-allowlisted, platform-default** legacy-brand hit in active
+> runtime source. It is currently **invisible to the brand drift guard** because
+> `backend/tests/unit/test_brand_drift_guard.py` scans `backend/apps` only
+> (`SCAN_ROOT = REPO_ROOT / "backend" / "apps"`) — it does **not** scan
+> `backend/config`. Recommended follow-ups (not done here, out of task 3.1 scope):
+> (1) rebrand the OpenAPI `TITLE` to a Beanola-branded string under R4.1 / task
+> 8.1; (2) extend the backend guard's `SCAN_ROOT` to also cover `backend/config`
+> so R2.1 actually protects the surface R2.1 names (`backend/config`). Until (1)
+> lands, do **not** allowlist this file — it is a platform default to remove, not
+> reviewed tenant/historical data.
+
+### Classification — `backend/apps` (all allowlisted, guard-covered)
+
+| File | Hit summary | Classification | Allowlisted? |
+|------|-------------|----------------|--------------|
+| `backend/apps/catalog/management/commands/seed_tenant_document_profiles.py` | MIHAS RN / KATC COG / KATC EHT acceptance-letter profile seeds, bank accounts, addresses | **seeded tenant data** | Yes |
+| `backend/apps/catalog/management/commands/brand_institutions.py` | MIHAS/KATC `brand_name`/`full_name`/contact/domain seeds | **seeded tenant data** | Yes |
+| `backend/apps/applications/_view_helpers.py` | `_LEGACY_INSTITUTION_CODE = 'MIHAS'`, `_resolve_institution_code_legacy()` | **named legacy-compatibility code with a guard** (default flow uses assigned institution code) | Yes |
+| `backend/apps/applications/public_views.py` | comment documenting historical MIHAS/KATC app-number pair; validator accepts any code | **historical/archived doc** (comment, no hard-coded prefix) | Yes |
+| `backend/apps/applications/models.py` | docstring example `MIHAS/26/00001` student-number format | **historical/archived doc** (docstring sample) | Yes |
+| `backend/apps/documents/payment_service.py` | comment: legacy `MIHAS-` references stay matchable; none newly generated | **named legacy-compatibility code with a guard** | Yes |
+| `backend/apps/documents/payment_helpers.py` | comment + Lenco `User-Agent: "MIHAS/2.0"` product token | **named legacy-compatibility code with a guard** | Yes |
+
+### Classification — `apps/admissions/src` (all allowlisted, guard-covered)
+
+| File | Hit summary | Classification | Allowlisted? |
+|------|-------------|----------------|--------------|
+| `apps/admissions/src/pages/dev/DocumentPreview.tsx` | MIHAS/KATC sample fixtures | **dev/PDF-preview fixture** — route `/dev/documents` guarded by `import.meta.env.DEV` in `App.tsx` and tree-shaken from prod; not reachable from official-download paths | Yes |
+| `apps/admissions/src/pages/dev/AcceptanceLetterPreview.tsx` | MIHAS/KATC sample fixtures | **dev/PDF-preview fixture** — route `/dev/acceptance-letter` is `import.meta.env.DEV`-gated/tree-shaken | Yes |
+| `apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts` | MIHAS RN / KATC COG / KATC EHT client preview profiles | **dev/PDF-preview fixture** (client preview/draft only; backend profiles are official source) | Yes |
+| `apps/admissions/src/lib/pdf/documents/AcceptanceLetter.tsx` | docstring referencing historical MIHAS/KATC letters | **dev/PDF-preview fixture** (preview/draft renderer docstring) | Yes |
+| `apps/admissions/src/lib/pdf/documents/intakeSchedule.ts` | docstring: MIHAS/KATC two annual intakes | **dev/PDF-preview fixture** (preview docstring) | Yes |
+| `apps/admissions/src/lib/pdf/documents/PaymentReceipt.tsx` | docstring: MIHAS FINANCE OFFICE tagline | **dev/PDF-preview fixture** (preview docstring) | Yes |
+| `apps/admissions/src/lib/pdf/documents/types.ts` | docstrings with MIHAS/KATC examples | **dev/PDF-preview fixture** (preview type docstrings) | Yes |
+| `apps/admissions/src/lib/pdf/components/SignatureBlock.tsx` | docstring: shared MIHAS/KATC Managing Director signatory | **dev/PDF-preview fixture** (preview docstring) | Yes |
+| `apps/admissions/src/lib/pdf/theme/index.ts` | MIHAS/KATC registered as preview tenant data + `info@mihas.edu.zm` / `info@katc.edu.zm` | **dev/PDF-preview fixture** — unknown institutions fall back to Beanola-generic; MIHAS never silently rendered (R2.5) | Yes |
+| `apps/admissions/src/lib/pdf/theme/colors.ts` | banner "MIHAS-KATC PDF Color System" | **dev/PDF-preview fixture** (preview theme banner) | Yes |
+| `apps/admissions/src/lib/pdf/theme/spacing.ts` | banner "MIHAS-KATC PDF Spacing System" | **dev/PDF-preview fixture** (preview theme banner) | Yes |
+| `apps/admissions/src/lib/pdf/theme/typography.ts` | banner "MIHAS-KATC PDF Typography System" | **dev/PDF-preview fixture** (preview theme banner) | Yes |
+| `apps/admissions/src/lib/pdf/README.md` | "MIHAS-KATC PDF Document System" | **historical/archived doc** | Yes |
+| `apps/admissions/src/lib/locationOptions.ts` | `'Kalulushi'` in Zambian town option list | **intentional non-brand data** (real geographic location, unrelated to brand fallback) | Yes |
+| `apps/admissions/src/lib/env.ts` | test-only override key `__MIHAS_IMPORT_META_ENV__` | **intentional test fixture** (historical internal identifier, not user-facing) | Yes |
+
+### Sender/address scan results
+
+| File:line | Hit | Classification | Allowlisted? |
+|-----------|-----|----------------|--------------|
+| `backend/apps/catalog/management/commands/brand_institutions.py:38-40` | `admissions@mihas.beanola.com`, `support@mihas.beanola.com`, `https://mihas.beanola.com` | **seeded tenant data** (MIHAS tenant white-label contacts) | Yes |
+| `apps/admissions/src/lib/pdf/theme/index.ts:104,117` | `info@mihas.edu.zm`, `info@katc.edu.zm` | **dev/PDF-preview fixture** (tenant contact in preview theme) | Yes |
+
+### Summary
+
+- **22 of 23** matched files are already in `docs/legacy-brand-allowlist.json`
+  with a reviewed single-file entry and a removal-blocked reason; each was
+  re-classified above and the recorded reason holds.
+- **1 genuine finding (F-3.1-A):** `backend/config/settings/base.py:411`
+  (`SPECTACULAR_SETTINGS["TITLE"] = "MIHAS Platform APIs"`) — a **platform-default
+  that must be removed** under R4.1, and a **guard-coverage gap** because the
+  backend brand drift guard scans only `backend/apps`, not `backend/config`
+  (R2.1 names `backend/config` as in-scope). Carried into Phase 4 task 8.1
+  (Beanola-branded OpenAPI metadata) and flagged for the R2.1 guard-scope
+  extension. Not allowlisted — it is a platform default, not reviewed
+  tenant/historical/preview data.
+- `apps/admissions/index.html`: clean (no hits).
+
+## Done (beanola-production-readiness Phase 3 — task 6.1: Neon validation — dry-run discovery + apply + reapply + validation SQL)
+
+Spec: `.kiro/specs/beanola-production-readiness/` (R3.1, R3.2, R3.3). This is the
+**Neon-side** validation only — the gated production apply (task 6.3) remains an
+operator step on the EC2 box and was **not** performed. No production DB change
+was made from this environment (R3.1, R16.8). The Neon **default/main branch was
+never written** — all work ran on a disposable temporary branch.
+
+### Temporary Neon branch
+
+- Project: `wild-bar-37055823` (`mihasApplication`), org `org-nameless-field-86879910`.
+- **Temporary branch id: `br-proud-rice-ah2b0nfg`** (name `task6-1-validation-beanola`),
+  forked from the default branch `br-floral-scene-aha2ybfd`.
+- Every `run_sql` / `run_sql_transaction` call passed this branch id explicitly.
+
+### Dry-run discovery order + additive-only lint (R3.2)
+
+Reproduced `apply_sql_migrations` discovery (`_iter_migration_files`, lexical
+filename sort, top-level only) and the additive-only lint
+(`_find_non_additive_violations`) against the real `backend/scripts/`. The four
+target scripts are discovered in this correct lexical order — note
+`student_number` sorts **last** (`'s'` > `'0'`), which the runbook documents as
+correct because `2026_06_08_01_...` already creates the tenant schema first:
+
+1. `2026_06_08_01_multi_tenant_beanola_admissions.sql` — lint: **PASS (additive-only)**
+2. `2026_06_08_03_institution_document_profiles.sql` — lint: **PASS (additive-only)**
+3. `2026_06_08_04_communication_templates_tenant.sql` — lint: **PASS (additive-only)**
+4. `2026_06_08_student_number.sql` — lint: **PASS (additive-only)**
+
+No `DROP` / `TRUNCATE` / unguarded `DELETE` in any script.
+
+### Migration_History_Prerequisite (R3.6 precheck)
+
+On the branch: `migration_history.checksum` column present, unique index
+`uq_migration_history_migration_name` present → the runner would not raise
+`MIGRATION_HISTORY_NOT_EXTENDED`. None of the four target scripts were recorded
+before this validation.
+
+> **Branch-baseline note.** The temp branch (forked from default) carried a
+> stale half-state of the eight tenant tables (present but with **no `id`
+> default**, 0 rows) while `applications` was still missing its canonical-ID
+> columns and `migration_history` had no `2026_06_08*` rows. With user
+> confirmation, the `id` defaults were repaired **additively**
+> (`ALTER COLUMN id SET DEFAULT gen_random_uuid()`, non-destructive, temp branch
+> only) so the scripts' backfill `INSERT`s could run. No table was dropped; no
+> production/default-branch object was touched.
+
+### Apply + reapply idempotency (R3.2)
+
+- **First apply** of all four scripts (in lexical order) succeeded; the four
+  `migration_history` rows were recorded.
+- **Reapply** of all four script bodies succeeded with **no errors** — the
+  `CREATE TABLE/INDEX IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`,
+  `INSERT … ON CONFLICT`, and `ADD CONSTRAINT … NOT VALID` (in `IF NOT EXISTS`
+  guards) guards made the second run a no-op.
+- **Idempotency invariants after reapply:** `migration_history` rows for
+  `2026_06_08*` = **4** (reapply added none); `canonical_programs` = **4**
+  (no duplicates); `programs` linked to a canonical program = **4**;
+  applications with `institution_id` = **33** — all unchanged from first apply.
+
+### Runbook validation SQL (R3.3)
+
+| Check | Result | Expected |
+|-------|--------|----------|
+| `canonical_programs` count | **4** | non-zero ✓ |
+| duplicate hostnames in `institution_domains` | **0 rows** | zero ✓ |
+| duplicate slugs in `institutions` | **0 rows** | zero ✓ |
+| applications without `institution_id` | 0 | (legacy nulls allowed) |
+| applications without `program_id` | 0 | |
+| applications without `program_offering_id` | 0 | |
+| applications without `intake_id` | 0 | |
+| programs without canonical link (active) | 0 | |
+
+Supporting counts (evidence block): institutions = 2, offerings (`programs`) = 4,
+intakes = 3, memberships = 0, access_grants = 0, institution_domains = 0,
+document_profiles = 0, institution_assets = 0. The `next_student_number('MIHAS', 2026)`
+helper returns `MIHAS/26/00001` as expected.
+
+### Status
+
+Neon staging-validated (apply + idempotent reapply + validation SQL all green on
+branch `br-proud-rice-ah2b0nfg`). **Production apply remains pending — gated
+operator step (task 6.3), not run here.**
+
+
+## Done (Beanola Production Readiness — task 18: Checkpoint — Phase 8) — 2026-06-14
+
+Spec `.kiro/specs/beanola-production-readiness/` Phase 8, task 18 (R8.1, R8.3,
+R8.9; design Component 8). **Verification-only checkpoint — no production DB
+change, no schema change, no code change.** Confirms the Phase 8 work tasks
+(17.1–17.4) hold together: student/admin E2E flows pass on staging-equivalent,
+the negative flows prove the security boundaries, and the manual smoke checklist
+exists.
+
+### Evidence confirmed
+
+- **Student E2E (R8.1):** `apps/admissions/tests/e2e/studentJourney.spec.ts`
+  (gated Playwright spec, enumerable via `--list`) with its runnable backend
+  walk `backend/tests/integration/test_student_journey_e2e.py` — drives signup →
+  verification → application/canonical-program/intake → assigned institution →
+  document upload → save-draft/resume → pay-or-defer → submission → backend
+  application-slip → public tracking → communication → interview → decision →
+  acceptance/receipt through the real HTTP surface.
+- **Admin E2E (R8.2):** `apps/admissions/tests/e2e/adminJourney.spec.ts` (gated)
+  with its runnable backend walk
+  `backend/tests/integration/test_admin_journey_drill.py` — super-admin login →
+  institution creation → asset upload → document-profile → offering
+  creation/assignment → routing simulator → staff + scoped Access_Grant → staff
+  scoped-only view → review → payment verification → official-doc generation →
+  audit → scoped export.
+- **Negative / boundary flows (R8.3–R8.8):** Property 26
+  `backend/tests/property/test_production_scope_masking_properties.py` —
+  wrong-school staff → Not_Found_Envelope, expired grant → Not_Found_Envelope,
+  scoped grant does not widen to a sibling, super-admin permitted everywhere, no
+  PII leak; reinforced by `backend/tests/integration/test_tenant_lifecycle_drill.py`.
+- **Manual smoke checklist (R8.9):** `docs/runbooks/production-smoke-checklist.md`
+  exists and covers public surface, auth, the student critical flow, the
+  admin/tenant surface (incl. `/admin/tenants` and `/beanola-admin-panel/`), the
+  negative/out-of-scope boundary, and platform health/monitoring, with a
+  degradation-posture sign-off linked to `release-and-rollback.md`.
+
+### Verification
+
+`DJANGO_SETTINGS_MODULE=config.settings.test .venv/bin/python -m pytest
+tests/integration/test_student_journey_e2e.py
+tests/integration/test_admin_journey_drill.py
+tests/integration/test_tenant_lifecycle_drill.py
+tests/property/test_production_scope_masking_properties.py --hypothesis-seed=0`
+→ **9 passed** (2 E2E drills + lifecycle drill + 6 Property 26 cases). The live
+real-browser Playwright runs remain gated for a provisioned staging environment
+(`STUDENT_JOURNEY_E2E=1` / `ADMIN_JOURNEY_E2E=1`), with the backend drills as the
+authoritative repo-side evidence. No production EC2 Postgres or Neon authoring
+branch was touched.
+
+## Done (Beanola Production Readiness — task 29.3: graceful-degradation posture + progress update) — 2026-06-14
+
+Spec `.kiro/specs/beanola-production-readiness/` Phase 14, task 29.3 (R14.4,
+R14.5, R14.6, R14.7, R14.8; design Component 14). **Documentation-only task — no
+production DB change, no schema change, no code change.** This task confirms the
+launch-time graceful-degradation posture is documented and refreshes this status
+document.
+
+### Graceful-degradation posture confirmed/documented (R14.4–R14.7)
+
+The canonical rollback + graceful-degradation posture already lives in
+`docs/runbooks/database-backup-restore.md` §"Rollback Posture" (R9.7), and it
+covers all of R14.4–R14.7:
+
+- **Disabling a route/action keeps data intact (R14.4):** hide or gate the
+  surface (prefer a feature-flag flip back to `False` + redeploy), never delete
+  the records behind it.
+- **Payment fails after launch (R14.5):** stop payment initiation while keeping
+  application submission safe — students may defer payment and submit; submission
+  is never blocked on the payment gateway, and a failed payment never produces a
+  paid receipt (R8.7).
+- **Official-document generation fails (R14.6):** the system shows "generation
+  failed" and **blocks the download** rather than serving a stale or
+  client-rendered PDF; official documents are backend-only and never fall back to
+  the `@/lib/pdf` preview/draft generators; a failed generation records `failed`
+  status and leaves any prior Official_Document unchanged (design Property 32).
+- **Database rollback is forward-only (R14.7)** unless a tested rollback script
+  exists; **code rollback is always allowed** and is the first lever. All
+  production schema is additive/idempotent SQL under `backend/scripts/`, so a
+  routine rollback rolls back code only and leaves additive columns/tables in
+  place (legacy rows stay readable).
+
+**Gap closed this task:** `docs/runbooks/release-and-rollback.md` previously had a
+"Database Rollback" section that did not state the forward-only posture or the
+graceful-degradation levers. Updated it to (a) state the forward-only,
+code-only-routine-rollback posture (R14.7), (b) add a "Graceful-Degradation
+Posture (R14.4–R14.7)" section enumerating the tenant-feature / payment /
+official-document levers, (c) add the 4-step rollback decision order, and
+(d) cross-reference the canonical posture in `database-backup-restore.md`. The
+two runbooks are now consistent and each names the R14 acceptance criteria.
+
+### Beanola Production Readiness — spec-run status summary (R14.8)
+
+Phases completed in this spec run (verification + cutover-prep + audit + polish +
+prove + ops + security + performance + data-quality + CI gate), all proven
+against the repo / Neon staging without touching production:
+
+| Phase | Scope | State |
+|-------|-------|-------|
+| 1 — Canonical freeze (R1) | Canonical_Truth_Map frozen, both admin routes + scopes recorded, no-new-mirrors guard, legacy-fallback allowlist | ✅ complete |
+| 2 — Brand/tenant boundary (R2) | Brand `rg` scans classified, allowlist tightened to single-file entries, PDF-theme unknown-institution behaviour, paired brand drift guards; Property 28 | ✅ complete |
+| 3 — Gated production DB cutover, Neon-first (R3) | Neon dry-run + apply + idempotent reapply + validation SQL green on staging branch; additive-only confirmed; idempotence integration test | ✅ Neon-validated · ⛔ production apply (6.3) operator-deferred |
+| 4 — Backend API contract audit (R4) | OpenAPI generates Beanola-branded; API contract inventory; envelope/pagination/error-masking; rate limits; Properties 27, 31 | ✅ complete |
+| 5 — Tenant scoping + security audit (R5) | Scope endpoint inventory (no unknown-scope rows); scoped-access matrix; scope + unscoped guards; PII/file-security; Property 26 | ✅ complete |
+| 6 — Document system audit (R6) | Document-type audit; backend-only official downloads + document-flow guard; failure states/dedup/seed/preview/provenance; Properties 29, 32 | ✅ complete |
+| 7 — Per-route + mobile-first UI/UX (R7) | Per-route pass/fail notes; critical form/table/dialog fixes; route-mobile-overflow guard (Property 30); Playwright screenshot evidence | ✅ complete |
+| 8 — End-to-end workflow QA (R8) | Student + admin + negative E2E flows; tenant lifecycle drill; manual smoke checklist | ✅ complete |
+| 9 — Backend reliability + operations (R9) | Health endpoints; background-task monitoring; idempotency; structured logs; monitoring/alerts; backup script + restore drill; rollback posture | ✅ complete |
+| 10 — Security + privacy review (R10) | Auth/cookie/CSRF/JTI; authorization via AccessScopeService; input validation; secrets/env review; payment + privacy controls | ✅ complete |
+| 11 — Performance / Core Web Vitals (R11) | Bundle/route-chunk, prefetch, polling, image handling reviewed | ✅ complete |
+| 12 — Data quality + seed readiness (R12) | Read-only verification queries (counts/completeness/not-ready flags) reflected in the production evidence block | ✅ complete |
+| 13 — CI gate (R13) | Verification_Gate reproduced in CI; no required guard marked optional | ✅ complete |
+| 14 — Launch checklist + rollback posture (R14) | Pre-launch env/branch + pre-deploy gate/build/backup/migrate/validate (29.1); smoke set incl. `/admin/tenants` + `/beanola-admin-panel/` (29.2); graceful-degradation posture + this update (29.3) | ✅ docs complete · ⛔ live launch + post-window confirmation operator-deferred |
+
+**Operator-deferred items remaining (non-optional, intentionally not run from
+this environment):**
+
+- **Task 6.3 — gated production database cutover.** The additive multi-tenant +
+  follow-on scripts are Neon-validated (apply + idempotent reapply + validation
+  SQL green); the production apply to the EC2 `mihas-postgres-1` Postgres is a
+  backup-gated, maintenance-window operator step gated on explicit user
+  confirmation, per `docs/runbooks/multi-tenant-beanola-rollout.md` and the
+  Neon-first infrastructure rule. The production evidence block (6.4) is captured
+  only after 6.3.
+- **Task 31.2 — final Definition-of-Done sign-off.** The DoD exit gate (R15,
+  design Property 33) is all-or-nothing and includes "migrations applied to
+  staging **and** production with evidence" (R15.3) and the live production
+  Smoke_Check set (R15.6). Until 6.3 completes, R15.3/R15.6 are unmet, so the gate
+  is **false** and `.config.kiro` keeps no `"status": "completed"` — the marker is
+  set by whoever completes the production rollout.
+
+Everything else in the spec is code-complete and verified locally / Neon-validated.
+
+## Done (Phase 13 — task 28: full Verification_Gate checkpoint)
+
+Ran the complete Verification_Gate locally (dev environment only; no production
+access, no Neon default-branch writes) and cross-checked the CI Drift_Guard
+inventory. **All gate steps pass with zero errors.**
+
+### Gate results
+
+| Step | Command | Result |
+|------|---------|--------|
+| Backend tests | `pytest tests/unit tests/property -q` | **2909 passed**, 134 skipped, 2 xfailed, 1 xpassed, 0 failed |
+| Django checks | `manage.py check` | clean (1 silenced; `LENCO_API_SECRET_KEY` unset note is dev-only) |
+| OpenAPI schema | `manage.py spectacular --file /tmp/openapi.yaml` | `Errors: 0 (0 unique)`, 1 unrelated warning |
+| Admissions type-check | `bun run type-check` | clean |
+| Admissions lint | `bun run lint` | clean (max-warnings 0) |
+| Admissions tests | `bun run test` | **3218 passed**, 1 skipped, 0 failed |
+| Admissions build | `bun run build` | built OK; HTML CSP-compatible (chunk-size note is informational only) |
+
+### Gate fixes applied (test-only; stale mirrors of this spec's own hardening)
+
+The first gate run surfaced 8 stale test expectations that lagged behind this
+spec's intentional, already-shipped hardening. No implementation/production code
+was changed — only the stale test expectations were corrected:
+
+- `backend/tests/property/test_middleware_properties.py` — `SCOPE_LIMITS`
+  expectation updated to include `/api/v1/applications/bulk-status/ → 20/10m`
+  (the R4.8 admin bulk-operation rate limit added in task 8.4).
+- `backend/tests/property/test_communications_history_properties.py` (4 tests:
+  ordering, envelope, pagination, user-scoped retrieval) — exercised via the
+  super-admin "sees all" path; a plain scoped admin now correctly masks an
+  unmocked out-of-scope target as `404` (R5.4/R16.4 scope masking added in
+  task 11), which these non-scope properties were not setting up.
+- `backend/tests/property/test_interview_status_validation.py` — added mocks for
+  the pre-mutation scope check (`Application.objects.get` +
+  `_staff_can_access_application`) introduced for R5.2/R5.9 so the INVALID_STATUS
+  property no longer hits the DB.
+- `apps/admissions/tests/unit/page-verification/payment-page.test.tsx` and
+  `student-interview.test.tsx` — contact assertion updated from the retired
+  `admissions@mihas.edu.zm` to the canonical `admissions@beanola.com` (R2/R7.12
+  Beanola brand cleanup). Remaining `mihas.edu.zm` strings in other
+  page-verification files are self-supplied mock fixtures, not brand assertions.
+
+### CI required-guard cross-check (R13.2, R13.3, R13.6)
+
+Cross-checked `.github/workflows/ci.yml` against the `docs/canonical-truth-map.md`
+Drift_Guard inventory and the task 27.2 required list. Every required guard runs
+in CI and is **non-optional** (no `continue-on-error` on any guard job):
+
+- `frontend-drift-guards` job — brand, document-flow, payment-status, error-code,
+  role mirror, application-lifecycle (`brandDriftGuard`, `documentFlowDriftGuard`,
+  `paymentStatusMappingDriftGuard`, `errorCodesDriftGuard`, `rolesBackendMirror`,
+  `applicationStatusDriftGuard`).
+- `backend-drift-guards` job — brand, official-document dedup, scope, unscoped
+  endpoint, canonical-tenant, payment-status, error-code, schema (migration +
+  strict), application-lifecycle (`test_brand_drift_guard`,
+  `test_official_document_dedup_guard`, `test_scope_drift_guard`,
+  `test_unscoped_endpoint_guard`, `test_canonical_tenant_drift_guard`,
+  `test_payment_status_canonical`, `test_error_codes_canonical`,
+  `test_migration_drift_guard`, `test_lifecycle_canonical`,
+  `test_schema_drift_strict`).
+- Verification_Gate (R13.1) reproduced in CI: `backend` job runs `manage.py check`,
+  a zero-error `spectacular` assertion, and `pytest tests/unit`; `backend-property`
+  runs `tests/property` across 8 shards; `admissions` runs `type-check`, `lint`,
+  `test`, `build`. `design-audit` (Impeccable) and `backend-governance`
+  (schema/outbox + Neon-fork drift) are additional blocking gates.
+
+All intended test edits are tracked (R13.4) — no untracked files introduced by
+this checkpoint.

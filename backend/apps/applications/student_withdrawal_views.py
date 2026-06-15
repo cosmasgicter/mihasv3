@@ -75,6 +75,7 @@ from ._view_helpers import (
     WithdrawalResponseSerializer,
     _generate_application_number,
     _generate_tracking_code,
+    _staff_can_access_application,
     _with_payment_summary,
 )
 
@@ -220,6 +221,14 @@ class ApplicationWaitlistPositionView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        # R5.2/R5.9: a scoped admin (non-owner) must be in AccessScopeService
+        # scope for this application; otherwise mask as not-found (R5.4).
+        if is_admin and not is_owner and not _staff_can_access_application(request, app):
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
         try:
             position_data = WaitlistManager.get_position(str(application_id))
         except WaitlistError as exc:
@@ -270,6 +279,14 @@ class ApplicationConditionsView(APIView):
                     "code": "INSUFFICIENT_PERMISSIONS",
                 },
                 status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # R5.2/R5.9: a scoped admin (non-owner) must be in AccessScopeService
+        # scope for this application; otherwise mask as not-found (R5.4).
+        if is_admin and not is_owner and not _staff_can_access_application(request, app):
+            return Response(
+                {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         conditions = ApplicationCondition.objects.filter(

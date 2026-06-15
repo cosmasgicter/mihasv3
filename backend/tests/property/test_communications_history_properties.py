@@ -258,7 +258,7 @@ class TestAdminNotificationChronologicalOrdering:
             for i in range(n)
         ]
 
-        admin = _make_user(role="admin")
+        admin = _make_user(role="super_admin")
 
         with patch("apps.accounts.models.Profile.objects") as mock_profile, \
              patch("apps.common.notification_views.Notification.objects") as mock_notif:
@@ -506,7 +506,7 @@ class TestResponseEnvelopeFormatAdminNotification:
             for i in range(n)
         ]
 
-        admin = _make_user(role="admin")
+        admin = _make_user(role="super_admin")
 
         with patch("apps.accounts.models.Profile.objects") as mock_profile, \
              patch("apps.common.notification_views.Notification.objects") as mock_notif:
@@ -658,7 +658,7 @@ class TestPaginationInvariantsAdminNotification:
             for i in range(num_entries)
         ]
 
-        admin = _make_user(role="admin")
+        admin = _make_user(role="super_admin")
 
         with patch("apps.accounts.models.Profile.objects") as mock_profile, \
              patch("apps.common.notification_views.Notification.objects") as mock_notif:
@@ -857,7 +857,7 @@ class TestAdminUserScopedNotificationRetrieval:
                     return FilteringNotifQS(sorted_items)
                 return self
 
-        admin = _make_user(role="admin")
+        admin = _make_user(role="super_admin")
 
         with patch("apps.accounts.models.Profile.objects") as mock_profile, \
              patch("apps.common.notification_views.Notification.objects") as mock_notif:

@@ -1,7 +1,7 @@
 # API Production-Readiness Remediation — Close-Out
 
 **Sprint:** 2026-05-08  
-**Scope:** MIHAS Django REST API under `/api/v1/` (134 paths, 178 operations)  
+**Scope:** Beanola Django REST API under `/api/v1/` (134 paths, 178 operations)  
 **Plan reference:** `docs/api/REMEDIATION_PLAN.md` (inline, 27 tasks, 6 phases)
 
 ## Before / After

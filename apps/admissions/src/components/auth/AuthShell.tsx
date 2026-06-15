@@ -63,14 +63,14 @@ export function AuthShell({
   return (
     <div className="min-h-dvh bg-muted">
       <div className="mx-auto flex min-h-dvh max-w-md flex-col px-4 py-10 sm:px-6 sm:py-16">
-        {/* Brand identity — dual-institutional, top-center, calm */}
+        {/* Brand identity - top-center, calm */}
         <Link
           to="/"
           className="mx-auto mb-10 flex items-center gap-3 rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted"
           aria-label="Beanola home"
         >
           <img
-            src="/images/logos/beanola-logo.svg"
+            src="/images/logos/beanolalogo.webp"
             alt="Beanola Admissions"
             width={32}
             height={32}

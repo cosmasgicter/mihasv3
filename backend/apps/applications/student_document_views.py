@@ -20,7 +20,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsOwnerOrAdmin
+from apps.accounts.permissions import IsOwnerOrAdmin, is_super_admin
+from apps.catalog.services import AccessScopeService
 from apps.applications.duplicate_checker import DuplicateChecker
 from apps.applications.models import (
     Application,
@@ -114,6 +115,16 @@ class ApplicationDocumentsView(APIView):
             return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         if not IsOwnerOrAdmin().has_object_permission(request, self, app):
             return Response({"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"}, status=status.HTTP_403_FORBIDDEN)
+        # Tenant scope: a non-super-admin admin may only read documents for
+        # applications within their membership/grant scope. An out-of-scope
+        # read is masked as a genuine not-found so the other school's record
+        # (and its documents) cannot be inferred (R4.4, R18.4). Scope comes
+        # only from AccessScopeService — never from the admin role alone.
+        role = getattr(request.user, "role", "student")
+        if role == "admin" and not AccessScopeService().filter_applications(
+            Application.objects.filter(id=app.id), request.user
+        ).exists():
+            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         docs = ApplicationDocument.objects.select_related('application', 'verified_by').filter(application_id=application_id).exclude(
             verification_status='deleted'
         )
@@ -202,7 +213,19 @@ class EmailSlipView(APIView):
 
         if str(application.user_id) != str(request.user.id):
             role = getattr(request.user, "role", "student")
-            if role not in ("admin", "super_admin"):
+            if is_super_admin(request.user):
+                pass
+            elif role in ("admin", "reviewer"):
+                scoped = AccessScopeService().filter_applications(
+                    Application.objects.filter(id=application.id),
+                    request.user,
+                )
+                if not scoped.exists():
+                    return Response(
+                        {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+            else:
                 return Response(
                     {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
                     status=status.HTTP_403_FORBIDDEN,
@@ -314,4 +337,3 @@ class EmailSlipView(APIView):
             {"success": True, "data": {"queued_id": str(email_record.id)}},
             status=status.HTTP_200_OK,
         )
-

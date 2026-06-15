@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for the MIHAS Django API test suite."""
+"""Shared pytest fixtures for the Beanola Django API test suite."""
 
 import os
 

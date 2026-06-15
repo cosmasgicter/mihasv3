@@ -1,6 +1,45 @@
 # Multi-Tenant Beanola Admissions Handover
 
-Last updated: 2026-06-03
+Last updated: 2026-06-09
+Handoff date: 2026-06-09
+
+## Deployment State At Handoff (read before trusting anything below)
+
+State is tracked in three distinct stages so "written and tested" is never read
+as "live in production":
+
+- **Code complete** — implementation + tests exist in the repo and pass locally
+  (`pytest`, `bun run test/type-check/lint/build`, `manage.py check`).
+- **Staging / Neon validated** — the additive schema is applied and proven
+  (apply + idempotent re-apply + backfill + FK validation) on a Neon branch.
+- **Production applied** — applied to the production EC2 Postgres
+  (`mihas-postgres-1`). **This has NOT happened.**
+
+At this handoff (2026-06-09):
+
+- Migrations are **deployable**: the tenant migration and its companions live at
+  the runner-applied `backend/scripts/2026_06_08_0X_*.sql` paths and are
+  discovered by `apply_sql_migrations`. **Code complete + Neon validated**
+  (branch `br-tiny-bonus-ahz81bof`). **Production applied: pending.**
+- Cross-tenant security holes are **closed** in code: the OCR extract endpoint
+  authorizes through the scoped document loader before any side effect, official
+  generated documents are deletion-protected (`OFFICIAL_DOCUMENT_IMMUTABLE`),
+  and out-of-scope reads mask as 404. **Code complete.** **Production applied:
+  pending** (the schema they depend on is not yet on production).
+- Official documents are **consolidated to the backend**: students fetch
+  backend-stored official documents via `apps/admissions/src/services/officialDocuments.ts`;
+  client-side PDF generators are dev/draft-preview only. **Code complete.**
+- Brand fallbacks are **removed** from generic flows: payment references use the
+  Beanola `BNL-` prefix, application numbers use the assigned institution's code
+  (platform `BNL` fallback, never `MIHAS`), and shared-portal defaults are
+  Beanola. **Code complete.**
+
+**Production application is a gated operator step** — the remediation spec's
+Phase 12 task 43.2 (rollout runbook), run in a backup-gated maintenance window
+per the Neon-first-then-production workflow in `.kiro/steering/infrastructure.md`.
+It is never applied from this development environment. Do **not** mark this work
+"complete" until the migration is applied to production and post-deploy QA
+passes.
 
 ## Read This First
 
@@ -679,7 +718,7 @@ Documents:
 - Payment receipt requires eligible payment.
 - Finance receipt behavior is intentional when no matched payment exists.
 - Template token injection is escaped.
-- Missing template falls back to safe default body.
+- Missing document profile fails the generation (`status="failed"`, code `DOCUMENT_PROFILE_NOT_CONFIGURED`) and produces no document from frontend content (R8.9) — there is no MIHAS/KATC default-body fallback.
 
 Access control:
 
@@ -797,10 +836,10 @@ Manually inspect all rows returned. Some legacy applications may remain nullable
 
 Do not present these as complete until verified or implemented:
 
-- Production SQL migration still needs a real environment with the migration-history prerequisite applied.
-- Analytics endpoints still need tenant scoping or explicit super-admin-only policy.
-- Tenant onboarding UI needs richer editing, previews, rule builders, version diffing, and assignment simulator.
-- White-label behavior needs browser/E2E testing with host overrides.
+- **Production migration not applied.** The additive schema (`backend/scripts/2026_06_08_01_multi_tenant_beanola_admissions.sql` and companions `_02_student_number`, `_03_institution_document_profiles`, `_04_communication_templates_tenant`) is code-complete and Neon-validated but **not applied to the production EC2 Postgres**. Applying it is the gated operator step in `docs/runbooks/multi-tenant-beanola-rollout.md` (remediation Phase 12, task 43.2), run in a backup-gated maintenance window — never from this environment.
+- Analytics endpoints: funnel scoping landed in task 12.1; re-verify any future cross-school search/count surfaces.
+- Tenant onboarding UI could use richer editing, previews, rule builders, version diffing beyond the current state.
+- White-label behavior needs browser/E2E testing with host overrides (env-gated Playwright spec ready for staging).
 - Official document rendering needs deeper PDF content/visual tests.
 - Settlement summary is JSON only; CSV/export and settlement lifecycle may be required.
 - Existing frontend PDF preview themes still contain compatibility maps and should not be treated as official document generation.

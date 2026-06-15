@@ -1,10 +1,14 @@
-"""Brand drift guard for the Django backend (R10).
+"""Brand drift guard for the Django backend (R2.1, R10).
 
-Scans ``backend/apps`` for the legacy brand strings MIHAS / KATC / Mukuba /
-Kalulushi / apply.mihas.edu.zm and fails — reporting the offending file and
-line — for any hit in a file that is not present in the shared
-``docs/legacy-brand-allowlist.json`` Brand_Allowlist (R10.1, R10.3).
-Allowlisted files are permitted to contain those strings (R10.4).
+Feature: beanola-production-readiness, Property 28: No non-allowlisted legacy brand string in active source
+
+Scans ``backend/apps`` and ``backend/config`` for the legacy brand strings
+MIHAS / KATC / Mukuba / Kalulushi and legacy MIHAS domains and fails —
+reporting the offending file and line — for any hit in a file that is not
+present in the shared ``docs/legacy-brand-allowlist.json`` Brand_Allowlist
+(R2.1, R10.1, R10.3). ``backend/config`` is named in-scope by R2.1, so it is
+scanned alongside ``backend/apps``. Allowlisted files are permitted to contain
+those strings (R10.4).
 
 This is the backend half of the guard. The frontend half lives at
 ``apps/admissions/tests/unit/brandDriftGuard.test.ts`` and reads the *same*
@@ -19,11 +23,25 @@ from django.test import SimpleTestCase
 # backend/tests/unit/test_brand_drift_guard.py -> repo root is parents[3].
 REPO_ROOT = Path(__file__).resolve().parents[3]
 ALLOWLIST_PATH = REPO_ROOT / "docs" / "legacy-brand-allowlist.json"
-SCAN_ROOT = REPO_ROOT / "backend" / "apps"
+# R2.1 names both backend/apps and backend/config as in-scope active runtime
+# source, so scan both roots.
+SCAN_ROOTS = (
+    REPO_ROOT / "backend" / "apps",
+    REPO_ROOT / "backend" / "config",
+)
 
 # Legacy brand strings that must not reappear in non-allowlisted production
 # source. Kept in sync with docs/legacy-brand-allowlist.json -> "patterns".
-BRAND_PATTERNS = ("MIHAS", "KATC", "Mukuba", "Kalulushi", "apply.mihas.edu.zm")
+BRAND_PATTERNS = (
+    "MIHAS",
+    "KATC",
+    "Mukuba",
+    "Kalulushi",
+    "apply.mihas.edu.zm",
+    "mihas.edu.zm",
+    "mihas.beanola.com",
+    "mihas.local",
+)
 
 # Only scan real source files; skip caches and compiled artifacts.
 _SCANNED_SUFFIXES = {".py", ".md", ".txt", ".html", ".json", ".cfg", ".ini"}
@@ -38,14 +56,17 @@ def _load_allowlist() -> set[str]:
 
 
 def _iter_source_files():
-    for path in sorted(SCAN_ROOT.rglob("*")):
-        if not path.is_file():
+    for scan_root in SCAN_ROOTS:
+        if not scan_root.exists():
             continue
-        if any(part in _SKIP_DIR_NAMES for part in path.relative_to(REPO_ROOT).parts):
-            continue
-        if path.suffix.lower() not in _SCANNED_SUFFIXES:
-            continue
-        yield path
+        for path in sorted(scan_root.rglob("*")):
+            if not path.is_file():
+                continue
+            if any(part in _SKIP_DIR_NAMES for part in path.relative_to(REPO_ROOT).parts):
+                continue
+            if path.suffix.lower() not in _SCANNED_SUFFIXES:
+                continue
+            yield path
 
 
 def _scan_for_violations(allowlist: set[str]) -> list[str]:
@@ -68,7 +89,7 @@ def _scan_for_violations(allowlist: set[str]) -> list[str]:
 
 
 class BrandDriftGuardTests(SimpleTestCase):
-    """R10 — no non-allowlisted legacy brand strings under backend/apps."""
+    """R2.1/R10 — no non-allowlisted legacy brand strings under backend/apps or backend/config."""
 
     def test_allowlist_file_is_present_and_well_formed(self):
         self.assertTrue(
@@ -91,8 +112,8 @@ class BrandDriftGuardTests(SimpleTestCase):
         self.assertEqual(
             violations,
             [],
-            "Legacy brand strings (MIHAS/KATC/Mukuba/Kalulushi/apply.mihas.edu.zm) "
-            "found in non-allowlisted backend source. Either remove the brand "
+            "Legacy brand strings/domains found in non-allowlisted backend source "
+            "(backend/apps or backend/config). Either remove the brand "
             "fallback (R9) or, if this is legitimate tenant/seed/historical data, "
             "add the file to docs/legacy-brand-allowlist.json with a reason "
             "(R10.2).\nOffending hits:\n  " + "\n  ".join(violations),

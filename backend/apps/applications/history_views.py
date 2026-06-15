@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.applications.models import ApplicationStatusHistory
+from apps.catalog.services import AccessScopeService
 from apps.common.openapi_helpers import ErrorResponseSerializer, envelope_serializer, paginated_serializer
 
 
@@ -70,8 +71,15 @@ class TimelineHistoryView(APIView):
 
     def get(self, request):
         target_user_id = getattr(request.user, "pk", None)
-        if getattr(request.user, "role", None) in {"admin", "super_admin"}:
-            target_user_id = request.query_params.get("user_id") or target_user_id
+        role = getattr(request.user, "role", None)
+        is_staff_target_override = False
+        if role in {"admin", "super_admin"}:
+            override = request.query_params.get("user_id")
+            if override:
+                target_user_id = override
+                is_staff_target_override = role != "super_admin"
+
+        from apps.applications.models import Application
 
         history = (
             ApplicationStatusHistory.objects
@@ -79,6 +87,16 @@ class TimelineHistoryView(APIView):
             .select_related("application", "changed_by")
             .order_by("-created_at")
         )
+
+        # R5.2/R5.9: when a non-super-admin staff member targets another user's
+        # history via ?user_id=, intersect with the applications in their
+        # AccessScopeService scope so they cannot read status history for
+        # another school's applicant. Canonical-ID narrowing only (R5.8).
+        if is_staff_target_override:
+            scoped_app_ids = AccessScopeService().filter_applications(
+                Application.objects.all(), request.user
+            ).values_list("id", flat=True)
+            history = history.filter(application_id__in=scoped_app_ids)
 
         total_count = history.count()
 

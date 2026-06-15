@@ -1,4 +1,4 @@
-"""Shared email shell for all MIHAS-KATC outbound emails.
+"""Shared email shell for Beanola platform outbound emails.
 
 Wraps any piece of content HTML in the institutional shell: gradient hero
 header, rounded white body card, footer with address and legal line.
@@ -28,7 +28,7 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
         preheader = (
             escape(title)
             if title
-            else "Important update from Mukuba Institute of Health and Applied Sciences."
+            else "Important update from Beanola Admissions."
         )
 
     title_block = ""
@@ -36,8 +36,8 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
         title_block = f"""
 <tr>
   <td style="padding:{t.SPACE_LG} {t.SHELL_PADDING_X} {t.SPACE_SM} {t.SHELL_PADDING_X};"
-      class="mihas-pad">
-    <div class="mihas-title"
+      class="beanola-pad">
+    <div class="beanola-title"
          style="font-family:{t.FONT_DISPLAY};font-size:{t.TYPE_DISPLAY_SIZE};
                 line-height:{t.TYPE_DISPLAY_LINE};font-weight:{t.WEIGHT_BOLD};
                 color:{t.INK_900};letter-spacing:-0.02em;">
@@ -55,7 +55,7 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="color-scheme" content="light" />
 <meta name="supported-color-schemes" content="light" />
-<title>{escape(title) if title else 'MIHAS Admissions'}</title>
+<title>{escape(title) if title else 'Beanola Admissions'}</title>
 <style type="text/css">
   body, table, td, a {{
     -webkit-text-size-adjust: 100%;
@@ -76,17 +76,17 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
     text-decoration: none !important;
   }}
   @media screen and (max-width: 620px) {{
-    .mihas-shell {{
+    .beanola-shell {{
       border-radius: 20px !important;
     }}
-    .mihas-pad {{
+    .beanola-pad {{
       padding-left: 22px !important;
       padding-right: 22px !important;
     }}
-    .mihas-title {{
+    .beanola-title {{
       font-size: 24px !important;
     }}
-    .mihas-subcopy {{
+    .beanola-subcopy {{
       display: block !important;
       width: 100% !important;
       padding-top: 14px !important;
@@ -113,7 +113,7 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
       <table role="presentation" width="{t.SHELL_MAX_WIDTH}" cellpadding="0" cellspacing="0" align="center"><tr><td>
       <![endif]-->
       <table role="presentation" cellpadding="0" cellspacing="0"
-        class="mihas-shell"
+        class="beanola-shell"
         style="max-width:{t.SHELL_MAX_WIDTH}px;width:100%;background-color:#fbfdff;
                border-radius:{t.RADIUS_XL};overflow:hidden;
                box-shadow:0 20px 60px rgba(15,23,42,0.12);">
@@ -121,7 +121,7 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
           <td style="background-color:{t.HERO_GRADIENT_START};background-image:
             linear-gradient(135deg, {t.HERO_GRADIENT_START} 0%, {t.HERO_GRADIENT_MID} 58%, {t.HERO_GRADIENT_END} 100%);
             padding:{t.SHELL_PADDING_Y} {t.SHELL_PADDING_X} 26px {t.SHELL_PADDING_X};"
-              class="mihas-pad">
+              class="beanola-pad">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td>
@@ -131,18 +131,18 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
                               font-family:{t.FONT_BODY};font-size:11px;
                               font-weight:{t.WEIGHT_BOLD};letter-spacing:0.16em;
                               text-transform:uppercase;color:#dbeafe;">
-                    MIHAS Admissions
+                    Beanola Admissions
                   </div>
                   <div style="padding-top:16px;font-family:{t.FONT_DISPLAY};
                               font-size:29px;line-height:1.16;
                               font-weight:{t.WEIGHT_BOLD};color:{t.PAPER};">
-                    Mukuba Institute of Health &amp; Applied Sciences
+                    Beanola Technologies Admissions Platform
                   </div>
                 </td>
-                <td align="right" class="mihas-subcopy"
+                <td align="right" class="beanola-subcopy"
                     style="font-family:{t.FONT_BODY};font-size:12px;line-height:1.6;
                            color:#c7d8ef;">
-                  Kalulushi, Zambia<br />
+                  Lusaka, Zambia<br />
                   Admissions &amp; student communications
                 </td>
               </tr>
@@ -152,7 +152,7 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
         {title_block}
         <tr>
           <td style="padding:{t.SPACE_LG} {t.SHELL_PADDING_X} 34px {t.SHELL_PADDING_X};"
-              class="mihas-pad">
+              class="beanola-pad">
             <div style="background-color:{t.PAPER};border:1px solid #e2eaf2;
                         border-radius:{t.RADIUS_LG};padding:28px 26px;
                         font-family:{t.FONT_BODY};
@@ -164,21 +164,21 @@ def render_shell(content_html: str, *, title: str = "", preheader: str = "") -> 
         </tr>
         <tr>
           <td style="padding:0 {t.SHELL_PADDING_X} 0 {t.SHELL_PADDING_X};"
-              class="mihas-pad">
+              class="beanola-pad">
             <div style="height:1px;background:{t.INK_300};"></div>
           </td>
         </tr>
         <tr>
           <td style="padding:22px {t.SHELL_PADDING_X} 28px {t.SHELL_PADDING_X};"
-              class="mihas-pad">
+              class="beanola-pad">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td style="font-family:{t.FONT_BODY};font-size:12px;line-height:1.7;
                            color:#6a7a8d;">
                   <strong style="color:{t.INK_900};">
-                    Mukuba Institute of Health &amp; Applied Sciences
+                    Beanola Technologies
                   </strong><br />
-                  Plot 1234, Independence Avenue, Kalulushi, Zambia<br />
+                  Admissions technology platform, Zambia<br />
                   apply.beanola.com
                 </td>
                 <td align="right" valign="top"

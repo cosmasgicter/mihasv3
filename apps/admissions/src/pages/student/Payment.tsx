@@ -454,7 +454,7 @@ export default function PaymentPage() {
                 <p className="text-sm text-muted-foreground mb-2">Need help with payment?</p>
                 <p className="text-xs text-muted-foreground">
                   Contact support at{' '}
-                  <a href="mailto:admissions@mihas.edu.zm" className="text-primary hover:underline">admissions@mihas.edu.zm</a>
+                  <a href="mailto:admissions@beanola.com" className="text-primary hover:underline">admissions@beanola.com</a>
                 </p>
               </div>
             </CardContent>

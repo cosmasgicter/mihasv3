@@ -467,79 +467,79 @@ Each phase ends in a verification block and a checkpoint that pauses for the use
     - Cover status-gated action visibility, queued/generating/ready/failed rendering, email-of-stored-document, and admin scoped listing.
     - _Requirements: R17.1, R17.2, R17.4_
 
-- [ ] 38. Frontend UI guardrail gate
-  - [ ] 38.1 Run impeccable detect on the changed surfaces
+- [x] 38. Frontend UI guardrail gate
+  - [x] 38.1 Run impeccable detect on the changed surfaces
     - Run `impeccable detect apps/admissions/src/` and resolve P0 findings on the document UI surfaces.
     - _Requirements: R17.7_
 
-- [ ] 39. Checkpoint — Phase 10
+- [x] 39. Checkpoint — Phase 10
   - `cd apps/admissions && bun run type-check && bun run lint && bun run test`; then `bun run build`. Confirm no production student component renders a client-only official PDF. Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R17.1, R17.6, R17.7_
 
 ## Phase 11 — Drift guards (R18)
 
-- [ ] 40. Document-flow + fingerprint-dedup guards
-  - [ ] 40.1 Document-flow drift guard
+- [x] 40. Document-flow + fingerprint-dedup guards
+  - [x] 40.1 Document-flow drift guard
     - Create `apps/admissions/tests/unit/documentFlowDriftGuard.test.ts`: fail if a non-test student-facing module imports the `@/lib/pdf` barrel or calls `generateApplicationSlip`/`generateAcceptanceLetter`/`generatePaymentReceipt` for official downloads; report the offending module + symbol.
     - _Requirements: R18.1_
 
-  - [ ] 40.2 Fingerprint-dedup guard
+  - [x] 40.2 Fingerprint-dedup guard
     - Create `backend/tests/unit/test_official_document_dedup_guard.py`: fail if the official-document endpoint produces >1 persisted record for an unchanged fingerprint; report the duplicated fingerprint.
     - _Requirements: R18.2_
 
-- [ ] 41. Scope + unscoped-endpoint guards
-  - [ ] 41.1 Scope-authorization drift guard
+- [x] 41. Scope + unscoped-endpoint guards
+  - [x] 41.1 Scope-authorization drift guard
     - Create `backend/tests/unit/test_scope_drift_guard.py`: fail if any non-super-admin code path authorizes application/payment/document access on an admin role check alone without `AccessScopeService`; report the offending path.
     - _Requirements: R18.3_
 
-  - [ ] 41.2 Unscoped-endpoint guard
+  - [x] 41.2 Unscoped-endpoint guard
     - Create `backend/tests/unit/test_unscoped_endpoint_guard.py`: fail if a document-serving endpoint returns application/payment/document records not constrained by `AccessScopeService` scope.
     - _Requirements: R18.4_
 
-  - [ ] 41.3 Wire all four guards into the standard test command
+  - [x] 41.3 Wire all four guards into the standard test command
     - Ensure the document-flow, fingerprint-dedup, scope, and unscoped-endpoint guards run in the standard per-package test command and cause a non-zero exit on failure.
     - _Requirements: R18.5_
 
-- [ ] 42. Checkpoint — Phase 11
+- [x] 42. Checkpoint — Phase 11
   - `cd backend && python3 -m pytest tests/unit/test_official_document_dedup_guard.py tests/unit/test_scope_drift_guard.py tests/unit/test_unscoped_endpoint_guard.py -q`; `cd apps/admissions && bun run test -- --run tests/unit/documentFlowDriftGuard`. Ensure all four guards run and pass. Ask the user if questions arise.
   - _Requirements: R18.1, R18.2, R18.3, R18.4, R18.5_
 
 ## Phase 12 — Documentation + rollout runbook honesty (R19)
 
-- [ ] 43. Update progress/handover/rollout docs + canonical-truth map
-  - [ ] 43.1 Honest progress/handover docs
+- [x] 43. Update progress/handover/rollout docs + canonical-truth map
+  - [x] 43.1 Honest progress/handover docs
     - Update `docs/multi-tenant-beanola-progress.md` and `docs/multi-tenant-beanola-handover.md` to separate "code complete" / "staging validated" / "production applied"; use real, non-future-dated timestamps (handoff date 2026-06-09); point every migration path at the Deployable_Migration_Path; do not mark work complete while migrations aren't deployable, security holes remain open, or students still use client-side official documents.
     - _Requirements: R19.1, R19.2, R19.5_
 
-  - [ ] 43.2 Complete the rollout runbook (Neon-first, production gated)
+  - [x] 43.2 Complete the rollout runbook (Neon-first, production gated)
     - Update `docs/runbooks/multi-tenant-beanola-rollout.md` to reflect the Neon-first then production workflow (never apply production DB changes from this environment) and enumerate operator steps: back up the production DB → verify the migration-history prerequisite → dry-run + confirm the Tenant_Migration appears → apply in a maintenance window → post-migration validation SQL → validate MIHAS/KATC sample document generation → onboard a test school on staging → validate school-staff scope → validate the program-first flow → validate payment settlement metadata → monitor audit/errors → application-code rollback plan. Include the `migration_history` reconciliation note for any DB where the old filename was hand-applied, and the student-number rename `SELECT 1 FROM migration_history ...` precheck. **Production apply remains an operator step gated on user confirmation — never an automatic task here.**
     - _Requirements: R19.3, R19.4, R19.5_
 
-  - [ ] 43.3 Register new concepts in the canonical-truth map
+  - [x] 43.3 Register new concepts in the canonical-truth map
     - Add `institution_document_profiles`, the official-document current-version/fingerprint lifecycle, the tenant-aware `communication_templates` columns, and the capacity-advisory-until-enrollment decision to `docs/canonical-truth-map.md`; confirm a drift-guard test exists for each frontend mirror.
     - _Requirements: R19.5, R20.10, R20.11_
 
-- [ ] 44. Checkpoint — Phase 12
+- [x] 44. Checkpoint — Phase 12
   - Run the migration-drift doc-path guard (`backend/tests/unit/test_migration_drift_guard.py`) and confirm every doc-referenced migration path resolves and no doc marks the work production-applied. Ask the user if questions arise.
   - _Requirements: R19.1, R19.3, R19.5_
 
 ## Phase 13 — Final verification (R20, R21)
 
-- [ ] 45. Backward-compatibility + full verification gates
-  - [ ] 45.1 Backward-compatibility property test
+- [x] 45. Backward-compatibility + full verification gates
+  - [x] 45.1 Backward-compatibility property test
     - **Property 25: Legacy null-canonical-ID applications remain readable** — applications with null canonical IDs return via their `Legacy_String_Fields` without error.
     - **Validates: Requirements 20.3** (`backend/tests/property/test_backward_compat_properties.py`; `--hypothesis-seed=0`, ≥100 examples)
     - _Requirements: R20.3_
 
-  - [ ] 45.2 Run all backend + frontend gates
+  - [x] 45.2 Run all backend + frontend gates
     - Backend: `cd backend && python3 manage.py check`, `python3 -m pytest tests/unit -q` (and the new property files), `python3 manage.py spectacular --file /tmp/schema.yaml` — pass only on zero failures/issues/errors. Admissions: `cd apps/admissions && bun run type-check && bun run lint && bun run test`, then `bun run build` — pass only on zero errors. `git diff --check`. Record every skipped check with a written reason. Confirm routes, envelope, paginated shape, auth/CSRF/JTI, auto-save/≥44px/mobile-money-first UX, and RBAC are all preserved (R20.1–R20.9).
     - _Requirements: R20.1, R20.2, R20.4, R20.5, R20.7, R20.8, R20.9, R21.1, R21.2_
 
-  - [ ] 45.3 Targeted final searches (Definition of Done)
+  - [x] 45.3 Targeted final searches (Definition of Done)
     - Brand search: `rg -n "MIHAS|KATC|Mukuba|Kalulushi|apply.mihas.edu.zm" apps/admissions/src apps/admissions/index.html backend/apps` → every hit allowlisted or rationale-recorded. Document-generator search → zero production student-path imports of client PDF generators for official documents. Scoped-access search → zero non-super-admin paths loading applications/payments/documents without `AccessScopeService`. Confirm the DoD: Tenant_Migration discoverable, docs accurate/not future-dated, out-of-scope admins blocked, student downloads come from backend stored documents, official documents deletion-protected, backend documents render from tenant config, new schools onboard without code changes, unknown schools never fall back to MIHAS, shared-portal branding is Beanola.
     - _Requirements: R21.3, R21.4, R21.5, R21.6, R21.7_
 
-- [ ] 46. Final checkpoint — remediation complete
+- [x] 46. Final checkpoint — remediation complete
   - Confirm all verification steps pass; record any failure with the failing step and resolve before handoff. Ensure all tests pass, ask the user if questions arise.
   - _Requirements: R21.6, R21.7_
 

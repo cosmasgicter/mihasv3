@@ -34,8 +34,8 @@ def render(context: dict) -> tuple[str, str]:
     paragraphs = [
         paragraph(f"Dear {student},"),
         paragraph(
-            "Thank you for your application to Mukuba Institute of Health "
-            f"and Applied Sciences for <strong>{escape(program)}</strong> "
+            "Thank you for your application through Beanola Admissions for "
+            f"<strong>{escape(program)}</strong> "
             f"({escape(intake)}). We are grateful for the care you put into it."
         ),
         paragraph(
@@ -57,7 +57,7 @@ def render(context: dict) -> tuple[str, str]:
             section_heading("What you can do next"),
             paragraph(
                 "We encourage you to consider applying again for a future intake "
-                "or to explore the other programmes in the MIHAS-KATC portfolio. "
+                "or to explore other programmes available through Beanola. "
                 "Our admissions team is happy to discuss the best fit for your "
                 "qualifications and career goals."
             ),

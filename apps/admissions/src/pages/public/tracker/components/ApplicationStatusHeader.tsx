@@ -1,5 +1,5 @@
 import React from 'react'
-import { GraduationCap, Calendar, Clock, Share2, Copy, Download, Mail, Trophy, XCircle, Target, Rocket } from 'lucide-react'
+import { GraduationCap, Calendar, Clock, Share2, Copy, Trophy, XCircle, Target, Rocket } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PublicApplicationStatus } from '../hooks/useApplicationTracker'
 import { formatDisplayDate } from '../utils/trackerUtils'
@@ -8,12 +8,8 @@ import { animateClasses } from '@/lib/animations'
 interface ApplicationStatusHeaderProps {
   application: PublicApplicationStatus
   copied: boolean
-  slipLoading: boolean
-  emailLoading: boolean
   onShare: () => void
   onCopy: () => void
-  onDownloadSlip: () => void
-  onEmailSlip: () => void
 }
 
 const STATUS_STEPS = ['submitted', 'under_review', 'approved'] as const
@@ -63,12 +59,8 @@ function StepIndicator({ currentStatus }: { currentStatus: string }) {
 export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = ({
   application,
   copied,
-  slipLoading,
-  emailLoading,
   onShare,
-  onCopy,
-  onDownloadSlip,
-  onEmailSlip
+  onCopy
 }) => {
   return (
     <div className="border-b border-border bg-foreground p-5 sm:p-6">
@@ -127,16 +119,6 @@ export const ApplicationStatusHeader: React.FC<ApplicationStatusHeaderProps> = (
             </Button>
           </div>
           
-          <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-center lg:justify-end">
-            <Button variant="outline" size="sm" onClick={onDownloadSlip} loading={slipLoading} className="rounded-lg bg-card/10 border-white/20 text-white hover:bg-card/20">
-              <Download className="h-4 w-4 mr-1.5" />
-              Download Slip
-            </Button>
-            <Button variant="outline" size="sm" onClick={onEmailSlip} loading={emailLoading} className="rounded-lg bg-card/10 border-white/20 text-white hover:bg-card/20">
-              <Mail className="h-4 w-4 mr-1.5" />
-              Email Slip
-            </Button>
-          </div>
         </div>
       </div>
     </div>

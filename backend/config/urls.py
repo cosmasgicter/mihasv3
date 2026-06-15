@@ -1,4 +1,4 @@
-"""Root URL configuration for MIHAS Django API."""
+"""Root URL configuration for the Beanola Django API."""
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
@@ -16,7 +16,7 @@ from apps.documents.urls import document_urlpatterns, payment_urlpatterns, progr
 
 urlpatterns = [
     path("", APIHomeView.as_view(), name="api-root"),
-    path("mihas-admin-panel/", admin.site.urls),
+    path("beanola-admin-panel/", admin.site.urls),
     # Health checks at root level (not under /api/v1/)
     path("health/live/", LivenessView.as_view(), name="health-live"),
     path("health/ready/", ReadinessView.as_view(), name="health-ready"),

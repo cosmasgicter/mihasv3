@@ -7,17 +7,9 @@ import { animateClasses } from '@/lib/animations'
 
 import type { SubmittedApplicationSummary } from '../hooks/useApplicationSlip'
 
-// Institution code to name mapping
-const INSTITUTION_NAMES: Record<string, string> = {
-  'KATC': 'Kalulushi Training Centre',
-  'katc': 'Kalulushi Training Centre',
-  'MIHAS': 'Mukuba Institute of Health and Applied Sciences',
-  'mihas': 'Mukuba Institute of Health and Applied Sciences'
-}
-
 const getInstitutionName = (code?: string) => {
-  if (!code) return 'Not specified'
-  return INSTITUTION_NAMES[code] || code
+  const value = code?.trim()
+  return value || 'Not specified'
 }
 
 interface SubmissionSuccessProps {
@@ -114,8 +106,8 @@ const SubmissionSuccess = ({
       >
         {/* Institution logo */}
         <img
-          src="/images/logos/mihas-logo.webp"
-          alt="MIHAS — Mukuba Institute of Health and Applied Sciences"
+          src="/images/logos/beanolalogo.webp"
+          alt="Beanola Admissions"
           className="mx-auto mb-6 h-16 w-auto object-contain"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
         />

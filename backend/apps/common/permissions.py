@@ -1,1 +1,1 @@
-"""Custom permission classes for the MIHAS platform."""
+"""Custom permission classes for the Beanola platform."""

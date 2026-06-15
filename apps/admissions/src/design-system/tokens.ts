@@ -1,5 +1,5 @@
 /**
- * MIHAS Design System - Design Tokens
+ * Beanola design system - design tokens
  * Central source of truth for all design values
  */
 

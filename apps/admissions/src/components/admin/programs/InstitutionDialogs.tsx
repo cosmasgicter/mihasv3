@@ -41,7 +41,7 @@ function InstitutionFormFields({ form, showStatus }: InstitutionFormFieldsProps)
       <Input
         label="Institution code"
         {...form.register('code')}
-        helperText="Short internal code such as MIHAS."
+        helperText="Short internal code such as BNL."
       />
       <Textarea
         label="Description"

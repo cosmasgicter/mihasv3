@@ -1,4 +1,4 @@
-"""Middleware chain for the MIHAS Django API.
+"""Middleware chain for the Beanola Django API.
 
 Implements security headers, request ID propagation, rate limiting,
 audit logging, and request metrics.
@@ -212,6 +212,7 @@ class RateLimitMiddleware:
       /api/v1/auth/                → 60/5m
       /api/v1/admin/               → 60/10m
       /api/v1/documents/           → 20/10m
+      /api/v1/applications/bulk-status/ → 20/10m  (admin bulk state transitions, R4.8)
       /api/v1/applications/track/  → 20/10m
       /api/v1/sessions/            → 30/10m
       /api/v1/notifications/       → 50/10m
@@ -221,7 +222,7 @@ class RateLimitMiddleware:
       /api/v1/integrations/        → 20/10m
       /api/v1/payments/            → 60/10m
       /api/v1/                     → 120/10m  (catch-all)
-      /mihas-admin-panel/          → 10/1m    (Django admin brute-force protection)
+      /beanola-admin-panel/        → 10/1m    (Django admin brute-force protection)
     """
 
     # (prefix, rate string | None)
@@ -239,6 +240,7 @@ class RateLimitMiddleware:
         # Existing scopes
         ("/api/v1/admin/", "60/10m"),
         ("/api/v1/documents/", "20/10m"),
+        ("/api/v1/applications/bulk-status/", "20/10m"),
         ("/api/v1/applications/track/", "20/10m"),
         ("/api/v1/sessions/", "30/10m"),
         ("/api/v1/notifications/", "50/10m"),
@@ -259,7 +261,7 @@ class RateLimitMiddleware:
         # Catch-all API (must be last API scope)
         ("/api/v1/", "120/10m"),
         # Django admin panel - strict brute-force protection
-        ("/mihas-admin-panel/", "10/1m"),
+        ("/beanola-admin-panel/", "10/1m"),
     ]
 
     # These payment routes are governed at the DRF view layer. When hardening

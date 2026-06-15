@@ -408,12 +408,12 @@ REST_FRAMEWORK = {
 # ---------------------------------------------------------------------------
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "MIHAS Platform APIs",
+    "TITLE": "Beanola Platform APIs",
     "DESCRIPTION": """
 Creator: Cosmas Kanchepa
 Developed by Beanola Technologies - https://beanola.com
 
-The MIHAS platform API surface now includes the existing admissions backend plus the implemented
+The Beanola platform API surface now includes the existing admissions backend plus the implemented
 Jobs Ops v1 domain for AI-driven job discovery, application operations, outreach, and reporting.
 
 ## What this API demonstrates
@@ -469,18 +469,18 @@ Protected endpoints accept either:
     ],
     # Contact / license metadata (fixes linter `Missing recommended info field: contact`)
     "CONTACT": {
-        "name": "MIHAS Admissions Platform Team",
-        "email": "admissions@mihas.edu.zm",
-        "url": "https://mihas.edu.zm",
+        "name": "Beanola Admissions Platform Team",
+        "email": "admissions@beanola.com",
+        "url": "https://beanola.com",
     },
     "LICENSE": {
         "name": "Proprietary",
-        "url": "https://mihas.edu.zm",
+        "url": "https://beanola.com",
     },
-    "TERMS_OF_SERVICE": "https://mihas.edu.zm/terms",
+    "TERMS_OF_SERVICE": "https://beanola.com/terms",
     "EXTERNAL_DOCS": {
         "description": "Operator documentation",
-        "url": "https://mihas.edu.zm/docs/api/",
+        "url": "https://beanola.com/docs/api/",
     },
     # Auto-tag operations that lack an explicit tags= kwarg on @extend_schema.
     # This catches legacy views that were never tagged and emits a consistent
@@ -514,12 +514,12 @@ EMAIL_HOST_USER = os.environ.get('ZOHO_SMTP_USERNAME', '')
 EMAIL_HOST_PASSWORD = os.environ.get('ZOHO_SMTP_PASSWORD', '')
 EMAIL_USE_SSL = True  # Port 465 uses SSL
 EMAIL_USE_TLS = False
-DEFAULT_FROM_EMAIL = os.environ.get('ZOHO_FROM_EMAIL', os.environ.get('EMAIL_FROM', 'admin@mihas.edu.zm'))
+DEFAULT_FROM_EMAIL = os.environ.get('ZOHO_FROM_EMAIL', os.environ.get('EMAIL_FROM', 'admin@beanola.com'))
 
 # Resend (fallback)
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
-EMAIL_FROM = os.environ.get("EMAIL_FROM", "noreply@mihas.edu.zm")
-ERROR_ALERT_EMAIL = os.environ.get("ERROR_ALERT_EMAIL", "admin@mihas.edu.zm")
+EMAIL_FROM = os.environ.get("EMAIL_FROM", "noreply@beanola.com")
+ERROR_ALERT_EMAIL = os.environ.get("ERROR_ALERT_EMAIL", "admin@beanola.com")
 
 # ---------------------------------------------------------------------------
 # Uptime monitoring — internal health check URL

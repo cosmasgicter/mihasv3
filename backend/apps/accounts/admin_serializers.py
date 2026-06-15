@@ -120,7 +120,7 @@ def _validate_known_setting_value(key, value) -> None:
 DEFAULT_GUIDED_SETTINGS = [
     {
         "key": "site_name",
-        "value": "MIHAS Application System",
+        "value": "Beanola Admissions Platform",
         "description": "Primary platform title shown across public and authenticated screens.",
         "category": "general",
         "is_public": True,
@@ -134,7 +134,7 @@ DEFAULT_GUIDED_SETTINGS = [
     },
     {
         "key": "contact_email",
-        "value": "admissions@mihas.edu.zm",
+        "value": "admissions@beanola.com",
         "description": "Primary email used for admissions contact, slip delivery, and public support messaging.",
         "category": "contact",
         "is_public": True,
