@@ -905,11 +905,13 @@ captured.
   production `migration_history`; validation invariants hold — `canonical_programs`
   4, institutions 2/2, 48/48 applications fully canonical (0 null), 0 duplicate
   hostnames/slugs, 2 assets, 3 document profiles.
-- **Per-school staff (R12.7):** two institution-admin users seeded and bound via
-  active `user_institution_memberships` — `admin@mihas.edu.zm` → MIHAS,
-  `admin@katc.edu.zm` → KATC (both `role=admin`, active, email-verified;
-  `active_memberships = 2`). Reproducible via
-  `python manage.py seed_school_admins` (no hardcoded credential).
+- **Per-school staff (R12.7):** each active school has an active institution
+  **admin and reviewer**, bound via active `user_institution_memberships`
+  (`active_memberships = 4`):
+  `admin@mihas.edu.zm` + `reviewer@mihas.edu.zm` → MIHAS;
+  `admin@katc.edu.zm` + `reviewer@katc.edu.zm` → KATC (all active, email-verified).
+  Admins are reproducible via `python manage.py seed_school_admins` (no hardcoded
+  credential); reviewers were seeded with the same bcrypt-hashed pattern.
 - **Health / availability (R15.6 automated portion):** `https://api.beanola.com/health/live/`
   → 200, `/health/ready/` → 200 (DB + Redis/Celery ready),
   `https://apply.beanola.com/` → 200.
@@ -920,10 +922,9 @@ captured.
 browser smoke walk in `docs/runbooks/production-smoke-checklist.md` (signup →
 wizard → payment init → admin login at `/admin/tenants` → official-doc
 generation, etc.) should be ticked through at go-live. The automated health/API
-checks above pass; the manual UX walk is the operator's final confirmation. A
-second per-school **reviewer** account (R12.7 also lists a reviewer per school)
-can be seeded the same way (`--admin CODE=email` with `role` reviewer) if the
-deployment separates reviewer from admin.
+checks above pass; the manual UX walk is the operator's final confirmation. Both
+active schools (MIHAS, KATC) now have an active admin **and** reviewer
+membership, fully satisfying the R12.7 per-school staff check.
 
 Spec `.kiro/specs/beanola-production-readiness/` Phase 15, task 31.2 (R15.3,
 R15.8).
