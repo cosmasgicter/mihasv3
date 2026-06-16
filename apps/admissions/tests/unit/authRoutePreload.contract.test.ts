@@ -32,7 +32,10 @@ describe('auth route preload and session race contracts', () => {
     expect(routePreload).toContain("import('@/components/navigation/AppLayout')")
     expect(routePreload).toContain("import('@/pages/student/Dashboard')")
     expect(routePreload).toContain("import('@/pages/admin/Dashboard')")
-    expect(signInPage).toContain('preloadPostAuthWorkspace')
+    // SignInPage preloads the post-auth workspace via onLoginSuccess (which
+    // calls preloadAdminWorkspaceRoute / preloadStudentWorkspaceRoute at idle,
+    // so the preload no longer competes with the post-login navigation).
+    expect(signInPage).toContain('onLoginSuccess')
     expect(signUpPage).toContain('preloadStudentWorkspaceRoute')
   })
 

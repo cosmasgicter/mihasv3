@@ -379,6 +379,7 @@ _PROTECTED.update(
         "apps.accounts.auth_views.LogoutView",
         "apps.accounts.profile_views.ProfileView",
         "apps.accounts.admin_user_views.AdminDashboardView",
+        "apps.accounts.admin_user_views.AdminScopeView",
         "apps.accounts.admin_user_views.AdminUserListView",
         "apps.accounts.admin_user_views.AdminUserDetailView",
         "apps.accounts.admin_user_views.AdminUserExportView",

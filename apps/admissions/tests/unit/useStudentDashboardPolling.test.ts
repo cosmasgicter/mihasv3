@@ -54,11 +54,13 @@ describe('useStudentDashboardPolling', () => {
       expect(hookContent).toContain('document.visibilityState');
       expect(hookContent).toContain('pollingInterval * 2');
     });
-    it('sets staleTime to 0 for always-fresh data', () => {
-      expect(hookContent).toContain('staleTime: 0');
+    it('sets a short staleTime so data stays fresh between polls without redundant refetches', () => {
+      // Fingerprint dedup prevents UI churn, so a 30s staleTime cuts redundant
+      // API load on the small box without changing what the user sees.
+      expect(hookContent).toContain('staleTime: 30_000');
     });
-    it('defaults to 30s polling', () => {
-      expect(hookContent).toContain('POLLING_INTERVAL = 30000');
+    it('defaults to 60s polling', () => {
+      expect(hookContent).toContain('POLLING_INTERVAL = 60000');
     });
   });
 

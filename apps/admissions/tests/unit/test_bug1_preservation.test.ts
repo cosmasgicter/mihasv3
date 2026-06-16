@@ -67,7 +67,10 @@ describe('Bug 1: Preservation — Vite Config Structure and Build Options', () =
   });
 
   it('should preserve modulePreload polyfill disabled', () => {
-    expect(viteConfig).toMatch(/modulePreload\s*:\s*\{\s*polyfill\s*:\s*false\s*\}/);
+    // polyfill stays false; modulePreload may also carry a resolveDependencies
+    // hook (to strip heavy lazy chunks from first-paint preload), so assert the
+    // polyfill flag rather than the exact object shape.
+    expect(viteConfig).toMatch(/modulePreload\s*:\s*\{[\s\S]*?polyfill\s*:\s*false/);
   });
 
   it('should have assetsInlineLimit defined as a numeric value', () => {

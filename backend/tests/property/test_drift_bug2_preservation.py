@@ -34,7 +34,9 @@ def _make_admin_user():
     user = MagicMock()
     user.pk = uuid.uuid4()
     user.is_authenticated = True
-    user.role = "admin"
+    # Settings writes are super-admin-only in the multi-tenant model (platform
+    # settings are global). These preservation tests exercise the write path.
+    user.role = "super_admin"
     return user
 
 
