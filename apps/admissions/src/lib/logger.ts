@@ -2,10 +2,48 @@
  * Structured logger that routes to GlitchTip (Sentry) in production
  * and console in development. Centralises error/warn reporting so we
  * never lose visibility into production issues.
+ *
+ * Sentry is imported LAZILY (dynamic import) rather than at module top level.
+ * `logger` is imported by ~60 modules including the eager entry chain, so a
+ * static `import * as Sentry` pulled the full SDK (~60-80 KB gzip) into the
+ * critical entry/vendor bundle for every visitor — defeating the deliberate
+ * idle-time lazy-load of the reporter in `main.tsx`. Here the SDK is fetched
+ * only on the first prod-level log call; calls made before it resolves are
+ * buffered and flushed in order, so no signal is lost.
  */
-import * as Sentry from '@sentry/react'
 
 const isDev = import.meta.env.DEV
+
+type SentryModule = typeof import('@sentry/react')
+
+let sentryModule: SentryModule | null = null
+let sentryLoading: Promise<SentryModule | null> | null = null
+const pending: Array<(s: SentryModule) => void> = []
+
+function loadSentry(): Promise<SentryModule | null> {
+  if (sentryModule) return Promise.resolve(sentryModule)
+  if (!sentryLoading) {
+    sentryLoading = import('@sentry/react')
+      .then((mod) => {
+        sentryModule = mod
+        // Flush anything queued before the SDK finished loading.
+        while (pending.length) pending.shift()!(mod)
+        return mod
+      })
+      .catch(() => null)
+  }
+  return sentryLoading
+}
+
+/** Run `fn` against the Sentry SDK now if loaded, else after it loads. */
+function withSentry(fn: (s: SentryModule) => void): void {
+  if (sentryModule) {
+    fn(sentryModule)
+    return
+  }
+  pending.push(fn)
+  void loadSentry()
+}
 
 export const logger = {
   /**
@@ -18,14 +56,16 @@ export const logger = {
       return
     }
     const extra = (typeof context === 'object' && context !== null ? context : {}) as Record<string, unknown>
-    if (errorOrContext instanceof Error) {
-      Sentry.captureException(errorOrContext, { extra: { message, ...extra } })
-    } else {
-      Sentry.captureMessage(message, {
-        level: 'error',
-        extra: { context: errorOrContext, ...extra },
-      })
-    }
+    withSentry((Sentry) => {
+      if (errorOrContext instanceof Error) {
+        Sentry.captureException(errorOrContext, { extra: { message, ...extra } })
+      } else {
+        Sentry.captureMessage(message, {
+          level: 'error',
+          extra: { context: errorOrContext, ...extra },
+        })
+      }
+    })
   },
 
   /**
@@ -37,11 +77,13 @@ export const logger = {
       console.warn(message, context)
       return
     }
-    Sentry.addBreadcrumb({
-      category: 'warning',
-      message,
-      level: 'warning',
-      data: typeof context === 'object' && context !== null ? (context as Record<string, unknown>) : undefined,
+    withSentry((Sentry) => {
+      Sentry.addBreadcrumb({
+        category: 'warning',
+        message,
+        level: 'warning',
+        data: typeof context === 'object' && context !== null ? (context as Record<string, unknown>) : undefined,
+      })
     })
   },
 
@@ -54,11 +96,13 @@ export const logger = {
       console.info(message, context)
       return
     }
-    Sentry.addBreadcrumb({
-      category: 'info',
-      message,
-      level: 'info',
-      data: typeof context === 'object' && context !== null ? (context as Record<string, unknown>) : undefined,
+    withSentry((Sentry) => {
+      Sentry.addBreadcrumb({
+        category: 'info',
+        message,
+        level: 'info',
+        data: typeof context === 'object' && context !== null ? (context as Record<string, unknown>) : undefined,
+      })
     })
   },
 

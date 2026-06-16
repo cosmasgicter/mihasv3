@@ -69,6 +69,14 @@
       paint.
     -->
     <style>
+      /* ── Beanola first-paint preloader ──────────────────────────────────────
+         Aesthetic direction: "precise institutional" — calm, confident, quiet.
+         Authored (not AI-default): flat single-tone surface (no radial gradient
+         blooms), one accent colour (#2563eb) used with restraint, a single
+         intentional motion — a thin sweep line + a soft sheen passing once over
+         the wordmark. No glow ring, no multicolour shimmer bar, no glassmorphism.
+         Reduced-motion collapses to a still, complete state.
+         ──────────────────────────────────────────────────────────────────── */
       html, body { margin: 0; background: #f8fafc; }
       .mihas-preloader {
         position: fixed;
@@ -79,11 +87,8 @@
         align-items: center;
         justify-content: center;
         padding: 24px;
-        background:
-          radial-gradient(circle at 20% 15%, rgba(37, 99, 235, 0.08), transparent 45%),
-          radial-gradient(circle at 85% 90%, rgba(180, 83, 9, 0.06), transparent 40%),
-          #f8fafc;
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: #f8fafc;
+        font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         color: #0f172a;
         transition: opacity 0.35s ease;
       }
@@ -91,98 +96,122 @@
         opacity: 0;
         pointer-events: none;
       }
+      /* A faint hairline baseline anchors the mark — an intentional asymmetric
+         detail rather than a centred-everything default. */
       .mihas-pre-card {
         width: 100%;
-        max-width: 360px;
+        max-width: 320px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 16px;
-        animation: mihas-pre-rise 0.5s ease;
+        gap: 18px;
+        animation: mihas-pre-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
       }
       .mihas-pre-logo {
-        width: 64px;
-        height: 64px;
-        border-radius: 16px;
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
         background: #ffffff;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px -12px rgba(37, 99, 235, 0.35);
         position: relative;
+        overflow: hidden;
       }
       .mihas-pre-logo svg,
       .mihas-pre-logo img {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         object-fit: contain;
       }
+      /* Single soft sheen passing across the logo tile — one quiet motion,
+         not a spinning glow ring. */
       .mihas-pre-logo::after {
         content: "";
         position: absolute;
-        inset: -4px;
-        border-radius: 20px;
-        border: 2px solid transparent;
-        border-top-color: #2563eb;
-        border-right-color: #2563eb;
-        animation: mihas-pre-spin 1.3s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        inset: 0;
+        background: linear-gradient(105deg, transparent 30%, rgba(37, 99, 235, 0.14) 50%, transparent 70%);
+        transform: translateX(-120%);
+        animation: mihas-pre-sheen 2.4s ease-in-out infinite;
       }
       .mihas-pre-wordmark {
+        position: relative;
         font-size: 15px;
         font-weight: 600;
-        letter-spacing: -0.01em;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
         color: #0f172a;
         text-align: center;
+        /* Soft sheen sweep across the wordmark — single accent, reads as
+           "alive" without a decorative gradient fill. */
+        background: linear-gradient(90deg, #0f172a 0%, #0f172a 38%, #2563eb 50%, #0f172a 62%, #0f172a 100%);
+        background-size: 250% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: mihas-pre-wordmark-sheen 2.8s ease-in-out infinite;
       }
       .mihas-pre-sub {
         font-size: 13px;
-        color: #475569;
+        color: #64748b;
         text-align: center;
+        letter-spacing: 0;
+        text-transform: none;
         min-height: 1.25em;
         transition: opacity 0.3s ease;
       }
+      /* One thin monochrome indeterminate sweep — no multicolour gradient. */
       .mihas-pre-bar {
-        width: 100%;
-        max-width: 220px;
-        height: 3px;
-        border-radius: 3px;
-        background: rgba(37, 99, 235, 0.12);
+        width: 168px;
+        height: 2px;
+        border-radius: 2px;
+        background: rgba(15, 23, 42, 0.08);
         overflow: hidden;
-        margin-top: 4px;
       }
       .mihas-pre-bar-inner {
         height: 100%;
-        width: 35%;
-        border-radius: 3px;
-        background: linear-gradient(90deg, #2563eb, #3b82f6, #b45309, #2563eb);
-        background-size: 300% 100%;
-        animation: mihas-pre-flow 1.6s linear infinite;
+        width: 40%;
+        border-radius: 2px;
+        background: #2563eb;
+        animation: mihas-pre-slide 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
       }
       .mihas-pre-slow {
-        margin-top: 20px;
+        margin-top: 22px;
         font-size: 12px;
-        color: #64748b;
+        color: #94a3b8;
         text-align: center;
       }
       .mihas-pre-slow a {
         color: #2563eb;
         text-decoration: underline;
+        text-underline-offset: 2px;
       }
       @keyframes mihas-pre-rise {
-        from { opacity: 0; transform: translateY(6px); }
+        from { opacity: 0; transform: translateY(8px); }
         to { opacity: 1; transform: none; }
       }
-      @keyframes mihas-pre-spin {
-        to { transform: rotate(360deg); }
+      @keyframes mihas-pre-sheen {
+        0% { transform: translateX(-120%); }
+        55%, 100% { transform: translateX(120%); }
       }
-      @keyframes mihas-pre-flow {
-        0% { background-position: 100% 0; transform: translateX(-60%); }
-        100% { background-position: 0 0; transform: translateX(240%); }
+      @keyframes mihas-pre-wordmark-sheen {
+        0% { background-position: 130% 0; }
+        55%, 100% { background-position: -30% 0; }
+      }
+      @keyframes mihas-pre-slide {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(320%); }
       }
       @media (prefers-reduced-motion: reduce) {
         .mihas-pre-card { animation: none; }
-        .mihas-pre-logo::after { animation: none; border-color: #2563eb; }
-        .mihas-pre-bar-inner { animation: none; width: 100%; }
+        .mihas-pre-logo::after { animation: none; opacity: 0; }
+        .mihas-pre-wordmark {
+          animation: none;
+          background: none;
+          -webkit-text-fill-color: #0f172a;
+        }
+        .mihas-pre-bar-inner { animation: none; width: 100%; background: #2563eb; }
       }
     </style>
 

@@ -49,7 +49,7 @@ export interface UseStudentDashboardPollingReturn {
   lastUpdated: Date | null
 }
 
-const POLLING_INTERVAL = 30000
+const POLLING_INTERVAL = 60000
 
 /**
  * Compute a fingerprint of student applications for deduplication.
@@ -174,7 +174,10 @@ export function useStudentDashboardPolling(
           return pollingInterval * 2
         }
       : false,
-    staleTime: 0,
+    // Half the polling interval: data stays fresh between polls without
+    // refetching on every remount/focus. Fingerprint dedup already prevents
+    // UI churn, so this purely cuts redundant API load on the small box.
+    staleTime: 30_000,
   })
 
   // Reset or increment error counter based on query state

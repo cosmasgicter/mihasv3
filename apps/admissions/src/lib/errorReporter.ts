@@ -41,10 +41,25 @@ export function initErrorReporter(): void {
     dsn,
     environment: import.meta.env.MODE,
     release: import.meta.env.VITE_APP_VERSION ?? 'unknown',
-    // Conserve GlitchTip free-tier quota: sample performance traces low and
-    // only forward a fraction of errors. Combined with the beforeSend guard
-    // below this keeps the ingest endpoint well under its rate limit.
-    tracesSampleRate: 0.01,
+    // ── GlitchTip free-tier quota: ERRORS ONLY ──────────────────────────────
+    // The 429s on `…/envelope/` were release-health *session* envelopes
+    // (captureSession/sendSession) and performance *transaction* envelopes —
+    // neither of which beforeSend/sampleRate gate. We do not use GlitchTip's
+    // release-health or performance dashboards, so both envelope sources are
+    // turned off entirely. Only sampled + deduped + capped error events are
+    // sent, which is all we consume.
+    //
+    // In Sentry JS v8+ there is no `autoSessionTracking` option — session
+    // tracking is owned solely by the `BrowserSession` integration, and
+    // performance by `BrowserTracing`. Dropping both integrations below (plus
+    // tracesSampleRate: 0) eliminates every non-error envelope at the source.
+    tracesSampleRate: 0,               // no performance transaction envelopes
+    integrations: (defaults) =>
+      defaults.filter(
+        (integration) =>
+          integration.name !== 'BrowserSession' &&
+          integration.name !== 'BrowserTracing',
+      ),
     sampleRate: 0.25,
     sendDefaultPii: false,
     // Drop browser-extension / network noise that adds no signal but burns quota.

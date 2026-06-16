@@ -11,6 +11,8 @@ import { Seo } from '@/components/seo/Seo'
 import { useAdminDashboardPolling } from '@/hooks/useAdminDashboardPolling'
 import { useAdminDashboardLoader } from '@/hooks/admin'
 import { RealtimeMetricsDisplay } from '@/components/admin/RealtimeMetricsDisplay'
+import { InstitutionSwitcher } from '@/components/admin/InstitutionSwitcher'
+import { useInstitutionScope } from '@/contexts/InstitutionScopeContext'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import { getAdminDisplayName, shouldLoadAdminDashboard } from '@/pages/admin/lib/dashboardBootstrap'
 import { PageShell } from '@/components/ui/PageShell'
@@ -37,7 +39,8 @@ export default function AdminDashboard() {
 
   useEffect(() => { onAdminDashboardMount() }, [])
 
-  const loader = useAdminDashboardLoader(shouldLoadAdminDashboard(user) ? user : null)
+  const { selectedInstitutionId } = useInstitutionScope()
+  const loader = useAdminDashboardLoader(shouldLoadAdminDashboard(user) ? user : null, selectedInstitutionId)
   const {
     stats,
     recentActivity,
@@ -251,17 +254,20 @@ export default function AdminDashboard() {
           { label: 'System health', value: stats.systemHealth, helper: `${stats.activeUsers} active users online` },
         ]}
         actions={(
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleManualRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-2 min-h-[44px]"
-            loading={refreshing}
-          >
-            {!refreshing && <RefreshCw className="h-4 w-4" />}
-            {refreshing ? 'Refreshing...' : 'Refresh'}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <InstitutionSwitcher />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManualRefresh}
+              disabled={refreshing}
+              className="flex items-center gap-2 min-h-[44px]"
+              loading={refreshing}
+            >
+              {!refreshing && <RefreshCw className="h-4 w-4" />}
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </Button>
+          </div>
         )}
       >
         {/* System Status Bar */}

@@ -448,10 +448,13 @@ export const createEmptyDashboardResponse = (): AdminDashboardResponse => ({
 })
 
 export const adminDashboardService = {
-  async getOverviewWithDiagnostics(): Promise<AdminDashboardOverviewResult> {
+  async getOverviewWithDiagnostics(institutionId?: string | null): Promise<AdminDashboardOverviewResult> {
     const requestedAt = new Date().toISOString()
     try {
-      const response = await apiClient.request('/admin/dashboard/')
+      const endpoint = institutionId
+        ? `/admin/dashboard/?institution_id=${encodeURIComponent(institutionId)}`
+        : '/admin/dashboard/'
+      const response = await apiClient.request(endpoint)
 
       if (!response || typeof response !== 'object') {
         return {
@@ -587,8 +590,8 @@ export const adminDashboardService = {
     }
   },
 
-  async getOverview(): Promise<AdminDashboardResponse> {
-    const result = await this.getOverviewWithDiagnostics()
+  async getOverview(institutionId?: string | null): Promise<AdminDashboardResponse> {
+    const result = await this.getOverviewWithDiagnostics(institutionId)
     return result.data
   }
 }

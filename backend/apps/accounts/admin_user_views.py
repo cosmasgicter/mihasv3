@@ -210,6 +210,55 @@ def _validate_known_setting_value(key, value):
         responses={200: OpenApiResponse(response=AdminDashboardResponseSerializer)},
     )
 )
+class AdminScopeView(APIView):
+    """GET /api/v1/admin/scope/ — the actor's tenant access scope.
+
+    Returns the admin's role, whether they have all-institution access, and the
+    concrete institutions they may act on. Drives the frontend multi-tenant UX:
+    a scoped school admin (``all_access=false`` with one institution) is
+    auto-locked to it with no switcher; a super-admin (``all_access=true``) gets
+    the full institution list to power an institution switcher/filter. Scope
+    comes solely from ``AccessScopeService`` so it never depends on legacy
+    role-string assumptions.
+    """
+
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    @extend_schema(
+        operation_id="admin_scope",
+        tags=["admin"],
+        request=None,
+        responses={200: OpenApiResponse(response=OpenApiTypes.OBJECT)},
+    )
+    def get(self, request):
+        from apps.catalog.models import Institution
+        from apps.catalog.services import AccessScopeService
+
+        scope = AccessScopeService().filters_for_user(request.user)
+        if scope.all_access:
+            institutions = Institution.objects.all().order_by("name")
+        else:
+            institutions = Institution.objects.filter(
+                id__in=scope.institution_ids
+            ).order_by("name")
+
+        institution_data = [
+            {"id": str(inst.id), "name": inst.brand_name or inst.name, "code": inst.code}
+            for inst in institutions
+        ]
+
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "role": getattr(request.user, "role", None),
+                    "all_access": scope.all_access,
+                    "institutions": institution_data,
+                },
+            }
+        )
+
+
 class AdminDashboardView(APIView):
     """GET /api/v1/admin/dashboard/
 
@@ -302,6 +351,16 @@ class AdminDashboardView(APIView):
             if not caller_is_super_admin:
                 no_school_access = scope_service.filters_for_user(request.user).has_no_scope
                 app_queryset = scope_service.filter_applications(app_queryset, request.user)
+
+            # Super-admin institution filter: a super-admin may narrow the
+            # platform-wide dashboard to a single school via ?institution_id=
+            # (powers the frontend institution switcher). Scoped admins are
+            # already narrowed by membership above and ignore this param.
+            # ``request.GET`` works for both DRF Request and a raw WSGIRequest.
+            query_params = getattr(request, "query_params", None) or request.GET
+            institution_filter = query_params.get("institution_id")
+            if caller_is_super_admin and institution_filter:
+                app_queryset = app_queryset.filter(institution_ref_id=institution_filter)
 
             # Application counts by status
             status_counts = dict(

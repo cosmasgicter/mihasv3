@@ -136,12 +136,17 @@ export interface UseAdminDashboardLoaderResult extends DashboardState {
  * separate ``useState`` calls and a verbose ``apiStatus`` diagnostic
  * object into a single deterministic reducer.
  */
-export function useAdminDashboardLoader(user: MinimalUser | null | undefined): UseAdminDashboardLoaderResult {
+export function useAdminDashboardLoader(
+  user: MinimalUser | null | undefined,
+  institutionId?: string | null,
+): UseAdminDashboardLoaderResult {
   const [state, dispatch] = useReducer(reducer, initialState)
   // Track the most recent in-flight request so stale responses cannot
   // overwrite fresher state when the user mashes the refresh button.
   const requestIdRef = useRef(0)
-  const loadedForUserIdRef = useRef<string | null>(null)
+  const loadedForKeyRef = useRef<string | null>(null)
+  const institutionIdRef = useRef<string | null>(institutionId ?? null)
+  institutionIdRef.current = institutionId ?? null
 
   const load = useCallback(async (mode: 'initial' | 'manual' = 'initial') => {
     const isRefresh = mode !== 'initial'
@@ -150,7 +155,7 @@ export function useAdminDashboardLoader(user: MinimalUser | null | undefined): U
 
     dispatch({ type: 'load-start', isRefresh })
 
-    const result = await adminDashboardService.getOverviewWithDiagnostics()
+    const result = await adminDashboardService.getOverviewWithDiagnostics(institutionIdRef.current)
 
     if (requestIdRef.current !== requestId) {
       return // a newer request landed first; discard this response
@@ -182,19 +187,21 @@ export function useAdminDashboardLoader(user: MinimalUser | null | undefined): U
     dispatch({ type: 'patch-activity', activity })
   }, [])
 
-  // Run the initial load exactly once per authenticated user id.
+  // Run the initial load once per (user, selected institution) — a super-admin
+  // switching schools re-loads the dashboard for the newly selected tenant.
   useEffect(() => {
     const userId = user?.id ?? null
     if (!userId) {
-      loadedForUserIdRef.current = null
+      loadedForKeyRef.current = null
       return
     }
-    if (loadedForUserIdRef.current === userId) {
+    const key = `${userId}::${institutionId ?? 'all'}`
+    if (loadedForKeyRef.current === key) {
       return
     }
-    loadedForUserIdRef.current = userId
+    loadedForKeyRef.current = key
     void load('initial')
-  }, [user?.id, load])
+  }, [user?.id, institutionId, load])
 
   return {
     ...state,

@@ -237,7 +237,24 @@ export default defineConfig(({ mode, command }) => {
       minify: 'terser',
       sourcemap: false,
       chunkSizeWarningLimit: 650,
-      modulePreload: { polyfill: false }, // No polyfills for modern browsers
+      modulePreload: {
+        polyfill: false, // No polyfills for modern browsers
+        // Strip purely-lazy heavy chunks from the auto-generated
+        // <link rel="modulepreload"> set. Vite preloads the dependencies of
+        // every dynamically-imported chunk by default, which dragged
+        // `vendor-sentry` (~431KB raw / ~70KB gzip) into first paint even though
+        // errorReporter is only imported at idle. These chunks are fetched on
+        // demand (idle error reporting, on-click PDF export, OCR) and must NOT
+        // compete with first paint.
+        resolveDependencies: (_filename, deps) =>
+          deps.filter(
+            (dep) =>
+              !dep.includes('vendor-sentry') &&
+              !dep.includes('vendor-pdf') &&
+              !dep.includes('vendor-react-pdf') &&
+              !dep.includes('vendor-ocr'),
+          ),
+      },
       cssCodeSplit: true,
       assetsInlineLimit: 0, // Emit all assets as separate files — eliminates data: URIs in CSP
       reportCompressedSize: false,
@@ -330,6 +347,15 @@ export default defineConfig(({ mode, command }) => {
               // Charts — recharts, dynamically imported
               if (id.includes('/recharts/') || id.includes('/d3-')) {
                 return 'vendor-charts'
+              }
+
+              // Sentry / GlitchTip SDK — only reached through the lazy
+              // `errorReporter` + lazy `logger` paths. Pin it into its own
+              // chunk so it never folds into `vendor-react` (the eager startup
+              // graph). Keeping it isolated means the ~60-80KB SDK is fetched
+              // at idle/first-error only, not on first paint for every visitor.
+              if (id.includes('/@sentry/') || id.includes('/@sentry-internal/')) {
+                return 'vendor-sentry'
               }
             }
           },

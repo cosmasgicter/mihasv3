@@ -20,7 +20,6 @@ import { FormErrorAnnouncer } from '@/components/ui/FormErrorAnnouncer';
 import { Seo } from '@/components/seo/Seo';
 import { isAdminRole } from '@/lib/auth/roles';
 import { logApiError } from '@/lib/apiErrorLogger';
-import { preloadPostAuthWorkspace } from '@/lib/routePreload';
 import { onSignInEmailBlur, onLoginSuccess } from '@/lib/speculativePrefetch';
 
 const ADMIN_REDIRECT_ALLOWLIST = [
@@ -144,7 +143,6 @@ export default function SignInPage() {
       const requestedRedirect = fromState || redirectFromQuery || storedRedirect;
       const redirectTo = getRoleSafeRedirectPath({ requestedRedirect, role });
       onLoginSuccess(result, role ?? undefined);
-      void preloadPostAuthWorkspace(isAdminRole(role));
 
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('mihas:post-auth-redirect');

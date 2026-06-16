@@ -11,7 +11,6 @@
  */
 import { isAdmin as checkIsAdmin } from '@/types/roles'
 import { queryClient } from '@/lib/queryClient'
-import { catalogService } from '@/services/catalog'
 import {
   preloadStudentWorkspaceRoute,
   preloadAdminWorkspaceRoute,
@@ -72,9 +71,18 @@ function prefetchQuery(key: readonly unknown[], fn: () => Promise<unknown>, stal
 
 function prefetchCatalog(): void {
   once('catalog', () => {
-    prefetchQuery(['catalog', 'programs'], () => catalogService.getPrograms())
-    prefetchQuery(['catalog', 'intakes'], () => catalogService.getIntakes())
-    prefetchQuery(['catalog', 'subjects'], () => catalogService.getSubjects())
+    prefetchQuery(['catalog', 'programs'], async () => {
+      const { catalogService } = await import('@/services/catalog')
+      return catalogService.getPrograms()
+    })
+    prefetchQuery(['catalog', 'intakes'], async () => {
+      const { catalogService } = await import('@/services/catalog')
+      return catalogService.getIntakes()
+    })
+    prefetchQuery(['catalog', 'subjects'], async () => {
+      const { catalogService } = await import('@/services/catalog')
+      return catalogService.getSubjects()
+    })
   })
 }
 
@@ -236,19 +244,25 @@ export function onSignInEmailBlur(): void {
  */
 export function onLoginSuccess(_response: unknown, role?: string): void {
   once('login-success', () => {
-    const isAdmin = checkIsAdmin({ role })
+    // Defer all prefetch + chunk-preload work to idle time so it never
+    // competes with the post-login navigation + the destination page's own
+    // first paint and data fetch. The login→dashboard transition is the
+    // critical path; speculative work waits for the main thread to settle.
+    idle(() => {
+      const isAdmin = checkIsAdmin({ role })
 
-    if (isAdmin) {
-      preloadAdminWorkspaceRoute('post-login')
-      prefetchCatalog()
-      prefetchProfile()
-      // Prefetch admin dashboard data in parallel with redirect
-      prefetchAdminDashboard()
-    } else {
-      preloadStudentWorkspaceRoute('post-login')
-      prefetchCatalog()
-      prefetchProfile()
-    }
+      if (isAdmin) {
+        preloadAdminWorkspaceRoute('post-login')
+        prefetchCatalog()
+        prefetchProfile()
+        // Prefetch admin dashboard data in parallel with redirect
+        prefetchAdminDashboard()
+      } else {
+        preloadStudentWorkspaceRoute('post-login')
+        prefetchCatalog()
+        prefetchProfile()
+      }
+    })
   })
 }
 

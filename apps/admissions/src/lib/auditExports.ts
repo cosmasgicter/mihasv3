@@ -1,6 +1,6 @@
 import type { AuditLogEntry, AuditLogFilters, AuditLogSummary } from '@/services/admin/audit'
 import { formatTimestamp, toDateInputValue } from '@/lib/dateFormat'
-import { autoTable, type HookData } from 'jspdf-autotable'
+import type { HookData } from 'jspdf-autotable'
 
 export type AuditExportFormat = 'csv' | 'json' | 'pdf'
 
@@ -130,6 +130,7 @@ export async function exportAuditEntriesToPdf({
   filenameBase,
 }: AuditExportOptions) {
   const { jsPDF } = await import('jspdf')
+  const { autoTable } = await import('jspdf-autotable')
 
   const doc = new jsPDF({ orientation: 'landscape' })
   const exportTime = formatTimestamp(new Date())

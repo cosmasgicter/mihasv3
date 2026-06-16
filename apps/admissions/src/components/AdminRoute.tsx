@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { AdminErrorBoundary } from '@/components/admin/AdminErrorBoundary'
+import { InstitutionScopeProvider } from '@/contexts/InstitutionScopeContext'
 import { GuardInlineSkeleton } from '@/components/ui/GuardInlineSkeleton'
 import { startLoaderTelemetry } from '@/lib/loaderTelemetry'
 
@@ -43,5 +44,9 @@ export function AdminRoute({ children }: AdminRouteProps) {
     return <Navigate to="/student/dashboard" replace />
   }
 
-  return <AdminErrorBoundary>{children}</AdminErrorBoundary>
+  return (
+    <AdminErrorBoundary>
+      <InstitutionScopeProvider>{children}</InstitutionScopeProvider>
+    </AdminErrorBoundary>
+  )
 }

@@ -1,6 +1,6 @@
 import { formatDate as _fmtDate, formatTimestamp as _fmtTimestamp } from '@/lib/dateFormat'
 import { downloadXlsx } from '@/lib/xlsxWriter'
-import { autoTable, type HookData } from 'jspdf-autotable'
+import type { HookData } from 'jspdf-autotable'
 
 export interface ApplicationData {
   application_number: string
@@ -271,6 +271,7 @@ export async function exportToPDF(
   filename: string = 'applications.pdf'
 ) {
   const { jsPDF } = await import('jspdf')
+  const { autoTable } = await import('jspdf-autotable')
 
   const doc = new jsPDF({ orientation: 'landscape' })
   const rows: string[][] = []

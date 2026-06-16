@@ -14,6 +14,7 @@ Split files:
 # View classes
 from apps.accounts.admin_user_views import (  # noqa: F401
     AdminDashboardView,
+    AdminScopeView,
     AdminUserDetailView,
     AdminUserExportView,
     AdminUserListView,
@@ -72,6 +73,7 @@ __all__ = [
     # View classes
     "AdminAuditLogView",
     "AdminDashboardView",
+    "AdminScopeView",
     "AdminSettingDetailView",
     "AdminSettingsImportView",
     "AdminSettingsListView",

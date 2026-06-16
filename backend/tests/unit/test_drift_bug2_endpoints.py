@@ -40,8 +40,14 @@ def _make_user(role="admin"):
 
 
 def _make_admin_user():
-    """Create a mock admin user for authentication."""
-    return _make_user("admin")
+    """Create a mock super-admin user for authentication.
+
+    Settings writes (import/reset/create/update/delete) are super-admin-only in
+    the multi-tenant model — platform settings are global, so a scoped school
+    admin must not mutate them. These endpoint tests exercise the write path, so
+    the authenticated actor is a super-admin.
+    """
+    return _make_user("super_admin")
 
 
 class TestAdminSettingsImportEndpoint(SimpleTestCase):
@@ -129,6 +135,26 @@ class TestAdminSettingsImportEndpoint(SimpleTestCase):
             response = view(request)
 
         self.assertEqual(response.status_code, 403)
+
+    def test_import_requires_super_admin_not_plain_admin(self):
+        """A scoped school admin (role='admin') cannot import platform settings.
+
+        Settings are platform-wide, so writes are super-admin-only in the
+        multi-tenant model. A plain admin gets a 403 INSUFFICIENT_PRIVILEGES.
+        """
+        factory = APIRequestFactory()
+        request = factory.post(
+            "/api/v1/admin/settings/import/",
+            data={"settings": [{"key": "x", "value": "y", "category": "general"}]},
+            format="json",
+        )
+        force_authenticate(request, user=_make_user("admin"))
+
+        view = AdminSettingsImportView.as_view()
+        response = view(request)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.data["code"], "INSUFFICIENT_PRIVILEGES")
 
     def test_import_multiple_settings(self):
         """POST /admin/settings/import/ with multiple settings upserts all."""

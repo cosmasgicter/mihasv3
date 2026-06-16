@@ -57,6 +57,28 @@ from apps.accounts.admin_serializers import (  # noqa: F401
 logger = logging.getLogger(__name__)
 
 
+def _settings_write_forbidden(request) -> Response | None:
+    """Gate settings WRITES to super-admins only (multi-tenant safety).
+
+    Settings are platform-wide (not per-institution), so a scoped school admin
+    must never mutate them — that would let one school's admin change global
+    configuration affecting every tenant. Reads remain admin-level (the admin UI
+    needs to display current values); creates/updates/deletes/imports/resets
+    require super-admin. Returns a 403 envelope when the actor is not a
+    super-admin, or ``None`` when the write is permitted.
+    """
+    if is_super_admin(request.user):
+        return None
+    return Response(
+        {
+            "success": False,
+            "error": "Only super admins can modify platform settings.",
+            "code": "INSUFFICIENT_PRIVILEGES",
+        },
+        status=status.HTTP_403_FORBIDDEN,
+    )
+
+
 def _role_level(role: str | None) -> int:
     return ROLE_HIERARCHY.get(role or "", 0)
 
@@ -215,6 +237,9 @@ class AdminSettingsListView(APIView):
         return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
+        forbidden = _settings_write_forbidden(request)
+        if forbidden is not None:
+            return forbidden
         serializer = SettingSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
@@ -300,6 +325,9 @@ class AdminSettingDetailView(APIView):
         return Response({"success": True, "data": SettingSerializer(setting).data})
 
     def patch(self, request, pk):
+        forbidden = _settings_write_forbidden(request)
+        if forbidden is not None:
+            return forbidden
         try:
             setting = Setting.objects.get(pk=pk)
         except Setting.DoesNotExist:
@@ -327,6 +355,9 @@ class AdminSettingDetailView(APIView):
         return Response({"success": True, "data": SettingSerializer(setting).data})
 
     def delete(self, request, pk):
+        forbidden = _settings_write_forbidden(request)
+        if forbidden is not None:
+            return forbidden
         try:
             setting = Setting.objects.get(pk=pk)
         except Setting.DoesNotExist:
@@ -359,6 +390,9 @@ class AdminSettingsImportView(APIView):
     @extend_schema(request=OpenApiTypes.OBJECT, responses={200: OpenApiTypes.OBJECT}, tags=["admin"], summary="Import admin settings")
     def post(self, request):
         settings_list = request.data.get("settings")
+        forbidden = _settings_write_forbidden(request)
+        if forbidden is not None:
+            return forbidden
         if not isinstance(settings_list, list):
             return Response(
                 {"success": False, "error": "Expected 'settings' array", "code": "VALIDATION_ERROR"},
@@ -416,6 +450,9 @@ class AdminSettingsResetView(APIView):
 
     @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT}, tags=["admin"], summary="Reset admin settings to defaults")
     def post(self, request):
+        forbidden = _settings_write_forbidden(request)
+        if forbidden is not None:
+            return forbidden
         with transaction.atomic():
             deleted_count, _ = Setting.objects.all().delete()
             created_settings = [Setting(**setting) for setting in DEFAULT_GUIDED_SETTINGS]
