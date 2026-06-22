@@ -3,8 +3,9 @@ import { History } from 'lucide-react'
 
 import { SectionCard, StatusBadge } from '@/components/ui'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
 import { adminAuditService } from '@/services/admin/audit'
+
+import { PanelStateError } from './panelStates'
 
 const CATEGORY_TONE: Record<string, 'info' | 'warning' | 'destructive' | 'success' | 'neutral'> = {
   Authentication: 'info',
@@ -34,7 +35,12 @@ export function AuditPanel({ institutionId }: { institutionId: string }) {
       icon={<History className="h-5 w-5" />}
     >
       {auditQuery.isError ? (
-        <ErrorDisplay message="Could not load the audit trail." onRetry={() => auditQuery.refetch()} />
+        // R12.7: a backend 403 shows a precise authorization message and no audit data.
+        <PanelStateError
+          error={auditQuery.error}
+          onRetry={() => auditQuery.refetch()}
+          fallback="Could not load the audit trail."
+        />
       ) : auditQuery.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading audit events…</p>
       ) : !auditQuery.data || auditQuery.data.entries.length === 0 ? (

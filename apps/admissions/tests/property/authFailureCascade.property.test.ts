@@ -6,8 +6,8 @@
  * (2) call queryClient.clear(),
  * (3) call clearCsrfToken(),
  * (4) call clearSession(),
- * (5) dispatch a mihas:auth-expired CustomEvent with from and signInPath in the detail,
- * (6) store the current URL in sessionStorage under mihas:post-auth-redirect.
+ * (5) dispatch a Beanola auth-expired CustomEvent with from and signInPath in the detail,
+ * (6) store the current URL in sessionStorage under the Beanola post-auth redirect key.
  * No window.location assignment SHALL occur.
  *
  * // Feature: production-stability-hardening, Property 8: Auth failure cascade clears all state
@@ -181,7 +181,7 @@ describe('Property 8: Auth failure cascade clears all state', () => {
     );
   });
 
-  it('mihas:auth-expired event detail contains correct from and signInPath', () => {
+  it('Beanola auth-expired event detail contains correct from and signInPath', () => {
     fc.assert(
       fc.property(urlPathArb, urlSearchArb, (currentPath, currentSearch) => {
         const result = simulateAuthFailureCascade(currentPath, currentSearch);
@@ -205,7 +205,7 @@ describe('Property 8: Auth failure cascade clears all state', () => {
     );
   });
 
-  it('redirect URL is stored in sessionStorage under mihas:post-auth-redirect', () => {
+  it('redirect URL is stored in sessionStorage under the Beanola post-auth redirect key', () => {
     fc.assert(
       fc.property(urlPathArb, urlSearchArb, (currentPath, currentSearch) => {
         const result = simulateAuthFailureCascade(currentPath, currentSearch);
@@ -266,17 +266,17 @@ describe('Property 8: Auth failure cascade clears all state', () => {
       expect(source).toContain('clearSession()');
     });
 
-    it('onAuthFailure dispatches mihas:auth-expired CustomEvent with from and signInPath', () => {
-      expect(source).toContain("'mihas:auth-expired'");
-      expect(source).toMatch(/CustomEvent\(\s*['"]mihas:auth-expired['"]/);
+    it('onAuthFailure dispatches Beanola auth-expired CustomEvent with from and signInPath', () => {
+      expect(source).toContain('BROWSER_EVENTS.authExpired');
+      expect(source).toMatch(/CustomEvent\(\s*BROWSER_EVENTS\.authExpired/);
       expect(source).toContain('from');
       expect(source).toContain('signInPath');
     });
 
-    it('onAuthFailure stores redirect URL in sessionStorage under mihas:post-auth-redirect', () => {
-      expect(source).toContain("'mihas:post-auth-redirect'");
+    it('onAuthFailure stores redirect URL in sessionStorage under the Beanola post-auth redirect key', () => {
+      expect(source).toContain('BROWSER_KEYS.postAuthRedirect');
       expect(source).toMatch(
-        /sessionStorage\.setItem\(\s*['"]mihas:post-auth-redirect['"]/,
+        /sessionStorage\.setItem\(\s*BROWSER_KEYS\.postAuthRedirect/,
       );
     });
 

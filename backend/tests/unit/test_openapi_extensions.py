@@ -8,11 +8,17 @@ identical names" warning.
 from __future__ import annotations
 
 
+def _target_path(target):
+    if isinstance(target, str):
+        return target
+    return f"{target.__module__}.{target.__name__}"
+
+
 def test_primary_jwt_cookie_auth_scheme_registered():
     from apps.common.openapi import JWTCookieAuthenticationScheme
 
     assert (
-        JWTCookieAuthenticationScheme.target_class
+        _target_path(JWTCookieAuthenticationScheme.target_class)
         == "apps.accounts.authentication.JWTCookieAuthentication"
     )
     assert JWTCookieAuthenticationScheme.name == ["jwtBearerAuth", "jwtCookieAuth"]
@@ -25,7 +31,7 @@ def test_optional_jwt_auth_extension_registered():
     from apps.common.openapi import OptionalJWTCookieAuthenticationScheme
 
     assert (
-        OptionalJWTCookieAuthenticationScheme.target_class
+        _target_path(OptionalJWTCookieAuthenticationScheme.target_class)
         == "apps.accounts.authentication.OptionalJWTCookieAuthentication"
     )
 

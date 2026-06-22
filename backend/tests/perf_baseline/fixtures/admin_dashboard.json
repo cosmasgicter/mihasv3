@@ -1,0 +1,29 @@
+{
+  "data": {
+    "applications": {
+      "by_status": {
+        "approved": 1,
+        "submitted": 2
+      },
+      "this_month": 3,
+      "this_week": 3,
+      "today": 3,
+      "today_activity": 3,
+      "today_created": 3,
+      "today_submitted": 0,
+      "total": 3
+    },
+    "needs_attention": {
+      "pending_documents": 0,
+      "pending_payments": 0,
+      "upcoming_interviews": 0
+    },
+    "no_school_access": false,
+    "recent_activity": [],
+    "users": {
+      "active": 2,
+      "total": 2
+    }
+  },
+  "success": true
+}

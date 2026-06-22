@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { formatDateTimeLong, formatDistanceFromNow } from '@/lib/dateFormat'
-import { RefreshCw, ShieldCheck } from 'lucide-react'
+import { Monitor, RefreshCw, ShieldCheck, Smartphone, Tablet } from 'lucide-react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
@@ -57,11 +57,11 @@ function getDeviceIcon(info: SessionDeviceInfo) {
 
   switch (type) {
     case 'mobile':
-      return '📱'
+      return Smartphone
     case 'tablet':
-      return '📱'
+      return Tablet
     default:
-      return '💻'
+      return Monitor
   }
 }
 
@@ -265,6 +265,7 @@ export function ActiveSessions() {
             const deviceInfo = normalizeDeviceInfo(session.device_info)
             const headline = getDeviceHeadline(deviceInfo)
             const meta = getDeviceMeta(deviceInfo, session.ip_address)
+            const DeviceIcon = getDeviceIcon(deviceInfo)
 
             return (
               <div
@@ -274,7 +275,7 @@ export function ActiveSessions() {
                 }`}
               >
                 <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{getDeviceIcon(deviceInfo)}</span>
+                  <DeviceIcon className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
                   <div>
                     <div className="flex items-center space-x-2">
                       <p className="font-medium text-sm">

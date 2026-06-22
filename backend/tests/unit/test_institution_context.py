@@ -30,7 +30,9 @@ Edge cases covered (per task 1.7):
 from __future__ import annotations
 
 import pytest
+from django.db import IntegrityError, transaction
 
+from apps.catalog.models import InstitutionDomain
 from apps.catalog.services import InstitutionContextService
 from tests.tenant_fixtures import build_institution, build_institution_domain
 
@@ -169,15 +171,93 @@ class TestDuplicateHostnameCollision:
             hostname="apply.collision.example",
             is_active=True,
         )
-        build_institution_domain(
-            institution=institution_b,
-            hostname="APPLY.collision.example",
-            is_active=True,
+        with pytest.raises(IntegrityError):
+            with transaction.atomic():
+                build_institution_domain(
+                    institution=institution_b,
+                    hostname="APPLY.collision.example",
+                    is_active=True,
+                )
+
+        assert (
+            InstitutionDomain.objects.filter(
+                hostname__iexact="apply.collision.example",
+                is_active=True,
+            ).count()
+            == 1
         )
 
-        context = InstitutionContextService().resolve("apply.collision.example")
 
-        # Fail-safe invariant: a colliding hostname must never resolve to a
-        # single school's white-label context.
-        assert context.portal_type == "shared"
-        assert context.institution is None
+@pytest.mark.django_db
+class TestStatusAwareFailClosed:
+    """R7.8/R7.9/R19: a host resolves to a tenant ONLY when the matching
+    ``InstitutionDomain`` is ``status == active`` (plus active row + institution).
+    Any non-active status fails closed to the Neutral Beanola context.
+
+    **Validates: Requirements 7.8, 7.9, 19.1, 19.2, 19.3, 19.4**
+    """
+
+    @pytest.mark.parametrize(
+        "status",
+        [
+            InstitutionDomain.STATUS_PENDING_DNS,
+            InstitutionDomain.STATUS_PENDING_REVIEW,
+            InstitutionDomain.STATUS_VERIFIED,
+            InstitutionDomain.STATUS_DISABLED,
+            InstitutionDomain.STATUS_FAILED,
+        ],
+    )
+    def test_non_active_status_fails_closed(self, status):
+        """A domain whose ``status`` is not ``active`` never resolves a tenant,
+        even when the row and institution are otherwise active and unique."""
+        institution = build_institution()
+        build_institution_domain(
+            institution=institution,
+            hostname="apply.pendingschool.example",
+            is_active=True,
+            status=status,
+        )
+        context = InstitutionContextService().resolve("apply.pendingschool.example")
+        assert context.portal_type == "shared", status
+        assert context.institution is None, status
+        # No school data leaks through the neutral brand.
+        assert context.brand["name"] == "Beanola Admissions"
+        assert institution.brand_name not in context.brand.values()
+
+    def test_active_status_resolves_white_label(self):
+        """Baseline contrast: the SAME setup with ``status == active`` resolves
+        the tenant — proving status is the only differing factor."""
+        institution = build_institution()
+        build_institution_domain(
+            institution=institution,
+            hostname="apply.activeschool.example",
+            is_active=True,
+            status=InstitutionDomain.STATUS_ACTIVE,
+        )
+        context = InstitutionContextService().resolve("apply.activeschool.example")
+        assert context.portal_type == "white_label"
+        assert context.institution is not None
+        assert context.institution.id == institution.id
+
+    def test_active_and_non_active_rows_resolve_single_active_tenant(self):
+        """A verified (non-active) decoy row for the same hostname does not
+        cause a collision — only the single ``active`` row counts, so the
+        tenant still resolves."""
+        institution = build_institution(suffix="dual-a")
+        decoy = build_institution(suffix="dual-b")
+        build_institution_domain(
+            institution=institution,
+            hostname="apply.dual.example",
+            is_active=True,
+            status=InstitutionDomain.STATUS_ACTIVE,
+        )
+        build_institution_domain(
+            institution=decoy,
+            hostname="APPLY.dual.example",
+            is_active=True,
+            status=InstitutionDomain.STATUS_VERIFIED,
+        )
+        context = InstitutionContextService().resolve("apply.dual.example")
+        assert context.portal_type == "white_label"
+        assert context.institution is not None
+        assert context.institution.id == institution.id

@@ -4,6 +4,7 @@ import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { logApiError } from '@/lib/apiErrorLogger'
 import { formatApplicationStatus } from '@/types/applicationStatus'
+import { normalizePaymentStatus } from '@/lib/paymentStatus'
 import {
   Dialog,
   DialogContent,
@@ -25,26 +26,6 @@ interface ApplicationApprovalActionsProps {
   disabled?: boolean
 }
 
-const normalizePaymentStatusForActions = (status?: string | null) => {
-  switch (status) {
-    case 'pending':
-    case 'pending_review':
-      return 'pending_review'
-    case 'verified':
-    case 'paid':
-    case 'successful':
-    case 'force_approved':
-      return 'verified'
-    case 'failed':
-    case 'rejected':
-      return 'rejected'
-    case 'deferred':
-      return 'deferred'
-    default:
-      return 'not_paid'
-  }
-}
-
 export function ApplicationApprovalActions({
   applicationId,
   currentStatus,
@@ -60,7 +41,7 @@ export function ApplicationApprovalActions({
   const [paymentReviewNotes, setPaymentReviewNotes] = useState('')
   const [paymentReviewError, setPaymentReviewError] = useState<string | null>(null)
   const confirmDialog = useConfirmDialog()
-  const normalizedPaymentStatus = normalizePaymentStatusForActions(currentPaymentStatus)
+  const normalizedPaymentStatus = normalizePaymentStatus(currentPaymentStatus)
   const isPaymentVerified = normalizedPaymentStatus === 'verified'
 
   const paymentReviewCopy = useMemo(() => {

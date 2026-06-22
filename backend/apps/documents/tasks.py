@@ -9,11 +9,41 @@ import tempfile
 from datetime import timedelta
 
 from celery import shared_task
+from celery.exceptions import SoftTimeLimitExceeded
 from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Bounded payment-poll configuration (R6.1, R6.2, R6.5)
+# ---------------------------------------------------------------------------
+#
+# These hard-cap the external work a single ``poll_pending_payments_task`` run
+# may perform so one slow/flaky Lenco provider cannot block the single Celery
+# worker. Each value is an upper bound; settings overrides are clamped to the
+# requirement-mandated ceiling so a misconfiguration can only make the task
+# *more* conservative, never less.
+_POLL_MAX_PAYMENTS_PER_RUN = 10   # R6.1: verify at most 10 payments per run
+_POLL_LENCO_TIMEOUT_SECONDS = 10  # R6.2: per external call timeout <= 10s
+_POLL_LENCO_MAX_RETRIES = 2       # R6.2: at most 2 retries per external call
+
+# Forward-only ``verify()`` error codes meaning the external call could not be
+# completed (timeout/retry exhaustion or provider unreachable). These trigger a
+# "skip without status transition" per R6.3 — a still-``pending`` provider
+# response (``PAYMENT_PENDING``) or an integrity-gate block is NOT a transport
+# failure and is counted as a processed payment.
+_PROVIDER_UNAVAILABLE_CODES = frozenset({"PROVIDER_UNAVAILABLE"})
+
+
+def _clamp(value, low, high, default):
+    """Coerce ``value`` to an int within ``[low, high]``, else ``default``."""
+    try:
+        return max(low, min(high, int(value)))
+    except (TypeError, ValueError):
+        return default
 
 
 def _acquire_task_lock(task_name: str, timeout: int = 600) -> bool:
@@ -24,12 +54,23 @@ def _release_task_lock(task_name: str):
     cache.delete(f"celery_lock:{task_name}")
 
 
-@shared_task(bind=True, max_retries=0, soft_time_limit=300, time_limit=360)
+@shared_task(bind=True, max_retries=0, soft_time_limit=80, time_limit=90)
 def poll_pending_payments_task(self):
-    """Every 10 minutes: query pending payments 5min–24hr old, verify via Lenco API, max 50 per run.
-    Also expires payments pending > 24 hours.
+    """Every 10 minutes: verify pending payments 5min–24hr old via Lenco, bounded.
 
-    Requirements: 8.1–8.3, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6
+    Bounded for worker safety (R6.1, R6.2, R6.5):
+    - verifies at most ``_POLL_MAX_PAYMENTS_PER_RUN`` (10) payments per run
+    - each external Lenco verification call uses a <=10s timeout and <=2 retries
+    - on timeout/retry exhaustion the payment is skipped with NO status
+      transition (forward-only rules preserved), the failure is recorded
+      (metric + log), and the run continues with the remaining payments
+    - ``soft_time_limit``/``time_limit`` (80s/90s) guarantee the run completes
+      within 90s wall-clock so the single worker is never blocked longer.
+
+    Expiry of payments pending > 24h is handled separately (and is batched by
+    the expiry-task work, R6.4).
+
+    Requirements: 6.1, 6.2, 6.3, 6.5
     """
     if not _acquire_task_lock("poll_pending_payments_task"):
         logger.info("poll_pending_payments_task: skipped (already running)")
@@ -43,6 +84,42 @@ def poll_pending_payments_task(self):
 
         forward_only = bool(getattr(settings, "PAYMENT_HARDENING_FORWARD_ONLY", False))
         service = PaymentService()
+
+        # Bounded poll configuration (R6.1, R6.2). Overrides are clamped so a
+        # misconfiguration can never exceed the requirement ceilings.
+        poll_batch = _clamp(
+            getattr(settings, "PAYMENT_POLL_BATCH_SIZE", _POLL_MAX_PAYMENTS_PER_RUN),
+            1, _POLL_MAX_PAYMENTS_PER_RUN, _POLL_MAX_PAYMENTS_PER_RUN,
+        )
+        poll_timeout = _clamp(
+            getattr(settings, "PAYMENT_POLL_LENCO_TIMEOUT", _POLL_LENCO_TIMEOUT_SECONDS),
+            1, _POLL_LENCO_TIMEOUT_SECONDS, _POLL_LENCO_TIMEOUT_SECONDS,
+        )
+        poll_retries = _clamp(
+            getattr(settings, "PAYMENT_POLL_LENCO_MAX_RETRIES", _POLL_LENCO_MAX_RETRIES),
+            0, _POLL_LENCO_MAX_RETRIES, _POLL_LENCO_MAX_RETRIES,
+        )
+
+        def _record_poll_outcome(payment_id, *, failed, reason=None):
+            """Record one payment's poll outcome (metric + log).
+
+            On a transport failure the payment is skipped with NO status
+            transition (R6.3); the caller has already left the payment
+            untouched, so this only records the skip.
+            """
+            if failed:
+                logger.warning(
+                    "poll_pending_payments_task: skipping payment %s without status "
+                    "transition (%s)",
+                    payment_id, reason or "verification call failed",
+                )
+                payment_metrics.increment(
+                    "payment.reconcile.processed", tags={"outcome": "failure"},
+                )
+            else:
+                payment_metrics.increment(
+                    "payment.reconcile.processed", tags={"outcome": "success"},
+                )
 
         now = timezone.now()
         five_minutes_ago = now - timedelta(
@@ -67,35 +144,49 @@ def poll_pending_payments_task(self):
                     status='pending',
                     created_at__lt=five_minutes_ago,
                     created_at__gt=twenty_four_hours_ago,
-                )[:50]
+                )[:poll_batch]
             )
             count = len(pending_payments)
             logger.info(
-                "poll_pending_payments_task (forward_only): %d payments to verify",
-                count,
+                "poll_pending_payments_task (forward_only): %d payments to verify (batch<=%d)",
+                count, poll_batch,
             )
             if count == 0:
                 return
 
-            for payment in pending_payments:
-                try:
-                    # Celery worker has no authenticated actor. Use the
-                    # hardened verifier with actor_id=None so reconciliation
-                    # follows the same state machine and integrity gates as
-                    # student/admin verification.
-                    service.verify(payment.id, actor_id=None)
-                    payment_metrics.increment(
-                        "payment.reconcile.processed",
-                        tags={"outcome": "success"},
-                    )
-                except Exception:
-                    logger.exception(
-                        "Failed to verify payment %s during reconcile", payment.id
-                    )
-                    payment_metrics.increment(
-                        "payment.reconcile.processed",
-                        tags={"outcome": "failure"},
-                    )
+            try:
+                for payment in pending_payments:
+                    try:
+                        # Celery worker has no authenticated actor. Use the
+                        # hardened verifier with actor_id=None so reconciliation
+                        # follows the same state machine and integrity gates as
+                        # student/admin verification. Bound the external call so
+                        # one flaky provider cannot block the run (R6.2).
+                        result = service.verify(
+                            payment.id,
+                            actor_id=None,
+                            lenco_timeout=poll_timeout,
+                            lenco_max_retries=poll_retries,
+                        )
+                        # A provider-unavailable result means the call exhausted
+                        # its timeout/retries — skip without transition (R6.3).
+                        _record_poll_outcome(
+                            payment.id,
+                            failed=result.error in _PROVIDER_UNAVAILABLE_CODES,
+                            reason=result.error,
+                        )
+                    except SoftTimeLimitExceeded:
+                        raise
+                    except Exception:
+                        logger.exception(
+                            "Failed to verify payment %s during reconcile", payment.id
+                        )
+                        _record_poll_outcome(payment.id, failed=True, reason="exception")
+            except SoftTimeLimitExceeded:
+                logger.warning(
+                    "poll_pending_payments_task (forward_only): soft time limit reached, "
+                    "ending run early; remaining payments retry next run",
+                )
             return
 
         # --- Legacy path: expire payments pending > 24 hours (Req 8.1, 8.2, 8.3) ---
@@ -158,48 +249,65 @@ def poll_pending_payments_task(self):
         if expired_count:
             logger.info("poll_pending_payments_task: expired %d payments", expired_count)
 
-        # --- Verify payments 5min–24hr old via Lenco API ---
+        # --- Verify payments 5min–24hr old via Lenco API (bounded, R6.1/6.2) ---
         pending_payments = Payment.objects.filter(
             status='pending',
             created_at__lt=five_minutes_ago,
             created_at__gt=twenty_four_hours_ago,
-        )[:50]
+        )[:poll_batch]
 
         count = len(pending_payments)
-        logger.info("poll_pending_payments_task: found %d pending payments to verify", count)
+        logger.info(
+            "poll_pending_payments_task: found %d pending payments to verify (batch<=%d)",
+            count, poll_batch,
+        )
 
         if count == 0:
             return
 
         failures = 0
-        for payment in pending_payments:
-            try:
-                logger.info(
-                    "Verifying pending payment %s (ref=%s, created=%s)",
-                    payment.id,
-                    payment.transaction_reference,
-                    payment.created_at,
-                )
-                result = service.verify_payment(payment.id)
-                logger.info(
-                    "Verification result for payment %s: status=%s error=%s",
-                    payment.id,
-                    result.status,
-                    result.error,
-                )
-                payment_metrics.increment(
-                    "payment.reconcile.processed",
-                    tags={"outcome": "success"},
-                )
-            except Exception:
-                logger.exception(
-                    "Failed to verify payment %s during polling", payment.id
-                )
-                failures += 1
-                payment_metrics.increment(
-                    "payment.reconcile.processed",
-                    tags={"outcome": "failure"},
-                )
+        try:
+            for payment in pending_payments:
+                try:
+                    logger.info(
+                        "Verifying pending payment %s (ref=%s, created=%s)",
+                        payment.id,
+                        payment.transaction_reference,
+                        payment.created_at,
+                    )
+                    result = service.verify_payment(
+                        payment.id,
+                        lenco_timeout=poll_timeout,
+                        lenco_max_retries=poll_retries,
+                    )
+                    logger.info(
+                        "Verification result for payment %s: status=%s error=%s",
+                        payment.id,
+                        result.status,
+                        result.error,
+                    )
+                    # An error left the payment un-transitioned: the external
+                    # call could not yield a verdict (timeout/retry exhaustion
+                    # or provider error) — skip without transition (R6.3).
+                    failed = result.error is not None
+                    if failed:
+                        failures += 1
+                    _record_poll_outcome(
+                        payment.id, failed=failed, reason=result.error,
+                    )
+                except SoftTimeLimitExceeded:
+                    raise
+                except Exception:
+                    logger.exception(
+                        "Failed to verify payment %s during polling", payment.id
+                    )
+                    failures += 1
+                    _record_poll_outcome(payment.id, failed=True, reason="exception")
+        except SoftTimeLimitExceeded:
+            logger.warning(
+                "poll_pending_payments_task: soft time limit reached, ending run "
+                "early; remaining payments retry next run",
+            )
 
         if failures > 0 and failures == count:
             # All verifications failed - likely Lenco API outage
@@ -388,7 +496,13 @@ def _get_suffix(file_key):
 
 @shared_task(bind=True, max_retries=0, soft_time_limit=300, time_limit=360)
 def deferred_payment_reminder_task(self):
-    """Daily 11:00 UTC: remind students with deferred payments older than 3 days."""
+    """Daily 11:00 UTC: remind students with deferred payments older than 3 days.
+
+    Bounded to at most 50 records per run (system-performance-hardening R6.4).
+    The reminder itself is dispatched per-row through
+    ``CommunicationService.send`` because it renders a per-application template
+    (subject/body vary per recipient), which is not a single bulk insert.
+    """
     if not _acquire_task_lock("deferred_payment_reminder_task"):
         logger.info("deferred_payment_reminder_task: skipped (already running)")
         return
@@ -401,7 +515,7 @@ def deferred_payment_reminder_task(self):
             Application.objects.filter(
                 payment_status='deferred',
                 updated_at__lt=cutoff,
-            )[:100]
+            )[:50]
         )
 
         sent = 0

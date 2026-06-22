@@ -680,8 +680,36 @@ AI_HARDENING_CACHE = os.environ.get(
 
 # Enables PII redaction in ``apps.common.ai_prompt_redactor`` before
 # admin-summary and student-preview prompts are sent to the AI Gateway.
+# Default: ON (opt-out by setting AI_HARDENING_REDACTION=false).
 AI_HARDENING_REDACTION = os.environ.get(
-    "AI_HARDENING_REDACTION", ""
+    "AI_HARDENING_REDACTION", "true"
+).lower() not in ("0", "false", "no", "")
+
+# ---------------------------------------------------------------------------
+# System performance hardening — scoped cache feature flags
+# (spec: .kiro/specs/system-performance-hardening). Each defaults to False so
+# the pre-feature code path (direct computation, no cache) stays in effect
+# until the flag is explicitly flipped. The caches are thin callers of
+# ``apps.common.scoped_cache`` and degrade gracefully on any cache error.
+# Rollout/blast-radius order: capabilities -> dashboard -> catalog.
+# ---------------------------------------------------------------------------
+
+# Gates the per-user capability/scope cache wrapping
+# ``GET /api/v1/admin/scope/`` and ``GET /api/v1/admin/capabilities/`` (R5).
+PERF_CACHE_CAPABILITIES = os.environ.get(
+    "PERF_CACHE_CAPABILITIES", ""
+).lower() in ("1", "true", "yes")
+
+# Gates the short-lived admin dashboard aggregate cache on
+# ``AdminDashboardView`` (R2).
+PERF_CACHE_DASHBOARD = os.environ.get(
+    "PERF_CACHE_DASHBOARD", ""
+).lower() in ("1", "true", "yes")
+
+# Gates the catalog read-response cache (programs, canonical programs,
+# intakes, subjects, assignment-safe responses) (R4).
+PERF_CACHE_CATALOG = os.environ.get(
+    "PERF_CACHE_CATALOG", ""
 ).lower() in ("1", "true", "yes")
 
 # Reconciliation minimum-age cutoff before pending payments are re-queried
@@ -726,7 +754,7 @@ if _is_testing:
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "mihas-test-cache",
+            "LOCATION": "beanola-test-cache",
         }
     }
 

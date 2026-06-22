@@ -2,6 +2,8 @@ import { applicationSessionManager, type DraftDeleteResult } from './application
 import { KNOWN_DRAFT_STORAGE_KEYS, removeDraftStorageEntries } from './draftStorageKeys'
 import { sanitizeForLog } from './sanitize'
 import { logger } from '@/lib/logger'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
+import { useDraftStore } from '@/stores/draftStore'
 
 const DRAFT_CONTENT_KEYS = [
   'applicationDraft',
@@ -165,15 +167,14 @@ export const clearAllDraftData = (): boolean => {
     try { localStorage.setItem('draftDeleted', 'true'); } catch {}
     // Clear payment recovery store entries so stale recovery data does
     // not survive draft deletion (P0 audit finding).
-    try { localStorage.removeItem('mihas-payment-recovery'); } catch {}
+    try {
+      localStorage.removeItem(BROWSER_KEYS.paymentRecovery)
+      localStorage.removeItem(LEGACY_BROWSER_KEYS.paymentRecovery)
+    } catch {}
     // Notify both legacy listeners and the Zustand store so the
     // dashboard, ContinueApplication card, and multi-draft list refresh.
     try {
-      // Lazy import to avoid a circular dependency between
-      // ``lib/draftManager.ts`` and ``stores/draftStore.ts``.
-      void import('@/stores/draftStore').then(({ useDraftStore }) => {
-        useDraftStore.getState().markCleared();
-      });
+      useDraftStore.getState().markCleared();
     } catch {}
     try { window.dispatchEvent(new CustomEvent('draftCleared')); } catch {}
 

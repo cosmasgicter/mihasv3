@@ -83,34 +83,107 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Copy compose file to the server
+      - name: Copy compose file + deploy helpers to the server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: deploy/docker-compose.prod.yml
+          # disk_gate.sh holds the testable disk-usage threshold gate (R1.4);
+          # it is sourced by the deploy script below so the gate that runs in
+          # production is the same one the property test exercises.
+          source: |
+            deploy/docker-compose.prod.yml
+            deploy/disk_gate.sh
           target: /home/${{ secrets.EC2_USER }}/mihas
           strip_components: 1
 
       - name: Pull images & roll the stack
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          # Disk-usage gate threshold (R1.4). Configurable via a repo/org
+          # Actions variable within the inclusive 50..95 range; disk_gate.sh
+          # clamps out-of-range values. Defaults to 85.
+          DISK_THRESHOLD: ${{ vars.DISK_THRESHOLD || '85' }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          # Forward DISK_THRESHOLD into the remote shell that runs the script.
+          envs: DISK_THRESHOLD
           # GHCR_PAT: a PAT with read:packages (the box pulls private images).
           script: |
             set -euo pipefail
             cd ~/mihas
+
+            COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env"
+            NEW_BACKEND="${{ env.IMAGE_BASE }}-backend:${{ needs.build-and-push.outputs.sha }}"
+            NEW_FRONTEND="${{ env.IMAGE_BASE }}-frontend:${{ needs.build-and-push.outputs.sha }}"
+
+            # Source the testable disk-usage gate (scp'd alongside the compose file).
+            # shellcheck disable=SC1091
+            source ./disk_gate.sh
+
+            # Idempotent upsert of a KEY=value line in .env.
+            pin_env() {
+              local key="$1" val="$2"
+              if grep -q "^${key}=" .env; then
+                sed -i "s|^${key}=.*|${key}=${val}|" .env
+              else
+                echo "${key}=${val}" >> .env
+              fi
+            }
+
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            # Pin both images to this exact build in .env (idempotent upsert).
-            grep -q '^BACKEND_IMAGE=' .env && sed -i "s|^BACKEND_IMAGE=.*|BACKEND_IMAGE=${{ env.IMAGE_BASE }}-backend:${{ needs.build-and-push.outputs.sha }}|" .env || echo "BACKEND_IMAGE=${{ env.IMAGE_BASE }}-backend:${{ needs.build-and-push.outputs.sha }}" >> .env
-            grep -q '^FRONTEND_IMAGE=' .env && sed -i "s|^FRONTEND_IMAGE=.*|FRONTEND_IMAGE=${{ env.IMAGE_BASE }}-frontend:${{ needs.build-and-push.outputs.sha }}|" .env || echo "FRONTEND_IMAGE=${{ env.IMAGE_BASE }}-frontend:${{ needs.build-and-push.outputs.sha }}" >> .env
-            # JOBS_HOST is a new required var (compose has a :? guard); upsert a
+
+            # --- Step 1: capture the currently-running image refs (rollback anchor, R1.1/R1.5) ---
+            PREV_BACKEND="$(grep -E '^BACKEND_IMAGE=' .env | head -1 | cut -d= -f2- || true)"
+            PREV_FRONTEND="$(grep -E '^FRONTEND_IMAGE=' .env | head -1 | cut -d= -f2- || true)"
+            echo "rollback_anchor backend=${PREV_BACKEND:-<none>} frontend=${PREV_FRONTEND:-<none>}"
+
+            # --- Step 2: record disk usage + gate before any pull/build (R1.3/R1.4) ---
+            USAGE_BEFORE="$(df --output=pcent / | tail -1 | tr -dc '0-9')"
+            echo "disk_usage_before=${USAGE_BEFORE}%"
+            # disk_gate clamps DISK_THRESHOLD to 50..95 and, when usage >= threshold,
+            # prints an error naming usage/threshold/step and returns non-zero so
+            # `set -e` halts the deploy before we touch images.
+            disk_gate "${USAGE_BEFORE}" "${DISK_THRESHOLD:-85}" "pre-deploy-disk-gate"
+
+            # --- Step 3: prune stopped containers + dangling images, RETAIN the previous image (R1.1/R1.2) ---
+            # Dangling-only prune (never `-a`): keeps the tagged PREV_* refs that
+            # the rollback trap needs to restore the last-good stack.
+            docker container prune -f
+            docker image prune -f
+
+            # --- Pin both images to this exact build in .env (idempotent upsert). ---
+            pin_env BACKEND_IMAGE "${NEW_BACKEND}"
+            pin_env FRONTEND_IMAGE "${NEW_FRONTEND}"
+            # JOBS_HOST is a required var (compose has a :? guard); upsert a
             # default so the caddy container starts even before manual edits.
             grep -q '^JOBS_HOST=' .env || echo "JOBS_HOST=jobs.beanola.com" >> .env
-            docker compose -f docker-compose.prod.yml --env-file .env pull
-            docker compose -f docker-compose.prod.yml --env-file .env up -d
-            docker image prune -f
-            docker compose -f docker-compose.prod.yml ps
+
+            # --- Step 4: pull + up -d wrapped in a rollback trap (R1.5/R1.6) ---
+            rollback() {
+              local failed_step="$1"
+              echo "ERROR [${failed_step}]: deploy step failed — restoring previous images" >&2
+              if [ -n "${PREV_BACKEND}" ] && [ -n "${PREV_FRONTEND}" ]; then
+                # Re-pin .env to the last-good images and restart. No `down`, no
+                # `-v`: the postgres volume and DB are left completely untouched.
+                pin_env BACKEND_IMAGE "${PREV_BACKEND}"
+                pin_env FRONTEND_IMAGE "${PREV_FRONTEND}"
+                ${COMPOSE} up -d || echo "ERROR [${failed_step}]: rollback 'up -d' also failed" >&2
+              else
+                echo "ERROR [${failed_step}]: no previous image refs captured — cannot auto-roll back" >&2
+              fi
+              echo "ERROR: deploy failed at step '${failed_step}'" >&2
+              exit 1
+            }
+
+            ${COMPOSE} pull   || rollback "image-pull"
+            ${COMPOSE} up -d  || rollback "container-start"
+
+            # --- Step 5: record disk usage after the deploy (R1.3) ---
+            USAGE_AFTER="$(df --output=pcent / | tail -1 | tr -dc '0-9')"
+            echo "disk_usage_after=${USAGE_AFTER}%"
+
+            ${COMPOSE} ps

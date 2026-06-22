@@ -28,6 +28,7 @@ def _mock_app(status="draft", days_since_update=10, program="CS", intake="Jan 20
 # Patch paths — tasks use local imports so we patch the source models/services
 _APP_MODEL = "apps.applications.models.Application"
 _TRANSITION = "apps.applications.services.transition_application_status"
+_BULK_TRANSITION = "apps.applications.services.transition_applications_bulk"
 _NOTIFICATION = "apps.common.models.Notification"
 _EMAIL_QUEUE = "apps.common.models.EmailQueue"
 _SEND_EMAIL = "apps.common.tasks.send_email_task"
@@ -35,171 +36,181 @@ _PROFILE = "apps.accounts.models.Profile"
 _SETTING = "apps.common.models.Setting"
 _OUTBOX_NOTIFY = "apps.common.outbox.create_notification"
 _OUTBOX_EMAIL = "apps.common.outbox.queue_email"
+# Batched outbox helpers (system-performance-hardening R6.4).
+_OUTBOX_NOTIFY_BULK = "apps.common.outbox.create_notifications_bulk"
+_OUTBOX_EMAIL_BULK = "apps.common.outbox.queue_emails_bulk"
 
 
 class TestDraftExpiryReminderTrigger:
     """1. 7-day reminder trigger — draft_expiry_reminder_task finds drafts older than 7 days (Req 4.1, 4.2)."""
 
-    @patch(_OUTBOX_EMAIL)
-    @patch(_OUTBOX_NOTIFY)
+    @patch(_OUTBOX_EMAIL_BULK)
+    @patch(_OUTBOX_NOTIFY_BULK)
     @patch(_NOTIFICATION)
     @patch(_APP_MODEL)
-    def test_sends_reminder_for_7_day_stale_draft(self, mock_app_cls, mock_notif, mock_outbox_notify, mock_outbox_email):
-        """Drafts with no updates in 7+ days get a reminder notification + email."""
+    def test_sends_reminder_for_7_day_stale_draft(self, mock_app_cls, mock_notif, mock_notify_bulk, mock_email_bulk):
+        """Drafts with no updates in 7+ days get a reminder notification + email (batched)."""
         app = _mock_app(days_since_update=10)
 
         mock_app_cls.objects.filter.return_value = [app]
-        mock_notif.objects.filter.return_value.exists.return_value = False
+        # Batched dedup lookup returns no already-sent keys.
+        mock_notif.objects.filter.return_value.values_list.return_value = []
 
         from apps.applications.tasks import draft_expiry_reminder_task
         result = draft_expiry_reminder_task()
 
         assert result["reminders_sent"] == 1
-        mock_outbox_notify.assert_called_once()
-        notif_kwargs = mock_outbox_notify.call_args[1]
-        assert notif_kwargs["user_id"] == app.user_id
-        assert notif_kwargs["title"] == "Complete Your Application Draft"
-        mock_outbox_email.assert_called_once()
+        mock_notify_bulk.assert_called_once()
+        specs = mock_notify_bulk.call_args[0][0]
+        assert len(specs) == 1
+        assert specs[0]["user_id"] == app.user_id
+        assert specs[0]["title"] == "Complete Your Application Draft"
+        mock_email_bulk.assert_called_once()
 
-    @patch(_OUTBOX_EMAIL)
-    @patch(_OUTBOX_NOTIFY)
+    @patch(_OUTBOX_EMAIL_BULK)
+    @patch(_OUTBOX_NOTIFY_BULK)
     @patch(_NOTIFICATION)
     @patch(_APP_MODEL)
-    def test_skips_already_notified_draft(self, mock_app_cls, mock_notif, mock_outbox_notify, mock_outbox_email):
-        """Deduplication: skip if reminder already sent today."""
+    def test_skips_already_notified_draft(self, mock_app_cls, mock_notif, mock_notify_bulk, mock_email_bulk):
+        """Deduplication: skip if reminder already sent today (batched lookup)."""
+        from django.utils import timezone as tz
+
         app = _mock_app(days_since_update=10)
+        dedup_key = f"draft_reminder_{app.id}_{tz.now().strftime('%Y-%m-%d')}"
 
         mock_app_cls.objects.filter.return_value = [app]
-        mock_notif.objects.filter.return_value.exists.return_value = True  # already sent
+        mock_notif.objects.filter.return_value.values_list.return_value = [dedup_key]
 
         from apps.applications.tasks import draft_expiry_reminder_task
         result = draft_expiry_reminder_task()
 
         assert result["reminders_sent"] == 0
-        mock_outbox_notify.assert_not_called()
+        mock_notify_bulk.assert_not_called()
 
 
 class TestDraftExpiryTransition:
     """2. 30-day expiry transition — drafts older than 30 days transition to expired (Req 4.3, 4.4)."""
 
-    @patch(_OUTBOX_EMAIL)
-    @patch(_OUTBOX_NOTIFY)
-    @patch(_TRANSITION)
+    @patch(_OUTBOX_EMAIL_BULK)
+    @patch(_OUTBOX_NOTIFY_BULK)
+    @patch(_BULK_TRANSITION)
     @patch(_APP_MODEL)
-    def test_expires_draft_after_30_days(self, mock_app_cls, mock_transition, mock_outbox_notify, mock_outbox_email):
-        """Drafts with no updates for 30+ days are transitioned to expired."""
+    def test_expires_draft_after_30_days(self, mock_app_cls, mock_bulk_transition, mock_notify_bulk, mock_email_bulk):
+        """Drafts with no updates for 30+ days are transitioned to expired via the batch helper."""
         app = _mock_app(days_since_update=35)
 
         mock_app_cls.objects.filter.return_value = [app]
+        mock_bulk_transition.return_value = [(app, "draft")]
 
         from apps.applications.tasks import draft_expiry_reminder_task
         result = draft_expiry_reminder_task()
 
         assert result["expired"] == 1
-        mock_transition.assert_called_once()
-        call_kwargs = mock_transition.call_args[1]
+        mock_bulk_transition.assert_called_once()
+        call_kwargs = mock_bulk_transition.call_args[1]
         assert call_kwargs["new_status"] == "expired"
         assert call_kwargs["changed_by"] == SYSTEM_ACTOR_ID
 
-    @patch(_OUTBOX_EMAIL)
-    @patch(_OUTBOX_NOTIFY)
-    @patch(_TRANSITION)
+    @patch(_OUTBOX_EMAIL_BULK)
+    @patch(_OUTBOX_NOTIFY_BULK)
+    @patch(_BULK_TRANSITION)
     @patch(_APP_MODEL)
-    def test_expired_draft_gets_notification_and_email(self, mock_app_cls, mock_transition, mock_outbox_notify, mock_outbox_email):
-        """Expired drafts trigger both a notification and an email to the student."""
+    def test_expired_draft_gets_notification_and_email(self, mock_app_cls, mock_bulk_transition, mock_notify_bulk, mock_email_bulk):
+        """Expired drafts trigger both a notification and an email to the student (batched)."""
         app = _mock_app(days_since_update=31)
 
         mock_app_cls.objects.filter.return_value = [app]
+        mock_bulk_transition.return_value = [(app, "draft")]
 
         from apps.applications.tasks import draft_expiry_reminder_task
         draft_expiry_reminder_task()
 
-        mock_outbox_notify.assert_called_once()
-        notif_kwargs = mock_outbox_notify.call_args[1]
-        assert notif_kwargs["title"] == "Application Draft Expired"
-        assert notif_kwargs["type"] == "warning"
-        assert notif_kwargs["priority"] == "high"
-        mock_outbox_email.assert_called_once()
-        email_kwargs = mock_outbox_email.call_args[1]
-        assert email_kwargs["subject"] == "Application Draft Expired"
+        mock_notify_bulk.assert_called_once()
+        notif_specs = mock_notify_bulk.call_args[0][0]
+        assert notif_specs[0]["title"] == "Application Draft Expired"
+        assert notif_specs[0]["type"] == "warning"
+        assert notif_specs[0]["priority"] == "high"
+        mock_email_bulk.assert_called_once()
+        email_specs = mock_email_bulk.call_args[0][0]
+        assert email_specs[0]["subject"] == "Application Draft Expired"
 
 
 class TestUrgencyIndicator:
     """3. Urgency indicator for days 27–30 (Req 4.9)."""
 
-    @patch(_OUTBOX_EMAIL)
-    @patch(_OUTBOX_NOTIFY)
+    @patch(_OUTBOX_EMAIL_BULK)
+    @patch(_OUTBOX_NOTIFY_BULK)
     @patch(_NOTIFICATION)
     @patch(_APP_MODEL)
-    def test_urgency_message_at_28_days(self, mock_app_cls, mock_notif, mock_outbox_notify, mock_outbox_email):
+    def test_urgency_message_at_28_days(self, mock_app_cls, mock_notif, mock_notify_bulk, mock_email_bulk):
         """Draft at 28 days (2 days until expiry) includes urgency indicator."""
         app = _mock_app(days_since_update=28)
 
         mock_app_cls.objects.filter.return_value = [app]
-        mock_notif.objects.filter.return_value.exists.return_value = False
+        mock_notif.objects.filter.return_value.values_list.return_value = []
 
         from apps.applications.tasks import draft_expiry_reminder_task
         result = draft_expiry_reminder_task()
 
         assert result["reminders_sent"] == 1
-        notif_kwargs = mock_outbox_notify.call_args[1]
-        assert "expire in 2 days" in notif_kwargs["message"]
-        assert notif_kwargs["priority"] == "high"
+        notif_specs = mock_notify_bulk.call_args[0][0]
+        assert "expire in 2 days" in notif_specs[0]["message"]
+        assert notif_specs[0]["priority"] == "high"
 
-    @patch(_OUTBOX_EMAIL)
-    @patch(_OUTBOX_NOTIFY)
+    @patch(_OUTBOX_EMAIL_BULK)
+    @patch(_OUTBOX_NOTIFY_BULK)
     @patch(_NOTIFICATION)
     @patch(_APP_MODEL)
-    def test_urgency_message_at_29_days(self, mock_app_cls, mock_notif, mock_outbox_notify, mock_outbox_email):
+    def test_urgency_message_at_29_days(self, mock_app_cls, mock_notif, mock_notify_bulk, mock_email_bulk):
         """Draft at 29 days (1 day until expiry) includes singular urgency indicator."""
         app = _mock_app(days_since_update=29)
 
         mock_app_cls.objects.filter.return_value = [app]
-        mock_notif.objects.filter.return_value.exists.return_value = False
+        mock_notif.objects.filter.return_value.values_list.return_value = []
 
         from apps.applications.tasks import draft_expiry_reminder_task
         result = draft_expiry_reminder_task()
 
         assert result["reminders_sent"] == 1
-        notif_kwargs = mock_outbox_notify.call_args[1]
-        assert "expire in 1 day" in notif_kwargs["message"]
+        notif_specs = mock_notify_bulk.call_args[0][0]
+        assert "expire in 1 day" in notif_specs[0]["message"]
 
-    @patch(_OUTBOX_EMAIL)
-    @patch(_OUTBOX_NOTIFY)
+    @patch(_OUTBOX_EMAIL_BULK)
+    @patch(_OUTBOX_NOTIFY_BULK)
     @patch(_NOTIFICATION)
     @patch(_APP_MODEL)
-    def test_urgent_email_subject(self, mock_app_cls, mock_notif, mock_outbox_notify, mock_outbox_email):
+    def test_urgent_email_subject(self, mock_app_cls, mock_notif, mock_notify_bulk, mock_email_bulk):
         """Drafts within 3 days of expiry get an urgent email subject."""
         app = _mock_app(days_since_update=27)
 
         mock_app_cls.objects.filter.return_value = [app]
-        mock_notif.objects.filter.return_value.exists.return_value = False
+        mock_notif.objects.filter.return_value.values_list.return_value = []
 
         from apps.applications.tasks import draft_expiry_reminder_task
         draft_expiry_reminder_task()
 
-        email_kwargs = mock_outbox_email.call_args[1]
-        assert email_kwargs["subject"] == "Your Application Draft Will Expire Soon"
+        email_specs = mock_email_bulk.call_args[0][0]
+        assert email_specs[0]["subject"] == "Your Application Draft Will Expire Soon"
 
-    @patch(_OUTBOX_EMAIL)
-    @patch(_OUTBOX_NOTIFY)
+    @patch(_OUTBOX_EMAIL_BULK)
+    @patch(_OUTBOX_NOTIFY_BULK)
     @patch(_NOTIFICATION)
     @patch(_APP_MODEL)
-    def test_no_urgency_for_early_reminder(self, mock_app_cls, mock_notif, mock_outbox_notify, mock_outbox_email):
+    def test_no_urgency_for_early_reminder(self, mock_app_cls, mock_notif, mock_notify_bulk, mock_email_bulk):
         """Drafts at 10 days (20 days until expiry) do NOT include urgency indicator."""
         app = _mock_app(days_since_update=10)
 
         mock_app_cls.objects.filter.return_value = [app]
-        mock_notif.objects.filter.return_value.exists.return_value = False
+        mock_notif.objects.filter.return_value.values_list.return_value = []
 
         from apps.applications.tasks import draft_expiry_reminder_task
         draft_expiry_reminder_task()
 
-        notif_kwargs = mock_outbox_notify.call_args[1]
-        assert "expire in" not in notif_kwargs["message"]
-        assert notif_kwargs["priority"] == "normal"
-        email_kwargs = mock_outbox_email.call_args[1]
-        assert email_kwargs["subject"] == "Reminder: Complete Your Application"
+        notif_specs = mock_notify_bulk.call_args[0][0]
+        assert "expire in" not in notif_specs[0]["message"]
+        assert notif_specs[0]["priority"] == "normal"
+        email_specs = mock_email_bulk.call_args[0][0]
+        assert email_specs[0]["subject"] == "Reminder: Complete Your Application"
 
 
 class TestReviewSLABreachDetection:

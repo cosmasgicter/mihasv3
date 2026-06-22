@@ -382,6 +382,160 @@ def transition_application_status(
     return old_status
 
 
+def transition_applications_bulk(
+    applications,
+    new_status: str,
+    changed_by: str,
+    *,
+    notes: str = "",
+    ip_address: str = "",
+    user_agent: str = "",
+) -> list:
+    """Batch-apply one forward-only status transition across many applications.
+
+    Behaviourally equivalent to calling :func:`transition_application_status`
+    once per application, but persists the status mutations with a single
+    ``bulk_update`` and the ``ApplicationStatusHistory`` rows with a single
+    ``bulk_create`` — turning O(N) writes into O(1) for periodic expiry tasks
+    (system-performance-hardening R6.4).
+
+    Forward-only enforcement is preserved per application: an application whose
+    current status does not permit ``new_status`` (per ``ALLOWED_TRANSITIONS``)
+    is skipped and logged rather than raising, so one ineligible row cannot
+    abort the batch.
+
+    This helper targets the terminal expiry transitions used by the periodic
+    tasks (``draft → expired``, ``approved``/``conditionally_approved →
+    enrollment_expired``). It still runs the same per-row post-transition hooks
+    as the single-row helper for full equivalence; those hooks are no-ops for
+    the terminal expiry statuses.
+
+    Returns the list of ``(application, old_status)`` tuples actually
+    transitioned (in input order, ineligible rows omitted).
+    """
+    # Same actor-id type guard as the single-row helper (ADR-013).
+    try:
+        _uuid.UUID(str(changed_by))
+    except (ValueError, TypeError, AttributeError) as exc:
+        raise ValueError(
+            f"transition_applications_bulk: changed_by must be a UUID, "
+            f"got {changed_by!r}. Automated tasks must pass SYSTEM_ACTOR_ID "
+            f"from apps.applications.services."
+        ) from exc
+
+    now = timezone.now()
+    to_update: list[Application] = []
+    history_rows: list[ApplicationStatusHistory] = []
+    transitioned: list = []
+
+    for application in applications:
+        old_status = application.status
+        allowed = ALLOWED_TRANSITIONS.get(old_status, set())
+        if new_status not in allowed:
+            logger.warning(
+                "Invalid bulk transition skipped: app=%s from=%s to=%s by=%s",
+                getattr(application, "id", None),
+                old_status,
+                new_status,
+                changed_by,
+            )
+            continue
+
+        application.status = new_status
+
+        if not application.review_started_at and new_status in (
+            "under_review",
+            "conditionally_approved",
+            "approved",
+            "rejected",
+        ):
+            application.review_started_at = now
+
+        if new_status not in ("submitted",):
+            application.reviewed_by_id = changed_by
+
+        if notes:
+            application.admin_feedback = notes
+            application.admin_feedback_date = now
+            application.admin_feedback_by_id = changed_by
+
+        if new_status in (
+            "approved",
+            "rejected",
+            "conditionally_approved",
+            "withdrawn",
+            "expired",
+            "enrolled",
+            "enrollment_expired",
+        ):
+            application.decision_date = now
+
+        application.updated_at = now
+
+        to_update.append(application)
+        history_rows.append(
+            ApplicationStatusHistory(
+                application=application,
+                status=new_status,
+                old_status=old_status,
+                new_status=new_status,
+                changed_by_id=changed_by,
+                notes=notes,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                created_at=now,
+            )
+        )
+        transitioned.append((application, old_status))
+
+    if not to_update:
+        return []
+
+    with transaction.atomic():
+        Application.objects.bulk_update(to_update, _STATUS_TRANSITION_UPDATE_FIELDS)
+        ApplicationStatusHistory.objects.bulk_create(history_rows)
+
+    # Per-row post-transition side effects, identical to the single-row helper.
+    # These are guarded no-ops for the terminal expiry statuses this helper
+    # targets, but are included so the batch path stays equivalent for any
+    # future caller.
+    for application, _old_status in transitioned:
+        if new_status == "waitlisted" and not application.waitlist_position:
+            try:
+                from apps.applications.waitlist_manager import WaitlistManager
+                WaitlistManager.assign_position(
+                    application, application.program, application.intake
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to assign waitlist position for app=%s", application.id
+                )
+
+        if new_status in ("approved", "conditionally_approved") and not application.enrollment_confirmation_deadline:
+            try:
+                from apps.applications.enrollment_service import EnrollmentService
+                deadline = EnrollmentService.compute_deadline(application)
+                Application.objects.filter(id=application.id).update(
+                    enrollment_confirmation_deadline=deadline
+                )
+                application.enrollment_confirmation_deadline = deadline
+            except Exception:
+                logger.exception(
+                    "Failed to compute enrollment deadline for app=%s", application.id
+                )
+
+        if new_status == "enrolled" and not getattr(application, "student_number", None):
+            try:
+                from apps.applications._view_helpers import assign_student_number_if_needed
+                assign_student_number_if_needed(application)
+            except Exception:
+                logger.exception(
+                    "Failed to assign student number for app=%s", application.id
+                )
+
+    return transitioned
+
+
 def _application_has_completed_payment(application_id) -> bool:
     # force_approved (admin offline-payment override) is a completed payment
     # too — not just "successful". RECEIPT_ELIGIBLE_STATUSES = both.

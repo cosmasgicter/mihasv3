@@ -296,8 +296,16 @@ class TestAuditLogCreation:
             )
             view(request, application_id=app_id)
 
-            mock_audit.create.assert_called_once()
-            call_kwargs = mock_audit.create.call_args[1]
+            # The verify path now emits an additional institution-scoped tenant
+            # Audit_Event (enterprise-tenant-authority R10.5/R10.8) alongside the
+            # legacy audit row. Both go through AuditLog.objects.create; assert
+            # the legacy document-verification row is present and well-formed.
+            legacy_calls = [
+                c for c in mock_audit.create.call_args_list
+                if c.kwargs.get("entity_type") == "application_documents"
+            ]
+            assert len(legacy_calls) == 1
+            call_kwargs = legacy_calls[0].kwargs
             assert call_kwargs["entity_type"] == "application_documents"
             assert call_kwargs["action"] == f"document_{verification_status}"
             assert call_kwargs["actor_id"] == str(admin.id)

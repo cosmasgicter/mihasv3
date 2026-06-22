@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import * as fc from 'fast-check'
 import { secureStorage, clearSession, stripPiiFields } from '@/lib/secureStorage'
 
-const STORAGE_PREFIX = 'mihas_secure_'
+const STORAGE_PREFIX = 'beanola_secure_'
 const PII_FIELDS = [
   'password',
   'token',

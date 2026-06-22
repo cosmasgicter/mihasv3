@@ -3,12 +3,13 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthCheck } from '@/hooks/auth/useSessionListener'
 import { GuardInlineSkeleton } from '@/components/ui/GuardInlineSkeleton'
 import { startLoaderTelemetry } from '@/lib/loaderTelemetry'
+import { BROWSER_KEYS } from '@/lib/browserNamespace'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
 }
 
-const SIGNIN_REDIRECT_KEY = 'mihas:post-auth-redirect'
+const SIGNIN_REDIRECT_KEY = BROWSER_KEYS.postAuthRedirect
 
 /**
  * Protected route guard.

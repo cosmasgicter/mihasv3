@@ -5,7 +5,9 @@ Requirements: 6.1, 6.2, 6.3, 8.1, 8.2, 8.3, 8.5, 8.6, 7.1, 7.2, 7.3, 7.4, 7.5, 7
 """
 
 import logging
+import uuid
 
+from django.db.models import Q
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import serializers, status
@@ -359,7 +361,26 @@ class EmailSendView(APIView):
     get=extend_schema(
         operation_id="notifications_list",
         tags=["notifications"],
-        responses={200: OpenApiResponse(response=NotificationListResponseSerializer)},
+        parameters=[
+            OpenApiParameter(name="page", type=int, required=False, description="Page number (page-number mode, default 1)"),
+            OpenApiParameter(name="pageSize", type=int, required=False, description="Page size (default 20, max 100)"),
+            OpenApiParameter(name="type", type=str, required=False, description="Filter by notification type"),
+            OpenApiParameter(name="is_read", type=bool, required=False, description="Filter by read state"),
+            OpenApiParameter(
+                name="after",
+                type=str,
+                required=False,
+                description=(
+                    "Cursor mode: opaque last-seen notification id. Returns rows strictly "
+                    "before the anchor's (created_at, id) key in descending order. "
+                    "totalCount is null and no full-count query is executed."
+                ),
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(response=NotificationListResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+        },
     ),
     post=extend_schema(
         operation_id="notifications_send_create",
@@ -376,13 +397,91 @@ class NotificationListView(APIView):
     """GET /api/v1/notifications/ - list notifications for current user.
     POST /api/v1/notifications/ - admin send notification (delegates to NotificationSendView).
 
-    Supports pagination (?page=1&pageSize=20) and filtering (?type=info&is_read=true).
-    Without params, returns all notifications in the paginated envelope for backward compatibility.
+    Two read modes:
+    - **Page-number mode** (no ``after``): supports ``?page=1&pageSize=20`` and
+      filtering (``?type=info&is_read=true``), returning the existing
+      ``{page, pageSize, totalCount, results}`` envelope for backward
+      compatibility. Without params, returns notifications in the same paginated
+      envelope.
+    - **Cursor mode** (``?after=<id>``): orders by descending ``(created_at, id)``
+      and returns rows strictly less than the anchor's composite key, capped at
+      ``min(pageSize default 20, max 100)``. Issues no ``count()`` query and
+      reports ``totalCount`` as ``null`` (R9, system-performance-hardening).
     """
 
     permission_classes = [IsAuthenticated]
 
     VALID_TYPES = {"info", "success", "warning", "error"}
+
+    def _parse_page_size(self, request, default=20):
+        """Parse pageSize, defaulting to ``default`` and clamping to [1, 100]."""
+        try:
+            page_size = int(request.query_params.get("pageSize", default))
+        except (ValueError, TypeError):
+            page_size = default
+        return max(1, min(page_size, 100))
+
+    def _cursor_response(self, request, notifications, after_param):
+        """Cursor-paginated response keyed on the opaque last-seen id (R9).
+
+        ``after`` is the id of the last notification the client has already seen.
+        Returns rows strictly less than that anchor's ``(created_at, id)`` key in
+        descending order. No ``count()`` is issued; ``totalCount`` is ``null``.
+        """
+        # R9.4: an unparseable id is a validation error and returns no notifications.
+        try:
+            anchor_id = uuid.UUID(str(after_param))
+        except (ValueError, AttributeError, TypeError):
+            return Response(
+                {
+                    "success": False,
+                    "error": "The 'after' identifier is invalid.",
+                    "code": "VALIDATION_ERROR",
+                    "details": {"after": ["Not a valid identifier."]},
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        page_size = self._parse_page_size(request)
+
+        # Resolve the anchor row within the caller's own notifications. Scoping to
+        # the requesting user means an id belonging to another user is treated as
+        # unknown (empty results), never confirmed to exist.
+        anchor = (
+            Notification.objects.filter(user_id=request.user.pk, pk=anchor_id)
+            .only("id", "created_at")
+            .first()
+        )
+
+        if anchor is None:
+            # R9.5: well-formed but unknown id -> empty results, no error, no count.
+            return Response({
+                "success": True,
+                "data": {
+                    "pageSize": page_size,
+                    "totalCount": None,
+                    "after": str(anchor_id),
+                    "results": [],
+                },
+            })
+
+        # R9.1: rows strictly less than the anchor's (created_at, id) composite key,
+        # ordered descending. No count() is executed.
+        cursor_qs = notifications.filter(
+            Q(created_at__lt=anchor.created_at)
+            | Q(created_at=anchor.created_at, id__lt=anchor.id)
+        ).order_by("-created_at", "-id")[:page_size]
+
+        data = NotificationItemSerializer(cursor_qs, many=True).data
+        return Response({
+            "success": True,
+            "data": {
+                "pageSize": page_size,
+                "totalCount": None,
+                "after": str(anchor_id),
+                "results": data,
+            },
+        })
 
     def get(self, request):
         notifications = (
@@ -403,7 +502,13 @@ class NotificationListView(APIView):
             elif is_read_lower in ("false", "0"):
                 notifications = notifications.filter(is_read=False)
 
-        # --- Pagination ---
+        # --- Cursor mode (additive): ?after=<id> ---
+        # Takes precedence over page-number mode. Issues no count() query (R9).
+        after_param = request.query_params.get("after")
+        if after_param is not None:
+            return self._cursor_response(request, notifications, after_param)
+
+        # --- Pagination (page-number mode, unchanged) ---
         total_count = notifications.count()
 
         # Parse page and pageSize with safe defaults

@@ -1,4 +1,4 @@
-# MIHAS-KATC PDF Document System
+# Beanola Tenant PDF Document System
 
 Student-facing PDFs (application slip, payment receipt, acceptance letter) are
 rendered client-side with [`@react-pdf/renderer`](https://react-pdf.org/) v4.
@@ -78,8 +78,11 @@ apps/admissions/src/lib/pdf/
 | Body       | Source Sans 3     | 400, 600       |
 | Monospace  | JetBrains Mono    | 500            |
 
-TTF files live in `apps/admissions/public/fonts/pdf/`. Registered once per
-session via `registerPdfFonts()` in `theme/typography.ts`; idempotent.
+TTF files live in `apps/admissions/src/lib/pdf/assets/fonts/` and are imported
+as Vite URL assets (`?url`), so they are emitted as hashed, immutable-cached
+files under `/assets/` at build time (not publicly fetchable from `public/`).
+Registered once per session via `registerPdfFonts()` in `theme/typography.ts`;
+idempotent.
 
 ### Spacing
 
@@ -158,7 +161,8 @@ manually and compare in a PDF viewer before releases.
 ## Known constraints
 
 - `@react-pdf/renderer` supports PNG and JPEG images only. Logos are `.png`.
-- Custom fonts are loaded from same-origin `/fonts/pdf/`. If the server is
+- Custom fonts are bundled (`?url`) and served same-origin from `/assets/`. If
+  the server is
   offline, rendering falls back to Helvetica.
 - Bundle size: `@react-pdf/renderer` adds ~500 KB ungzipped. Mitigated by
   dynamic import inside `renderToBlob()` — bundle is only pulled in on

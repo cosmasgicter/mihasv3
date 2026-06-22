@@ -39,7 +39,7 @@ drift guard" note must say so.
 | Product admin tenant surface (route) | `apps/admissions/src/routes/config.tsx` → `{ path: '/admin/tenants', guard: 'admin' }` (lazy `@/pages/admin/Tenants`) | **Beanola product admin** UI for tenant onboarding / school management; **authoritative for the launch smoke check (R14.3)**. No route rename. |
 | Django operational admin surface (route) | `backend/config/urls.py` → `path("beanola-admin-panel/", admin.site.urls)` | low-level Django framework admin; checked separately from `/admin/tenants` per the R1 two-surface decision. No route rename. |
 | Email sender / default contact | `backend/config/settings/base.py` (`DEFAULT_FROM_EMAIL` ← `ZOHO_FROM_EMAIL`/`EMAIL_FROM`, default `admin@beanola.com`; `EMAIL_FROM` default `noreply@beanola.com`; `ERROR_ALERT_EMAIL` default `admin@beanola.com`) | outbound email (`apps/common/tasks.py`, `apps/common/email/`); default contact `apps/common/communication_service.py:_DEFAULT_CONTACT_EMAIL` (`admissions@beanola.com`); admin setting `accounts/admin_serializers.py` `contact_email` |
-| OpenAPI metadata | `backend/config/settings/base.py:SPECTACULAR_SETTINGS` (`TITLE`, `DESCRIPTION`, `VERSION`, `SERVERS`) | `python3 manage.py spectacular`; `/api/v1/` docs. **Note:** `TITLE` is currently `"MIHAS Platform APIs"` — R4.1 owns rebranding the metadata to Beanola; this row records the single source, not the final value. |
+| OpenAPI metadata | `backend/config/settings/base.py:SPECTACULAR_SETTINGS` (`TITLE`, `DESCRIPTION`, `VERSION`, `SERVERS`) | `python3 manage.py spectacular`; `/api/v1/` docs. Current title is `"Beanola Platform APIs"` and servers point to `api.beanola.com` plus local development. |
 | Public routes / SEO | `apps/admissions/src/components/seo/Seo.tsx` (`DEFAULT_SITE_NAME="Beanola Admissions"`, default image `/images/logos/beanolalogo.webp`, site URL ← `VITE_APP_BASE_URL`/`VITE_SITE_URL`, default `https://apply.beanola.com`) | per-page `<Seo>` usage across public/student routes (`LandingPage`, `tracker`, `Privacy`/`Terms`/`Contact`, auth, dashboard) |
 | Brand_Allowlist | `docs/legacy-brand-allowlist.json` (reviewed single-file entries permitted to contain MIHAS/KATC/Mukuba/Kalulushi/legacy-domain strings) | Brand_Drift_Guard pair (`backend/tests/unit/test_brand_drift_guard.py` + `apps/admissions/tests/unit/brandDriftGuard.test.ts`); R2 owns tightening |
 
@@ -74,6 +74,82 @@ drift guard" note must say so.
 | Legacy shim | `apps/admissions/src/lib/auth/roles.ts` (re-exports from `types/roles.ts`) | back-compat |
 | Auth contract | `docs/adrs/ADR-014-auth-cookie-csrf-design.md` | reference |
 | Drift guard | `apps/admissions/tests/unit/rolesBackendMirror.test.ts` |
+
+## Enterprise Tenant Authority (Capabilities & Routes)
+
+Spec: `.kiro/specs/enterprise-tenant-authority/`. Steering model:
+`.kiro/steering/enterprise-tenancy.md`. **Beanola owns the Platform; MIHAS/KATC
+are example tenants.** Authority is resolved through **capabilities**, never raw
+role strings. The backend `AdminCapabilityService` is the **sole source of
+truth** for the capability catalogue; the admissions frontend mirrors it by
+consuming `GET /api/v1/admin/capabilities/` through `CapabilityContext` and
+pinning the one hard-coded capability string it needs for navigation
+(`tenantNav.ts:TENANT_PROFILE_READ = 'tenant.profile.read'`).
+
+| Concept | Source of truth | Consumers / drift guard |
+|---------|-----------------|--------------------------|
+| Capability catalogue (17 `platform.*` + 17 `tenant.*`) | `backend/apps/catalog/services.py:AdminCapabilityService.PLATFORM_CAPABILITIES` / `TENANT_CAPABILITIES` | Frontend mirror: `apps/admissions/src/contexts/CapabilityContext.tsx` + `apps/admissions/src/services/admin/capabilities.ts` (consume strings opaquely); `apps/admissions/src/components/navigation/tenantNav.ts` pins `tenant.profile.read`. Drift guards: `backend/tests/property/test_capability_endpoint_shape.py` (Property 2 — endpoint exposes the catalogue), `apps/admissions/tests/property/capabilityDerivation.property.test.ts` (Property 21 — frontend derivation), `apps/admissions/tests/unit/tenantNav.test.ts` (pins `tenant.profile.read`). A new capability string must be added here **and** to the backend catalogue together. |
+| `CapabilitySet` shape | `backend/apps/catalog/services.py:CapabilitySet` (`role`, `is_super_admin`, `all_access`, `platform_capabilities`, `institution_capabilities`) | Capability endpoint payload; frontend `AdminCapabilitySet` type in `capabilities.ts` |
+| Domain status machine | `backend/apps/catalog/services.py:DomainStatusMachine` | `verify_institution_domain_task`, domain activate view; drift via `backend/tests/property/test_domain_status_machine.py` (Property 11) |
+| Fail-closed domain resolver | `backend/apps/catalog/services.py:InstitutionContextService.resolve` | `GET /api/v1/catalog/context/`; `backend/tests/property/test_domain_resolution_fail_closed.py` (Property 14) |
+
+**The 17 `platform.*` capabilities** (Super_Admin only):
+`platform.tenant.read_all`, `platform.tenant.create`, `platform.tenant.update`,
+`platform.tenant.deactivate`, `platform.domain.manage`, `platform.asset.manage`,
+`platform.template.manage`, `platform.document.manage`,
+`platform.canonical_program.manage`, `platform.program_assignment.manage`,
+`platform.intake.manage`, `platform.user.create_global`,
+`platform.user.manage_all`, `platform.access_grant.manage`,
+`platform.audit.read_all`, `platform.routing.simulate_all`,
+`platform.settings.manage`.
+
+**The 17 `tenant.*` capabilities** (per-institution, non-super-admin):
+`tenant.profile.read`, `tenant.profile.request_change`, `tenant.application.read`,
+`tenant.application.review`, `tenant.application.export`, `tenant.document.read`,
+`tenant.document.verify`, `tenant.payment.read`, `tenant.payment.verify`,
+`tenant.staff.read`, `tenant.staff.invite`, `tenant.staff.disable`,
+`tenant.audit.read`, `tenant.program.read`, `tenant.program.request_change`,
+`tenant.domain.read`, `tenant.domain.request_change`.
+
+### Canonical routes (frontend)
+
+| Route | Component | Authority |
+|-------|-----------|-----------|
+| `/admin/tenants` | `apps/admissions/src/pages/admin/Tenants.tsx` (capability switcher → `SuperAdminTenantConsole` / `TenantAdminSchoolConsole` / no-access) | Shared admin route; renders the correct console per capability. Not super-admin-flagged in the route config. |
+| Super-admin tenant onboarding wizard | `apps/admissions/src/pages/admin/tenants/TenantOnboardingWizard.tsx` | Super_Admin only (guarded by `RequireSuperAdmin`; backend re-enforces) |
+| Tenant-admin school console | `apps/admissions/src/pages/admin/tenants/TenantAdminSchoolConsole.tsx` | Tenant_Admin (scoped to assigned institution(s)) |
+
+### Canonical backend tenant API paths
+
+Mounted at `/api/v1/admin/` (`backend/apps/catalog/admin_urls.py`):
+`institutions/`, `institutions/<id>/`, `institutions/<id>/audit/`,
+`institutions/<id>/domains/`, `institutions/<id>/domains/<id>/`,
+`institutions/<id>/domains/<id>/activate/`, `institutions/<id>/assets/`
+(+ `assets/upload/`, `assets/<id>/`), `institutions/<id>/templates/`
+(+ `templates/<id>/`), `institutions/<id>/document-profiles/`
+(+ `document-profiles/<id>/`, `document-profiles/<id>/clone/`),
+`institutions/<id>/required-documents/` (+ `required-documents/<id>/`),
+`memberships/` (+ `memberships/<id>/`), `access-grants/`
+(+ `access-grants/<id>/`), `routing/simulate/`, `tenant-audit/`. Capability +
+scope endpoints (`backend/apps/accounts/admin_user_views.py`):
+`GET /api/v1/admin/capabilities/`, extended `GET /api/v1/admin/scope/`.
+
+### Domain context endpoint
+
+`GET /api/v1/catalog/context/` (`backend/apps/catalog/views.py:CatalogContextView`)
+returns the resolved tenant context or the Neutral Beanola context (fail-closed).
+
+### Deprecated legacy catalog write paths
+
+The institution / program / intake **write** methods in
+`backend/apps/catalog/views.py` (`InstitutionListCreateView`,
+`InstitutionDetailView`, `ProgramListCreateView`, `ProgramDetailView`,
+`IntakeListCreateView`, `IntakeDetailView`) are **deprecated as a write surface**
+and now **capability-gated** (`platform.tenant.*`, `can_manage_program`,
+`platform.intake.manage`) via `HasPlatformCapability` + `TenantScopedCapabilityMixin`.
+New tenant onboarding/management should use the `/api/v1/admin/institutions/...`
+paths above. Public/student `GET` on these catalog endpoints is preserved
+unchanged. **Never** restore an ungated write path on these views.
 
 ## Error Codes
 
@@ -277,6 +353,9 @@ CI-blocking tests that fail when canonical truth diverges:
 - `backend/tests/unit/test_official_document_dedup_guard.py`
 - `backend/tests/unit/test_scope_drift_guard.py` + `backend/tests/unit/test_unscoped_endpoint_guard.py`
 - `backend/tests/unit/test_migration_drift_guard.py`
+- `apps/admissions/tests/unit/tenantNav.test.ts` (pins `tenant.profile.read`; enterprise-tenant-authority)
+- `backend/tests/property/test_capability_endpoint_shape.py` (Property 2 — capability catalogue exposed) + `apps/admissions/tests/property/capabilityDerivation.property.test.ts` (Property 21 — frontend capability derivation)
+- `backend/tests/property/test_domain_status_machine.py` (Property 11) + `backend/tests/property/test_domain_resolution_fail_closed.py` (Property 14)
 
 ## How To Add A New Domain Concept
 

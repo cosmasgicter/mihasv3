@@ -16,6 +16,7 @@
 
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 
 /** 24 hours in milliseconds — the TTL window for every recovery entry. */
 export const PAYMENT_RECOVERY_TTL_MS = 24 * 60 * 60 * 1000
@@ -47,7 +48,25 @@ export interface PaymentRecoveryStore {
  * default export) so tests can instantiate fresh stores without leaking
  * state between examples.
  */
-export function createPaymentRecoveryStore(name = 'mihas-payment-recovery') {
+function migrateLegacyPaymentRecoveryStore(name: string) {
+  if (typeof localStorage === 'undefined' || name !== BROWSER_KEYS.paymentRecovery) return
+  const legacyName = LEGACY_BROWSER_KEYS.paymentRecovery
+  try {
+    if (localStorage.getItem(name) === null) {
+      const legacyValue = localStorage.getItem(legacyName)
+      if (legacyValue !== null) {
+        localStorage.setItem(name, legacyValue)
+      }
+    }
+    localStorage.removeItem(legacyName)
+  } catch {
+    // best effort migration
+  }
+}
+
+export function createPaymentRecoveryStore(name = BROWSER_KEYS.paymentRecovery) {
+  migrateLegacyPaymentRecoveryStore(name)
+
   return create<PaymentRecoveryStore>()(
     persist(
       (set, get) => ({

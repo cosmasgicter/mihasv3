@@ -19,6 +19,13 @@ def waitlist_cascade_task(self):
     applications, creates draft applications for the next intake pre-populated
     with student data, and notifies students.
 
+    Side effects are batched (system-performance-hardening R6.4): the cascade
+    notifications and emails are collected across all closed intakes and
+    written with one ``create_notifications_bulk`` / ``queue_emails_bulk`` call
+    each, instead of a per-row insert (plus OutboxEvent) per application. The
+    new draft ``Application`` rows stay per-row because each needs a unique
+    ``application_number`` and a per-row duplicate guard.
+
     Requirements: 15.3-15.6
     """
     if not acquire_task_lock("waitlist_cascade_task"):
@@ -28,6 +35,7 @@ def waitlist_cascade_task(self):
         from apps.applications.models import Application
         from apps.catalog.models import Intake
         from apps.common.models import Setting
+        from apps.common.outbox import create_notifications_bulk, queue_emails_bulk
 
         now = timezone.now().date()
 
@@ -37,7 +45,7 @@ def waitlist_cascade_task(self):
             if setting and setting.value:
                 policy = str(setting.value)
         except Exception:
-            pass
+            logger.debug("Could not read multi_intake_policy setting, using default=%s", policy, exc_info=True)
 
         if policy != "waitlist_cascade":
             return {"policy": policy, "cascaded": 0}
@@ -45,6 +53,15 @@ def waitlist_cascade_task(self):
         logger.info("waitlist_cascade_task: starting (policy=%s)", policy)
 
         cascaded_count = 0
+        # Side effects are batched (system-performance-hardening R6.4): every
+        # cascade notification/email is collected across all closed intakes and
+        # flushed with a single bulk insert each, instead of one INSERT (plus
+        # one OutboxEvent INSERT) per cascaded application. The new draft
+        # Application rows are still created per-row because each needs a unique
+        # application_number and a per-row duplicate check, which are not safe
+        # to collapse into a single bulk_create.
+        notification_specs = []
+        email_specs = []
 
         closed_intakes = Intake.objects.filter(
             end_date__lt=now,
@@ -107,41 +124,55 @@ def waitlist_cascade_task(self):
                         updated_at=timezone.now(),
                     )
 
-                    try:
-                        from apps.common.outbox import create_notification, queue_email
-
-                        create_notification(
-                            user_id=app.user_id,
-                            title="Application Carried Forward",
-                            message=(
+                    # Collect side effects for a single bulk flush per table
+                    # (R6.4). Building the spec cannot raise (pure string
+                    # formatting), so unlike the previous per-row helper calls
+                    # there is no notify-specific try/except here; a bulk-insert
+                    # failure is handled once at flush time below.
+                    notification_specs.append(
+                        {
+                            "user_id": app.user_id,
+                            "title": "Application Carried Forward",
+                            "message": (
                                 f"Your application for {app.program} ({intake.name}) was not promoted from the waitlist. "
                                 f"We've carried your application forward to {next_intake.name}. "
                                 f"Please review and submit."
                             ),
-                            type="info",
-                            priority="normal",
-                        )
-
-                        email_body = (
-                            f"<p>Dear {app.full_name},</p>"
-                            f"<p>Your application for <strong>{app.program}</strong> ({intake.name}) "
-                            f"was not promoted from the waitlist.</p>"
-                            f"<p>We've carried your application forward to <strong>{next_intake.name}</strong>. "
-                            f"Please log in to review and submit your new application.</p>"
-                            f"<p>Best regards,<br>Beanola Admissions</p>"
-                        )
-
-                        queue_email(
-                            recipient_email=app.email,
-                            subject=f"Application Carried Forward — {app.program}",
-                            body=email_body,
-                        )
-                    except Exception:
-                        logger.exception("Failed to notify student for cascade app=%s", app.id)
+                            "type": "info",
+                            "priority": "normal",
+                        }
+                    )
+                    email_specs.append(
+                        {
+                            "recipient_email": app.email,
+                            "subject": f"Application Carried Forward — {app.program}",
+                            "body": (
+                                f"<p>Dear {app.full_name},</p>"
+                                f"<p>Your application for <strong>{app.program}</strong> ({intake.name}) "
+                                f"was not promoted from the waitlist.</p>"
+                                f"<p>We've carried your application forward to <strong>{next_intake.name}</strong>. "
+                                f"Please log in to review and submit your new application.</p>"
+                                f"<p>Best regards,<br>Beanola Admissions</p>"
+                            ),
+                        }
+                    )
 
                     cascaded_count += 1
                 except Exception:
                     logger.exception("Failed to cascade app=%s to next intake", app.id)
+
+        # One bulk insert per table for every cascaded application's
+        # notification + email (identical content to the per-row path).
+        if notification_specs:
+            try:
+                create_notifications_bulk(notification_specs)
+            except Exception:
+                logger.exception("waitlist_cascade_task: bulk notification insert failed")
+        if email_specs:
+            try:
+                queue_emails_bulk(email_specs)
+            except Exception:
+                logger.exception("waitlist_cascade_task: bulk email insert failed")
 
         logger.info("waitlist_cascade_task: cascaded %d applications", cascaded_count)
         return {"cascaded": cascaded_count}

@@ -34,6 +34,12 @@ export interface AdminDashboardStats {
   rejectedApplications: number
   todayApplications: number
   weekApplications: number
+  // Carried so the shared ['admin-dashboard-polling'] cache is the single
+  // source for every admin metric consumer (R11.1). Additive: not part of
+  // statsFingerprint, so they never affect the owner's dedup/onDataChange.
+  avgProcessingTime: number
+  systemHealth: 'excellent' | 'good' | 'warning' | 'critical'
+  activeUsers: number
 }
 
 export interface UseAdminDashboardPollingOptions {
@@ -53,6 +59,7 @@ export interface UseAdminDashboardPollingReturn {
 }
 
 const POLLING_INTERVAL = 30000
+export { POLLING_INTERVAL }
 
 export function getDashboardRetryDelay(attemptIndex: number): number {
   const exponent = Math.max(0, attemptIndex)
@@ -76,6 +83,11 @@ function statsFingerprint(stats: AdminDashboardStats): string {
   return `${stats.totalApplications}:${stats.pendingApplications}:${stats.approvedApplications}:${stats.conditionallyApprovedApplications}:${stats.enrolledApplications}:${stats.acceptedApplications}:${stats.rejectedApplications}:${stats.todayApplications}:${stats.weekApplications}`
 }
 
+// Exported for property/regression testing of the dedup core (R11.3). This is
+// the exact deterministic function the polling owner uses to decide whether a
+// poll result is a redundant update; exporting it does not change behavior.
+export { statsFingerprint }
+
 interface DashboardPollPayload {
   stats: AdminDashboardStats
   activity: AdminDashboardActivity[]
@@ -96,10 +108,16 @@ async function fetchDashboardStats(): Promise<DashboardPollPayload> {
       rejectedApplications: stats.rejectedApplications ?? 0,
       todayApplications: stats.todayApplications ?? 0,
       weekApplications: stats.weekApplications ?? 0,
+      avgProcessingTime: stats.avgProcessingTime ?? 0,
+      systemHealth: stats.systemHealth ?? 'good',
+      activeUsers: stats.activeUsers ?? 0,
     },
     activity: overview.recentActivity ?? [],
   }
 }
+
+export { fetchDashboardStats }
+export type { DashboardPollPayload }
 
 /** Fingerprint of the activity feed — changes when the latest events change. */
 function activityFingerprint(activity: AdminDashboardActivity[]): string {

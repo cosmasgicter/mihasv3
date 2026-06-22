@@ -358,7 +358,7 @@ class ApplicationAdminSummaryView(APIView):
                 refresh=force_refresh,
             )
         except Exception:
-            pass
+            logger.warning("AI admin summary generation failed for app=%s", application_id, exc_info=True)
 
         return Response(
             {

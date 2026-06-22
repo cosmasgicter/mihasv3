@@ -9,7 +9,7 @@
  *   - On page load: GET /api/v1/auth/session/ (via useSessionListener)
  *   - On visibility change (tab refocus): re-validate session
  *   - On 401 response: single token refresh via /api/v1/auth/refresh/
- *   - On refresh failure: clear caches, dispatch mihas:auth-expired, redirect
+ *   - On refresh failure: clear caches, dispatch Beanola auth-expired, redirect
  *
  * CSRF tokens are exchanged via the X-CSRF-Token header and stored in-memory
  * (lib/csrfToken.ts). They are captured on login, refresh, and session check
@@ -28,6 +28,7 @@ import { preloadSecureStorage, resetCache } from '@/lib/localStorageCache'
 import { useAuthBroadcast } from '@/lib/authBroadcast'
 import { resetPrefetchState } from '@/lib/speculativePrefetch'
 import { SESSION_MESSAGES } from '@/lib/sessionHardening'
+import { BROWSER_EVENTS, BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 
 interface AuthContextType {
   user: User | null
@@ -58,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   //   1. Clear auth-related React Query cache (preserve public catalog data)
   //   2. Clear CSRF token store (in-memory)
   //   3. Clear secure storage (encrypted localStorage)
-  //   4. Dispatch mihas:auth-expired event (route guards listen for this)
+  //   4. Dispatch auth-expired event (route guards listen for this)
   //   5. Redirect to login page
   useEffect(() => {
     configureApiClientAuthFailure(() => {
@@ -81,8 +82,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           : ''
         if (typeof window !== 'undefined') {
           try {
-            sessionStorage.setItem('mihas:post-auth-redirect', from || '/')
-            window.dispatchEvent(new CustomEvent('mihas:before-auth-redirect', {
+            sessionStorage.setItem(BROWSER_KEYS.postAuthRedirect, from || '/')
+            sessionStorage.removeItem(LEGACY_BROWSER_KEYS.postAuthRedirect)
+            window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.beforeAuthRedirect, {
               detail: { from },
             }))
           } catch {
@@ -93,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           ? `/auth/signin?redirect=${encodeURIComponent(from)}`
           : '/auth/signin'
         if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('mihas:auth-expired', {
+          window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.authExpired, {
             detail: { from, signInPath, message: SESSION_MESSAGES.SESSION_EXPIRED },
           }))
         }

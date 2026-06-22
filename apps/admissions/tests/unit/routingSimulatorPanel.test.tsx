@@ -16,7 +16,7 @@
  */
 import { render, cleanup, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const simulateRouting = vi.fn()
 const getCanonicalPrograms = vi.fn()
@@ -41,8 +41,13 @@ vi.mock('@/hooks/useToast', () => ({
 
 import { RoutingSimulatorPanel } from '@/pages/admin/tenants/RoutingSimulatorPanel'
 
+const PROGRAMS = { programs: [{ id: 'prog-1', name: 'Clinical Medicine' }] }
+const INTAKES = { intakes: [{ id: 'intake-1', name: 'January 2026' }] }
+
 function renderPanel() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
+  client.setQueryData(['admin', 'tenants', 'canonical-programs'], PROGRAMS)
+  client.setQueryData(['admin', 'tenants', 'intakes'], INTAKES)
   return render(
     <QueryClientProvider client={client}>
       <RoutingSimulatorPanel institutionId="inst-1" institutionName="Mukuba" />
@@ -50,8 +55,10 @@ function renderPanel() {
   )
 }
 
-const PROGRAMS = { programs: [{ id: 'prog-1', name: 'Clinical Medicine' }] }
-const INTAKES = { intakes: [{ id: 'intake-1', name: 'January 2026' }] }
+beforeEach(() => {
+  getCanonicalPrograms.mockResolvedValue(PROGRAMS)
+  getIntakes.mockResolvedValue(INTAKES)
+})
 
 afterEach(() => {
   cleanup()

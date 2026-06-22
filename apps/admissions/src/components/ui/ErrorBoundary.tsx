@@ -3,7 +3,6 @@ import { AlertTriangle, RefreshCw } from 'lucide-react'
 
 import { Button } from './Button'
 import { ErrorDisplay } from './ErrorDisplay'
-import { logger } from '@/lib/logger'
 
 // ---------------------------------------------------------------------------
 // Canonical ErrorBoundary — design-doc interface (Requirements 2.2, 8.5, 10.3)
@@ -22,6 +21,19 @@ interface ErrorBoundaryState {
   error?: Error
 }
 
+const reportBoundaryError = (error: Error, errorInfo: React.ErrorInfo): void => {
+  if (import.meta.env.DEV) {
+    console.error('ErrorBoundary caught:', error, errorInfo)
+    return
+  }
+
+  void import('@/lib/logger')
+    .then(({ logger }) => logger.error('ErrorBoundary caught:', error, errorInfo))
+    .catch(() => {
+      // Rendering the fallback matters more than telemetry availability.
+    })
+}
+
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props)
@@ -33,7 +45,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    logger.error('ErrorBoundary caught:', error, errorInfo)
+    reportBoundaryError(error, errorInfo)
     this.props.onError?.(error, errorInfo)
   }
 

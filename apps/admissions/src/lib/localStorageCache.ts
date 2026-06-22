@@ -9,6 +9,7 @@
  * and runs heavy cryptographic calculations asynchronously in the background.
  */
 import { secureStorage } from './secureStorage'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from './browserNamespace'
 
 const isTesting = typeof process !== 'undefined' && (process.env.VITEST !== undefined || process.env.NODE_ENV === 'test')
 
@@ -96,7 +97,8 @@ export function cachedSetItem(key: string, value: string): void {
   if (isTesting) {
     if (key === 'applicationDraft' || key === 'applicationWizardDraft') {
       localStorage.setItem(key, value)
-      localStorage.setItem('mihas_secure_' + key, value)
+      localStorage.setItem(BROWSER_KEYS.securePrefix + key, value)
+      localStorage.removeItem(LEGACY_BROWSER_KEYS.securePrefix + key)
     } else {
       localStorage.setItem(key, value)
     }
@@ -111,7 +113,8 @@ export function cachedRemoveItem(key: string): void {
   _lsCache.set(key, null)
   if (isTesting) {
     localStorage.removeItem(key)
-    localStorage.removeItem('mihas_secure_' + key)
+    localStorage.removeItem(BROWSER_KEYS.securePrefix + key)
+    localStorage.removeItem(LEGACY_BROWSER_KEYS.securePrefix + key)
     return
   }
   _pendingWrites.set(key, null)

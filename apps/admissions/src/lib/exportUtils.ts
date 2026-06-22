@@ -1,5 +1,4 @@
 import { formatDate as _fmtDate, formatTimestamp as _fmtTimestamp } from '@/lib/dateFormat'
-import { downloadXlsx } from '@/lib/xlsxWriter'
 import type { HookData } from 'jspdf-autotable'
 
 export interface ApplicationData {
@@ -263,6 +262,9 @@ export async function exportToExcel(
     }
   }
 
+  // Load the spreadsheet writer lazily so it is excluded from the initial
+  // bundle and only fetched the first time an export actually runs (R10.4).
+  const { downloadXlsx } = await import('@/lib/xlsxWriter')
   downloadXlsx({ name: 'Applications', rows }, filename)
 }
 

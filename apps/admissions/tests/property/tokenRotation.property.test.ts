@@ -33,8 +33,8 @@ function generateTestRefreshToken(userId: string): string {
     sub: userId,
     iat: now,
     exp: now + 7 * 24 * 60 * 60, // 7 days
-    iss: 'mihas-auth',
-    aud: 'mihas-app',
+    iss: 'beanola-auth',
+    aud: 'beanola-app',
   }));
   const signature = createHmac('sha256', TEST_SECRET)
     .update(`${header}.${payload}`)
@@ -82,8 +82,8 @@ describe('Property 12: Refresh token rotation', () => {
         const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
         expect(payload.type).toBe('refresh');
         expect(payload.sub).toBe(userId);
-        expect(payload.iss).toBe('mihas-auth');
-        expect(payload.aud).toBe('mihas-app');
+        expect(payload.iss).toBe('beanola-auth');
+        expect(payload.aud).toBe('beanola-app');
         expect(typeof payload.iat).toBe('number');
         expect(typeof payload.exp).toBe('number');
         expect(payload.exp - payload.iat).toBe(7 * 24 * 60 * 60);

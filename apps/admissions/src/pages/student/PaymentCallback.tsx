@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { CheckCircle, XCircle, Clock, ArrowLeft } from 'lucide-react'
 import { apiClient } from '@/services/client'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS, getStorageItemWithLegacyFallback } from '@/lib/browserNamespace'
 
 type CallbackStatus = 'verifying' | 'successful' | 'failed' | 'pending'
 
-const PAYMENT_ID_STORAGE_KEY = 'mihas:pending-payment-id'
+const PAYMENT_ID_STORAGE_KEY = BROWSER_KEYS.pendingPaymentId
+const LEGACY_PAYMENT_ID_STORAGE_KEY = LEGACY_BROWSER_KEYS.pendingPaymentId
 
 export default function PaymentCallback() {
   const [searchParams] = useSearchParams()
@@ -18,7 +20,7 @@ export default function PaymentCallback() {
 
   useEffect(() => {
     async function verify() {
-      const paymentId = localStorage.getItem(PAYMENT_ID_STORAGE_KEY)
+      const paymentId = getStorageItemWithLegacyFallback(localStorage, PAYMENT_ID_STORAGE_KEY, [LEGACY_PAYMENT_ID_STORAGE_KEY])
 
       if (lencoStatus === 'successful' || lencoStatus === 'paid') {
         if (paymentId) {
@@ -26,6 +28,7 @@ export default function PaymentCallback() {
             await apiClient.request(`/payments/${encodeURIComponent(paymentId)}/verify/`, { method: 'POST' })
           } catch { /* webhook will handle it */ }
           localStorage.removeItem(PAYMENT_ID_STORAGE_KEY)
+          localStorage.removeItem(LEGACY_PAYMENT_ID_STORAGE_KEY)
         }
         setStatus('successful')
         setMessage('Your payment was successful. You can close this tab and return to your application.')
@@ -34,6 +37,7 @@ export default function PaymentCallback() {
 
       if (lencoStatus === 'failed') {
         localStorage.removeItem(PAYMENT_ID_STORAGE_KEY)
+        localStorage.removeItem(LEGACY_PAYMENT_ID_STORAGE_KEY)
         setStatus('failed')
         setMessage(errorMessage || 'Your payment could not be processed. Please return to your application and try again.')
         return
@@ -45,6 +49,7 @@ export default function PaymentCallback() {
           const result = await apiClient.request<{ status: string }>(`/payments/${encodeURIComponent(paymentId)}/verify/`, { method: 'POST' })
           if (result?.status === 'successful' || result?.status === 'paid') {
             localStorage.removeItem(PAYMENT_ID_STORAGE_KEY)
+            localStorage.removeItem(LEGACY_PAYMENT_ID_STORAGE_KEY)
             setStatus('successful')
             setMessage('Your payment was successful. You can close this tab and return to your application.')
             return

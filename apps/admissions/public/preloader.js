@@ -1,5 +1,5 @@
 /*
- * MIHAS preloader runtime.
+ * Beanola preloader runtime.
  *
  * Keeps the branded loading card alive with gentle, reassuring rotating copy
  * so students on slow mobile networks stay engaged instead of bouncing.
@@ -18,7 +18,7 @@
     'Loading your programmes\u2026',
     'Almost there\u2026',
   ]
-  var subEl = document.getElementById('mihas-pre-sub')
+  var subEl = document.getElementById('beanola-pre-sub')
   var rotationIndex = 0
   var rotationTimer = null
 

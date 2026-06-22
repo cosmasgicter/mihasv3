@@ -78,7 +78,7 @@
          Reduced-motion collapses to a still, complete state.
          ──────────────────────────────────────────────────────────────────── */
       html, body { margin: 0; background: #f8fafc; }
-      .mihas-preloader {
+      .beanola-preloader {
         position: fixed;
         inset: 0;
         z-index: 9999;
@@ -92,22 +92,22 @@
         color: #0f172a;
         transition: opacity 0.35s ease;
       }
-      .mihas-preloader.fade-out {
+      .beanola-preloader.fade-out {
         opacity: 0;
         pointer-events: none;
       }
       /* A faint hairline baseline anchors the mark — an intentional asymmetric
          detail rather than a centred-everything default. */
-      .mihas-pre-card {
+      .beanola-pre-card {
         width: 100%;
         max-width: 320px;
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 18px;
-        animation: mihas-pre-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+        animation: beanola-pre-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
       }
-      .mihas-pre-logo {
+      .beanola-pre-logo {
         width: 60px;
         height: 60px;
         border-radius: 14px;
@@ -119,23 +119,23 @@
         position: relative;
         overflow: hidden;
       }
-      .mihas-pre-logo svg,
-      .mihas-pre-logo img {
+      .beanola-pre-logo svg,
+      .beanola-pre-logo img {
         width: 36px;
         height: 36px;
         object-fit: contain;
       }
       /* Single soft sheen passing across the logo tile — one quiet motion,
          not a spinning glow ring. */
-      .mihas-pre-logo::after {
+      .beanola-pre-logo::after {
         content: "";
         position: absolute;
         inset: 0;
         background: linear-gradient(105deg, transparent 30%, rgba(37, 99, 235, 0.14) 50%, transparent 70%);
         transform: translateX(-120%);
-        animation: mihas-pre-sheen 2.4s ease-in-out infinite;
+        animation: beanola-pre-sheen 2.4s ease-in-out infinite;
       }
-      .mihas-pre-wordmark {
+      .beanola-pre-wordmark {
         position: relative;
         font-size: 15px;
         font-weight: 600;
@@ -150,9 +150,9 @@
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
-        animation: mihas-pre-wordmark-sheen 2.8s ease-in-out infinite;
+        animation: beanola-pre-wordmark-sheen 2.8s ease-in-out infinite;
       }
-      .mihas-pre-sub {
+      .beanola-pre-sub {
         font-size: 13px;
         color: #64748b;
         text-align: center;
@@ -162,56 +162,56 @@
         transition: opacity 0.3s ease;
       }
       /* One thin monochrome indeterminate sweep — no multicolour gradient. */
-      .mihas-pre-bar {
+      .beanola-pre-bar {
         width: 168px;
         height: 2px;
         border-radius: 2px;
         background: rgba(15, 23, 42, 0.08);
         overflow: hidden;
       }
-      .mihas-pre-bar-inner {
+      .beanola-pre-bar-inner {
         height: 100%;
         width: 40%;
         border-radius: 2px;
         background: #2563eb;
-        animation: mihas-pre-slide 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+        animation: beanola-pre-slide 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
       }
-      .mihas-pre-slow {
+      .beanola-pre-slow {
         margin-top: 22px;
         font-size: 12px;
         color: #94a3b8;
         text-align: center;
       }
-      .mihas-pre-slow a {
+      .beanola-pre-slow a {
         color: #2563eb;
         text-decoration: underline;
         text-underline-offset: 2px;
       }
-      @keyframes mihas-pre-rise {
+      @keyframes beanola-pre-rise {
         from { opacity: 0; transform: translateY(8px); }
         to { opacity: 1; transform: none; }
       }
-      @keyframes mihas-pre-sheen {
+      @keyframes beanola-pre-sheen {
         0% { transform: translateX(-120%); }
         55%, 100% { transform: translateX(120%); }
       }
-      @keyframes mihas-pre-wordmark-sheen {
+      @keyframes beanola-pre-wordmark-sheen {
         0% { background-position: 130% 0; }
         55%, 100% { background-position: -30% 0; }
       }
-      @keyframes mihas-pre-slide {
+      @keyframes beanola-pre-slide {
         0% { transform: translateX(-100%); }
         100% { transform: translateX(320%); }
       }
       @media (prefers-reduced-motion: reduce) {
-        .mihas-pre-card { animation: none; }
-        .mihas-pre-logo::after { animation: none; opacity: 0; }
-        .mihas-pre-wordmark {
+        .beanola-pre-card { animation: none; }
+        .beanola-pre-logo::after { animation: none; opacity: 0; }
+        .beanola-pre-wordmark {
           animation: none;
           background: none;
           -webkit-text-fill-color: #0f172a;
         }
-        .mihas-pre-bar-inner { animation: none; width: 100%; background: #2563eb; }
+        .beanola-pre-bar-inner { animation: none; width: 100%; background: #2563eb; }
       }
     </style>
 
@@ -227,19 +227,17 @@
       students on slow mobile networks don't think the site is broken and
       bounce. School-specific branding is applied at React runtime once the
       tenant resolves. The outer id="preloader" plus .fade-out className keep
-      the existing __dismissPreloader contract (main.tsx + preloader.js don't
-      need to change). The internal .mihas-pre-* class names are retained only
-      to preserve that JS/CSS contract — they are not a brand reference.
+      the existing __dismissPreloader contract (main.tsx + preloader.js).
     -->
     <div
       id="preloader"
-      class="mihas-preloader"
+      class="beanola-preloader"
       role="status"
       aria-live="polite"
       aria-label="Loading Beanola Admissions"
     >
-      <div class="mihas-pre-card">
-        <div class="mihas-pre-logo">
+      <div class="beanola-pre-card">
+        <div class="beanola-pre-logo">
           <!-- Beanola shared-platform logo. webp with png fallback; served
                same-origin from /public so it paints before the JS bundle
                loads. School-specific logos are applied at React runtime. -->
@@ -254,21 +252,21 @@
             />
           </picture>
         </div>
-        <div class="mihas-pre-wordmark">
+        <div class="beanola-pre-wordmark">
           Beanola Admissions
         </div>
         <div
-          id="mihas-pre-sub"
-          class="mihas-pre-sub"
+          id="beanola-pre-sub"
+          class="beanola-pre-sub"
           data-initial="Getting your application ready&hellip;"
         >
           Getting your application ready&hellip;
         </div>
-        <div class="mihas-pre-bar" aria-hidden="true">
-          <div class="mihas-pre-bar-inner"></div>
+        <div class="beanola-pre-bar" aria-hidden="true">
+          <div class="beanola-pre-bar-inner"></div>
         </div>
       </div>
-      <p id="preloader-slow" class="mihas-pre-slow" hidden>
+      <p id="preloader-slow" class="beanola-pre-slow" hidden>
         Taking longer than expected &mdash; <a href="/">reload</a>
       </p>
     </div>

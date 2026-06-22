@@ -31,13 +31,17 @@
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
 
+	# Fonts — immutable, 1 year (filenames are content-stable).
+	@fonts path /fonts/*
+	header @fonts Cache-Control "public, max-age=31536000, immutable"
+
 	# Content images — 1 day + SWR week.
 	@images path /images/*
 	header @images Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
 
 	# HTML/app shell — always revalidate so new deploys are picked up.
 	@html {
-		not path /assets/* /images/* /favicon.ico /robots.txt /sitemap.xml
+		not path /assets/* /fonts/* /images/* /favicon.ico /robots.txt /sitemap.xml
 	}
 	header @html Cache-Control "no-cache, must-revalidate"
 

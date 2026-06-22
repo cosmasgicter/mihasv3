@@ -318,10 +318,10 @@ describe('Feature: sse-removal-simplification, Property 5: SignOut flow preserve
       'setQueryData(profileQueryKey(',
       'queryClient.clear()',
       'clearSession()',
-      'localStorage.removeItem',
+      'removeStorageItemAndLegacy',
       'authSignedOut',
       'broadcastLogout',
-      'mihas:auth-redirect',
+      'BROWSER_EVENTS.authRedirect',
     ]
 
     // Property: for every required cleanup step, the source must contain it

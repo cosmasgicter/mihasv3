@@ -131,8 +131,14 @@ describe('generateAcceptanceLetter — signatory defaults', () => {
     expect(DEFAULT_SIGNATORY.name).toBe('Dr Solomon Musonda')
     expect(DEFAULT_SIGNATORY.role).toBe('Managing Director')
     expect(DEFAULT_SIGNATORY.postnominal).toBe('MD')
-    // The real scanned signature path should live under images/signatures
-    expect(DEFAULT_SIGNATORY.signatureImage).toBe(
+    // The real scanned signature is now a bundled `?url` asset (relocated out
+    // of public/ for perf-hardening R10.2), so the default resolves to an
+    // emitted asset URL rather than the old `/images/signatures/...` public
+    // path. Assert it still references the director signature and is no longer
+    // a publicly-fetchable public/ path.
+    expect(typeof DEFAULT_SIGNATORY.signatureImage).toBe('string')
+    expect(DEFAULT_SIGNATORY.signatureImage).toMatch(/director-signature\.png/)
+    expect(DEFAULT_SIGNATORY.signatureImage).not.toBe(
       '/images/signatures/director-signature.png',
     )
   })

@@ -1,5 +1,5 @@
 /**
- * MIHAS-KATC PDF Theme — Public Barrel
+ * Beanola tenant PDF theme — public barrel
  *
  * Import everything design-system-related through this file:
  *

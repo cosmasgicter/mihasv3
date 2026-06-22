@@ -262,8 +262,8 @@ describe('[PBT] Preservation — Policy-Denied Chunk Errors Show Manual UI', () 
 
           // Set up session storage to reflect exceeded reload count
           mockStorage = {
-            mihas_chunk_reload_count: String(reloadCount),
-            mihas_chunk_reload_ts: String(Date.now() - 60_000),
+            beanola_chunk_reload_count: String(reloadCount),
+            beanola_chunk_reload_ts: String(Date.now() - 60_000),
           }
 
           const runContainer = document.createElement('div')
@@ -318,8 +318,8 @@ describe('[PBT] Preservation — Policy-Denied Chunk Errors Show Manual UI', () 
           // Set up session storage to reflect a recent reload (cooldown active)
           const now = Date.now()
           mockStorage = {
-            mihas_chunk_reload_count: '1',
-            mihas_chunk_reload_ts: String(now - sinceLastReloadMs),
+            beanola_chunk_reload_count: '1',
+            beanola_chunk_reload_ts: String(now - sinceLastReloadMs),
           }
 
           const runContainer = document.createElement('div')

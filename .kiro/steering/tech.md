@@ -167,6 +167,52 @@ The frontend and backend share a single, unified API contract. There is no compa
 - `.env` and `.env.local` files are gitignored and safe for real credentials during local development. They are never committed to the repository. When the user asks to add real secrets to these files, do so without hesitation — the gitignore is configured correctly.
 - Email is sent via Zoho SMTP (smtp.zoho.com:465, TLS). No IMAP integration — the platform only sends outbound email, it does not read inboxes. Resend is configured as a fallback for transactional delivery.
 
+## Enterprise Tenant Authority
+
+Beanola owns the Platform; MIHAS/KATC are example tenants. The full model lives
+in `.kiro/steering/enterprise-tenancy.md`; the rules below are the engineering
+conventions every backend and frontend change must follow. Spec of record:
+`.kiro/specs/enterprise-tenant-authority/`.
+
+- **Centralized authorization is mandatory.** Resolve every authority decision
+  through `AdminCapabilityService` (`backend/apps/catalog/services.py`) and the
+  DRF primitives in `backend/apps/catalog/permissions.py` (`HasPlatformCapability`,
+  `TenantScopedCapabilityMixin`). Never compare raw role strings in endpoint code.
+- **Scope before lookup.** Scope tenant-sensitive querysets through
+  `visible_institution_queryset(user)` **before** any `.get()`/object retrieval,
+  so an out-of-scope identifier cannot be confirmed to exist. Out-of-scope →
+  404 or a non-revealing 403 (no tenant id/name/count/attribute).
+- **Frontend consumes backend capabilities.** The admissions frontend reads
+  `GET /api/v1/admin/capabilities/` (and the extended `GET /api/v1/admin/scope/`)
+  via `CapabilityContext`/`useCapabilities` and gates nav, routes, and controls
+  with `can()` / `canForInstitution()`. Frontend hiding is **never** the security
+  boundary — the backend re-enforces every check.
+- **Fail-closed tenant domains.** The `Domain_Resolver`
+  (`InstitutionContextService.resolve`) resolves a tenant only when exactly one
+  `active`/`is_active` domain on an active institution matches; unknown,
+  multi-match, or non-active-status hosts resolve to the Neutral Beanola context.
+  A `CapabilityResolutionError` also fails closed (deny, zero capabilities, no
+  data).
+- **Cross-tenant denial tests are required.** Tenant-sensitive endpoints must be
+  covered by tests proving a tenant-admin scoped to one institution cannot
+  observe, fetch, mutate, or infer another tenant's data across list, detail,
+  search, exports, dashboards, documents, payments, audit, applications, users,
+  routing simulation, and analytics (see `backend/tests/property/` Properties
+  4–10 and the acceptance-scenario tests).
+- **No legacy endpoint bypasses.** The institution/program/intake write paths in
+  `backend/apps/catalog/views.py` are capability-gated (`platform.tenant.*`,
+  `can_manage_program`, `platform.intake.manage`). Do not add or restore any
+  tenant-data mutation that skips `AdminCapabilityService`. Public/student `GET`
+  behavior on catalog endpoints is preserved.
+- **Tenant-sensitive writes and failed authorizations are audited** via
+  `TenantAuditService` (`backend/apps/catalog/tenant_audit_service.py`), with
+  SHA-256-redacted IP/user-agent and no raw PII.
+- **Capability catalogue + routes are canonical.** The 17 `platform.*` / 17
+  `tenant.*` strings and the canonical admin/onboarding/school-console routes,
+  backend tenant API paths, deprecated legacy catalog write paths, and the domain
+  context endpoint are registered in `docs/canonical-truth-map.md`. Register new
+  capabilities there before merging.
+
 ## Lenco Payment Integration
 
 The platform uses Lenco as its payment gateway for application fees. Key components:

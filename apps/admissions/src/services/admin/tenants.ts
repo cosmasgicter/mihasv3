@@ -22,12 +22,53 @@ export interface TenantInstitution {
   is_active?: boolean
 }
 
+/**
+ * The DNS record a tenant must publish to verify ownership/routing. Returned by
+ * the domain create endpoint (`AdminTenantDomainListCreateView`) alongside the
+ * freshly generated `verification_token` + `dns_target`. Mirrors the backend
+ * `_build_dns_record` shape.
+ */
+export interface TenantDomainDnsRecord {
+  type: string
+  name: string
+  value: string
+  ttl?: number
+  verification?: {
+    type: string
+    name: string
+    value: string
+  }
+  instructions?: string
+}
+
+/**
+ * Domain lifecycle status (R7.2). Mirrors `InstitutionDomain.STATUS_*` and the
+ * `DomainStatusMachine` on the backend. A domain only routes a tenant when it
+ * reaches `active`.
+ */
+export type TenantDomainStatus =
+  | 'pending_dns'
+  | 'pending_review'
+  | 'verified'
+  | 'active'
+  | 'disabled'
+  | 'failed'
+
 export interface TenantDomain {
   id: string
   institution_id: string
   hostname: string
   is_primary?: boolean
   is_active?: boolean
+  /** Lifecycle status (R7.2). Present on create/activate responses and reads. */
+  status?: TenantDomainStatus | string | null
+  verification_token?: string | null
+  dns_target?: string | null
+  verified_at?: string | null
+  last_checked_at?: string | null
+  last_error?: string | null
+  /** Only present on the create response — the record the tenant must publish. */
+  dns_record?: TenantDomainDnsRecord | null
 }
 
 export interface TenantAsset {
@@ -172,6 +213,7 @@ export interface TenantMembership {
   user_id: string
   institution_id: string
   role: string
+  permissions?: string[] | null
   is_active?: boolean
 }
 
@@ -324,6 +366,25 @@ export const tenantAdminService = {
       body: JSON.stringify(data),
     }),
 
+  /**
+   * Activate a verified domain (R7.6, R7.14). Super-admin only on the backend
+   * (`AdminTenantDomainActivateView`); drives `verified → active` so the
+   * Domain_Resolver will route the tenant. A domain that is not yet `verified`
+   * is rejected with the stable `DOMAIN_NOT_VERIFIED` code (409), and a
+   * hostname already active for another tenant returns `HOSTNAME_CONFLICT`
+   * (409) — both surfaced through the enhanced API error. Sends no body; the
+   * target domain is identified entirely by the path.
+   */
+  activateDomain: async (institutionId: string, domainId: string) => {
+    const endpoint = `/admin/institutions/${encodeURIComponent(institutionId)}/domains/${encodeURIComponent(domainId)}/activate/`
+    try {
+      return await apiClient.request<TenantDomain>(endpoint, { method: 'POST' })
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
+  },
+
   listAssets: async (institutionId: string) => {
     const endpoint = `/admin/institutions/${encodeURIComponent(institutionId)}/assets/`
     const response = await apiClient.request<RawList<TenantAsset>>(endpoint)
@@ -473,15 +534,14 @@ export const tenantAdminService = {
   /**
    * List a school's program offerings. Offerings drive routing, so the tenant
    * page reads them to surface assignment priority/capacity and to power the
-   * structured rule builders. Filtered to the institution client-side because
-   * `/catalog/programs/` returns all schools' offerings to an admin.
+   * structured rule builders. This uses the tenant-scoped admin child endpoint
+   * so a school admin never receives another school's offerings in the browser.
    */
   listOfferings: async (institutionId: string) => {
-    const endpoint = `/catalog/programs/${buildQueryString({ pageSize: 200 })}`
+    const endpoint = `/admin/institutions/${encodeURIComponent(institutionId)}/programs/${buildQueryString({ pageSize: 200 })}`
     try {
       const response = await apiClient.request<RawList<TenantOffering>>(endpoint)
-      const items = listFromResponse(response)
-      return items.filter(item => String(item.institution_id || (item as { institution?: { id?: string } }).institution?.id || '') === String(institutionId))
+      return listFromResponse(response)
     } catch (error) {
       logApiError('admin-tenants', endpoint, error)
       throw error

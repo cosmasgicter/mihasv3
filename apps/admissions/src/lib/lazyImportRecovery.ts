@@ -1,3 +1,5 @@
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
+
 interface LazyImportRecoveryOptions {
   guardKey: string
   recoveryMessage?: string
@@ -6,7 +8,8 @@ interface LazyImportRecoveryOptions {
   reload?: () => void
 }
 
-const GUARD_PREFIX = 'mihas:lazy-chunk-recovery:'
+const GUARD_PREFIX = BROWSER_KEYS.lazyChunkRecoveryPrefix
+const LEGACY_GUARD_PREFIX = LEGACY_BROWSER_KEYS.lazyChunkRecoveryPrefix
 
 const getDefaultStorage = () => {
   if (typeof window === 'undefined') {
@@ -17,6 +20,7 @@ const getDefaultStorage = () => {
 }
 
 const getGuardStorageKey = (guardKey: string) => `${GUARD_PREFIX}${guardKey}`
+const getLegacyGuardStorageKey = (guardKey: string) => `${LEGACY_GUARD_PREFIX}${guardKey}`
 
 export function isRecoverableLazyChunkError(error: unknown): boolean {
   if (!(error instanceof Error)) {
@@ -47,12 +51,14 @@ export async function recoverFromStaleLazyChunk(
 
   const storage = options.storage ?? getDefaultStorage()
   const guardStorageKey = getGuardStorageKey(options.guardKey)
+  const legacyGuardStorageKey = getLegacyGuardStorageKey(options.guardKey)
 
   try {
-    if (storage?.getItem(guardStorageKey)) {
+    if (storage?.getItem(guardStorageKey) || storage?.getItem(legacyGuardStorageKey)) {
       return false
     }
     storage?.setItem(guardStorageKey, String(Date.now()))
+    storage?.removeItem(legacyGuardStorageKey)
   } catch {
     // best effort guard
   }
@@ -68,11 +74,13 @@ export async function importWithChunkRecovery<T>(
 ): Promise<T> {
   const storage = options.storage ?? getDefaultStorage()
   const guardStorageKey = getGuardStorageKey(options.guardKey)
+  const legacyGuardStorageKey = getLegacyGuardStorageKey(options.guardKey)
 
   try {
     const module = await loader()
     try {
       storage?.removeItem(guardStorageKey)
+      storage?.removeItem(legacyGuardStorageKey)
     } catch {
       // best effort cleanup
     }

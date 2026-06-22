@@ -36,7 +36,8 @@ import pytest
 from rest_framework.test import APIClient
 
 from apps.accounts.authentication import JWTUser
-from apps.catalog.models import InstitutionDomain
+from apps.catalog.models import InstitutionDomain, Program
+from apps.documents.models import ProgramFee
 from apps.catalog.services import AccessScopeService
 from tests.tenant_fixtures import (
     build_institution,
@@ -77,6 +78,8 @@ def _client_for(profile) -> APIClient:
 
 def _rows(body) -> list[dict]:
     """Extract the list of row dicts from a list/paginated envelope body."""
+    if isinstance(body, list):
+        return [row for row in body if isinstance(row, dict)]
     if not isinstance(body, dict):
         return []
     data = body.get("data", body)
@@ -456,6 +459,184 @@ class TestAccessGrantInstitutionFilter:
         ids = _ids(response.json())
         assert str(world_a.access_grant.id) in ids
         assert str(world_b.access_grant.id) not in ids
+
+
+# ---------------------------------------------------------------------------
+# Enterprise authority — legacy catalog reads/writes cannot bypass tenant scope
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestLegacyCatalogTenantIsolation:
+    """Legacy catalog endpoints must not leak other tenants to tenant admins.
+
+    The stricter `/api/v1/admin/institutions/...` APIs are not enough by
+    themselves: old catalog routes are still routable, so they must enforce the
+    same tenant boundary. These tests pin the specific MIHAS/KATC-class failure
+    mode where a school admin could list or mutate another school's catalog
+    data through the legacy surface.
+    """
+
+    def test_tenant_admin_catalog_institutions_list_is_scoped(self, two_tenant_worlds):
+        world_a, world_b = two_tenant_worlds
+        client = _client_for(world_a.staff)
+
+        response = client.get("/api/v1/catalog/institutions/")
+
+        assert response.status_code == 200, response.content
+        ids = _ids(response.json())
+        assert world_a.institution_id in ids
+        assert world_b.institution_id not in ids
+
+    def test_tenant_admin_catalog_programs_list_is_scoped(self, two_tenant_worlds):
+        world_a, world_b = two_tenant_worlds
+        client = _client_for(world_a.staff)
+
+        response = client.get("/api/v1/catalog/programs/")
+
+        assert response.status_code == 200, response.content
+        ids = _ids(response.json())
+        assert world_a.offering_id in ids
+        assert world_b.offering_id not in ids
+
+    def test_tenant_admin_catalog_program_detail_masks_other_tenant(self, two_tenant_worlds):
+        world_a, world_b = two_tenant_worlds
+        client = _client_for(world_a.staff)
+
+        response = client.get(f"/api/v1/catalog/programs/{world_b.offering.id}/")
+
+        assert response.status_code == 404, response.content
+        assert response.json()["code"] == "NOT_FOUND"
+
+    def test_tenant_admin_catalog_institution_detail_masks_other_tenant(self, two_tenant_worlds):
+        world_a, world_b = two_tenant_worlds
+        client = _client_for(world_a.staff)
+
+        response = client.get(f"/api/v1/catalog/institutions/{world_b.institution.id}/")
+
+        assert response.status_code == 404, response.content
+        assert response.json()["code"] == "NOT_FOUND"
+
+    def test_tenant_scoped_admin_programs_endpoint_returns_only_that_school(self, two_tenant_worlds):
+        world_a, world_b = two_tenant_worlds
+        client = _client_for(world_a.staff)
+
+        own = client.get(f"{_INSTITUTIONS}{world_a.institution.id}/programs/")
+        other = client.get(f"{_INSTITUTIONS}{world_b.institution.id}/programs/")
+
+        assert own.status_code == 200, own.content
+        assert world_a.offering_id in _ids(own.json())
+        assert world_b.offering_id not in _ids(own.json())
+        assert other.status_code == 200, other.content
+        assert _ids(other.json()) == set()
+
+    def test_request_change_capability_does_not_authorize_real_program_mutation(self, two_tenant_worlds):
+        world_a, _world_b = two_tenant_worlds
+        world_a.membership.permissions = ["manage"]
+        world_a.membership.save(update_fields=["permissions"])
+        client = _client_for(world_a.staff)
+
+        response = client.patch(
+            f"/api/v1/catalog/programs/{world_a.offering.id}/",
+            data={"assignment_priority": 1},
+            format="json",
+        )
+
+        assert response.status_code == 403, response.content
+        world_a.offering.refresh_from_db()
+        assert world_a.offering.assignment_priority != 1
+
+    def test_super_admin_can_still_create_program_offering(self, two_tenant_worlds):
+        world_a, _world_b = two_tenant_worlds
+        client = _client_for(_super_admin())
+
+        response = client.post(
+            "/api/v1/catalog/programs/",
+            data={
+                "name": "Platform Assigned Offering",
+                "code": f"PLAT-{uuid.uuid4().hex[:8].upper()}",
+                "institution_id": str(world_a.institution.id),
+                "canonical_program_id": str(world_a.canonical_program.id),
+                "duration_months": 36,
+                "application_fee": "153.00",
+                "is_active": True,
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201, response.content
+        assert Program.objects.filter(id=response.json()["data"]["id"]).exists()
+
+    def test_tenant_admin_program_fee_list_is_scoped_to_own_offering(self, two_tenant_worlds):
+        world_a, world_b = two_tenant_worlds
+        own_fee = ProgramFee.objects.create(
+            program=world_a.offering,
+            fee_type="application",
+            residency_category="local",
+            amount="153.00",
+            currency="ZMW",
+            is_active=True,
+        )
+        other_fee = ProgramFee.objects.create(
+            program=world_b.offering,
+            fee_type="application",
+            residency_category="local",
+            amount="200.00",
+            currency="ZMW",
+            is_active=True,
+        )
+        client = _client_for(world_a.staff)
+
+        own = client.get(f"/api/v1/programs/{world_a.offering.id}/fees/")
+        other = client.get(f"/api/v1/programs/{world_b.offering.id}/fees/")
+
+        assert own.status_code == 200, own.content
+        assert str(own_fee.id) in _ids(own.json())
+        assert str(other_fee.id) not in _ids(own.json())
+        assert other.status_code == 200, other.content
+        assert _ids(other.json()) == set()
+
+    def test_tenant_admin_cannot_mutate_program_fees(self, two_tenant_worlds):
+        world_a, _world_b = two_tenant_worlds
+        client = _client_for(world_a.staff)
+
+        response = client.post(
+            f"/api/v1/programs/{world_a.offering.id}/fees/",
+            data={
+                "fee_type": "application",
+                "residency_category": "local",
+                "amount": "153.00",
+                "currency": "ZMW",
+            },
+            format="json",
+        )
+
+        assert response.status_code == 403, response.content
+        assert not ProgramFee.objects.filter(program=world_a.offering).exists()
+
+    def test_super_admin_can_still_create_program_fee(self, two_tenant_worlds):
+        world_a, _world_b = two_tenant_worlds
+        client = _client_for(_super_admin())
+
+        response = client.post(
+            f"/api/v1/programs/{world_a.offering.id}/fees/",
+            data={
+                "fee_type": "application",
+                "residency_category": "local",
+                "amount": "153.00",
+                "currency": "ZMW",
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201, response.content
+        assert ProgramFee.objects.filter(
+            program=world_a.offering,
+            fee_type="application",
+            residency_category="local",
+            amount="153.00",
+            currency="ZMW",
+        ).exists()
 
 
 # ---------------------------------------------------------------------------

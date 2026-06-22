@@ -2,820 +2,785 @@
 
 ## Overview
 
-This is the **production-readiness design** for the Beanola multi-school admissions
-platform. It is a **verification + cutover + audit + polish + launch** design over a
-**code-complete base** — it does **not** re-implement the multi-tenant feature. The
-underlying behaviour (canonical-ID truth, `OfferingAssignmentService`,
-`AccessScopeService`, backend official documents with the
-`_compute_document_fingerprint` + current-version lifecycle, tenant document profiles,
-tenant-aware communications, program-first assignment, drift guards) was delivered and
-Neon-validated by the remediation spec
-`.kiro/specs/multi-tenant-beanola-remediation/` (R1–R21, all tasks complete, **production
-application pending**). This design **references** that spec and the **real repo files**;
-it does not redesign them.
+This design describes **how** the Beanola production-readiness requirements are
+satisfied. The deliverable is not a feature — it is a body of **captured,
+reviewable evidence** plus the harnesses that produce it and the gates that
+block a release until each requirement meets its threshold.
 
-Authoritative inputs (all read and grounded):
+The design is organized around a single principle: every requirement produces
+**typed artifacts** that land in one **evidence directory**, are **indexed by a
+manifest**, and are assigned a **pass/fail verdict per acceptance criterion**.
+A release is "go" only when the manifest's aggregate verdict is green. Most
+work is therefore *measurement, capture, and gating* rather than new product
+code; the few code changes (the OpenAPI type-hint fix, the optional client-PDF
+preview cleanup, new check scripts and tests) are scoped explicitly.
 
-- `docs/beanola-production-readiness-followup-plan.md` — the 15-phase follow-up plan
-  (Operating Standard, Non-Negotiables, Definition of Done) this spec implements.
-- `.kiro/specs/beanola-production-readiness/requirements.md` — the 16 requirements
-  (R1–R16) this design satisfies.
-- `.kiro/specs/multi-tenant-beanola-remediation/design.md` — the code-complete base whose
-  Properties 1–25 this design continues from (this spec adds Properties 26+).
-- `docs/runbooks/multi-tenant-beanola-rollout.md` — the gated 14-step Neon-first operator
-  rollout that the Production_Cutover (R3) executes.
-- `docs/canonical-truth-map.md` + `docs/legacy-brand-allowlist.json` — the canonical
-  index and brand allowlist this spec freezes and verifies.
-- `docs/multi-tenant-beanola-progress.md` — the code-complete / Neon-validated /
-  production-applied tracker (production **pending**).
-- `.kiro/steering/infrastructure.md` — Neon (`wild-bar-37055823`) is authoring/staging;
-  production is the self-hosted Docker Postgres `mihas-postgres-1` on EC2.
+The design respects the repo steering without exception:
 
-### What this spec produces
+- **Neon-first-then-production** database workflow (`.kiro/steering/infrastructure.md`):
+  author and validate on Neon (branch for risk), prove it, then apply to the
+  self-hosted production Postgres `mihas-postgres-1` via `docker compose exec`
+  on the EC2 box.
+- **No autonomous destructive operations**: destructive SQL and destructive
+  Neon MCP tools are never run autonomously; they require explicit operator
+  confirmation. The existing additive-only lint in `apply_sql_migrations`
+  enforces this at the tool layer.
+- **`/api/v1/` REST contract** and the **`{"success": true, "data": ...}`**
+  response envelope are treated as invariants the smoke/contract harnesses
+  assert against, never modify.
+- **Design guardrails** (no purple gradients/glassmorphism/emoji icons, WCAG AA
+  contrast, ≥44×44px touch targets, full Inter fallback chain) are encoded as
+  the Mobile UI verification assertions.
 
-Each requirement area produces a **verification artifact**, not a feature: an audit
-inventory document, a Drift_Guard test, a scoped-access test, screenshot evidence, a smoke
-checklist, or an evidence block. The only behavioural code changes are **gap fixes** the
-audits surface (e.g. a missing scoped queryset, a per-route mobile overflow fix, a missing
-rate limit) — each additive and tied to a requirement and exit criterion.
+### Sources Grounded In The Real Repo
 
-### Three invariants this spec must never break
+This design was written after reading the actual implementation. Key anchors:
 
-These are inherited from the remediation base and the plan's Non-Negotiables (R16) and
-bound every audit, polish, and cutover step:
-
-1. **Canonical single source.** Exactly one authoritative source per business concept;
-   every frontend mirror is generated-from, imported-from, or Drift_Guarded against it
-   (`docs/canonical-truth-map.md`, R16.2). No audit or fix may introduce an unguarded
-   mirror.
-2. **Tenant isolation with 404 masking.** Every non-super-admin read of tenant data routes
-   through `backend/apps/catalog/services.py:AccessScopeService`; an out-of-scope read
-   returns the **Not_Found_Envelope** byte-identical to a genuine miss (R5.4, R16.4) so
-   existence cannot be inferred.
-3. **Backend-only official documents.** Official PDFs are backend-generated, backend-stored,
-   fingerprinted, and versioned by
-   `backend/apps/applications/tasks/pdf_generation.py`; the client `@/lib/pdf` generators
-   are preview/draft only and unreachable from official-download paths (R6.2, R6.3, R16.5).
-
-### Bounding constraint
-
-All schema work is **additive**, authored and **validated on Neon first**, then copied to
-the self-hosted production Postgres; **no production DB change is ever applied from the
-development environment** (R16.8, `.kiro/steering/infrastructure.md`). The Production_Cutover
-(R3) is a **gated operator step** confirmed by the user, performed on the EC2 box in a
-maintenance window — never an automatic task run from here. The `apps/jobs-ops/` surface is
-**out of scope** unless a requirement explicitly names it (R16.10).
+| Concern | Real location |
+|---|---|
+| SQL migration runner | `backend/apps/common/management/commands/apply_sql_migrations.py` (`--dry-run`, `--allow-non-additive`, `migration_history` tracking, additive-only lint) |
+| Production backup | `deploy/backup-db.sh` |
+| OpenAPI warning source | `backend/apps/catalog/serializers.py` → `CanonicalProgramSerializer.get_available_offerings` |
+| `extend_schema_field` precedent | `backend/apps/applications/serializers.py` (multiple `@extend_schema_field` decorators) |
+| Entry-path guard | `apps/admissions/scripts/check-entry-chunk.ts` (`bun run check:entry`) |
+| Smoke harness | `backend/scripts/staging_smoke.py` (envelope-aware) + `.github/workflows/staging-smoke.yml` |
+| Playwright | `apps/admissions/playwright.config.ts` (testDir `tests/e2e`, single chromium project today) |
+| Tenant-admin frontend service | `apps/admissions/src/services/admin/tenants.ts` (`tenantAdminService`) |
+| Brand allowlist | `docs/legacy-brand-allowlist.json` |
+| Launch scope flag | `backend/config/settings/base.py` → `ENABLE_JOBS_OPS_ROUTES`; gated in `backend/config/urls.py` |
+| CI pipelines | `.github/workflows/ci.yml`, `staging-smoke.yml`, `backend-governance.yml` |
 
 ## Architecture
 
-### Production-readiness workstreams (keyed to requirements)
+### High-Level Flow
+
+The release-evidence system has four layers: **harnesses** (produce artifacts),
+the **evidence store** (typed artifact directory), the **manifest** (index +
+verdicts), and the **gate** (aggregate go/no-go consumed by CI and the human
+Reviewer).
 
 ```mermaid
-flowchart TB
-    subgraph Freeze["Phase 1 — Canonical freeze (R1)"]
-        CTM[docs/canonical-truth-map.md\nfreeze + No-New-Mirrors + admin-route decision]
+flowchart TD
+    subgraph Harnesses
+        H1[Migration evidence flow<br/>Neon-first then prod]
+        H2[Production smoke harness]
+        H3[Performance harness<br/>Lighthouse / API timing / entry-path]
+        H4[Mobile UI harness<br/>Playwright 5 viewports]
+        H5[Brand drift guard suites]
+        H6[Contract sync<br/>spectacular + shape checks]
+        H7[Full validation suite]
+        H8[Operational readiness review]
+        H9[Tenant onboarding E2E smoke]
+        H10[Launch scope gate]
     end
 
-    subgraph Prep["Audits + cutover prep"]
-        BRAND[R2 Brand cleanup\nbrand drift guards + allowlist]
-        API[R4 API contract audit\nOpenAPI + service-shape map + contract tests]
-        SCOPE[R5 Scope/security audit\nendpoint inventory + scoped-access tests]
-        DOCS[R6 Document audit\ngeneration/profile/fingerprint evidence]
-        CUT[R3 Gated DB cutover\nNeon validate → operator EC2 apply → evidence block]
-    end
-
-    subgraph Polish["Polish (depends on freeze + audits)"]
-        UI[R7 Per-route + mobile-first critique\npass/fail notes + fixes + screenshots]
-    end
-
-    subgraph Prove["Proof + ops + hardening"]
-        E2E[R8 E2E workflow QA\nstudent/admin/negative flows + smoke checklist]
-        OPS[R9 Reliability/ops\nhealth, idempotency, logging, backup/restore]
-        SEC[R10 Security/privacy review\nauth, headers, abuse controls, PII]
-        PERF[R11 Performance/CWV\nLighthouse, bundle, N+1, layout shift]
-        DATA[R12 Data quality/seed\nread-only verification queries]
-    end
-
-    subgraph Gate["Gate + launch"]
-        CI[R13 Verification_Gate + Drift_Guard CI]
-        LAUNCH[R14 Launch checklist + rollback posture]
-        DOD[R15 Definition-of-Done exit gate\nall-or-nothing aggregation]
-    end
-
-    INV[R16 Platform invariants — bound every box above]
-
-    CTM --> BRAND
-    CTM --> API
-    CTM --> SCOPE
-    CTM --> DOCS
-    CTM --> CUT
-    BRAND --> UI
-    API --> UI
-    SCOPE --> UI
-    DOCS --> UI
-    CUT --> E2E
-    UI --> E2E
-    E2E --> OPS
-    E2E --> SEC
-    E2E --> PERF
-    E2E --> DATA
-    OPS --> CI
-    SEC --> CI
-    PERF --> CI
-    DATA --> CI
-    CI --> LAUNCH
-    LAUNCH --> DOD
-    INV -.bounds.-> Prep
-    INV -.bounds.-> Polish
-    INV -.bounds.-> Prove
+    Harnesses -->|write typed artifacts| STORE[(evidence/ directory)]
+    STORE --> MAN[manifest.json<br/>per-criterion verdicts]
+    MAN --> AGG[verdict aggregation<br/>pure function]
+    AGG --> GATE{release_gate<br/>go / no-go}
+    GATE -->|consumed by| CI[CI jobs + Reviewer sign-off]
+    GATE -->|generates| IDX[evidence-index.md]
 ```
 
-### Sequencing and dependencies
+### Evidence Directory Location
 
-The plan's order is intentional and this design follows it:
+The evidence store lives **inside the spec** so it travels with the spec and is
+versioned with the requirements it proves:
 
-1. **Freeze first (R1).** The Canonical_Truth_Map is frozen — including the admin-route
-   decision — so every later audit verifies against a stable source of truth.
-2. **Audits + cutover prep run against the frozen map (R2, R4, R5, R6, R3).** The brand,
-   API-contract, scope-security, and document audits each produce an evidence document and
-   tests; the cutover is validated on Neon and staged for the gated operator apply. These
-   are largely independent and can proceed in parallel.
-3. **Polish depends on the audits (R7).** Per-route and mobile-first UI critique consumes
-   the API-contract and scope findings (it must know the real response shapes and the
-   scoped surfaces) and produces per-route pass/fail notes, fixes, and screenshot evidence.
-4. **E2E proves the assembled system on staging (R8)**, then **ops/security/perf/data
-   (R9–R12)** harden it.
-5. **CI gate aggregates the guards (R13)**, the **launch checklist + rollback posture
-   (R14)** executes the cutover and smoke checks, and the **Definition-of-Done exit gate
-   (R15)** is the final all-or-nothing aggregation.
+```
+.kiro/specs/beanola-production-readiness/evidence/
+  manifest.json            # machine-readable index + verdicts (source of truth)
+  evidence-index.md        # human-readable view, generated from manifest.json
+  migration/               # R1  Neon + production migration logs, validation SQL, backup proof
+  smoke/                   # R2  deployed-env smoke results (tenant-admin + django-admin distinct)
+  performance/
+    lighthouse/            # R3  five mobile reports (.json + summary)
+    api-timing/            # R3  p50/p95 table per endpoint
+    entry-path/            # R3  check:entry output + forbidden-chunk verdict
+    doc-budget/            # R3  measured PDF-action gzip budget
+  mobile-ui/               # R4  Playwright screenshots + DOM-assertion JSON per route×viewport
+  brand/                   # R5  guard suite output, allowlist validity, stale-entry report
+  contract/                # R6  fresh OpenAPI artifact, shape diffs, error-code map
+  validation/              # R7  frontend + backend suite logs, spectacular zero-error/zero-warning proof
+  ops/                     # R8  env presence (no secret values), secure-settings, backup-restore drill, storage/audit/break-glass
+  onboarding/              # R9  end-to-end tenant walkthrough capture
+  scope/                   # R10/R11 ENABLE_JOBS_OPS_ROUTES=False confirmation + scope-out record
+```
 
-R16 (platform invariants) is a cross-cutting constraint enforced by drift guards and
-scoped tests throughout — it is not a sequential step.
+Rationale for choosing the in-spec path over `docs/release-evidence/`: the
+manifest's verdicts are tied 1:1 to this spec's acceptance criteria, the
+Reviewer reads them together, and completion is marked in this spec's
+`.config.kiro`. Large binary artifacts (Lighthouse JSON, Playwright PNGs) are
+also uploaded as CI artifacts (mirroring the existing `actions/upload-artifact`
+pattern in `ci.yml`) so the committed tree is not bloated; the manifest records
+both the in-tree path and the CI artifact name.
+
+### CI Integration Points
+
+New and extended GitHub Actions, all under `.github/workflows/`:
+
+| Workflow | New/Extend | Role |
+|---|---|---|
+| `ci.yml` | Extend | Already enforces `spectacular` zero-errors and the drift-guard inventory. Add: (a) **zero-warnings** assertion for the `get_available_offerings` fix, (b) `bun run check:entry` as a blocking step (it exists but is not yet wired), (c) a `manifest validate` step that fails if `manifest.json` is malformed or references missing artifacts. |
+| `staging-smoke.yml` | Extend | Already `workflow_dispatch` running `staging_smoke.py`. Add distinct `/admin/tenants` and `/beanola-admin-panel/` checks and write results into `evidence/smoke/`. |
+| `release-evidence.yml` | **New** | `workflow_dispatch` orchestrator that runs the performance, mobile-UI, contract-sync, and brand harnesses against a deployed target, assembles `manifest.json`, computes the gate, and uploads the evidence bundle. Non-blocking on PRs; blocking as a named release gate. |
+| `backend-governance.yml` | Reuse | Existing schema drift-guard on a Neon branch fork — referenced by R1 as the Neon-side validation proof. |
+
+### Where New Code Lives (respecting `structure.md`)
+
+| Artifact | Location |
+|---|---|
+| Manifest builder + verdict aggregator (pure) | `backend/scripts/release_evidence/manifest.py` (importable, unit+property tested) |
+| Production smoke extension | `backend/scripts/staging_smoke.py` (extend) + `backend/scripts/prod_smoke_admin_surfaces.py` |
+| API timing capture | `backend/scripts/api_timing_capture.py` |
+| Lighthouse runner + threshold evaluator | `apps/admissions/scripts/lighthouse-mobile.ts` (+ pure evaluator in `apps/admissions/src/lib/releaseEvidence/`) |
+| Entry-path forbidden-chunk verdict | reuse `apps/admissions/scripts/check-entry-chunk.ts` |
+| Mobile UI Playwright specs + DOM predicates | `apps/admissions/tests/e2e/mobile-ui/` (specs) + pure predicates in `apps/admissions/src/lib/releaseEvidence/domChecks.ts` |
+| Contract shape diff | `backend/scripts/contract_shape_check.py` + frontend fixtures under `apps/admissions/tests/contract/` |
+| Brand stale-entry detector (pure) | extend existing `tests/unit/test_brand_drift_guard.py` + `apps/admissions/tests/unit/brandDriftGuard.test.ts`; allowlist logic in a pure module |
+| Backend property tests | `backend/tests/property/` |
+| Backend unit/integration tests | `backend/tests/unit/`, `backend/tests/integration/` |
+| Frontend property tests | `apps/admissions/tests/property/` |
+| Onboarding E2E | `apps/admissions/tests/e2e/onboarding/` |
+| Operator runbooks | `deploy/` and `docs/runbooks/` (referenced, not duplicated) |
 
 ## Components and Interfaces
 
-Each component below maps to one requirement area, names the **real files/tests/docs** it
-touches or adds, and states the **verification artifact** it produces. Audits produce
-evidence documents + tests; the cutover produces an evidence block via the runbook; UI work
-produces per-route pass/fail notes + fixes.
+The eleven requirement areas map to eleven harness components. Each component
+defines: its inputs, the artifacts it writes, the verdict rule, and the steering
+constraints it must honor.
 
-### Component 1 — Canonical freeze (R1)
+### Component 1 — Database Migration Evidence Flow (R1)
 
-**Touches:** `docs/canonical-truth-map.md` (already maps every concept + a Drift Guard
-Inventory), `docs/legacy-brand-allowlist.json`.
+Implements the Neon-first-then-production workflow exactly as
+`infrastructure.md` mandates. The flow is **operator-driven**; the harness
+captures evidence, it does not autonomously mutate production.
 
-**Work:** Verify/refresh the map so every domain concept (application lifecycle, payment
-lifecycle, tenant identity, canonical program/offering/intake, document profile/official-doc
-lifecycle, staff scopes/grants, communication templates, feature flags, public routes/SEO,
-admin route, email sender, OpenAPI metadata, brand allowlist) names exactly one source of
-truth (R1.1). Confirm the existing "No New Mirrors Without Guard" intent is recorded as an
-explicit section (R1.2) and that every cross-layer mirror has a registered Drift_Guard or an
-explicit backend-only note (R1.3). Confirm every legacy-fallback branch is named, tested,
-non-executing for new canonical records, and has a documented removal condition (R1.5 —
-already captured by the "Legacy-string fallback allowlist" + `test_canonical_tenant_drift_guard.py`).
-Confirm no platform-level language presents MIHAS as platform identity (R1.6).
+Ordered evidence steps, each producing an artifact under `evidence/migration/`:
 
-**Admin-route distinction — resolved (R1.1).** The two admin routes are **both canonical, for
-different surfaces** — they are not a discrepancy:
+1. **Neon authoring + branch validation** — for risky changes, a Neon branch id
+   (`create_branch` via the Neon MCP power) on which the change was validated
+   before applying to the Neon default branch. Captured: branch id, validation
+   output. (R1.1, R1.2)
+2. **Dry-run** — `python manage.py apply_sql_migrations --dry-run` output listing
+   pending additive scripts. (R1.3)
+3. **Staging apply** — apply log against the staging DB showing additive scripts
+   applied without error. (R1.4)
+4. **Idempotency re-apply** — second `apply_sql_migrations` run showing
+   "All N migrations already applied. Nothing to do." (no additional schema
+   change). (R1.5)
+5. **Validation SQL** — results confirming `canonical_programs` count non-zero,
+   no duplicate institution hostnames/slugs, active membership counts present
+   (the exact read-only queries from `infrastructure.md`). (R1.6)
+6. **Backup confirmation** — `deploy/backup-db.sh` output captured **before** the
+   production apply. (R1.7)
+7. **Production apply** — `docker compose -f docker-compose.prod.yml exec web
+   python manage.py apply_sql_migrations` output from the EC2 box. (R1.8)
+8. **`migration_history` verification** — post-apply
+   `SELECT migration_name FROM migration_history ORDER BY 1;` matching the
+   intended additive scripts. (R1.8)
+9. **Rollback/disable posture** — a written record stating which changes are
+   additive-only (reversible by feature-flag flip rather than schema revert),
+   mirroring the payment-hardening rollback convention. (R1.9)
 
-- **`/admin/tenants`** (verified in `apps/admissions/src/routes/config.tsx`, guard `admin`) is
-  the canonical **Beanola product admin UI route** for tenant onboarding and school management.
-  It is the **main admin tenant surface** the Canonical_Truth_Map and the launch smoke check
-  (R14.3) treat as authoritative.
-- **`/beanola-admin-panel/`** (verified in `backend/config/urls.py`: `path("beanola-admin-panel/",
-  admin.site.urls)`) is the canonical **Django admin operational route** — the low-level
-  framework admin surface.
+**Destructive-op guard (R1.10):** the additive-only lint already in
+`apply_sql_migrations` (`_find_non_additive_violations`) rejects `DROP COLUMN`,
+`DROP TABLE`, `TRUNCATE`, unbounded `DELETE FROM`, and narrowing
+`ALTER COLUMN ... TYPE ... USING` unless the operator passes
+`--allow-non-additive` after manual review. The harness never passes that flag
+autonomously. This is the single enforcement point cited as proof.
 
-The Canonical_Truth_Map SHALL record **both** sources of truth with their distinct scopes (R1.1):
-the product admin tenant surface (`/admin/tenants`) and the Django operational admin surface
-(`/beanola-admin-panel/`). The launch smoke check (R14.3) verifies admin login at `/admin/tenants`
-as the main admin tenant surface, and includes `/beanola-admin-panel/` only when checking the
-low-level Django admin surface. The follow-up plan was updated to state this explicitly; no route
-rename is performed.
+**Verdict rule:** R1 passes only when all nine artifacts exist and the
+`migration_history` set equals the intended additive-script set.
 
-**Artifact:** A frozen, accurate `docs/canonical-truth-map.md` recording both admin routes with
-their scopes, and a passing canonical-truth/`No-New-Mirrors` verification — R1.4 fails the
-Verification_Gate if a mirror exists in active runtime source without a map entry and a guard.
+### Component 2 — Production Smoke Harness (R2)
 
-### Component 2 — Brand and tenant boundary cleanup (R2)
+Extends `backend/scripts/staging_smoke.py` (already envelope-aware) and adds an
+admin-surfaces probe. Runs against the **deployed** frontend and backend.
 
-**Touches:** `docs/legacy-brand-allowlist.json` (the reviewed allowlist), the paired
-`backend/tests/unit/test_brand_drift_guard.py` and
-`apps/admissions/tests/unit/brandDriftGuard.test.ts`, the active PDF theme
-`apps/admissions/src/lib/pdf/theme/index.ts`.
+Interface (`prod_smoke_admin_surfaces.py`):
 
-**Work:** Run the plan's `rg` brand scans over `apps/admissions/src`,
-`apps/admissions/index.html`, `backend/apps`, `backend/config`; classify every hit as
-platform-default (must be removed), seeded tenant data, dev/PDF-preview fixture not reachable
-from official paths, historical/archived doc, or intentional test fixture (R2.2). Confirm the
-Brand_Allowlist contains only single-file entries (no whole-directory entries, R2.3), each
-with a removal-blocked reason. Confirm the active PDF theme returns a Beanola-generic preview
-(or raises for official documents) for an unknown institution and never renders MIHAS/KATC for
-an unknown school (R2.5). Confirm active docs/runbooks present Beanola as platform owner while
-historical reports stay untouched (R2.6), and that Beanola logo asset paths resolve (R2.7).
+- `GET /admin/tenants` (frontend route, authorized super-admin) → records a
+  **distinct** result. (R2.2, R2.4)
+- `GET /beanola-admin-panel/` (Django operational admin, authorized operator) →
+  records a **distinct** result. (R2.3, R2.4)
+- For each authenticated API surface probed, assert the body matches
+  `{"success": true, "data": ...}`. (R2.5)
+- On any failure, record the failing surface + observed response so the release
+  is blocked. (R2.6)
 
-**Artifact:** Passing brand drift guards (R2.1), a tightened reviewed `legacy-brand-allowlist.json`,
-and a brand-scan evidence note in the progress doc.
+Artifacts under `evidence/smoke/`: a JSON report per run (extends the existing
+`SmokeResult` dataclass shape) plus a checklist markdown. `/admin/tenants` and
+`/beanola-admin-panel/` are **never** treated as interchangeable.
 
-### Component 3 — Gated production database cutover, Neon-first (R3)
+### Component 3 — Performance Validation Harness (R3)
 
-**Touches:** the Migration_Runner
-`backend/apps/common/management/commands/apply_sql_migrations.py`; the four additive scripts
-under `backend/scripts/` (`2026_06_08_01_multi_tenant_beanola_admissions.sql`,
-`2026_06_08_student_number.sql`, `2026_06_08_03_institution_document_profiles.sql`,
-`2026_06_08_04_communication_templates_tenant.sql`); the runbook
-`docs/runbooks/multi-tenant-beanola-rollout.md`; the prerequisite
-`2026_05_22_migration_history_extend.sql`.
+Three sub-harnesses, all writing under `evidence/performance/`.
 
-**Work:** This component **executes the existing 14-step runbook**; it authors no new schema.
-Neon-side (steps 1–8): dry-run discovery in correct lexical order with the additive-only lint
-passing (R3.2), apply + reapply for idempotency, run the validation SQL with duplicate
-hostname/slug checks returning zero and `canonical_programs` non-zero (R3.3). Production-side
-(steps 9–14, **gated on explicit user confirmation**, R3.4): backup + verify non-empty/restorable
-(R3.5), verify the Migration_History_Prerequisite or get `MIGRATION_HISTORY_NOT_EXTENDED`
-(R3.6), dry-run → apply → post-migration validation SQL, additive-only with no destructive
-change through the startup sweep (R3.8), and reconcile any double-tracked migration name per the
-runbook (R3.10). Confirm legacy null-canonical-ID applications, legacy string snapshots, prior
-Official_Documents, and prior payments/receipts remain readable and unchanged (R3.9 — already
-proven on Neon branch `br-tiny-bonus-ahz81bof`).
+**3a. Lighthouse mobile** (`apps/admissions/scripts/lighthouse-mobile.ts`): runs
+mobile audits on the five named routes and records the Performance score.
+Threshold evaluation is a **pure function** (testable):
 
-**Artifact:** A **production evidence block** (R3.7) recording migration names applied,
-`migration_history` rows + checksums, counts (institutions / canonical programs / offerings /
-intakes / applications-with-canonical-IDs / unlinked legacy rows), duplicate domain/slug checks,
-scope-table counts, and document-profile counts, captured into
-`docs/multi-tenant-beanola-progress.md` and the runbook's Phase-1 evidence section.
+| Route | Class | Threshold |
+|---|---|---|
+| `/` | public | ≥ 90 |
+| `/auth/signup` | public | ≥ 90 |
+| `/track-application` | public | ≥ 90 |
+| `/student/dashboard` | auth | ≥ 80 |
+| `/admin/dashboard` | admin | ≥ 80 |
 
-### Component 4 — Backend API contract audit (R4)
+(R3.1, R3.2, R3.3)
 
-**Touches:** `python3 manage.py spectacular` output; every admissions frontend service module
-under `apps/admissions/src/services/`; backend serializers/views under `backend/apps/`; adds
-backend serializer-response tests, frontend service-normalization tests, and an OpenAPI drift
-guard.
+**3b. API timing** (`backend/scripts/api_timing_capture.py`): captures p50/p95
+for the named endpoints and marks each against its p95 target. The endpoint set
+(R3.4): tenant context, catalog offerings, draft save, application submit,
+payment init, payment status, tenant admin list, tenant admin detail, official
+document queue, official document status, official document download, settlement
+summary. Each row records measured p50, p95, the **defined p95 target**, and a
+`meets_target` boolean. (R3.4, R3.5)
 
-**Work:** Generate the OpenAPI schema (zero errors, Beanola-branded metadata, R4.1) and produce
-an **API contract inventory document** mapping every frontend service method to a backend
-endpoint across auth, profile, catalog/context/canonical-programs, applications, student
-documents, official documents, payments, interviews, notifications, and the admin
-dashboard/applications/users/audit-trail/tenant-onboarding/document-profiles/assets/templates/
-access-grants surfaces (R4.2). For each endpoint verify envelope shape, error code, pagination
-shape `{page, pageSize, totalCount, results}` inside `data`, auth class, scope filter,
-serializer fields, frontend type, and UI consumer — no UI depends on an undocumented field
-(R4.3, R4.4). Normalize errors so recoverable student-facing errors carry a stable code +
-guidance and never expose raw Django/DRF errors (R4.6), and out-of-scope targets return the
-Not_Found_Envelope (R4.7). Confirm rate limits exist for login/register/password-reset, public
-tracker, payment initiation, document download/sign-URL, and admin bulk ops (R4.8).
+**3c. Entry-path + document budget** (reuse `check-entry-chunk.ts`): the guard
+confirms `vendor-react-pdf`, `vendor-pdf`, `html2canvas`, OCR, charts, and
+admin-heavy chunks are **absent** from the first-paint entry path. (R3.6) The
+document-action budget sub-check measures the gzip transfer for the first
+PDF/document-generation action and confirms it does not exceed ~772 KB across
+the two PDF engines. (R3.7)
 
-**Artifact:** The API contract inventory doc; new backend serializer-response tests, frontend
-service-normalization tests, and an OpenAPI drift guard (route presence + important fields,
-R4.5).
+**Gap recording (R3.8):** any metric below threshold is written to the manifest
+with route/endpoint, measured value, and threshold — it is tracked, not
+silently dropped.
 
-### Component 5 — Tenant scoping and security audit (R5)
+### Component 4 — Mobile UI Verification Harness (R4)
 
-**Touches:** `backend/apps/catalog/services.py:AccessScopeService`; the existing
-`backend/tests/unit/test_scope_drift_guard.py` and `test_unscoped_endpoint_guard.py`; the
-document auth seam `backend/apps/documents/document_storage_views.py:_get_authorized_document`;
-every staff/admin view that returns tenant data.
+Playwright-driven rendered-UI checks. Today `playwright.config.ts` defines a
+single desktop chromium project; this component adds the five **Named_Viewports**
+as projects (or a parametrized matrix) and a new spec directory
+`tests/e2e/mobile-ui/`:
 
-**Work:** Produce an **endpoint inventory document** classifying every admissions endpoint as
-public-anonymous, student-owned, staff-scoped, or super-admin-only with **no unresolved
-"unknown scope" rows** (R5.1). For every staff-scoped endpoint (application, payment, document,
-dashboard aggregate, audit trail, user listing, notification/communication, tenant-onboarding
-child resource) confirm the queryset filters through `AccessScopeService` (R5.2); add
-scoped-access tests proving in-scope → API_Envelope (R5.3), out-of-scope → Not_Found_Envelope
-(R5.4), expired Access_Grant → Not_Found_Envelope (R5.5), offering/application-scoped grants
-permit only that target (R5.6), and Super_Admin sees all (R5.7). Confirm object-level checks use
-canonical IDs not Legacy_String_Fields (R5.8), the scope/unscoped guards pass and no
-non-super-admin path bypasses `AccessScopeService` (R5.9), and no PII leaks on out-of-scope,
-anonymous, error, audit, or export surfaces, with signed-URL expiry, MIME/magic-byte validation,
-SVG handling, storage-key naming, document-delete protection, and official-doc overwrite
-protection enforced (R5.10).
+| Viewport | px |
+|---|---|
+| mobile-1 | 360×800 |
+| mobile-2 | 390×844 |
+| tablet-portrait | 768×1024 |
+| tablet-landscape | 1024×768 |
+| desktop | 1440×900 |
 
-**Artifact:** The endpoint inventory doc (no unknown-scope rows) and a scoped-access test matrix
-covering R5.3–R5.7; passing scope-drift and unscoped-endpoint guards.
+For each representative public/auth/student/admin route, capture a screenshot
+and run **deterministic DOM assertions**. Each assertion is a pure predicate
+over measured geometry (component 4 properties below), so the same logic is
+property-tested in isolation and applied in Playwright:
 
-### Component 6 — Document system production audit (R6)
+- horizontal body overflow (`scrollWidth > clientWidth`) → fail (R4.2)
+- clipped button text (`scrollWidth > clientWidth` on the label node) → fail (R4.3)
+- touch target < 44×44 px → fail (R4.4)
+- icon-only control with no accessible name → fail (R4.5)
+- overlapping cards/tables/forms (bounding-box intersection) → fail (R4.6)
+- broken dialog focus management on dialog-opening routes → fail (R4.7)
 
-**Touches:** `backend/apps/applications/tasks/pdf_generation.py` (`_compute_document_fingerprint`,
-current-version lifecycle, provenance in `verification_notes.official_document`); the renderer
-package `backend/apps/applications/tasks/pdf/`; the student-safe endpoints
-`backend/apps/applications/official_document_views.py`;
-`backend/apps/catalog/services.py:InstitutionDocumentProfileService`; the seed command
-`backend/apps/catalog/management/commands/seed_tenant_document_profiles.py`; the drift guards
-`apps/admissions/tests/unit/documentFlowDriftGuard.test.ts` and
-`backend/tests/unit/test_official_document_dedup_guard.py`.
+**Named risk routes:** `/admin/tenants` records its ten-tab tab-list behavior
+across all viewports (R4.8); `/admin/applications` records its dense-table
+scroll-or-card strategy across all viewports (R4.9). Artifacts under
+`evidence/mobile-ui/`: one screenshot + one DOM-assertion JSON per
+route×viewport.
 
-**Work:** Produce a **document-type audit document** covering application slip, acceptance
-letter, conditional offer, finance receipt, payment receipt (and any future
-enrollment/registration doc), verifying for each: backend generation path, profile resolution,
-required tenant assets, required template tokens, fingerprint inputs, versioning, storage path,
-download permission, email-attachment behaviour (R6.1). Confirm downloads serve the backend
-stored Official_Document, never a client render (R6.2), and that the client official-PDF actions
-on the student wizard success screen, student payment page, public tracker, and admin
-application-detail are removed/quarantined so `@/lib/pdf` generators are unreachable from
-official paths (R6.3 — enforced by the document-flow guard). Verify the no-profile path sets
-status `failed` with a descriptive error and produces no frontend-content document (R6.4); that
-missing logo/signature, invalid token, invalid asset MIME, storage failure, and render failure
-surface the failure state and never serve stale/client PDFs (R6.5); that repeated unchanged
-generation reuses the current version by fingerprint with no duplicate records (R6.6 — dedup
-guard); that MIHAS/KATC profiles are seeded from the seed command and a Beanola demo profile
-exists only on staging (R6.7); that previews use sample data and are labelled (R6.8); and that
-provenance includes institution, profile id+version, asset ids, and fingerprint with no document
-bodies/PII/secrets in audit trails (R6.9).
+### Component 5 — Brand Drift Guard Completeness (R5)
 
-**Artifact:** The document-type audit document; passing document-flow and dedup guards;
-confirmation of the seed command + provenance.
+Reuses and extends the existing guard suites: `tests/unit/test_brand_drift_guard.py`
+(backend) and `apps/admissions/tests/unit/brandDriftGuard.test.ts` (frontend),
+both already in the CI drift-guard inventory.
 
-### Component 7 — Per-route and mobile-first UI/UX critique and polish (R7)
+Interfaces:
 
-**Touches:** every UI_Route in `apps/admissions/src/pages/` (enumerated in
-`apps/admissions/src/routes/config.tsx`); Playwright screenshot harness; the Impeccable CLI
-(`impeccable detect apps/admissions/src/`); canonical primitives (`PageShell`, `SectionCard`,
-`ErrorDisplay`, `EmptyState`, `Button asChild`).
+- **Hard-leak scan (R5.1):** assert no platform-brand leak tokens
+  (`MIHAS Platform APIs`, `MIHAS Admissions`, `MIHAS-KATC PDF`, `MIHAS/2.0`,
+  `mihas-admin-panel`, `mihas.edu.zm` platform addresses) in scanned active
+  paths.
+- **Allowlist coverage (R5.2):** every remaining MIHAS/KATC string in active
+  source maps to a reviewed entry in `docs/legacy-brand-allowlist.json`
+  classified as tenant data / legacy compatibility / historical example /
+  preview fixture.
+- **Allowlist validity + stale-entry detection (R5.3):** `legacy-brand-allowlist.json`
+  is valid JSON and contains **no stale entries** (entries pointing at files
+  that no longer contain a legacy-brand string). Stale detection is a **pure
+  function** of `(allowlist, current scan results)` — property-tested.
+- **Optional client-PDF preview cleanup (R5.4):** where performed, replace
+  MIHAS/KATC client PDF preview sample profiles with neutral/backend-driven
+  data in `apps/admissions/src/lib/pdf/documents/acceptanceLetterProfiles.ts`.
+- **Neutral fallback (R5.5):** an acceptance-letter preview for an unknown/empty
+  institution resolves to a neutral Beanola profile, never MIHAS — already
+  partially covered by `acceptanceLetterProfiles.test.ts`; strengthened to a
+  property.
 
-**Work:** Produce **per-route pass/fail notes** for every public, student, and admin UI_Route in
-the plan's Phase-7 matrix; every fail gets an issue ID or task (R7.1). For each route at every
-Mobile_Breakpoint (360, 390, 768, 1024, ≥1440) verify no horizontal overflow, no clipped
-buttons, no overlapping text, no hidden required actions (R7.2); ≥44×44px touch targets at 360px
-(R7.3); WCAG AA contrast with status colour always paired with icon/label and Lucide icons
-(R7.4); no purple gradients / gradient text / glassmorphism / nested cards / emoji, and the full
-Inter fallback chain preserved (R7.5); student forms show labels, field-level + server errors,
-submit disabled/loading, clear success, and preserve auto-save + dirty-state protection on
-navigation and `beforeunload` (R7.6); reduced-motion respected (R7.7); scope/school context
-visible per role (R7.8); admin tables become cards/scroll containers with collapsible filters and
-safe bulk actions on mobile (R7.9); dialogs are full-screen/bottom-sheet with focus trap and
-working close/escape/back (R7.10); Beanola-as-platform copy with school names only from tenant
-data and no hard-coded fees/health-only language on generic surfaces (R7.12). Apply fixes for
-every critical failure.
+### Component 6 — Contract Sync (R6)
 
-**Artifact:** Per-route pass/fail notes + linked fixes, and **screenshot evidence** (Playwright)
-for key routes including failure screenshots referenced from issue notes (R7.11).
+Runs in CI, writing under `evidence/contract/`.
 
-### Component 8 — End-to-end workflow QA (R8)
+- **Fresh OpenAPI (R6.1):** `python manage.py spectacular --file ...` generates
+  the artifact (CI already does this in `ci.yml`).
+- **Shape contract check (R6.2):** `backend/scripts/contract_shape_check.py`
+  compares the frontend `tenantAdminService` request/response shapes
+  (`apps/admissions/src/services/admin/tenants.ts`) against the backend
+  serializers for: institution CRUD, domains, offerings & rules, routing
+  simulator, required documents, templates, document profiles, assets, staff
+  memberships & grants, settlement, audit. The shape sets are exported as
+  fixtures under `apps/admissions/tests/contract/` and diffed field-by-field.
+- **Divergence reporting (R6.3):** any diverging endpoint+field is reported
+  (the diff is a pure function — property-tested).
+- **Error-code mapping (R6.4):** confirm frontend error handling maps the
+  backend error code per tenant-admin endpoint, including recoverable routing
+  failures (`NO_ELIGIBLE_OFFERING`) and out-of-scope 404s.
 
-**Touches:** staging (Neon) environment; the student/admin/negative E2E_Flow scripts (Playwright
-or documented manual); the manual smoke checklist doc.
+### Component 7 — Full Validation Suite Orchestration (R7)
 
-**Work:** Run the student E2E_Flow set (signup → verification → application creation →
-canonical-program/intake selection → assigned institution → document upload → save-draft/resume →
-pay-or-defer → submission → backend application-slip download → public tracking → communication →
-interview → decision → acceptance/conditional-offer + receipt download) on staging (R8.1); run the
-admin E2E_Flow set (super-admin login → institution creation → logo/signature upload → document-
-profile creation → offering creation/assignment → routing simulator → add staff → scoped
-Access_Grant → staff scoped-only view → review → payment verification → official-doc generation →
-audit → scoped export) (R8.2). Prove the negative flows: wrong-school staff → Not_Found_Envelope
-(R8.3); expired grant cannot open payment/document (R8.4); no document profile blocks official
-generation with a clear error (R8.5); duplicate application blocked, full intake → recoverable
-guidance (R8.6); failed payment never produces a paid receipt (R8.7); anonymous tracker leaks no
-PII (R8.8).
+Captures pass/fail for each suite step under `evidence/validation/`:
 
-**Artifact:** E2E pass evidence on staging and a **documented manual smoke checklist** for
-production release (R8.9).
+- Frontend: `bun run type-check`, `bun run lint`, `bun run build`, unit+property
+  tests (`bun run test`), Playwright mobile+desktop smoke. (R7.1, R7.2)
+- Backend: `python manage.py check` (R7.3); full `pytest` including tenant
+  lifecycle/admin/student journeys (R7.4); `spectacular` with **zero errors**
+  (R7.5) and **zero warnings** (R7.6).
+- **OpenAPI warning fix (R7.6):** add an explicit schema field/type hint to
+  `CanonicalProgramSerializer.get_available_offerings`. The method returns
+  `ProgramSerializer(..., many=True).data`, so the fix is a decorator following
+  the existing precedent in `apps/applications/serializers.py`:
 
-### Component 9 — Backend reliability and operations (R9)
+  ```python
+  from drf_spectacular.utils import extend_schema_field
 
-**Touches:** `/health/live/` and `/health/ready/`; Celery Beat tasks (PDF generation, email
-queue, payment reconciliation, notification dispatch, uptime); idempotency (`@idempotent`,
-webhook dedup, official-doc fingerprint reuse); structured logging; GlitchTip monitoring;
-`deploy/backup-db.sh` + `docs/runbooks/database-backup-restore.md`.
+  @extend_schema_field(ProgramSerializer(many=True))
+  def get_available_offerings(self, obj):
+      ...
+  ```
 
-**Work:** Verify health endpoints report DB connectivity and Redis/Celery readiness (R9.1);
-confirm the background-task surfaces are operational and monitored (R9.2); confirm idempotent
-behaviour on repeated payment initiation, webhook, official-doc generation, and email retry
-(R9.3); confirm structured logs include request ID, user ID where safe, institution ID, payment
-reference, and document ID, with no secrets or full PII (R9.4); confirm error tracking, a
-Beanola-default alert email, and failed-task/payment-webhook/PDF-render alerts, and send a test
-monitoring event (R9.5); test the backup script and perform a restore drill on staging/local with
-documented retention (R9.6); document the rollback posture (forward-only additive migrations,
-feature-disable without data drop, feature flags) (R9.7); and confirm `manage.py check` passes in
-the staging/prod env (R9.8).
+- **Failure recording (R7.7):** any failing step records the step name + output;
+  the release is blocked.
 
-**Artifact:** An operations verification note + restore-drill evidence + documented rollback
-posture in the runbooks.
+### Component 8 — Operational Readiness Review (R8)
 
-### Component 10 — Security and privacy review (R10)
+Captures proof under `evidence/ops/` **without echoing secret values**:
 
-**Touches:** auth stack (cookie flags, 30-min access / 7-day refresh + JTI, CSRF); authorization
-(`AccessScopeService`, RBAC_Hierarchy); input validation (template tokens, HTML, file uploads,
-query params, bulk actions); secrets/env; payment security; privacy/headers/abuse controls in
-`backend/config/` and `apps/admissions/vercel.json`.
+- **Env presence (R8.1):** confirm required vars set (`SECRET_KEY`,
+  `LENCO_API_SECRET_KEY`, …) by key-name presence only — never value echo.
+- **Secure settings (R8.2):** `DEBUG=False`, HSTS enabled, CSP present, CORS &
+  CSRF trusted origins configured (assert against production settings).
+- **Backup-restore drill (R8.3):** captured evidence of a completed drill
+  against the production DB (per `docs/runbooks/database-backup-restore.md`).
+- **Asset-upload security (R8.4):** tenant asset upload on R2/object storage
+  enforces content-type and file-shape validation.
+- **Audit retention/redaction (R8.5):** retention settings + sensitive-metadata
+  redaction in effect; no PII/secrets in audit records.
+- **Break-glass (R8.6):** documented super-admin recovery procedure, confirmed
+  account recovery is possible.
 
-**Work:** Verify the auth stack enforces HTTP-only cookies, the 30-min/7-day token lifetimes with
-JTI blacklisting, refresh rotation, logout/session cleanup, and CSRF on state-changing requests
-(R10.1); authorization enforces owner/scope/super-admin/object-level checks consistent with the
-RBAC_Hierarchy (R10.2); inputs are validated and token values HTML-escaped with invalid input
-rejected descriptively (R10.3); no secrets in the repo, env examples current, prod env reviewed
-(R10.4); payment controls enforce webhook signature, idempotency keys, reconciliation, and receipt
-authorization with the Lenco mobile-money-first UX + deferral preserved (R10.5); privacy controls
-minimize public-tracker data, gate exports, document audit retention, keep PII out of logs
-(R10.6); responses set CSP/HSTS/X-Frame-Options/Referrer-Policy (R10.7); abuse controls enforce
-rate limits, password-reset/public-tracker throttling, and upload size limits (R10.8); and no
-high-severity finding is open, with any medium finding owned and given a launch decision (R10.9).
+### Component 9 — Tenant Onboarding End-to-End Smoke (R9)
 
-**Artifact:** A security/privacy review document with a findings register (severity + owner +
-launch decision).
+Scripted/manual walkthrough captured under `evidence/onboarding/`, exercising
+the real `tenantAdminService` surfaces: school create (R9.1), logo+signature
+asset upload (R9.2), document profile+template (R9.3), program/offering
+assignment (R9.4), staff membership + access grant (R9.5), routing simulator
+(R9.6), student application + payment (R9.7), official document generation via
+the backend tenant profile/assets (R9.8). Scoped-visibility assertions: scoped
+staff see only in-scope records (out-of-scope masked as not-found) (R9.9);
+super-admin sees across all tenants (R9.10).
 
-### Component 11 — Performance and Core Web Vitals (R11)
+### Component 10 — Launch Scope Gate (R10/R11)
 
-**Touches:** Lighthouse mobile runs; Vite bundle analysis + `apps/admissions/src/routes/config.tsx`
-lazy-loading; backend query paths for application detail, dashboard, documents, payments; skeleton
-dimensions.
+- Confirm `ENABLE_JOBS_OPS_ROUTES=False` for the admissions launch
+  (`backend/config/settings/base.py` default is already `false`). (R11.1)
+- While the flag is `False`, the jobs/automation/integrations stub routes are
+  excluded from the launch surface (gated in `backend/config/urls.py`). (R11.2)
+- Record the scope-out decision as evidence so excluded stub modules are
+  explicitly acknowledged. (R11.3)
 
-**Work:** Measure Lighthouse mobile for public home, signup, tracker, student dashboard, admin
-dashboard, plus bundle analysis and API timings (R11.1); confirm entry chunks exclude dev-preview
-routes and oversized PDF/vendor chunks and that admin-heavy modules are lazy-loaded (R11.2);
-confirm tenant-scoped queries avoid N+1, paginate large lists, and index slow queries (R11.3);
-confirm public pages meet acceptable CWV thresholds and admin pages stay responsive at realistic
-volume (R11.4); confirm stable skeleton dimensions and no dynamic text resizing keep CLS within
-threshold (R11.5).
-
-**Artifact:** A performance evidence note (Lighthouse scores, bundle report, query timings) and any
-index/lazy-load fixes.
-
-### Component 12 — Data quality and seed readiness (R12)
-
-**Touches:** read-only verification queries against Neon (staging) and the production evidence
-block; `seed_tenant_document_profiles`; institution/asset/catalog/document/staff/comms config.
-
-**Work:** State all production data-quality/seed checks as **read-only verification queries** (no
-production writes from dev). Verify per-school institution data (slug, code, brand name, legal
-name, emails, phones, domains, active status) is complete and signed off (R12.1); assets (logo,
-signature, seal where needed, checksums, active version) present (R12.2); flag any active offering
-missing a canonical-program link, intake, or fee rule as not ready (R12.3); catalog data
-(canonical programs, offerings, intakes, fees, capacity, assignment priority, eligibility rules)
-present (R12.4); flag any active school missing a required document profile + assets as not ready
-(R12.5); document config (required docs, profiles, template tokens, bank details, signatory)
-present per school (R12.6); staff data (super-admins, institution admins, reviewers, finance
-approvers, scoped grants) present (R12.7); and comms config (email/SMS templates, sender email,
-support contact) Beanola-or-tenant-derived (R12.8).
-
-**Artifact:** A per-school data-quality checklist with read-only query results and not-ready flags.
-
-### Component 13 — Verification gate and Drift_Guard CI (R13)
-
-**Touches:** CI configuration; the Verification_Gate command set; the full Drift_Guard inventory in
-`docs/canonical-truth-map.md`.
-
-**Work:** Ensure the Verification_Gate passes with zero errors — backend `python3 -m pytest`,
-`python3 manage.py check`, `python3 manage.py spectacular`; admissions `bun run type-check`,
-`bun run lint`, `bun run test`, `bun run build` (R13.1). Ensure CI includes jobs matching the
-required Drift_Guard list: frontend + backend brand drift, document-flow drift, official-document
-dedup, scope drift, unscoped endpoint, canonical-tenant drift, payment-status drift, error-code
-drift, role mirror, application-lifecycle, and schema drift (R13.2). Ensure CI fails on any type
-error, lint error, build failure, brand drift, unscoped-endpoint drift, or schema drift (R13.3),
-that all intended new tests are committed with none left untracked (R13.4), that release notes link
-a Smoke_Check job or manual checklist (R13.5), and that no required guard is optional (R13.6).
-
-**Artifact:** A CI configuration reproducing the local commands + the full guard list, with the
-Drift_Guard inventory cross-checked against the map.
-
-### Component 14 — Production launch checklist and rollback posture (R14)
-
-**Touches:** the release branch + env vars; the Verification_Gate + production build; the runbook
-cutover; the immediate Smoke_Check set; `docs/multi-tenant-beanola-progress.md`.
-
-**Work:** Pre-launch: freeze a release branch, confirm no uncommitted production code, confirm the
-required env vars (`DATABASE_URL`, `SECRET_KEY`, JWT signing key, email sender creds, Lenco keys,
-R2/S3 keys, CORS origins, cookie domain, frontend base URL, error-monitoring DSN) (R14.1).
-Pre-deploy: run the full Verification_Gate + production build, back up the production DB, apply
-migrations, run validation SQL (R14.2). Post-deploy: run the immediate Smoke_Check set (public home
-Beanola branding, contact mailto Beanola, signup/login, catalog, wizard draft, assignment preview,
-safe-environment payment initiation, public tracker no-PII, **admin login at `/admin/tenants`** (the
-main Beanola product admin tenant surface), with the **`/beanola-admin-panel/` Django operational
-admin** surface checked separately per the R1 two-surface decision, super-admin tenant onboarding,
-staff scoped-data check,
-official-document generation for one staged application, Beanola/tenant email render, no deployment
-errors, health checks) (R14.3). Launch-time graceful-degradation posture: a failed tenant feature →
-disable route/action keep data intact (R14.4); a failed payment → stop initiation keep submission
-safe (R14.5); a failed official-document generation → show "generation failed" and block download
-rather than serve a stale frontend PDF (R14.6). Database rollback forward-only unless a tested
-rollback script exists, code rollback allowed (R14.7). After the window, confirm no critical log
-errors and update the Production_Readiness_Status_Document with exact date/time + evidence (R14.8).
-
-**Artifact:** A completed launch checklist + smoke evidence + an updated
-`docs/multi-tenant-beanola-progress.md`.
-
-### Component 15 — Definition-of-Done exit gate (R15)
-
-**Touches:** all of the above artifacts; `.config.kiro` status marker.
-
-**Work:** Define the Definition_of_Done as an **all-or-nothing aggregation** over the Component
-1–14 exit conditions: the platform is production-ready only when the Canonical_Truth_Map is
-accurate + the Brand_Allowlist is reviewed (R15.1), brand scans are clean (R15.2), all tenant
-migrations are applied to staging **and** production with evidence (R15.3), every tenant-data
-endpoint is scope-reviewed + scoped-tested **and** every frontend service shape matches the
-serializers/OpenAPI (R15.4), every UI_Route has a mobile-first pass at every Mobile_Breakpoint +
-every critical workflow has a Smoke_Check/manual script (R15.5), the Verification_Gate + production
-Smoke_Check set pass (R15.6), and monitoring/backups/error-reporting/alert-email/CORS/cookies/env
-vars are verified (R15.7). If **any** condition is unmet, the platform is **not** marked
-production-ready (R15.8) and `.config.kiro` keeps no `"status": "completed"` until the operator
-completes the rollout.
-
-**Artifact:** The Definition-of-Done aggregation result (pass only when all conditions hold), and
-the `.config.kiro` completion marker set by whoever completes the production rollout.
+(Requirement 10 in the requirements doc is the "Launch Scope Confirmation"
+requirement; its criteria are numbered R10.x there. This design treats the
+launch-scope criteria as Component 10.)
 
 ## Data Models
 
-**There are NO new schema changes in this spec.** Every schema object this spec depends on was
-already authored by the remediation spec as the four additive scripts under `backend/scripts/`:
+### Evidence Manifest
 
-| Table / change | Migration file | Authored by |
-|----------------|----------------|-------------|
-| Tenant schema (canonical/tenant tables, nullable canonical-ID columns, backfill, `NOT VALID` FKs) | `2026_06_08_01_multi_tenant_beanola_admissions.sql` | remediation |
-| Per-`(institution_code, year)` student-number sequences + `next_student_number()` | `2026_06_08_student_number.sql` | remediation |
-| `institution_document_profiles` (rich tenant document content) | `2026_06_08_03_institution_document_profiles.sql` | remediation |
-| `communication_templates` `+institution_id`, `+version`, +index | `2026_06_08_04_communication_templates_tenant.sql` | remediation |
+`manifest.json` is the machine-readable source of truth. The human-readable
+`evidence-index.md` is generated from it.
 
-This spec only **applies** these via the gated Production_Cutover (R3) and **seeds** tenant data
-via `seed_tenant_document_profiles` (R6.7). All affected models remain `managed=False`; nothing is
-dropped, rewritten, or repurposed; the Legacy_String_Fields
-(`applications.institution/program/intake`) stay untouched and readable (R3.9). The official-document
-provenance + fingerprint live in the existing `verification_notes.official_document` JSON — no schema
-change.
+```jsonc
+{
+  "spec": "beanola-production-readiness",
+  "schema_version": 1,
+  "generated_at": "2026-06-16T12:00:00Z",
+  "release_candidate": "<git-sha-or-tag>",
+  "requirements": [
+    {
+      "id": "1",
+      "title": "Production Database Migration And Schema Validation Evidence",
+      "verdict": "pass | fail | pending | waived",
+      "criteria": [
+        {
+          "id": "1.3",
+          "verdict": "pass | fail | pending | waived | n/a",
+          "artifacts": ["migration/dry-run-2026-06-16.txt"],
+          "ci_artifact": "staging-smoke-report",
+          "measured": { "pending_scripts": 2 },
+          "threshold": null,
+          "notes": "two additive scripts pending"
+        }
+      ]
+    }
+  ],
+  "release_gate": "go | no-go"
+}
+```
 
-**Production data-quality and seed checks (R12) are stated as read-only verification queries**
-(counts, completeness, not-ready flags) — they are run against Neon (staging) and reflected in the
-production evidence block; **no production data is written from the development environment**
-(R16.8). The deferred optional `ApplicationDocument.is_current` column documented by the remediation
-design remains a later additive upgrade and is **not** introduced here.
+**Field semantics:**
+
+- `criteria[].verdict` — leaf verdict for one acceptance criterion. `n/a` is
+  used for criteria that do not apply to this release (e.g. optional cleanup).
+  `waived` requires a non-empty `notes` justification.
+- `criteria[].measured` / `threshold` — used by performance and timing rows so a
+  Reviewer sees the number and the bar side by side.
+- `requirements[].verdict` — **derived** from its criteria (aggregation rule
+  below), never hand-set.
+- `release_gate` — **derived** from all requirement verdicts.
+
+### Verdict Aggregation Rule (pure)
+
+Ordering of severity: `fail` > `pending` > `pass`. `waived` and `n/a` are
+treated as non-blocking (equivalent to `pass` for gating), but `waived` must
+carry justification.
+
+- A **requirement** verdict is:
+  - `fail` if **any** criterion is `fail`;
+  - else `pending` if **any** criterion is `pending`;
+  - else `pass` (all criteria are `pass`/`waived`/`n/a`).
+- The **release_gate** is `go` iff **every** requirement is `pass`; otherwise
+  `no-go`.
+
+This function — and the manifest serialize/deserialize round-trip — is the core
+piece of pure logic in the system and is property-tested (see Correctness
+Properties).
+
+### Lighthouse Threshold Model (pure)
+
+```
+threshold(routeClass) = 90 if routeClass == "public" else 80   # auth | admin
+passes(score, routeClass) = score >= threshold(routeClass)
+```
+
+### API Timing Row Model (pure)
+
+```
+{ endpoint, p50_ms, p95_ms, p95_target_ms, meets_target }
+meets_target = p95_ms <= p95_target_ms
+```
+
+### Brand Allowlist Models
+
+- **Allowlist entry**: `{ file, string, classification }` where classification ∈
+  `{tenant-data, legacy-compat, historical-example, preview-fixture}`.
+- **Stale entry (pure):** an entry is stale iff its `string` no longer appears in
+  its `file` according to the current scan. The stale-entry set is
+  `{ e ∈ allowlist : e.string ∉ scan(e.file) }`.
+
+### Mobile DOM Measurement Model (pure)
+
+A measured element box: `{ role, width, height, accessibleName, scrollWidth,
+clientWidth, box: {x,y,w,h} }`. The DOM predicates (overflow, clipped text,
+touch-target, icon-only-name, overlap) are pure functions of these measurements,
+independent of the browser, which is what makes them property-testable.
 
 ## Correctness Properties
 
-*A property is a characteristic or behavior that should hold true across all valid executions of a
-system — essentially, a formal statement about what the system should do. Properties serve as the
-bridge between human-readable specifications and machine-verifiable correctness guarantees.*
+*A property is a characteristic or behavior that should hold true across all
+valid executions of a system — essentially, a formal statement about what the
+system should do. Properties serve as the bridge between human-readable
+specifications and machine-verifiable correctness guarantees.*
 
-This spec is verification/cutover/audit/polish/launch over a **code-complete base**, so most of its
-acceptance criteria are SMOKE checks, operator INTEGRATION steps, doc/runbook edits, or visual
-screenshot checks — **not** property-based. The underlying behavioural invariants (masking,
-fingerprint determinism, dedup, profile resolution, validation, template safety, communication
-resolution, provenance/PII exclusion, assignment determinism, legacy readability) were already
-formalized as **Properties 1–25 in the remediation design**
-(`.kiro/specs/multi-tenant-beanola-remediation/design.md`) and are **referenced, not restated** here.
+This is primarily an evidence-and-gating initiative, so most acceptance
+criteria are **integration** checks (run once against a real deployed target or
+database) or **smoke** checks (one-time configuration confirmation). Those are
+covered by the Testing Strategy below, **not** by property-based tests.
 
-The numbering **continues conceptually from the remediation design** (whose last numbered property
-was 25). The genuinely **new** production-readiness properties below are the **cross-surface
-aggregations** the audits add over the whole platform, plus the all-or-nothing exit gate. Each maps
-to the requirement(s) it validates and to a test/guard/evidence artifact (see Testing Strategy).
+A focused subset of the system is **pure logic** with a wide input space — the
+manifest verdict engine, the threshold/timing/entry-path evaluators, the brand
+allowlist stale detector and preview-profile resolver, the mobile DOM
+predicates, the contract diff, the additive-only SQL lint, the envelope
+validator, and the access-scope visibility rule. These are where property-based
+testing adds real value, and the properties below (deduplicated during the
+prework reflection) target exactly them.
 
-### Property 26: Tenant isolation holds across every audited endpoint
+### Property 1: Verdict aggregation is severity-monotone at both levels
 
-*For any* staff-scoped admissions endpoint in the R5 endpoint inventory and *any* non-super-admin
-actor, an in-scope resource is returned via the API_Envelope; an out-of-scope resource, a resource
-covered only by an **expired** Access_Grant, and a resource outside a single-offering/single-application
-grant's target each return the **Not_Found_Envelope** byte-identical (HTTP status, error code,
-message) to a genuine missing resource; a Super_Admin is permitted every read; and every such read is
-filtered through `AccessScopeService` using canonical IDs (never Legacy_String_Fields), leaking no
-PII on the out-of-scope response.
+*For any* set of criterion verdicts, the requirement verdict is `fail` if any
+criterion is `fail`, otherwise `pending` if any criterion is `pending`,
+otherwise `pass` (treating `waived`/`n/a` as non-blocking); and *for any* set of
+requirement verdicts, the release gate is `go` if and only if every requirement
+is `pass`.
 
-**Validates: Requirements 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 8.3, 8.4, 16.4** *(extends remediation Property 13 from the document surfaces to every audited endpoint)*
+**Validates: Requirements 2.6, 3.8, 7.7**
 
-### Property 27: Frontend service shapes match the backend contract
+### Property 2: Manifest serialization round-trip
 
-*For any* admissions frontend service method, its normalized response type matches the corresponding
-backend serializer fields and the generated OpenAPI schema, no UI consumer depends on a field absent
-from the schema, and *for any* authenticated endpoint response the API_Envelope holds with list
-responses carrying the paginated `{page, pageSize, totalCount, results}` shape inside `data`.
+*For any* valid evidence manifest, deserializing its serialized form yields an
+equivalent manifest (no field, verdict, measurement, or artifact path is lost or
+altered).
 
-**Validates: Requirements 4.3, 4.4, 16.6**
+**Validates: Requirements 1.1, 2.1, 7.1**
 
-### Property 28: No non-allowlisted legacy brand string in active source
+### Property 3: Additive-only lint rejects destructive SQL
 
-*For any* file in the active runtime source scanned by the Brand_Drift_Guard (`apps/admissions/src`,
-`apps/admissions/index.html`, `backend/apps`, `backend/config`) that is not listed in the
-Brand_Allowlist, the file contains none of `MIHAS`, `KATC`, `Mukuba`, `Kalulushi`, `mihas.edu.zm`,
-`katc.edu.zm`, or a legacy MIHAS API/app domain, so every platform default presents Beanola unless it
-renders tenant-owned data.
+*For any* SQL script containing a `DROP COLUMN`, `DROP TABLE`, `TRUNCATE`,
+unbounded `DELETE FROM`, or narrowing `ALTER COLUMN ... TYPE ... USING`
+construct (regardless of surrounding comments or whitespace), the additive-only
+lint flags it as non-additive; and *for any* purely additive script, the lint
+passes it.
 
-**Validates: Requirements 2.1, 7.12, 16.1**
+**Validates: Requirements 1.10**
 
-### Property 29: No client-only official PDF is reachable from an official-download path
+### Property 4: Authenticated success responses use the data envelope
 
-*For any* student-facing or admin module on an official-download path, the module does not import the
-`@/lib/pdf` barrel or invoke `generateApplicationSlip` / `generateAcceptanceLetter` /
-`generatePaymentReceipt` for an official document; every official download resolves to the
-backend-generated, backend-stored Official_Document.
+*For any* authenticated success response body, the envelope validator accepts it
+if and only if it has `success: true` and a `data` key; any body missing either
+is rejected.
 
-**Validates: Requirements 6.2, 6.3, 16.5** *(document-flow guard, extended platform-wide)*
+**Validates: Requirements 2.5**
 
-### Property 30: Every UI route is overflow-free with adequate touch targets at 360px
+### Property 5: Lighthouse threshold evaluation respects route class
 
-*For any* UI_Route enumerated in the Phase-7 route matrix, rendered at the 360px Mobile_Breakpoint,
-the route produces no horizontal overflow (content width does not exceed the viewport) and every
-interactive element (button, tab, icon button, input) presents a touch target of at least 44×44px.
+*For any* Lighthouse Performance score and route class, the evaluator marks the
+route as passing if and only if the score meets the class threshold (≥ 90 for
+public routes, ≥ 80 for authenticated/admin routes).
 
-**Validates: Requirements 7.2, 7.3** *(DOM-measured; pixel-perfect visual confirmation is screenshot evidence, not a property)*
+**Validates: Requirements 3.2, 3.3**
 
-### Property 31: Recoverable student-facing errors are stable and guidance-bearing
+### Property 6: API timing target evaluation
 
-*For any* recoverable error surfaced to a student-facing endpoint, the response carries a stable
-error code and user guidance and never exposes a raw Django or DRF error string or stack trace.
+*For any* measured p95 latency and defined p95 target, the timing row is marked
+as meeting its target if and only if the measured p95 is less than or equal to
+the target.
+
+**Validates: Requirements 3.5**
+
+### Property 7: Entry-path guard excludes forbidden chunks
+
+*For any* set of first-paint entry chunks, the entry-path guard passes if and
+only if none of the forbidden chunk markers (`vendor-react-pdf`, `vendor-pdf`,
+`html2canvas`, OCR, charts, admin-heavy) appear in that set.
+
+**Validates: Requirements 3.6**
+
+### Property 8: Overflow/clipping predicate
+
+*For any* measured DOM node, the overflow/clipping check fails the node if and
+only if its `scrollWidth` exceeds its `clientWidth` (applied to the document
+body for horizontal overflow and to a button's label node for clipped text).
+
+**Validates: Requirements 4.2, 4.3**
+
+### Property 9: Touch-target size predicate
+
+*For any* interactive element box, the touch-target check fails the element if
+and only if its rendered width or height is less than 44 pixels.
+
+**Validates: Requirements 4.4**
+
+### Property 10: Icon-only accessible-name predicate
+
+*For any* icon-only control, the accessible-name check fails the control if and
+only if it has no non-empty accessible name.
+
+**Validates: Requirements 4.5**
+
+### Property 11: Overlap predicate
+
+*For any* pair of card/table/form bounding boxes, the overlap check fails them if
+and only if their rectangles intersect with non-zero area.
 
 **Validates: Requirements 4.6**
 
-### Property 32: Failed official-document generation never serves a stale or client PDF
+### Property 12: Brand allowlist stale-entry detection
 
-*For any* official-document generation that fails (missing profile, missing logo/signature, invalid
-token, storage failure, or render failure), the system records a `failed` status, leaves any prior
-Official_Document unchanged, and blocks the download (showing a generation-failed state) rather than
-serving a stale or client-rendered PDF.
+*For any* allowlist and any current scan result, an entry is reported stale if
+and only if its declared legacy-brand string no longer appears in its declared
+file.
 
-**Validates: Requirements 6.5, 14.6** *(graceful-degradation posture; complements remediation Property 17)*
+**Validates: Requirements 5.3**
 
-### Property 33: The Definition-of-Done exit gate is all-or-nothing
+### Property 13: Unknown-institution preview resolves to neutral Beanola
 
-*For any* combination of Definition_of_Done condition outcomes, the production-ready gate evaluates to
-true if and only if **every** condition (canonical map + reviewed allowlist; clean brand scans;
-migrations applied to staging and production with evidence; every tenant-data endpoint scope-reviewed
-and scoped-tested and every frontend service shape matching the contract; every UI_Route passed at
-every Mobile_Breakpoint with a Smoke_Check per critical workflow; Verification_Gate + production
-Smoke_Check passing; monitoring/backups/error-reporting/alert-email/CORS/cookies/env verified) is
-true; if any single condition is unmet, the gate is false and the platform is not marked
-production-ready.
+*For any* institution identifier not in the known set (including empty and
+whitespace-only identifiers), the acceptance-letter preview resolver returns the
+neutral Beanola preview profile and never a MIHAS profile or MIHAS banking data.
 
-**Validates: Requirements 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7, 15.8**
+**Validates: Requirements 5.5**
 
-### Properties referenced from the remediation design (not restated)
+### Property 14: Contract diff detects and names divergence
 
-These behavioural invariants this spec verifies in production conditions are already specified as
-remediation Properties 13–25 and are exercised by the same tests/guards listed there:
+*For any* pair of frontend service field set and backend serializer field set,
+the contract diff reports a divergence if and only if the two sets differ, and
+the reported divergence names exactly the symmetric-difference fields.
 
-| Concept | Remediation property | This spec's requirement(s) |
-|---------|----------------------|----------------------------|
-| Document_Fingerprint determinism + input-sensitivity | Property 16 | 6.6 |
-| Single current version / reuse-on-unchanged (dedup) | Property 17 | 6.6 |
-| Student official-document status gating | Property 18 | 8.5 |
-| Profile/template content safety (token allowlist + HTML-escape) | Property 19 | 10.3 |
-| Profile resolution determinism + most-specific | Property 20 | 6.4 |
-| Required-doc + access-grant validation correctness | Property 21 | (admin config) |
-| Communication resolution + brand-safe context | Property 22 | 12.8 |
-| Audit/provenance exclude PII/secrets/document bodies | Property 23 | 6.9, 9.4, 16.7 |
-| Assignment determinism + institution-coded app numbers | Property 24 | 8.6 |
-| Legacy null-canonical-ID readability | Property 25 | 3.9 |
+**Validates: Requirements 6.2, 6.3**
 
-Payment integrity criteria (R8.7 failed-payment-no-paid-receipt, R9.3 / R10.5 idempotency + webhook
-signature) are owned by the payment-hardening spec's properties (`.kiro/specs/payment-hardening/`) and
-are referenced, not restated.
+### Property 15: Scoped visibility equals the in-scope subset
+
+*For any* collection of records spread across tenants and any staff access
+scope, the records visible to that staff member equal exactly the in-scope
+subset and every out-of-scope record is masked as not-found; and *for any* such
+collection, a super-admin scope sees all records.
+
+**Validates: Requirements 9.9, 9.10**
 
 ## Error Handling
 
-This spec reuses the **existing stable error codes** and the **Not_Found_Envelope** — it introduces no
-new codes. Every endpoint keeps the `{"success": boolean, "data": ..., "error": ..., "code": ...}`
-envelope (R16.6).
+The harnesses are evidence producers, so "error handling" means **failing
+loudly and recording the failure as evidence**, never silently degrading a
+verdict to green.
 
-- **Recoverable student errors** carry a stable code + guidance and never expose a raw Django/DRF
-  error (R4.6, Property 31). Examples reused from the base: `NO_ELIGIBLE_OFFERING` (409, recoverable
-  assignment guidance), `INVALID_FORMAT` (400, tracking-code format guidance),
-  `DOCUMENT_PROFILE_NOT_CONFIGURED` (status `failed`, no frontend-content document, R6.4),
-  `OFFERING_CAPACITY_FULL` / `OFFERING_NO_LONGER_AVAILABLE` (409, recoverable, R8.6).
-- **Out-of-scope reads** return `NOT_FOUND` masking (404) byte-identical to a genuine miss across
-  every audited endpoint (R4.7, R5.4, R16.4, Property 26).
-- **No raw framework errors** reach any UI surface; `envelope_exception_handler` in
-  `backend/apps/common/exceptions.py` normalizes 500s and reports to GlitchTip.
-
-**Launch-time graceful-degradation posture (R14.4–R14.6):**
-
-- A failed **tenant feature** → disable the feature route/action and keep data intact (R14.4).
-- A failed **payment** → stop payment initiation while keeping application submission safe (R14.5);
-  a failed payment never produces a paid receipt (R8.7).
-- A failed **official-document generation** → show "generation failed" and **block download** rather
-  than serve a stale frontend PDF (R14.6, Property 32). Render failure leaves any prior
-  Official_Document unchanged, records a failing-stage Audit_Event with no PII/secrets/bodies, and
-  returns a retry-able error; permanent failure is bounded by the generator's `max_retries=3`.
-
-## Security Considerations
-
-- **Tenant isolation is the central property.** Every document/payment/application/dashboard/audit/
-  user/notification/tenant-onboarding surface authorizes through
-  `backend/apps/catalog/services.py:AccessScopeService` (never `role == "admin"` alone); out-of-scope
-  reads are masked as 404 to close the existence-inference channel (Property 26). The
-  `test_scope_drift_guard.py` and `test_unscoped_endpoint_guard.py` guards fail the build if a future
-  change reintroduces role-only authorization or an unscoped queryset (R5.9, R13.2).
-- **Official-document integrity.** Backend `system_generated` documents are deletion-protected from
-  non-super-admins and carry full provenance (institution, profile id+version, asset ids, fingerprint)
-  in `verification_notes.official_document`; clients cannot mint official PDFs (document-flow guard,
-  Property 29). Failed generation never serves a stale/client PDF (Property 32).
-- **PII / secret hygiene in logs and audits.** Structured logs include request ID, user ID where safe,
-  institution ID, payment reference, and document ID, and exclude secrets and full PII (R9.4); audit
-  payloads exclude rendered document bytes, applicant PII (NRC/passport, full DOB, phone, email,
-  address), credentials, signing secrets, and bank account numbers (R16.7, remediation Property 23).
-  The public tracker is data-minimized and anonymous surfaces leak no PII (R5.10, R8.8, R10.6).
-- **Headers.** Production responses set CSP (with the GlitchTip `report-uri`), HSTS, X-Frame-Options,
-  and Referrer-Policy (R10.7) via `apps/admissions/vercel.json` and backend security middleware.
-- **Abuse controls / rate limits.** Login/register/password-reset, public tracker, payment initiation,
-  document download/sign-URL, admin bulk operations, and AI surfaces are rate-limited; password-reset
-  and public-tracker throttling and upload size limits are enforced (R4.8, R10.8).
-- **Secrets review.** No secrets in the repo (`.env`/`.env.local` gitignored); env examples current;
-  production env reviewed (R10.4). Connection strings, the `.pem` key, and DB dumps are never
-  committed (`.kiro/steering/infrastructure.md`).
-- **Auth/CSRF/JTI preserved.** HTTP-only cookies, 30-min access / 7-day refresh with JTI blacklisting,
-  refresh rotation, logout/session cleanup, and CSRF on state-changing requests are unchanged (R10.1,
-  R16.6).
-- **No production DB write from dev.** All schema/data changes are authored/validated on Neon first,
-  then applied to the self-hosted production Postgres by the gated operator cutover only (R16.8,
-  R3.1, R3.4); production is never written from the development environment.
+- **Harness execution failure** (a script throws, a deployed target is
+  unreachable): the affected criterion verdict is set to `pending` (not `pass`)
+  with a `notes` explanation, and the orchestrator exits non-zero. A missing
+  measurement is never interpreted as a pass.
+- **Threshold miss** (Lighthouse below bar, p95 over target, doc budget
+  exceeded): the criterion verdict is `fail`, the manifest records the measured
+  value and threshold (R3.8), and the gate becomes `no-go`.
+- **Destructive SQL encountered** (R1.10): the additive-only lint raises
+  `CommandError` with one `REJECTED_NON_ADDITIVE_OPERATION` line per violation
+  and exits non-zero. The harness surfaces this to the operator and **never**
+  passes `--allow-non-additive` autonomously.
+- **Neon-side failure during validation**: mirrors the existing
+  `backend-governance.yml` degrade-to-skip posture for Neon branch forks — the
+  Neon drift-guard may skip, but the hard production gate (migration_history
+  match + backup proof) still blocks the release.
+- **Malformed manifest**: the `manifest validate` CI step fails the build if
+  `manifest.json` is invalid JSON, references a missing artifact, or contains a
+  hand-set (non-derived) requirement/gate verdict.
+- **Secret safety**: env-presence checks (R8.1) and any log output assert by
+  **key name only**; a check that would echo a secret value is itself a failure.
+- **Smoke envelope violation**: a non-`{"success":true,"data":...}` body on an
+  authenticated surface records the failing surface and observed response
+  (R2.6) and fails the smoke verdict.
 
 ## Testing Strategy
 
-### Dual approach
+A dual approach: **property-based tests** for the pure-logic core, and
+**example / integration / smoke tests** for everything that touches a real
+deployed target, database, or one-time configuration.
 
-- **Unit / example tests** cover specific scenarios, audit-inventory completeness, doc/config
-  presence, smoke checks, and guard behaviour (OpenAPI generation, header presence, env-var presence,
-  allowlist single-file shape, CI guard list).
-- **Property-based tests** cover the universal cross-surface invariants in Properties 26–33, each
-  running **≥100 iterations** with a pinned deterministic seed.
-- **Integration tests** (1–3 examples) cover the operator cutover (Neon-branch apply/reapply
-  idempotence + validation SQL), E2E staging flows, health/monitoring/backup-restore wiring, and
-  Lighthouse/CWV measurement — behaviour that does not vary meaningfully with input or hits external
-  systems.
+### Property-Based Tests
 
-### PBT applicability
+- **Libraries:** `hypothesis` for backend (Python, per `tech.md`); `fast-check`
+  for frontend (per `tech.md`). Do not hand-roll property generation.
+- **Iterations:** minimum **100** per property test.
+- **Tagging:** each property test references its design property with a comment
+  in the form `Feature: beanola-production-readiness, Property {number}: {property_text}`.
+- **One test per property:** each of the 15 properties above is implemented by a
+  single property-based test.
+- **Placement:**
+  - Backend properties (1, 2 backend half, 3, 4, 6, 12, 14, 15) →
+    `backend/tests/property/`.
+  - Frontend properties (1 frontend half if the evaluator is shared, 2 frontend
+    half, 5, 7, 8, 9, 10, 11, 13) → `apps/admissions/tests/property/`.
+  - The manifest verdict engine is the source of truth; if it is implemented in
+    `backend/scripts/release_evidence/manifest.py`, Properties 1, 2, 5, 6 are
+    backend property tests and the frontend evaluators (entry-path, DOM
+    predicates, preview resolver) are tested with `fast-check`.
 
-PBT applies to the logic/aggregation layers here — tenant-isolation masking across the audited
-endpoint set, frontend-service-shape ⇔ contract conformance, the active-source brand scan, the
-document-flow reachability scan, per-route overflow/touch-target measurement, recoverable-error
-shape, failed-generation degradation, and the all-or-nothing Definition-of-Done evaluator.
+### Example / Edge-Case Unit Tests
 
-PBT does **NOT** apply to:
+- Smoke harness records `/admin/tenants` and `/beanola-admin-panel/` as **two
+  distinct results** (R2.4) — example test of the harness output shape.
+- Failing-step recording blocks the release (R2.6, R7.7) — example tests over a
+  manifest with one injected failure.
+- Optional client-PDF preview cleanup leaves no MIHAS/KATC strings (R5.4) — scan
+  example if the cleanup is performed.
+- Frontend error-code map covers every backend tenant-admin error code (R6.4) —
+  coverage example over the fixed code set, including `NO_ELIGIBLE_OFFERING` and
+  out-of-scope 404.
+- Launch-scope gating: flag `False` → jobs/automation/integrations routes absent
+  from the URL conf; flag `True` → present (R11.2) — two-state example test.
 
-- the **operator Production_Cutover** (R3) — a gated, one-time external procedure verified by the
-  Neon-branch idempotence integration test + the production evidence block, not by iteration;
-- **doc/runbook edits** (R1, R9.7, R14.7, R14.8) and the **manual smoke checklist** (R8.9) — verified
-  by example/presence assertions;
-- **visual screenshot checks** (R7.11) and the **Impeccable CLI anti-pattern scan** (R7.4, R7.5) —
-  deterministic guard/visual checks, not properties;
-- **SMOKE config checks** (R2.7 logo paths, R9.1 health, R9.8 `manage.py check`, R10.7 headers, R13.1
-  command run, R14.1/R14.3 env + post-deploy smoke).
+### Integration Tests (1–3 examples each, not PBT)
 
-### Property-to-test map
+- Migration evidence flow end-to-end against staging then production
+  (R1.1–R1.8): dry-run, staging apply, idempotency re-apply (observe no-op),
+  validation SQL, backup, production apply via `docker compose exec`,
+  `migration_history` verification.
+- Production smoke against the deployed environment (R2.1–R2.3).
+- Lighthouse capture on the five routes (R3.1), API timing capture (R3.4),
+  document-action budget measurement (R3.7).
+- Mobile UI Playwright runs at the five viewports including dialog focus
+  management (R4.1, R4.7) and the named risk routes (R4.8, R4.9).
+- Brand hard-leak and allowlist-coverage scans of the active tree (R5.1, R5.2).
+- Full validation suite execution (R7.1–R7.4) and OpenAPI generation
+  (R7.5, R7.6).
+- Operational readiness: backup-restore drill (R8.3), asset-upload security
+  (R8.4), audit retention/redaction (R8.5).
+- Tenant onboarding end-to-end walkthrough (R9.1–R9.8).
 
-Backend property tests use `pytest` + `hypothesis` (≥100 examples, `--hypothesis-seed=0`); frontend
-property tests use `vitest` + `fast-check` (`fc.assert(prop, { numRuns: 100, seed: 0 })`). Each test
-is tagged **`Feature: beanola-production-readiness, Property {n}: {text}`** and implements exactly one
-property.
+### Smoke Tests (single execution)
 
-| # | Property | Test artifact |
-|---|----------|---------------|
-| 26 | Tenant isolation across every audited endpoint | `backend/tests/property/test_production_scope_masking_properties.py` (drives every endpoint in the R5 inventory through in-scope / out-of-scope / expired-grant / offering-scoped / super-admin cases) + `backend/tests/unit/test_scope_drift_guard.py` + `test_unscoped_endpoint_guard.py` |
-| 27 | Frontend service shape ⇔ OpenAPI/serializer + envelope/pagination | `apps/admissions/tests/unit/openApiContractDriftGuard.test.ts` (service shape vs generated schema) + `backend/tests/property/test_envelope_pagination_conformance.py` |
-| 28 | No non-allowlisted brand string in active source | `backend/tests/unit/test_brand_drift_guard.py` + `apps/admissions/tests/unit/brandDriftGuard.test.ts` (existing guards, scan property) |
-| 29 | No client-only official PDF on an official-download path | `apps/admissions/tests/unit/documentFlowDriftGuard.test.ts` (existing) |
-| 30 | Per-route overflow-free + ≥44px targets at 360px | `apps/admissions/tests/unit/routeMobileOverflowGuard.test.tsx` (DOM-measured across the route set at 360px) |
-| 31 | Recoverable student errors stable + guidance, no raw framework error | `backend/tests/property/test_student_error_envelope_properties.py` |
-| 32 | Failed official-doc generation never serves stale/client PDF | `backend/tests/property/test_official_document_failure_degradation.py` (extends `test_official_document_dedup_guard.py`) |
-| 33 | Definition-of-Done all-or-nothing | `backend/tests/property/test_definition_of_done_gate.py` (or a frontend/CLI evaluator test — gate true ⇔ all conditions true) |
+- Rollback/disable posture documented (R1.9).
+- OpenAPI zero errors / zero warnings (R7.5, R7.6) — already partly enforced in
+  `ci.yml`.
+- Env-var presence with no secret echo (R8.1); secure settings (R8.2);
+  break-glass procedure documented (R8.6).
+- `ENABLE_JOBS_OPS_ROUTES=False` confirmation and scope-out record
+  (R11.1, R11.3).
 
-### Verification_Gate (the CI-reproducible zero-error command set — R13.1)
+### Why PBT Is Limited Here
 
-```bash
-# Backend
-cd backend
-DJANGO_SETTINGS_MODULE=config.settings.test python3 -m pytest tests/unit tests/property -q
-DJANGO_SETTINGS_MODULE=config.settings.test python3 manage.py check
-DJANGO_SETTINGS_MODULE=config.settings.test python3 manage.py spectacular --file /tmp/openapi.yaml
+Property-based testing is deliberately **not** applied to migration execution,
+deployed-environment smoke, Lighthouse/API capture, infrastructure
+configuration, or the tenant-onboarding walkthrough. Those test external service
+behavior or one-time setup whose outcome does not vary meaningfully with
+generated input, where 100 iterations add cost without finding new bugs. They
+are integration or smoke tests with a small number of representative runs. PBT
+is reserved for the pure decision logic that sits between the raw artifacts and
+the gate verdict.
 
-# Admissions
-cd apps/admissions
-bun run type-check
-bun run lint
-bun run test
-bun run build
-```
+## Requirements Traceability
 
-All must pass with **zero errors** before production-ready (R13.1, R15.6).
+| Requirement | Component | Primary verification | Property |
+|---|---|---|---|
+| 1.1–1.9 Migration evidence | C1 Migration flow | Integration (operator flow), Smoke (1.9) | P2 (manifest) |
+| 1.10 No autonomous destructive SQL | C1 / `apply_sql_migrations` lint | Property | **P3** |
+| 2.1–2.4, 2.6 Smoke surfaces | C2 Smoke harness | Integration + Example | P1, P2 |
+| 2.5 Response envelope | C2 Smoke harness | Property | **P4** |
+| 3.1 Lighthouse capture | C3a | Integration | — |
+| 3.2, 3.3 Lighthouse thresholds | C3a evaluator | Property | **P5** |
+| 3.4 API timing capture | C3b | Integration | — |
+| 3.5 Timing target marking | C3b evaluator | Property | **P6** |
+| 3.6 Entry-path guard | C3c (`check:entry`) | Property | **P7** |
+| 3.7 Document-action budget | C3c | Integration | — |
+| 3.8 Gap recording | C3 / manifest | Example | P1 |
+| 4.1 Viewport capture | C4 Playwright | Integration | — |
+| 4.2, 4.3 Overflow/clipped text | C4 DOM predicate | Property | **P8** |
+| 4.4 Touch target ≥44px | C4 DOM predicate | Property | **P9** |
+| 4.5 Icon-only accessible name | C4 DOM predicate | Property | **P10** |
+| 4.6 Overlap | C4 DOM predicate | Property | **P11** |
+| 4.7 Dialog focus | C4 Playwright | Integration | — |
+| 4.8, 4.9 Named risk routes | C4 Playwright | Integration | — |
+| 5.1, 5.2 Brand leak/coverage | C5 guard suites | Integration | — |
+| 5.3 Allowlist validity/stale | C5 stale detector | Property | **P12** |
+| 5.4 Optional PDF cleanup | C5 | Example | — |
+| 5.5 Neutral fallback | C5 preview resolver | Property | **P13** |
+| 6.1 Fresh OpenAPI | C6 | Smoke | — |
+| 6.2, 6.3 Shape contract diff | C6 diff | Property | **P14** |
+| 6.4 Error-code mapping | C6 | Example | — |
+| 7.1, 7.2, 7.4 Suites pass | C7 | Integration | P1, P2 |
+| 7.3 Django check | C7 | Smoke | — |
+| 7.5 OpenAPI zero errors | C7 | Smoke | — |
+| 7.6 `get_available_offerings` fix | C7 serializer fix | Smoke | — |
+| 7.7 Failing-step recorded | C7 / manifest | Example | P1 |
+| 8.1, 8.2, 8.6 Env/settings/break-glass | C8 | Smoke | — |
+| 8.3, 8.4, 8.5 Drill/storage/audit | C8 | Integration | — |
+| 9.1–9.8 Onboarding walkthrough | C9 | Integration | — |
+| 9.9, 9.10 Scoped visibility | C9 / AccessScopeService | Property | **P15** |
+| 11.1, 11.3 Scope confirmation | C10 | Smoke | — |
+| 11.2 Routes excluded | C10 / `urls.py` gating | Example | — |
+| Manifest verdict engine / gate | Data model | Property | **P1, P2** |
 
-### Drift_Guard inventory that must pass (R13.2, cross-checked against `docs/canonical-truth-map.md`)
-
-- Frontend brand drift — `apps/admissions/tests/unit/brandDriftGuard.test.ts`
-- Backend brand drift — `backend/tests/unit/test_brand_drift_guard.py`
-- Document-flow drift — `apps/admissions/tests/unit/documentFlowDriftGuard.test.ts`
-- Official-document dedup — `backend/tests/unit/test_official_document_dedup_guard.py`
-- Scope drift — `backend/tests/unit/test_scope_drift_guard.py`
-- Unscoped endpoint — `backend/tests/unit/test_unscoped_endpoint_guard.py`
-- Canonical-tenant drift — `backend/tests/unit/test_canonical_tenant_drift_guard.py`
-- Payment-status drift — `backend/tests/unit/test_payment_status_canonical.py` + `apps/admissions/tests/unit/paymentStatusMappingDriftGuard.test.ts`
-- Error-code drift — `backend/tests/unit/test_error_codes_canonical.py` + `apps/admissions/tests/unit/errorCodesDriftGuard.test.ts`
-- Role mirror — `apps/admissions/tests/unit/rolesBackendMirror.test.ts`
-- Application-lifecycle — `apps/admissions/tests/unit/applicationStatusDriftGuard.test.ts` + `backend/tests/property/test_lifecycle_canonical.py`
-- Schema drift — `backend/tests/property/test_schema_drift_strict.py` + `backend/tests/unit/test_migration_drift_guard.py`
-
-CI fails on any type/lint/build failure, brand drift, unscoped-endpoint drift, or schema drift (R13.3);
-no required guard is optional (R13.6); all intended new tests are committed (R13.4).
-
-### UI evidence, smoke, and E2E
-
-- **Playwright/screenshot evidence** for the Phase-7 key routes at the Mobile_Breakpoint set (360,
-  390, 768, 1024, ≥1440), including failure screenshots referenced from issue notes (R7.11). The
-  Impeccable CLI (`impeccable detect apps/admissions/src/`) provides the deterministic anti-pattern
-  gate (R7.5).
-- **Manual smoke checklist** (R8.9) and the **immediate post-deploy Smoke_Check set** (R14.3) — single
-  execution, documented and linked from release notes (R13.5).
-- **E2E staging flows** (R8.1, R8.2) — student, admin, and negative journeys run on the Neon staging
-  branch; negative flows assert the security boundaries (Property 26) hold end-to-end.
-
-### Definition-of-Done exit gate
-
-The Definition_of_Done (R15) is the **final aggregation** — production-ready is true only when every
-Component 1–14 exit condition holds (Property 33). It is not reached until the gated operator cutover
-(R3) is complete; until then `.config.kiro` keeps no `"status": "completed"` (per
-`docs/multi-tenant-beanola-progress.md`). PBT applies only to the gate's all-or-nothing **evaluator
-logic**, not to the underlying operator steps, doc edits, or visual checks.
+Every numbered acceptance criterion maps to a component and a verification
+method; the 15 deduplicated correctness properties cover the testable pure-logic
+core, and the remaining criteria are covered by integration, smoke, or example
+tests as recorded above.

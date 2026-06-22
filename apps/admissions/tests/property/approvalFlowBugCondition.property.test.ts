@@ -141,7 +141,7 @@ describe('[PBT] Bug 4 — useAutoSave auth recovery missing immediate saveData()
   /**
    * **Validates: Requirements 1.10, 1.11, 1.12**
    *
-   * When mihas:auth-recovered fires, handleAuthRecovered only calls
+   * When auth-recovered fires, handleAuthRecovered only calls
    * processSaveQueue() which operates on an empty queue. It does NOT
    * call saveData() to immediately sync dirty data.
    * On unfixed code, no saveData() call exists in the handler — test FAILS.

@@ -8,6 +8,7 @@ from django.urls import path
 
 from apps.accounts.admin_views import (
     AdminAuditLogView,
+    AdminCapabilitiesView,
     AdminDashboardView,
     AdminScopeView,
     AdminSettingDetailView,
@@ -23,6 +24,7 @@ from apps.accounts.batch_views import BatchUserImportView
 urlpatterns = [
     path("dashboard/", AdminDashboardView.as_view(), name="admin-dashboard"),
     path("scope/", AdminScopeView.as_view(), name="admin-scope"),
+    path("capabilities/", AdminCapabilitiesView.as_view(), name="admin-capabilities"),
     # GET lists users, POST creates user - same path per API spec
     path("users/", AdminUserListView.as_view(), name="admin-user-list"),
     path("users/export/", AdminUserExportView.as_view(), name="admin-user-export"),

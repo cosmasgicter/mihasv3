@@ -34,7 +34,10 @@ import { institutions } from '../src/lib/pdf/theme'
 // system during Node rendering (normally served same-origin from /fonts/).
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const fontsBase = path.resolve(__dirname, '../public/fonts/pdf')
+// Fonts relocated out of public/ into the bundled PDF asset dir (R10.2). Under
+// Node there is no Vite asset pipeline, so register directly from the source
+// filesystem location.
+const fontsBase = path.resolve(__dirname, '../src/lib/pdf/assets/fonts')
 
 // Override the font paths by registering directly with the Node file URLs.
 const { Font } = ReactPDF
@@ -67,10 +70,8 @@ __resetFontRegistration()
 const noop = () => {}
 ;(registerPdfFonts as unknown as { _overridden?: boolean })._overridden = true
 
-// In production, @react-pdf fetches images from absolute URLs served by the
-// frontend (e.g. /images/signatures/solomon-musonda.png). Under Node there is
-// no HTTP server, so we resolve any /public-rooted path to an absolute
-// filesystem path that @react-pdf can read directly via fs.
+// Institution logos remain in public/ (also used by the UI), so resolve them
+// from the public dir for Node rendering.
 const publicDir = path.resolve(__dirname, '../public')
 function publicFilePath(publicPath: string): string {
   return path.resolve(publicDir, publicPath.replace(/^\//, ''))
@@ -83,8 +84,15 @@ for (const inst of Object.values(institutions) as Array<{
   ;(inst as { logoFull: string }).logoFull = publicFilePath(inst.logoFull)
 }
 
-// Resolved absolute filesystem path for Dr Musonda's scanned signature.
-const signatureImageFile = publicFilePath('/images/signatures/solomon-musonda.png')
+// In production, @react-pdf fetches images from emitted asset URLs served by
+// the frontend (bundled via Vite `?url`). Under Node there is no HTTP server
+// or Vite pipeline, so we resolve the signature from its source filesystem
+// path directly. The scanned signature was relocated out of public/ into the
+// bundled PDF asset dir (R10.2).
+const signatureImageFile = path.resolve(
+  __dirname,
+  '../src/lib/pdf/assets/signatures/solomon-musonda.png',
+)
 
 async function main() {
   console.log('Rendering sample PDFs...')

@@ -9,11 +9,12 @@
  * Requirements: 12.1, 12.2, 12.3
  */
 
-import React from 'react'
+import React, { act } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createRoot } from 'react-dom/client'
 
-;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = false
+const reactActEnvironment = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+const originalReactActEnvironment = reactActEnvironment.IS_REACT_ACT_ENVIRONMENT
 
 // ── Polyfill window.matchMedia for jsdom ──────────────────────────────
 Object.defineProperty(window, 'matchMedia', {
@@ -53,6 +54,23 @@ vi.mock('@/contexts/AuthContext', () => ({
     signIn: vi.fn(),
     signUp: vi.fn(),
     signOut: vi.fn(),
+  }),
+}))
+
+// ── Mock capability context as platform admin for this page-level dashboard
+// verification. Tenant-specific nav filtering is covered separately.
+vi.mock('@/contexts/CapabilityContext', () => ({
+  useCapabilities: () => ({
+    isSuperAdmin: true,
+    isTenantAdmin: false,
+    capabilities: [],
+    institutionCapabilities: {},
+    selectedInstitutionId: null,
+    setSelectedInstitutionId: vi.fn(),
+    can: () => true,
+    canForInstitution: () => true,
+    noAccess: false,
+    isLoading: false,
   }),
 }))
 
@@ -153,6 +171,10 @@ vi.mock('@/hooks/useToast', () => ({
   },
 }))
 
+vi.mock('@/lib/speculativePrefetch', () => ({
+  onAdminDashboardMount: vi.fn(),
+}))
+
 // ── Mock heavy child components ───────────────────────────────────────
 vi.mock('@/components/seo/Seo', () => ({
   Seo: () => null,
@@ -219,6 +241,9 @@ function buildSuccessResult() {
         totalApplications: django.applications.total,
         pendingApplications: django.applications.by_status.pending,
         approvedApplications: django.applications.by_status.approved,
+        conditionallyApprovedApplications: 0,
+        enrolledApplications: 0,
+        acceptedApplications: django.applications.by_status.approved,
         rejectedApplications: django.applications.by_status.rejected,
         totalPrograms: 0,
         activeIntakes: 0,
@@ -234,6 +259,12 @@ function buildSuccessResult() {
         activeUsers: django.users.active,
         activeUsersLast7d: 0,
         systemHealth: 'good' as const,
+        pendingPayments: 0,
+        pendingDocuments: 0,
+        upcomingInterviews: 0,
+        overdueReviews: 0,
+        conditionsExpiringSoon: 0,
+        enrollmentsExpiringSoon: 0,
       },
       statusBreakdown: { ...django.applications.by_status },
       periodTotals: {
@@ -275,6 +306,7 @@ function buildSuccessResult() {
         },
       ],
       generatedAt: null,
+      noSchoolAccess: false,
     },
     diagnostics: {
       endpoint: '/admin/dashboard/' as const,
@@ -294,6 +326,9 @@ function buildErrorResult(message: string, status: number | null = null) {
         totalApplications: 0,
         pendingApplications: 0,
         approvedApplications: 0,
+        conditionallyApprovedApplications: 0,
+        enrolledApplications: 0,
+        acceptedApplications: 0,
         rejectedApplications: 0,
         totalPrograms: 0,
         activeIntakes: 0,
@@ -309,6 +344,12 @@ function buildErrorResult(message: string, status: number | null = null) {
         activeUsers: 0,
         activeUsersLast7d: 0,
         systemHealth: 'good' as const,
+        pendingPayments: 0,
+        pendingDocuments: 0,
+        upcomingInterviews: 0,
+        overdueReviews: 0,
+        conditionsExpiringSoon: 0,
+        enrollmentsExpiringSoon: 0,
       },
       statusBreakdown: {},
       periodTotals: {},
@@ -324,6 +365,7 @@ function buildErrorResult(message: string, status: number | null = null) {
       },
       recentActivity: [],
       generatedAt: null,
+      noSchoolAccess: false,
     },
     diagnostics: {
       endpoint: '/admin/dashboard/' as const,
@@ -341,6 +383,7 @@ describe('Admin Dashboard page verification', () => {
   let root: ReturnType<typeof createRoot>
 
   beforeEach(() => {
+    reactActEnvironment.IS_REACT_ACT_ENVIRONMENT = true
     mockGetOverviewWithDiagnostics.mockResolvedValue(buildSuccessResult())
 
     container = document.createElement('div')
@@ -349,24 +392,39 @@ describe('Admin Dashboard page verification', () => {
   })
 
   afterEach(() => {
-    root.unmount()
+    act(() => {
+      root.unmount()
+    })
     container.remove()
     vi.clearAllMocks()
+    if (originalReactActEnvironment === undefined) {
+      delete reactActEnvironment.IS_REACT_ACT_ENVIRONMENT
+    } else {
+      reactActEnvironment.IS_REACT_ACT_ENVIRONMENT = originalReactActEnvironment
+    }
   })
 
   async function renderAndWait(timeoutMs = 3000) {
-    root.render(<AdminDashboard />)
+    await act(async () => {
+      root.render(<AdminDashboard />)
+    })
     await new Promise((r) => setTimeout(r, timeoutMs))
   }
 
   async function renderAndWaitForText(text: string, timeoutMs = 20000) {
-    root.render(<AdminDashboard />)
+    await act(async () => {
+      root.render(<AdminDashboard />)
+    })
     const start = Date.now()
     while (Date.now() - start < timeoutMs) {
-      await new Promise((r) => setTimeout(r, 100))
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 100))
+      })
       if ((container.textContent || '').includes(text)) {
         // Let downstream effects settle so subsequent assertions are stable.
-        await new Promise((r) => setTimeout(r, 100))
+        await act(async () => {
+          await new Promise((r) => setTimeout(r, 100))
+        })
         return
       }
     }

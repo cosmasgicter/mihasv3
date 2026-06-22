@@ -95,6 +95,48 @@ def unmanaged_schema(django_db_setup, django_db_blocker):
                 if model._meta.managed is False and model._meta.db_table not in existing_tables:
                     schema_editor.create_model(model)
                     existing_tables.add(model._meta.db_table)
+                elif model._meta.managed is False and model._meta.db_table in existing_tables:
+                    with connection.cursor() as cursor:
+                        columns = {
+                            column.name
+                            for column in connection.introspection.get_table_description(
+                                cursor,
+                                model._meta.db_table,
+                            )
+                        }
+                    for field in model._meta.local_fields:
+                        if field.column not in columns:
+                            schema_editor.add_field(model, field)
+                            with connection.cursor() as cursor:
+                                columns = {
+                                    column.name
+                                    for column in connection.introspection.get_table_description(
+                                        cursor,
+                                        model._meta.db_table,
+                                    )
+                                }
+
+        # Active-hostname uniqueness index (R7.10, Property 15). The
+        # InstitutionDomain model is managed=False, so create_model emits the
+        # table plus its column-level UNIQUE(hostname) but NOT the partial
+        # unique index from
+        # scripts/2026_06_18_01_institution_domain_lifecycle.sql. Create it here
+        # (vendor-neutral: both SQLite and Postgres support partial/expression
+        # indexes) so the active-hostname-uniqueness property is genuinely
+        # exercised against the ephemeral test DB and not merely satisfied by the
+        # blanket column-level unique constraint.
+        if "institution_domains" in set(connection.introspection.table_names()):
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS "
+                    "uq_institution_domains_active_hostname "
+                    "ON institution_domains (lower(hostname)) "
+                    "WHERE status = 'active';"
+                )
+                cursor.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_institution_domains_status "
+                    "ON institution_domains (status);"
+                )
 
         if connection.vendor == "postgresql":
             with connection.cursor() as cursor:

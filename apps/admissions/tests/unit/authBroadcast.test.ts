@@ -231,7 +231,7 @@ describe('Storage event fallback (Req 4.5)', () => {
     // Simulate a storage event from another tab
     const message: AuthBroadcastMessage = { type: 'logout', timestamp: 2000 }
     const event = new StorageEvent('storage', {
-      key: 'mihas-auth-event',
+      key: 'beanola-auth-event',
       newValue: JSON.stringify(message),
     })
     window.dispatchEvent(event)
@@ -260,7 +260,7 @@ describe('Storage event fallback (Req 4.5)', () => {
     onAuthBroadcast((msg) => received.push(msg))
 
     const event = new StorageEvent('storage', {
-      key: 'mihas-auth-event',
+      key: 'beanola-auth-event',
       newValue: null,
     })
     window.dispatchEvent(event)
@@ -274,7 +274,7 @@ describe('Storage event fallback (Req 4.5)', () => {
     onAuthBroadcast((msg) => received.push(msg))
 
     const event = new StorageEvent('storage', {
-      key: 'mihas-auth-event',
+      key: 'beanola-auth-event',
       newValue: 'not-valid-json{{{',
     })
     window.dispatchEvent(event)
@@ -289,7 +289,7 @@ describe('Storage event fallback (Req 4.5)', () => {
     broadcastLogout()
 
     expect(spy).toHaveBeenCalledWith(
-      'mihas-auth-event',
+      'beanola-auth-event',
       expect.stringContaining('"type":"logout"'),
     )
     spy.mockRestore()
@@ -303,6 +303,22 @@ describe('Storage event fallback (Req 4.5)', () => {
 
     expect(removeSpy).toHaveBeenCalledWith('storage', expect.any(Function))
     removeSpy.mockRestore()
+  })
+
+  it('accepts legacy storage events during namespace migration', () => {
+    initAuthBroadcast()
+    const received: AuthBroadcastMessage[] = []
+    onAuthBroadcast((msg) => received.push(msg))
+
+    const message: AuthBroadcastMessage = { type: 'logout', timestamp: 4000 }
+    const event = new StorageEvent('storage', {
+      key: 'mihas-auth-event',
+      newValue: JSON.stringify(message),
+    })
+    window.dispatchEvent(event)
+
+    expect(received).toHaveLength(1)
+    expect(received[0].type).toBe('logout')
   })
 })
 

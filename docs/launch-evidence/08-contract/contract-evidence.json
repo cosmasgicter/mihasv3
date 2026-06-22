@@ -1,0 +1,305 @@
+{
+  "gate_id": "contract",
+  "requirement": "R8",
+  "status": "passed",
+  "generated_at": "2026-06-21T06:04:30Z",
+  "generated_by": "ci",
+  "summary": "15 endpoint(s) across 11/11 tabs; 0 failure(s); openapi generated.",
+  "checks": [
+    {
+      "id": "openapi-generation",
+      "result": "pass",
+      "observed": "openapi.yaml generated",
+      "threshold": "OpenAPI artifact generated in the same run",
+      "detail": ""
+    },
+    {
+      "id": "shape:/api/v1/admin/institutions/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/",
+      "tab": "institution-crud"
+    },
+    {
+      "id": "error-codes:/api/v1/admin/institutions/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/",
+      "tab": "institution-crud"
+    },
+    {
+      "id": "shape:/api/v1/admin/institutions/{id}/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/",
+      "tab": "institution-crud"
+    },
+    {
+      "id": "error-codes:/api/v1/admin/institutions/{id}/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/",
+      "tab": "institution-crud"
+    },
+    {
+      "id": "shape:/api/v1/admin/institutions/{id}/domains/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/domains/",
+      "tab": "domains"
+    },
+    {
+      "id": "error-codes:/api/v1/admin/institutions/{id}/domains/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/domains/",
+      "tab": "domains"
+    },
+    {
+      "id": "shape:/api/v1/catalog/programs/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/catalog/programs/",
+      "tab": "offerings-rules"
+    },
+    {
+      "id": "error-codes:/api/v1/catalog/programs/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/catalog/programs/",
+      "tab": "offerings-rules"
+    },
+    {
+      "id": "shape:/api/v1/catalog/programs/{id}/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/catalog/programs/{id}/",
+      "tab": "offerings-rules"
+    },
+    {
+      "id": "error-codes:/api/v1/catalog/programs/{id}/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/catalog/programs/{id}/",
+      "tab": "offerings-rules"
+    },
+    {
+      "id": "shape:/api/v1/admin/routing/simulate/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/admin/routing/simulate/",
+      "tab": "routing-simulator"
+    },
+    {
+      "id": "error-codes:/api/v1/admin/routing/simulate/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/admin/routing/simulate/",
+      "tab": "routing-simulator"
+    },
+    {
+      "id": "shape:/api/v1/admin/institutions/{id}/required-documents/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/required-documents/",
+      "tab": "required-documents"
+    },
+    {
+      "id": "error-codes:/api/v1/admin/institutions/{id}/required-documents/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/required-documents/",
+      "tab": "required-documents"
+    },
+    {
+      "id": "shape:/api/v1/admin/institutions/{id}/templates/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/templates/",
+      "tab": "templates"
+    },
+    {
+      "id": "error-codes:/api/v1/admin/institutions/{id}/templates/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/templates/",
+      "tab": "templates"
+    },
+    {
+      "id": "shape:/api/v1/admin/institutions/{id}/document-profiles/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/document-profiles/",
+      "tab": "document-profiles"
+    },
+    {
+      "id": "error-codes:/api/v1/admin/institutions/{id}/document-profiles/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/document-profiles/",
+      "tab": "document-profiles"
+    },
+    {
+      "id": "shape:/api/v1/admin/institutions/{id}/assets/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/assets/",
+      "tab": "assets"
+    },
+    {
+      "id": "error-codes:/api/v1/admin/institutions/{id}/assets/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/assets/",
+      "tab": "assets"
+    },
+    {
+      "id": "shape:/api/v1/admin/memberships/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/admin/memberships/",
+      "tab": "staff-memberships-grants"
+    },
+    {
+      "id": "error-codes:/api/v1/admin/memberships/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/admin/memberships/",
+      "tab": "staff-memberships-grants"
+    },
+    {
+      "id": "shape:/api/v1/admin/access-grants/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/admin/access-grants/",
+      "tab": "staff-memberships-grants"
+    },
+    {
+      "id": "error-codes:/api/v1/admin/access-grants/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/admin/access-grants/",
+      "tab": "staff-memberships-grants"
+    },
+    {
+      "id": "shape:/api/v1/payments/settlements/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/payments/settlements/",
+      "tab": "settlement"
+    },
+    {
+      "id": "error-codes:/api/v1/payments/settlements/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/payments/settlements/",
+      "tab": "settlement"
+    },
+    {
+      "id": "shape:/api/v1/admin/tenant-audit/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/admin/tenant-audit/",
+      "tab": "audit"
+    },
+    {
+      "id": "error-codes:/api/v1/admin/tenant-audit/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/admin/tenant-audit/",
+      "tab": "audit"
+    },
+    {
+      "id": "shape:/api/v1/admin/institutions/{id}/audit/",
+      "result": "pass",
+      "observed": "0 divergence(s)",
+      "threshold": "0 divergences",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/audit/",
+      "tab": "audit"
+    },
+    {
+      "id": "error-codes:/api/v1/admin/institutions/{id}/audit/",
+      "result": "pass",
+      "observed": "all backend codes mapped",
+      "threshold": "every backend error code mapped",
+      "detail": "",
+      "endpoint": "/api/v1/admin/institutions/{id}/audit/",
+      "tab": "audit"
+    },
+    {
+      "id": "tab-coverage",
+      "result": "pass",
+      "observed": "11/11 tabs covered",
+      "threshold": "every listed tab has ≥1 checked endpoint",
+      "detail": ""
+    },
+    {
+      "id": "openapi-path-coverage",
+      "result": "pass",
+      "observed": "15/15 declared endpoints present in schema",
+      "threshold": "every declared endpoint present in generated schema",
+      "detail": ""
+    }
+  ],
+  "assets": [
+    "openapi.yaml"
+  ],
+  "failures": []
+}

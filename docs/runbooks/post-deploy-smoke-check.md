@@ -79,6 +79,90 @@ python backend/scripts/staging_smoke.py \
 
 Exit status 0 → safe to roll to production.
 
+## Launch-verification Gate 2 — Smoke_Test_Gate (operator / post-deploy)
+
+> **Operator step, not CI.** `run-smoke-gate.py` probes a *live, deployed*
+> target and records launch-verification evidence. It is deliberately **not**
+> wired into the automated CI gates — CI only runs the pure-logic gates and the
+> rollup. Run this by hand after a production deploy (or against a staging /
+> preview target), the same way you run the script above.
+
+This is the launch-verification wrapper around the smoke surfaces. It normalizes
+every frontend + backend check into an evidence row (target id, observed result,
+pass/fail, timestamp), adds the two canonical admin-surface checks plus an
+unauth/no-CSRF rejection probe, and writes a single reviewable artifact.
+
+```bash
+python3 scripts/launch-verification/run-smoke-gate.py \
+  --frontend-url https://apply.beanola.com \
+  --backend-url  https://api.beanola.com
+```
+
+Offline envelope check (no network — emits a valid artifact over synthetic
+observations, for local verification only):
+
+```bash
+python3 scripts/launch-verification/run-smoke-gate.py --dry-run
+```
+
+### Flags and environment overrides
+
+Base URLs default to the production hosts. Every URL/path is overridable via the
+environment variable first, then the CLI flag.
+
+| Flag | Env var | Default | Purpose |
+|------|---------|---------|---------|
+| `--frontend-url` | `APP_URL` | `https://apply.beanola.com` | Deployed frontend base URL |
+| `--backend-url` | `API_URL` | `https://api.beanola.com` | Deployed backend base URL |
+| `--tenant-admin-path` | `TENANT_ADMIN_PATH` | `/admin/tenants` | Product tenant-admin surface path |
+| `--django-admin-path` | `DJANGO_ADMIN_PATH` | `/beanola-admin-panel/` | Django operational admin surface path |
+| `--state-change-path` | `STATE_CHANGE_PATH` | `/api/v1/payments/mobile-money/` | Endpoint used for the unauth/no-CSRF probe |
+| `--timeout-ms` | — | `10000` | Per-surface reachability timeout (10 s) |
+| `--invoke-shell-smoke` | — | off | Also run `scripts/smoke-production.sh` and record its exit code |
+| `--dry-run` | — | off | Synthetic envelope, no network |
+| `--output` | — | `docs/launch-evidence/02-smoke/smoke-evidence.json` | Artifact output path |
+
+### The two distinct canonical admin surfaces
+
+The gate records `/admin/tenants` and `/beanola-admin-panel/` as **two separate
+reachability checks** — they are never collapsed into one. This mirrors the
+binding guardrail that the two admin surfaces are not interchangeable.
+
+| Surface | Lives on | Path | What it is |
+|---------|----------|------|------------|
+| `Tenant_Admin_UI` | deployed **frontend** | `/admin/tenants` | The product super-admin/staff tenant-admin UI |
+| `Django_Admin` | deployed **backend** | `/beanola-admin-panel/` | The Django operational admin |
+
+Each surface passes **only** on a non-error reachability response (HTTP `< 400`)
+within the 10-second timeout; anything else (error status, timeout, unreachable)
+is recorded as a `fail`.
+
+### Unauth / no-CSRF rejection probe
+
+The gate issues a `POST` to the state-changing endpoint
+(`/api/v1/payments/mobile-money/` by default) with **no** cookie auth and **no**
+CSRF token. This check passes **only if the request is rejected** (a `4xx`) —
+i.e. the endpoint refused it. A processed `2xx`/`3xx`, a `5xx`, or no response
+all count as *not rejected* and fail the check. This proves the auth + CSRF
+guardrails are intact on the live target.
+
+### Evidence location and rollup
+
+The artifact is written to:
+
+```
+docs/launch-evidence/02-smoke/smoke-evidence.json
+```
+
+It uses the shared `Evidence_Artifact` envelope (`gate_id="smoke"`,
+`requirement="R2"`, `generated_by="deployed-target"`). The rollup is
+**conservative**: the gate passes iff there is at least one check and *every*
+check passed; any single failure marks the gate `failed` and the process exits
+non-zero (`0` = passed, `1` = not passed, including an unreachable target in a
+sandbox — it fails closed). This per-gate artifact is what the overall
+launch-verification rollup aggregates to decide
+`production-launch-ready` vs `not-production-launch-ready`.
+
 ## Manual critical checks
 
 After the script passes, verify:

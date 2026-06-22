@@ -14,6 +14,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { QueryClient } from '@tanstack/react-query'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS, removeStorageItemAndLegacy } from '@/lib/browserNamespace'
 
 // ── Mock the CSRF token module ──────────────────────────────────────────────
 
@@ -59,10 +60,10 @@ async function simulateSignOutCleanup(queryClient: QueryClient): Promise<void> {
   queryClient.clear()
 
   // Step 8: Clear redirect/session intent keys
-  localStorage.removeItem('mihas:post-auth-redirect')
-  sessionStorage.removeItem('mihas:post-auth-redirect')
-  localStorage.removeItem('mihas:wizard-auth-redirect-guard')
-  sessionStorage.removeItem('mihas:wizard-auth-redirect-guard')
+  removeStorageItemAndLegacy(localStorage, BROWSER_KEYS.postAuthRedirect, [LEGACY_BROWSER_KEYS.postAuthRedirect])
+  removeStorageItemAndLegacy(sessionStorage, BROWSER_KEYS.postAuthRedirect, [LEGACY_BROWSER_KEYS.postAuthRedirect])
+  removeStorageItemAndLegacy(localStorage, BROWSER_KEYS.wizardAuthRedirectGuard, [LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard])
+  removeStorageItemAndLegacy(sessionStorage, BROWSER_KEYS.wizardAuthRedirectGuard, [LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard])
 }
 
 describe('signOut cleanup completeness', () => {
@@ -80,19 +81,23 @@ describe('signOut cleanup completeness', () => {
 
     // Seed session data to simulate an authenticated state
     queryClient.setQueryData(['auth', 'session'], {
-      user: { id: 'user-123', email: 'test@mihas.edu.zm', role: 'student' },
+      user: { id: 'user-123', email: 'student@example.com', role: 'student' },
     })
     queryClient.setQueryData(['user-profile', 'user-123'], {
       id: 'user-123',
-      email: 'test@mihas.edu.zm',
+      email: 'student@example.com',
       role: 'student',
     })
 
     // Seed redirect keys in storage
-    localStorage.setItem('mihas:post-auth-redirect', '/dashboard')
-    sessionStorage.setItem('mihas:post-auth-redirect', '/dashboard')
-    localStorage.setItem('mihas:wizard-auth-redirect-guard', 'true')
-    sessionStorage.setItem('mihas:wizard-auth-redirect-guard', 'true')
+    localStorage.setItem(BROWSER_KEYS.postAuthRedirect, '/dashboard')
+    sessionStorage.setItem(BROWSER_KEYS.postAuthRedirect, '/dashboard')
+    localStorage.setItem(BROWSER_KEYS.wizardAuthRedirectGuard, 'true')
+    sessionStorage.setItem(BROWSER_KEYS.wizardAuthRedirectGuard, 'true')
+    localStorage.setItem(LEGACY_BROWSER_KEYS.postAuthRedirect, '/legacy-dashboard')
+    sessionStorage.setItem(LEGACY_BROWSER_KEYS.postAuthRedirect, '/legacy-dashboard')
+    localStorage.setItem(LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard, 'legacy')
+    sessionStorage.setItem(LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard, 'legacy')
   })
 
   afterEach(() => {
@@ -105,7 +110,7 @@ describe('signOut cleanup completeness', () => {
     // Verify session data exists before signOut
     const before = queryClient.getQueryData(['auth', 'session'])
     expect(before).toEqual({
-      user: { id: 'user-123', email: 'test@mihas.edu.zm', role: 'student' },
+      user: { id: 'user-123', email: 'student@example.com', role: 'student' },
     })
 
     await simulateSignOutCleanup(queryClient)
@@ -117,17 +122,21 @@ describe('signOut cleanup completeness', () => {
 
   it('removes sessionStorage and localStorage redirect keys after signOut', async () => {
     // Verify keys exist before signOut
-    expect(localStorage.getItem('mihas:post-auth-redirect')).toBe('/dashboard')
-    expect(sessionStorage.getItem('mihas:post-auth-redirect')).toBe('/dashboard')
-    expect(localStorage.getItem('mihas:wizard-auth-redirect-guard')).toBe('true')
-    expect(sessionStorage.getItem('mihas:wizard-auth-redirect-guard')).toBe('true')
+    expect(localStorage.getItem(BROWSER_KEYS.postAuthRedirect)).toBe('/dashboard')
+    expect(sessionStorage.getItem(BROWSER_KEYS.postAuthRedirect)).toBe('/dashboard')
+    expect(localStorage.getItem(BROWSER_KEYS.wizardAuthRedirectGuard)).toBe('true')
+    expect(sessionStorage.getItem(BROWSER_KEYS.wizardAuthRedirectGuard)).toBe('true')
 
     await simulateSignOutCleanup(queryClient)
 
-    expect(localStorage.getItem('mihas:post-auth-redirect')).toBeNull()
-    expect(sessionStorage.getItem('mihas:post-auth-redirect')).toBeNull()
-    expect(localStorage.getItem('mihas:wizard-auth-redirect-guard')).toBeNull()
-    expect(sessionStorage.getItem('mihas:wizard-auth-redirect-guard')).toBeNull()
+    expect(localStorage.getItem(BROWSER_KEYS.postAuthRedirect)).toBeNull()
+    expect(sessionStorage.getItem(BROWSER_KEYS.postAuthRedirect)).toBeNull()
+    expect(localStorage.getItem(BROWSER_KEYS.wizardAuthRedirectGuard)).toBeNull()
+    expect(sessionStorage.getItem(BROWSER_KEYS.wizardAuthRedirectGuard)).toBeNull()
+    expect(localStorage.getItem(LEGACY_BROWSER_KEYS.postAuthRedirect)).toBeNull()
+    expect(sessionStorage.getItem(LEGACY_BROWSER_KEYS.postAuthRedirect)).toBeNull()
+    expect(localStorage.getItem(LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard)).toBeNull()
+    expect(sessionStorage.getItem(LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard)).toBeNull()
   })
 
   it('clears the CSRF token after signOut', async () => {

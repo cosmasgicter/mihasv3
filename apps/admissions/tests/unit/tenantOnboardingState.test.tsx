@@ -25,7 +25,9 @@
  */
 import { render, cleanup, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { ReactNode } from 'react'
 
 // ── Mock the tenant service so mutations resolve deterministically ────────
 const createInstitution = vi.fn()
@@ -66,6 +68,25 @@ vi.mock('@/hooks/useToast', () => ({
   },
 }))
 
+// ── Mock capabilities so the switcher (enterprise-tenant-authority task 13.1)
+// renders the Super_Admin console. The real CapabilityContext reads the backend
+// Capability_Endpoint; here we assert the console wiring as a platform owner.
+vi.mock('@/contexts/CapabilityContext', () => ({
+  useCapabilities: () => ({
+    isSuperAdmin: true,
+    isTenantAdmin: false,
+    capabilities: ['platform.asset.manage'],
+    institutionCapabilities: {},
+    selectedInstitutionId: null,
+    setSelectedInstitutionId: () => {},
+    can: () => true,
+    canForInstitution: () => true,
+    noAccess: false,
+    isLoading: false,
+  }),
+  CapabilityProvider: ({ children }: { children: ReactNode }) => children,
+}))
+
 // ── Mock the heavier sub-panels (covered elsewhere) to keep this test scoped
 vi.mock('@/pages/admin/tenants/OfferingsPanel', () => ({ OfferingsPanel: () => null }))
 vi.mock('@/pages/admin/tenants/RoutingSimulatorPanel', () => ({ RoutingSimulatorPanel: () => null }))
@@ -97,7 +118,9 @@ function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={client}>
-      <AdminTenants />
+      <MemoryRouter>
+        <AdminTenants />
+      </MemoryRouter>
     </QueryClientProvider>,
   )
 }
@@ -206,10 +229,12 @@ describe('tenant onboarding — asset upload state', () => {
     listInstitutions.mockResolvedValue({ institutions: [MIHAS], totalCount: 1 })
     const utils = renderPage()
     await utils.findByText('School profile')
-    const assetsTab = utils.getByRole('tab', { name: /assets/i })
+    // Asset management lives under the "Branding" tab in the Super_Admin console
+    // (TenantBrandingPanel) after the enterprise-tenant-authority console split.
+    const brandingTab = utils.getByRole('tab', { name: /branding/i })
     // Radix tabs activate on pointer-down, not click alone, under jsdom.
-    fireEvent.mouseDown(assetsTab)
-    fireEvent.click(assetsTab)
+    fireEvent.mouseDown(brandingTab)
+    fireEvent.click(brandingTab)
     await utils.findByText(/Upload versioned logos/i)
     return utils
   }

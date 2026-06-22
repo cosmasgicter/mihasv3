@@ -13,6 +13,7 @@ import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { syncApiClientCsrfToken } from '@/services/client'
 import { useAuthStore } from '@/stores/authStore'
+import { BROWSER_EVENTS, BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -27,8 +28,9 @@ type AuthEventHandler = (message: AuthBroadcastMessage) => void
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
-const CHANNEL_NAME = 'mihas-auth'
-const STORAGE_KEY = 'mihas-auth-event'
+const CHANNEL_NAME = BROWSER_KEYS.authBroadcastChannel
+const STORAGE_KEY = BROWSER_KEYS.authBroadcastStorage
+const LEGACY_STORAGE_KEY = LEGACY_BROWSER_KEYS.authBroadcastStorage
 
 // ── Singleton state ─────────────────────────────────────────────────────────
 
@@ -71,7 +73,7 @@ export function initAuthBroadcast(): void {
   } else if (typeof window !== 'undefined') {
     useBroadcastChannel = false
     storageHandler = (e: StorageEvent) => {
-      if (e.key !== STORAGE_KEY || !e.newValue) return
+      if ((e.key !== STORAGE_KEY && e.key !== LEGACY_STORAGE_KEY) || !e.newValue) return
       try {
         const message: AuthBroadcastMessage = JSON.parse(e.newValue)
         dispatch(message)
@@ -161,13 +163,13 @@ export function useAuthBroadcast(): void {
         case 'logout':
           // Req 4.2: Clear React Query auth cache, clear authStore, redirect
           // Give wizard a chance to save drafts before cross-tab logout clears state
-          window.dispatchEvent(new CustomEvent('mihas:before-auth-redirect', { detail: { from: window.location.pathname } }))
+          window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.beforeAuthRedirect, { detail: { from: window.location.pathname } }))
           queryClient.setQueryData(['auth', 'session'], null)
           queryClient.removeQueries({ queryKey: ['user-profile'] })
           useAuthStore.getState().clearAuth()
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('authSignedOut'))
-            window.dispatchEvent(new CustomEvent('mihas:auth-redirect', {
+            window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.authRedirect, {
               detail: { to: '/auth/signin', replace: true },
             }))
           }

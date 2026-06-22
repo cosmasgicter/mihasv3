@@ -1,5 +1,5 @@
 /**
- * MIHAS-KATC PDF Document Types
+ * Beanola tenant PDF document types
  *
  * Input data shapes consumed by the three document components.
  *
@@ -10,6 +10,13 @@
  *     `generatePaymentReceipt(data: ReceiptData)` function.
  *   - AcceptanceLetterData matches the old `AcceptanceLetterData`.
  */
+
+// Default scanned signature, imported as a Vite URL asset (`?url`) so it is
+// emitted as a hashed, immutable-cached file under `/assets/` at build time
+// rather than being publicly fetchable from `public/images/signatures/`
+// (perf-hardening R10.2). @react-pdf fetches the emitted same-origin URL at
+// render time via the <Image src={...}> component.
+import DIRECTOR_SIGNATURE_URL from '../assets/signatures/director-signature.png?url'
 
 // Re-export the existing application slip type — it has the correct shape
 // already and is used by services + tests.
@@ -88,7 +95,7 @@ export interface AcceptanceLetterData {
   /**
    * Optional scanned-signature image path. When set, replaces the Pinyon
    * Script calligraphy rendering above the signature line.
-   * Defaults to the canonical Dr Solomon Musonda scan.
+   * Defaults to the canonical Dr Solomon Musonda scan (bundled `?url` asset).
    */
   signatureImage?: string
   /**
@@ -123,7 +130,7 @@ export const DEFAULT_SIGNATORY = {
   name: 'Dr Solomon Musonda',
   role: 'Managing Director',
   postnominal: 'MD',
-  signatureImage: '/images/signatures/director-signature.png',
+  signatureImage: DIRECTOR_SIGNATURE_URL,
 } as const
 
 /**

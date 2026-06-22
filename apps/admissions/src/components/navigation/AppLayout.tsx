@@ -33,9 +33,11 @@ import {
   LogOut,
   UserCircle2,
   BriefcaseBusiness,
-  Building2,
 } from 'lucide-react'
 import { toError } from '@/lib/toError'
+import { useTenantNavItem } from './tenantNav'
+import { useCapabilities } from '@/contexts/CapabilityContext'
+import { filterAdminNavItems } from './adminNavAccess'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -78,14 +80,14 @@ const backRoutes = new Set([
   '/admin/program-fees',
 ])
 
-/** Admin bottom nav items */
+/** Admin bottom nav items. The tenant item (/admin/tenants) is injected at
+ *  render time from the shared capability-gated helper (R13.4). */
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/applications', label: 'Apps', icon: FileText },
   { href: '/admin/programs', label: 'Programs', icon: GraduationCap },
   { href: '/admin/intakes', label: 'Intakes', icon: Calendar },
   { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/tenants', label: 'Tenants', icon: Building2 },
   { href: '/admin/program-fees', label: 'Fees', icon: DollarSign },
   { href: '/admin/audit', label: 'Audit', icon: FileSearch },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
@@ -112,6 +114,8 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   const { isMobile } = useResponsive()
   const location = useLocation()
   const navigate = useNavigate()
+  const tenantNavItem = useTenantNavItem()
+  const caps = useCapabilities()
 
   // Apply scroll restoration to preserve positions across tab switches
   useScrollRestoration()
@@ -186,9 +190,23 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   ) : undefined
 
   // Pick nav items based on role
+  const resolvedAdminNavItems = (() => {
+    const visibleItems = filterAdminNavItems(adminNavItems, caps)
+    if (!tenantNavItem) return visibleItems
+    const usersIndex = visibleItems.findIndex((item) => item.href === '/admin/users')
+    const insertAt = usersIndex >= 0 ? usersIndex + 1 : visibleItems.length
+    const items = [...visibleItems]
+    items.splice(insertAt, 0, {
+      href: tenantNavItem.to,
+      label: tenantNavItem.label,
+      icon: tenantNavItem.icon,
+    })
+    return items
+  })()
+
   const navItems = isAdmin
     ? [
-      ...adminNavItems,
+      ...resolvedAdminNavItems,
       {
         ...studentLogoutNavItem,
         onClick: () => { void handleSignOut() },

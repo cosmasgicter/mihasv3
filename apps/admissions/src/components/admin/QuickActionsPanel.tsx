@@ -12,6 +12,8 @@ import {
   ScrollText
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { useCapabilities } from '@/contexts/CapabilityContext'
+import { canSeeAdminNavPath } from '@/components/navigation/adminNavAccess'
 
 interface QuickActionsPanelProps {
   stats: {
@@ -22,6 +24,8 @@ interface QuickActionsPanelProps {
 }
 
 export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
+  const caps = useCapabilities()
+
   const quickActions = [
     {
       title: 'Applications',
@@ -60,6 +64,8 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
       description: 'Review system activity'
     }
   ]
+  const visibleQuickActions = quickActions.filter((action) => canSeeAdminNavPath(caps, action.href))
+  const visibleSystemActions = systemActions.filter((action) => canSeeAdminNavPath(caps, action.href))
 
   return (
     <div className="space-y-6">
@@ -75,7 +81,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         
         <div className="p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {quickActions.map((action, index) => {
+            {visibleQuickActions.map((action, index) => {
               const Icon = action.icon
               return (
                 <Link key={action.title} to={action.href}>
@@ -118,7 +124,7 @@ export function QuickActionsPanel({ stats }: QuickActionsPanelProps) {
         </div>
         
         <div className="p-6 space-y-3">
-          {systemActions.map((action, index) => {
+          {visibleSystemActions.map((action, index) => {
             const Icon = action.icon
             return (
               <Link key={action.title} to={action.href}>

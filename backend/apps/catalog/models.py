@@ -38,7 +38,17 @@ class Institution(models.Model):
 
 
 class Program(models.Model):
-    """Maps to 'programs' table."""
+    """The **Institution_Program_Offering** concept (R8.2).
+
+    Maps to the ``programs`` table. A ``Program`` row is a single tenant's
+    offering of a :class:`CanonicalProgram` (``canonical_program_id``) under a
+    given ``institution``. ``offering_status`` gates whether the offering is
+    listed in a portal. Students apply against a ``Program`` (the offering), not
+    against the global :class:`CanonicalProgram` (R8.5). Assigning a canonical
+    program to a tenant — i.e. creating/owning a ``Program`` offering — is a
+    Super_Admin action (R8.8); a Tenant_Admin may only request offering changes
+    (``tenant.program.request_change``).
+    """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
@@ -71,7 +81,12 @@ class Program(models.Model):
 
 
 class CanonicalProgram(models.Model):
-    """Shared Beanola program definition; ``programs`` are school offerings."""
+    """The **Canonical_Program** concept (R8.1).
+
+    A global, Beanola-owned program definition (``canonical_programs`` table).
+    Each tenant's participation is a :class:`Program` offering that points back
+    here via ``canonical_program_id``. Only a Super_Admin may alter canonical
+    programs or assign them to tenants (R8.8)."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
@@ -119,7 +134,11 @@ class Intake(models.Model):
 
 
 class ProgramIntake(models.Model):
-    """Maps to 'program_intakes' table."""
+    """The **Intake_Offering** concept (R8.4).
+
+    Maps to the ``program_intakes`` table. Links a tenant's :class:`Program`
+    offering to a global :class:`Intake` period (plus residency/availability
+    rules), expressing that the offering is available in that intake."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     program = models.ForeignKey(Program, on_delete=models.CASCADE)
@@ -239,6 +258,14 @@ class InstitutionDocumentTemplate(models.Model):
 
 
 class InstitutionRequiredDocument(models.Model):
+    """Part of the **Offering_Requirement** concept (R8.3).
+
+    Tenant-specific required documents attached to a :class:`Program` offering
+    (and/or a :class:`CanonicalProgram`). Together with
+    :class:`InstitutionDocumentProfile` (fees, payment rules, eligibility,
+    templates) this models the per-offering requirements a Student must satisfy.
+    """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
     program = models.ForeignKey(Program, on_delete=models.CASCADE, null=True, blank=True)
@@ -257,6 +284,13 @@ class InstitutionRequiredDocument(models.Model):
 
 class InstitutionDocumentProfile(models.Model):
     """Rich tenant document profile (fee charts, bank accounts, requirements).
+
+    Together with :class:`InstitutionRequiredDocument` this is the
+    **Offering_Requirement** concept (R8.3) — the tenant-specific documents,
+    payment rules, eligibility, and templates attached to a :class:`Program`
+    offering (an Institution_Program_Offering). This model carries the rich
+    side (fees, bank accounts, signatory, layout); the required-document side
+    lives on :class:`InstitutionRequiredDocument`.
 
     Resolved most-specific-first per (institution, document_type) scope:
     offering+intake -> offering -> canonical+intake -> canonical -> default.
@@ -294,13 +328,52 @@ class InstitutionDocumentProfile(models.Model):
 
 
 class InstitutionDomain(models.Model):
+    # Domain verification lifecycle states (R7.2). Only ``active`` resolves a
+    # tenant; the DomainStatusMachine (services.py, Task 7.1) governs which
+    # transitions between these are permitted.
+    STATUS_PENDING_DNS = "pending_dns"
+    STATUS_PENDING_REVIEW = "pending_review"
+    STATUS_VERIFIED = "verified"
+    STATUS_ACTIVE = "active"
+    STATUS_DISABLED = "disabled"
+    STATUS_FAILED = "failed"
+    STATUS_CHOICES = (
+        (STATUS_PENDING_DNS, "Pending DNS"),
+        (STATUS_PENDING_REVIEW, "Pending review"),
+        (STATUS_VERIFIED, "Verified"),
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_DISABLED, "Disabled"),
+        (STATUS_FAILED, "Failed"),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
     hostname = models.CharField(max_length=255, unique=True)
     is_primary = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE
+    )
+    verification_token = models.CharField(max_length=128, null=True, blank=True)
+    dns_target = models.CharField(max_length=255, null=True, blank=True)
     verified_at = models.DateTimeField(null=True, blank=True)
+    last_checked_at = models.DateTimeField(null=True, blank=True)
+    last_error = models.CharField(max_length=1000, null=True, blank=True)
     created_at = models.DateTimeField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        "accounts.Profile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_institution_domains",
+    )
+    approved_by = models.ForeignKey(
+        "accounts.Profile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_institution_domains",
+    )
 
     class Meta:
         managed = False

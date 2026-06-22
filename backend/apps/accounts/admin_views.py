@@ -13,6 +13,7 @@ Split files:
 
 # View classes
 from apps.accounts.admin_user_views import (  # noqa: F401
+    AdminCapabilitiesView,
     AdminDashboardView,
     AdminScopeView,
     AdminUserDetailView,
@@ -72,6 +73,7 @@ from apps.accounts.admin_serializers import (  # noqa: F401
 __all__ = [
     # View classes
     "AdminAuditLogView",
+    "AdminCapabilitiesView",
     "AdminDashboardView",
     "AdminScopeView",
     "AdminSettingDetailView",

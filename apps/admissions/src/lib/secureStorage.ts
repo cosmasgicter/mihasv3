@@ -2,9 +2,12 @@
  * Secure Storage — AES-GCM Web Crypto and PII stripping utilities.
  */
 import { logger } from '@/lib/logger'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 
-const STORAGE_PREFIX = 'mihas_secure_'
-const SALT_KEY = 'mihas_secure_salt'
+const STORAGE_PREFIX = BROWSER_KEYS.securePrefix
+const SALT_KEY = BROWSER_KEYS.secureSalt
+const LEGACY_STORAGE_PREFIX = LEGACY_BROWSER_KEYS.securePrefix
+const LEGACY_SALT_KEY = LEGACY_BROWSER_KEYS.secureSalt
 const IV_BYTES = 12
 const PBKDF2_ITERATIONS = 100_000
 
@@ -27,6 +30,12 @@ function getOrCreateSalt(): Uint8Array {
     const existing = localStorage.getItem(SALT_KEY)
     if (existing) {
       return Uint8Array.from(atob(existing), (c) => c.charCodeAt(0))
+    }
+    const legacy = localStorage.getItem(LEGACY_SALT_KEY)
+    if (legacy) {
+      localStorage.setItem(SALT_KEY, legacy)
+      localStorage.removeItem(LEGACY_SALT_KEY)
+      return Uint8Array.from(atob(legacy), (c) => c.charCodeAt(0))
     }
   } catch {
     // ignore — will create a new salt
@@ -220,6 +229,7 @@ class SecureStorage {
         const json = JSON.stringify(value)
         const encrypted = await encryptValue(json, this.cryptoKey)
         localStorage.setItem(storageKey, encrypted)
+        localStorage.removeItem(LEGACY_STORAGE_PREFIX + key)
       } else {
         // Fallback: strip PII before storing in plain text
         const safe =
@@ -227,6 +237,7 @@ class SecureStorage {
             ? stripPiiValue(value)
             : value
         localStorage.setItem(storageKey, JSON.stringify(safe))
+        localStorage.removeItem(LEGACY_STORAGE_PREFIX + key)
       }
     } catch (error) {
       logger.error('Failed to set secure storage value', { key, error })
@@ -239,9 +250,21 @@ class SecureStorage {
    */
   async get<T = unknown>(key: string): Promise<T | null> {
     const storageKey = this.STORAGE_PREFIX + key
+    const legacyStorageKey = LEGACY_STORAGE_PREFIX + key
 
     try {
-      const raw = localStorage.getItem(storageKey)
+      let raw = localStorage.getItem(storageKey)
+      if (raw === null) {
+        raw = localStorage.getItem(legacyStorageKey)
+        if (raw !== null) {
+          try {
+            localStorage.setItem(storageKey, raw)
+            localStorage.removeItem(legacyStorageKey)
+          } catch {
+            // best effort migration
+          }
+        }
+      }
       if (raw === null) return null
 
       if (this._isSecure && this.cryptoKey) {
@@ -261,6 +284,7 @@ class SecureStorage {
   async delete(key: string): Promise<void> {
     try {
       localStorage.removeItem(this.STORAGE_PREFIX + key)
+      localStorage.removeItem(LEGACY_STORAGE_PREFIX + key)
     } catch (error) {
       logger.error('Failed to delete secure storage value', { key, error })
       throw error
@@ -270,7 +294,8 @@ class SecureStorage {
   /** Check if a key exists */
   async has(key: string): Promise<boolean> {
     try {
-      return localStorage.getItem(this.STORAGE_PREFIX + key) !== null
+      return localStorage.getItem(this.STORAGE_PREFIX + key) !== null ||
+        localStorage.getItem(LEGACY_STORAGE_PREFIX + key) !== null
     } catch (error) {
       logger.error('Failed to check secure storage key', { key, error })
       return false
@@ -284,7 +309,7 @@ class SecureStorage {
   async clearSession(): Promise<void> {
     try {
       const keysToRemove = Object.keys(localStorage).filter((k) =>
-        k.startsWith(this.STORAGE_PREFIX),
+        k.startsWith(this.STORAGE_PREFIX) || k.startsWith(LEGACY_STORAGE_PREFIX),
       )
       for (const k of keysToRemove) {
         localStorage.removeItem(k)
@@ -302,8 +327,13 @@ class SecureStorage {
   async keys(): Promise<string[]> {
     try {
       return Object.keys(localStorage)
-        .filter((k) => k.startsWith(this.STORAGE_PREFIX) && k !== SALT_KEY)
-        .map((k) => k.substring(this.STORAGE_PREFIX.length))
+        .filter((k) => (
+          (k.startsWith(this.STORAGE_PREFIX) && k !== SALT_KEY) ||
+          (k.startsWith(LEGACY_STORAGE_PREFIX) && k !== LEGACY_SALT_KEY)
+        ))
+        .map((k) => k.startsWith(this.STORAGE_PREFIX)
+          ? k.substring(this.STORAGE_PREFIX.length)
+          : k.substring(LEGACY_STORAGE_PREFIX.length))
     } catch (error) {
       logger.error('Failed to get secure storage keys', { error })
       return []
@@ -315,7 +345,7 @@ class SecureStorage {
     try {
       let totalSize = 0
       for (const key of Object.keys(localStorage)) {
-        if (key.startsWith(this.STORAGE_PREFIX)) {
+        if (key.startsWith(this.STORAGE_PREFIX) || key.startsWith(LEGACY_STORAGE_PREFIX)) {
           const value = localStorage.getItem(key)
           if (value) totalSize += key.length + value.length
         }

@@ -1,0 +1,5 @@
+# Golden-snapshot reference fixtures for system-performance-hardening (task 2.1).
+# Files here are normalized JSON baselines written by the capture test
+# (backend/tests/integration/test_perf_golden_snapshots.py). They are the
+# frozen pre-feature output the post-feature property/regression tests compare
+# against. Regenerate intentionally with PERF_BASELINE_UPDATE=1.

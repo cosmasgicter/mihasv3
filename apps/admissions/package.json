@@ -1,5 +1,5 @@
 {
-  "name": "mihas-application-system-v2",
+  "name": "beanola-admissions",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -21,8 +21,7 @@
     "check:imports": "bun scripts/check-dynamic-imports.ts",
     "check:entry": "bun scripts/check-entry-chunk.ts",
     "check:html": "bun scripts/check-html-csp.ts",
-    "check:all": "bun run check:imports && bun run check:entry && bun run check:html",
-    "security-audit": "bun run security-audit.js"
+    "check:all": "bun run check:imports && bun run check:entry && bun run check:html"
   },
   "dependencies": {
     "@hookform/resolvers": "5.2.2",

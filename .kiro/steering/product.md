@@ -2,14 +2,30 @@
 inclusion: always
 ---
 
-# MIHAS Platform Product Context
+# Beanola Platform Product Context
 
-MIHAS is now a multi-application monorepo with two active product surfaces:
+**Beanola Technologies owns and operates the Platform.** MIHAS, KATC, and any
+future university or college are **tenants** of the Beanola-owned admissions
+platform — they are example tenants, never the platform identity or platform
+owner. Treat any code, copy, or assumption that casts MIHAS/KATC as "the
+platform" as authority drift to be corrected, not preserved.
 
-- `apps/admissions/` for student admissions and admissions operations
+The Platform is a multi-application monorepo with two active product surfaces:
+
+- `apps/admissions/` for student admissions and admissions operations (a
+  Beanola-owned, multi-tenant admissions product serving MIHAS, KATC, and future
+  schools)
 - `apps/jobs-ops/` for the AI job hunting and outreach operations platform
 
 Both are backed by the Django API in `backend/`. Treat changes as production-sensitive: the repo handles real applicant data, operational workflows, credentials, messaging, and automation plans.
+
+> **Enterprise multi-tenancy is a hard architectural rule.** Beanola owns the
+> Platform; tenants are scoped `Institution` records. Backend permissions are the
+> only security boundary — frontend hiding is never the boundary. For the full
+> role/capability model, tenant-isolation invariants, domain lifecycle, offering
+> model, application routing, navigation rules, audit requirements, data-leakage
+> prevention, and the no-legacy-hardcoding rule, see
+> `.kiro/steering/enterprise-tenancy.md`.
 
 ## Current Platform State
 
@@ -89,9 +105,13 @@ The frontend apps consume the Django `/api/v1/` contract directly. There is no t
 | Role | Capabilities |
 |------|-------------|
 | Student | Apply, upload documents, track status, pay, manage their own profile |
-| Admin | Review admissions applications, manage settings, verify documents and payments |
-| Reviewer | Read-only review of assigned admissions data where enabled |
-| Super Admin | Full operational access across system administration |
+| Admin (Tenant_Admin) | Scoped school operator. Reviews admissions applications, manages settings, verifies documents and payments **only for the Institution(s) they are explicitly assigned** via active memberships/grants. Generic `admin` alone is never platform-wide authority. |
+| Reviewer | Scoped read/review of assigned admissions data for assigned Institutions only |
+| Super Admin (Beanola) | Beanola platform operator with platform-wide authority across all tenants and system administration |
+
+Authority is resolved through capabilities (`platform.*` / `tenant.*`) by the
+backend `AdminCapabilityService`, never by comparing raw role strings. See
+`.kiro/steering/enterprise-tenancy.md` for the full model.
 | Jobs Operator | Review jobs, approve actions, manage sources, documents, outreach, analytics, and automation |
 | Candidate Owner | Uses jobs-ops outputs, receives alerts, approves risky actions, reviews outreach/application materials |
 

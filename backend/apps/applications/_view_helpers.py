@@ -7,8 +7,18 @@ import hashlib
 import logging
 import uuid
 
-from django.db.models import CharField, DateTimeField, DecimalField, OuterRef, QuerySet, Subquery
-from django.db.models.functions import Coalesce
+from django.db.models import (
+    Case,
+    F,
+    IntegerField,
+    Prefetch,
+    Q,
+    QuerySet,
+    Value,
+    When,
+    Window,
+)
+from django.db.models.functions import Coalesce, RowNumber
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.response import Response
@@ -31,7 +41,7 @@ from apps.common.openapi_helpers import (
     paginated_serializer,
 )
 from apps.documents.models import Payment
-from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
+from apps.documents.payment_constants import COMPLETED_PAYMENT_STATUSES
 from apps.documents.serializers import DocumentSerializer
 
 logger = logging.getLogger(__name__)
@@ -69,52 +79,63 @@ def _staff_can_access_application(request, application) -> bool:
 
 
 def _with_payment_summary(queryset):
-    """Annotate application querysets with payment summary fields."""
+    """Prefetch the latest (and latest verified) payment per application.
+
+    Replaces the seven correlated per-row payment ``Subquery`` annotations
+    (R3.1) with a single window-function-bounded ``Prefetch`` of
+    ``payment_set`` (R3.2). The bounded queryset keeps, per application, the
+    most-recent payment row
+    (``ROW_NUMBER() OVER (PARTITION BY application_id ORDER BY -updated_at,
+    -created_at)`` rank 1) and the most-recent *verified* payment row, so the
+    serializer derives the payment summary in Python from the prefetched rows
+    (``ApplicationPaymentSummaryMixin._get_payment_summary``). The query count
+    therefore does not grow with the page size (R3.4): one extra query for the
+    whole page instead of seven correlated subqueries per row.
+
+    Verified states (``verified``, ``paid``, ``successful``, ``force_approved``)
+    are treated as the same verified value via ``COMPLETED_PAYMENT_STATUSES``;
+    ``deferred`` is kept distinct (R3.3). No ``payment_summary_*`` annotations
+    are emitted any more.
+    """
 
     if not isinstance(queryset, QuerySet):
         return queryset
 
-    latest_payment = (
-        Payment.objects
-        .filter(application_id=OuterRef("pk"))
-        .order_by("-updated_at", "-created_at")
-    )
-    latest_successful_payment = (
-        Payment.objects
-        .filter(application_id=OuterRef("pk"), status__in=RECEIPT_ELIGIBLE_STATUSES)
-        .annotate(summary_paid_at=Coalesce("verified_at", "updated_at", "created_at"))
-        .order_by("-summary_paid_at")
+    verified_recency = Coalesce("verified_at", "updated_at", "created_at")
+
+    # ROW_NUMBER() partitioned per application: rank 1 is the latest payment by
+    # (-updated_at, -created_at), matching the previous Subquery ordering.
+    bounded_payments = (
+        Payment.objects.alias(
+            _latest_rank=Window(
+                expression=RowNumber(),
+                partition_by=[F("application_id")],
+                order_by=[F("updated_at").desc(), F("created_at").desc()],
+            ),
+            # Verified rows first (Case=0), then by paid recency, so rank 1 is
+            # the latest verified payment whenever one exists for the
+            # application.
+            _verified_rank=Window(
+                expression=RowNumber(),
+                partition_by=[F("application_id")],
+                order_by=[
+                    Case(
+                        When(status__in=COMPLETED_PAYMENT_STATUSES, then=Value(0)),
+                        default=Value(1),
+                        output_field=IntegerField(),
+                    ).asc(),
+                    verified_recency.desc(),
+                ],
+            ),
+        )
+        .filter(
+            Q(_latest_rank=1)
+            | (Q(_verified_rank=1) & Q(status__in=COMPLETED_PAYMENT_STATUSES))
+        )
     )
 
-    return queryset.annotate(
-        payment_summary_method=Subquery(
-            latest_payment.values("payment_method")[:1],
-            output_field=CharField(),
-        ),
-        payment_summary_amount=Subquery(
-            latest_payment.values("amount")[:1],
-            output_field=DecimalField(max_digits=10, decimal_places=2),
-        ),
-        payment_summary_currency=Subquery(
-            latest_payment.values("currency")[:1],
-            output_field=CharField(),
-        ),
-        payment_summary_reference=Subquery(
-            latest_payment.values("transaction_reference")[:1],
-            output_field=CharField(),
-        ),
-        payment_summary_receipt_number=Subquery(
-            latest_successful_payment.values("receipt_number")[:1],
-            output_field=CharField(),
-        ),
-        payment_summary_paid_amount=Subquery(
-            latest_successful_payment.values("amount")[:1],
-            output_field=DecimalField(max_digits=10, decimal_places=2),
-        ),
-        payment_summary_paid_at=Subquery(
-            latest_successful_payment.values("summary_paid_at")[:1],
-            output_field=DateTimeField(),
-        ),
+    return queryset.prefetch_related(
+        Prefetch("payment_set", queryset=bounded_payments)
     )
 
 

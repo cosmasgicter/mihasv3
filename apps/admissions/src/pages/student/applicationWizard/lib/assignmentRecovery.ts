@@ -1,4 +1,5 @@
 import { cachedGetItem, cachedSetItem } from '@/lib/localStorageCache'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 
 /**
  * Recoverable assignment-failure guidance (R10.4, R2.6, R2.7).
@@ -144,7 +145,8 @@ export function buildAdmissionsMailto({
 // client-side in localStorage as an intent marker. The UI clearly labels this
 // as a notification request and still points the student at contact admissions.
 
-const INTEREST_STORE_KEY = 'mihas:assignment-interest'
+const INTEREST_STORE_KEY = BROWSER_KEYS.assignmentInterest
+const LEGACY_INTEREST_STORE_KEY = LEGACY_BROWSER_KEYS.assignmentInterest
 
 interface StoredInterestEntry {
   programId: string
@@ -159,7 +161,13 @@ function interestKey(programId: string, intakeId: string): string {
 
 function readInterestStore(): Record<string, StoredInterestEntry> {
   try {
-    const raw = cachedGetItem(INTEREST_STORE_KEY)
+    let raw = cachedGetItem(INTEREST_STORE_KEY)
+    if (!raw) {
+      raw = cachedGetItem(LEGACY_INTEREST_STORE_KEY)
+      if (raw) {
+        cachedSetItem(INTEREST_STORE_KEY, raw)
+      }
+    }
     if (!raw) return {}
     const parsed = JSON.parse(raw)
     return parsed && typeof parsed === 'object' ? (parsed as Record<string, StoredInterestEntry>) : {}
@@ -194,6 +202,11 @@ export function recordAssignmentInterest({
       recordedAt: new Date().toISOString(),
     }
     cachedSetItem(INTEREST_STORE_KEY, JSON.stringify(store))
+    try {
+      localStorage.removeItem(LEGACY_INTEREST_STORE_KEY)
+    } catch {
+      // best effort legacy cleanup
+    }
     return true
   } catch {
     return false

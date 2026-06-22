@@ -1,5 +1,5 @@
 /**
- * MIHAS-KATC PDF Color System
+ * Beanola tenant PDF color system
  *
  * Print-safe palette for document rendering via @react-pdf/renderer.
  *

@@ -30,6 +30,7 @@ import {
 import { cachedSetItem } from '@/lib/localStorageCache'
 import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
 import { normalizeResidenceTown } from '@/lib/residenceTown'
+import { BROWSER_EVENTS, BROWSER_KEYS, LEGACY_BROWSER_EVENTS, LEGACY_BROWSER_KEYS, listenWithLegacyEventFallback } from '@/lib/browserNamespace'
 import {
   getCanonicalResidenceCountry,
   normalizeDateInputValue,
@@ -663,7 +664,8 @@ const useWizardController = (): UseWizardControllerResult => {
   const preserveDraftBeforeAuthRedirect = useCallback(() => {
     persistLocalDraftSnapshot()
     try {
-      sessionStorage.setItem('mihas:post-auth-redirect', `${location.pathname}${location.search}${location.hash}`)
+      sessionStorage.setItem(BROWSER_KEYS.postAuthRedirect, `${location.pathname}${location.search}${location.hash}`)
+      sessionStorage.removeItem(LEGACY_BROWSER_KEYS.postAuthRedirect)
     } catch {
       // best effort local persistence before auth redirect
     }
@@ -707,8 +709,12 @@ const useWizardController = (): UseWizardControllerResult => {
       preserveDraftBeforeAuthRedirect()
     }
 
-    window.addEventListener('mihas:before-auth-redirect', handleAuthRedirect)
-    return () => window.removeEventListener('mihas:before-auth-redirect', handleAuthRedirect)
+    return listenWithLegacyEventFallback(
+      window,
+      BROWSER_EVENTS.beforeAuthRedirect,
+      [LEGACY_BROWSER_EVENTS.beforeAuthRedirect],
+      handleAuthRedirect,
+    )
   }, [preserveDraftBeforeAuthRedirect])
 
   const { completionPercentage, missingFields, hasAutoPopulatedData } = useProfileAutoPopulation()

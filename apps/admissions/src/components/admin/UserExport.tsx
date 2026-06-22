@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog'
 import { exportUsersToPDF, type UserPDFFieldDefinition } from '@/lib/exportUtils'
-import { downloadXlsx } from '@/lib/xlsxWriter'
 import { UserProfile } from '@/types/database'
 import { Download, FileText, FileSpreadsheet, Filter, Users, CheckSquare, Square } from 'lucide-react'
 import { toast } from '@/hooks/useToast'
@@ -209,7 +208,7 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
       headers.map(header => escapeCsvField(row[header]))
     )
 
-    const csvContent = [headers, ...rows]
+    const csvContent = [headers.map(escapeCsvField), ...rows]
       .map(row => row.join(','))
       .join('\n')
 
@@ -264,6 +263,9 @@ export function UserExport({ users, isOpen, onClose }: UserExportProps) {
         return typeof value === 'number' || typeof value === 'boolean' ? value : String(value ?? '')
       }))
     ]
+    // Load the spreadsheet writer lazily so it is excluded from the initial
+    // bundle and only fetched the first time an export actually runs (R10.4).
+    const { downloadXlsx } = await import('@/lib/xlsxWriter')
     downloadXlsx({ name: 'Users', rows }, `${buildExportFileStem()}.xlsx`)
   }
 

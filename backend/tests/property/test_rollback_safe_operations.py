@@ -188,6 +188,15 @@ _ALTER_TABLE_DROP_COLUMN_RE = re.compile(
     re.IGNORECASE,
 )
 
+# ``ALTER TABLE <name> DROP CONSTRAINT [IF EXISTS] <constraint>`` — the exact
+# inverse of a forward ``ALTER TABLE ... ADD CONSTRAINT`` (e.g. a NOT VALID
+# foreign key). Dropping a named constraint removes only metadata; it cannot
+# destroy a row, so it is strictly inverse-additive and safe in a rollback.
+_ALTER_TABLE_DROP_CONSTRAINT_RE = re.compile(
+    r"^ALTER\s+TABLE\s+(?:ONLY\s+)?[A-Za-z_][A-Za-z0-9_.]*\s+DROP\s+CONSTRAINT\b",
+    re.IGNORECASE,
+)
+
 # ``ALTER TABLE ... ADD`` is the forward-additive complement we explicitly
 # reject. The ``\bADD\b`` look matches ADD COLUMN, ADD CONSTRAINT, ADD
 # FOREIGN KEY, etc.
@@ -293,6 +302,14 @@ def _classify_statement(stmt: str) -> tuple[bool, str]:
                     f"(full: {normalised[:120]})"
                 )
         return True, "alter-drop-column"
+
+    # 6b. Allow ``ALTER TABLE <name> DROP CONSTRAINT [IF EXISTS] <name>`` —
+    #     the inverse of a forward ``ADD CONSTRAINT`` (e.g. a NOT VALID FK).
+    #     Removing a named constraint is metadata-only and cannot destroy a
+    #     row, so it is inverse-additive-safe. Guard against an accidental
+    #     ``ADD`` elsewhere in the statement (already rejected in step 2).
+    if _ALTER_TABLE_DROP_CONSTRAINT_RE.match(normalised):
+        return True, "alter-drop-constraint"
 
     # 7. Anything else is rejected.
     return False, (

@@ -47,6 +47,7 @@ from apps.applications.services import (  # noqa: F401
 )
 from apps.applications._view_helpers import _with_payment_summary  # noqa: F401
 from apps.documents.models import Payment, ApplicationDocument, ApplicationGrade  # noqa: F401
+from apps.documents.payment_constants import RESOLVED_PAYMENT_STATUSES  # noqa: F401
 
 __all__ = [
     "ApplicationAmendmentView",

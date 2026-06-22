@@ -158,9 +158,12 @@ class TestInstitutionSoftDeleteWithActivePrograms(SimpleTestCase):
         request = MagicMock()
         request.user = user
 
-        with patch("apps.catalog.views.Institution.objects") as mock_inst_qs, \
-             patch("apps.catalog.views.Program.objects") as mock_prog_qs:
-            mock_inst_qs.get.return_value = institution
+        # The view now fetches the target via the tenant-scoped capability
+        # mixin (scope-before-lookup, R3.5/R5.4). That path is exercised by the
+        # dedicated scope tests; here we isolate the soft-delete branch logic by
+        # returning the in-scope institution directly.
+        with patch("apps.catalog.views.Program.objects") as mock_prog_qs, \
+             patch.object(InstitutionDetailView, "get_scoped_object", return_value=institution):
             mock_prog_qs.filter.return_value.exists.return_value = True
 
             view = InstitutionDetailView()
@@ -181,9 +184,8 @@ class TestInstitutionSoftDeleteWithActivePrograms(SimpleTestCase):
         request = MagicMock()
         request.user = user
 
-        with patch("apps.catalog.views.Institution.objects") as mock_inst_qs, \
-             patch("apps.catalog.views.Program.objects") as mock_prog_qs:
-            mock_inst_qs.get.return_value = institution
+        with patch("apps.catalog.views.Program.objects") as mock_prog_qs, \
+             patch.object(InstitutionDetailView, "get_scoped_object", return_value=institution):
             mock_prog_qs.filter.return_value.exists.return_value = False
 
             view = InstitutionDetailView()
@@ -194,17 +196,17 @@ class TestInstitutionSoftDeleteWithActivePrograms(SimpleTestCase):
         institution.save.assert_called_once()
 
     def test_delete_returns_404_for_nonexistent_institution(self):
-        """Soft-delete of non-existent institution returns 404."""
+        """Soft-delete of non-existent / out-of-scope institution returns 404."""
         from apps.catalog.views import InstitutionDetailView
-        from apps.catalog.models import Institution
+        from rest_framework.exceptions import NotFound
 
         user = _make_mock_user(role="admin")
         request = MagicMock()
         request.user = user
 
-        with patch("apps.catalog.views.Institution.objects") as mock_qs:
-            mock_qs.get.side_effect = Institution.DoesNotExist()
-
+        # An unknown or out-of-scope id surfaces as a non-revealing 404 from the
+        # scope-before-lookup fetch (R3.5/R5.4).
+        with patch.object(InstitutionDetailView, "get_scoped_object", side_effect=NotFound()):
             view = InstitutionDetailView()
             response = view.delete(request, institution_id=str(uuid.uuid4()))
 

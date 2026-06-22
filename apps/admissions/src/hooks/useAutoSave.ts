@@ -5,6 +5,7 @@ import { cachedGetItem, cachedSetItem, cachedRemoveItem } from '@/lib/localStora
 import { AuthenticationError } from '@/services/client'
 import { logger } from '@/lib/logger'
 import { toError } from '@/lib/toError'
+import { BROWSER_EVENTS, LEGACY_BROWSER_EVENTS, listenWithLegacyEventFallback } from '@/lib/browserNamespace'
 
 export interface AutoSaveData {
   [key: string]: unknown
@@ -472,14 +473,24 @@ export function useAutoSave(
 
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
-    window.addEventListener('mihas:auth-expired', handleAuthExpired)
-    window.addEventListener('mihas:auth-recovered', handleAuthRecovered)
+    const removeAuthExpiredListener = listenWithLegacyEventFallback(
+      window,
+      BROWSER_EVENTS.authExpired,
+      [LEGACY_BROWSER_EVENTS.authExpired],
+      handleAuthExpired,
+    )
+    const removeAuthRecoveredListener = listenWithLegacyEventFallback(
+      window,
+      BROWSER_EVENTS.authRecovered,
+      [LEGACY_BROWSER_EVENTS.authRecovered],
+      handleAuthRecovered,
+    )
 
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
-      window.removeEventListener('mihas:auth-expired', handleAuthExpired)
-      window.removeEventListener('mihas:auth-recovered', handleAuthRecovered)
+      removeAuthExpiredListener()
+      removeAuthRecoveredListener()
     }
   }, [saveData, processSaveQueue])
 

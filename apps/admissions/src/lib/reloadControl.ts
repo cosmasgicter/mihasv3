@@ -1,4 +1,4 @@
-import { logger } from '@/lib/logger'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 
 export type ReloadReason =
   | 'chunk_preload_error'
@@ -35,12 +35,29 @@ interface AutoReloadOptions {
   fingerprint?: string
 }
 
-const AUTO_RELOAD_GUARD_KEY = 'mihas_auto_reload_guard_v2'
-const RELOAD_REASON_COUNTERS_KEY = 'mihas_reload_reason_counters_v1'
+const AUTO_RELOAD_GUARD_KEY = BROWSER_KEYS.autoReloadGuard
+const RELOAD_REASON_COUNTERS_KEY = BROWSER_KEYS.reloadReasonCounters
+const LEGACY_AUTO_RELOAD_GUARD_KEY = LEGACY_BROWSER_KEYS.autoReloadGuard
+const LEGACY_RELOAD_REASON_COUNTERS_KEY = LEGACY_BROWSER_KEYS.reloadReasonCounters
+
+const logReloadInfo = (message: string, context?: unknown): void => {
+  if (import.meta.env.DEV) {
+    console.info(message, context)
+    return
+  }
+
+  void import('@/lib/logger')
+    .then(({ logger }) => logger.info(message, context))
+    .catch(() => {
+      // Reload handling must never fail because telemetry could not load.
+    })
+}
 
 const readAutoReloadGuards = (): Record<string, string> => {
   try {
-    const raw = sessionStorage.getItem(AUTO_RELOAD_GUARD_KEY)
+    const raw =
+      sessionStorage.getItem(AUTO_RELOAD_GUARD_KEY) ??
+      sessionStorage.getItem(LEGACY_AUTO_RELOAD_GUARD_KEY)
     return raw ? JSON.parse(raw) : {}
   } catch {
     return {}
@@ -49,6 +66,7 @@ const readAutoReloadGuards = (): Record<string, string> => {
 
 const writeAutoReloadGuards = (guards: Record<string, string>) => {
   sessionStorage.setItem(AUTO_RELOAD_GUARD_KEY, JSON.stringify(guards))
+  sessionStorage.removeItem(LEGACY_AUTO_RELOAD_GUARD_KEY)
 }
 
 const createDefaultCounters = (): ReloadReasonCounters => ({
@@ -61,7 +79,9 @@ const createDefaultCounters = (): ReloadReasonCounters => ({
 
 const readReloadReasonCounters = (): ReloadReasonCounters => {
   try {
-    const raw = sessionStorage.getItem(RELOAD_REASON_COUNTERS_KEY)
+    const raw =
+      sessionStorage.getItem(RELOAD_REASON_COUNTERS_KEY) ??
+      sessionStorage.getItem(LEGACY_RELOAD_REASON_COUNTERS_KEY)
     if (!raw) {
       return createDefaultCounters()
     }
@@ -77,6 +97,7 @@ const readReloadReasonCounters = (): ReloadReasonCounters => {
 
 const writeReloadReasonCounters = (counters: ReloadReasonCounters) => {
   sessionStorage.setItem(RELOAD_REASON_COUNTERS_KEY, JSON.stringify(counters))
+  sessionStorage.removeItem(LEGACY_RELOAD_REASON_COUNTERS_KEY)
 }
 
 export const incrementReloadReasonCounter = (
@@ -102,7 +123,7 @@ export const logReloadEvent = (context: ReloadLogContext) => {
     ts: new Date().toISOString(),
   }
 
-  logger.info('[ReloadControl]', payload)
+  logReloadInfo('[ReloadControl]', payload)
 }
 
 export const consumeAutoReloadGuard = ({
@@ -149,8 +170,8 @@ export const emitReloadTelemetry = ({ reason, mode, buildKey, details }: ReloadL
     details: details ?? {},
   }
 
-  window.dispatchEvent(new CustomEvent('mihas:reload', { detail: payload }))
-  logger.info('[telemetry] reload', payload)
+  window.dispatchEvent(new CustomEvent('beanola:reload', { detail: payload }))
+  logReloadInfo('[telemetry] reload', payload)
 }
 
 export const performReload = ({

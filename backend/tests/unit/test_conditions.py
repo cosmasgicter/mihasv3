@@ -30,6 +30,9 @@ _TASK_SEND_EMAIL = "apps.common.tasks.send_email_task"
 _TASK_COND_MANAGER = "apps.applications.condition_manager.ConditionManager"
 _OUTBOX_NOTIFY = "apps.common.outbox.create_notification"
 _OUTBOX_EMAIL = "apps.common.outbox.queue_email"
+# Batched outbox helpers (system-performance-hardening R6.4).
+_OUTBOX_NOTIFY_BULK = "apps.common.outbox.create_notifications_bulk"
+_OUTBOX_EMAIL_BULK = "apps.common.outbox.queue_emails_bulk"
 
 
 def _mock_app(uid=None, status="under_review", aid=None):
@@ -357,12 +360,12 @@ class TestAutoRejectionExpiredCondition:
 class TestConditionExpiryTask:
     """6. Condition expiry task — expires overdue conditions and triggers rejection (Req 5.6, 5.7, 5.8)."""
 
-    @patch(_OUTBOX_EMAIL)
-    @patch(_OUTBOX_NOTIFY)
+    @patch(_OUTBOX_EMAIL_BULK)
+    @patch(_OUTBOX_NOTIFY_BULK)
     @patch(_TASK_COND_MANAGER)
     @patch(_TASK_COND_MODEL)
-    def test_expires_overdue_pending_conditions(self, mock_cond_cls, mock_cm, mock_outbox_notify, mock_outbox_email):
-        """Conditions past deadline with status pending are transitioned to expired."""
+    def test_expires_overdue_pending_conditions(self, mock_cond_cls, mock_cm, mock_notify_bulk, mock_email_bulk):
+        """Conditions past deadline with status pending are transitioned to expired (batched)."""
         app = _mock_app(status="conditionally_approved")
         cond = _mock_condition(
             app_id=app.id,
@@ -371,10 +374,10 @@ class TestConditionExpiryTask:
         )
         cond.application = app
 
-        # The task does: filter(...).select_related("application") then iterates + values_list
+        # The task does: filter(...).select_related("application")[:N] then iterates.
         expired_qs = MagicMock()
         expired_qs.__iter__ = lambda self: iter([cond])
-        expired_qs.values_list.return_value = [app.id]
+        expired_qs.__getitem__ = lambda self, key: [cond]
         mock_cond_cls.objects.filter.return_value.select_related.return_value = expired_qs
 
         mock_cm.auto_promote_if_all_met.return_value = True
@@ -383,15 +386,16 @@ class TestConditionExpiryTask:
         result = condition_expiry_task()
 
         assert result["expired_conditions"] == 1
-        cond.save.assert_called_once()
+        # Status set in-memory, persisted with a single bulk_update.
         assert cond.status == "expired"
-        mock_outbox_notify.assert_called_once()
+        mock_cond_cls.objects.bulk_update.assert_called_once()
+        mock_notify_bulk.assert_called_once()
 
-    @patch(_OUTBOX_EMAIL)
-    @patch(_OUTBOX_NOTIFY)
+    @patch(_OUTBOX_EMAIL_BULK)
+    @patch(_OUTBOX_NOTIFY_BULK)
     @patch(_TASK_COND_MANAGER)
     @patch(_TASK_COND_MODEL)
-    def test_triggers_auto_rejection_after_expiry(self, mock_cond_cls, mock_cm, mock_outbox_notify, mock_outbox_email):
+    def test_triggers_auto_rejection_after_expiry(self, mock_cond_cls, mock_cm, mock_notify_bulk, mock_email_bulk):
         """After expiring conditions, auto_promote_if_all_met is called for affected apps."""
         app = _mock_app(status="conditionally_approved")
         cond = _mock_condition(
@@ -403,7 +407,7 @@ class TestConditionExpiryTask:
 
         expired_qs = MagicMock()
         expired_qs.__iter__ = lambda self: iter([cond])
-        expired_qs.values_list.return_value = [app.id]
+        expired_qs.__getitem__ = lambda self, key: [cond]
         mock_cond_cls.objects.filter.return_value.select_related.return_value = expired_qs
 
         mock_cm.auto_promote_if_all_met.return_value = True
@@ -414,15 +418,15 @@ class TestConditionExpiryTask:
         assert result["auto_rejected"] == 1
         mock_cm.auto_promote_if_all_met.assert_called_once_with(str(app.id))
 
-    @patch(_OUTBOX_EMAIL)
-    @patch(_OUTBOX_NOTIFY)
+    @patch(_OUTBOX_EMAIL_BULK)
+    @patch(_OUTBOX_NOTIFY_BULK)
     @patch(_TASK_COND_MANAGER)
     @patch(_TASK_COND_MODEL)
-    def test_no_expiry_when_no_overdue(self, mock_cond_cls, mock_cm, mock_outbox_notify, mock_outbox_email):
+    def test_no_expiry_when_no_overdue(self, mock_cond_cls, mock_cm, mock_notify_bulk, mock_email_bulk):
         """No conditions expired when none are past deadline."""
         expired_qs = MagicMock()
         expired_qs.__iter__ = lambda self: iter([])
-        expired_qs.values_list.return_value = []
+        expired_qs.__getitem__ = lambda self, key: []
         mock_cond_cls.objects.filter.return_value.select_related.return_value = expired_qs
 
         from apps.applications.tasks import condition_expiry_task
@@ -430,7 +434,7 @@ class TestConditionExpiryTask:
 
         assert result["expired_conditions"] == 0
         assert result["auto_rejected"] == 0
-        mock_outbox_notify.assert_not_called()
+        mock_notify_bulk.assert_not_called()
 
 
 class TestConditionManagerConstants:

@@ -24,6 +24,28 @@ The master index of canonical sources of truth lives at `docs/canonical-truth-ma
 
 **Rule:** Any new domain concept added to the platform must register in the canonical truth map before merging. If the concept has a frontend mirror, a drift-guard test is required.
 
+## Enterprise Tenant Authority Layout
+
+Where the Beanola multi-tenant authority code lives. Model and rules:
+`.kiro/steering/enterprise-tenancy.md`. Spec of record:
+`.kiro/specs/enterprise-tenant-authority/`.
+
+| Concern | Location |
+|---------|----------|
+| Admin capability logic + catalogue | `backend/apps/catalog/services.py` — `AdminCapabilityService` (`PLATFORM_CAPABILITIES`, `TENANT_CAPABILITIES`, `CapabilitySet`, `CapabilityResolutionError`), `DomainStatusMachine`, `InstitutionContextService.resolve` |
+| Tenant services / audit | `backend/apps/catalog/tenant_audit_service.py` (`TenantAuditService`); domain verification `backend/apps/catalog/tasks.py` (`verify_institution_domain_task`) |
+| DRF permission primitives | `backend/apps/catalog/permissions.py` — `HasPlatformCapability`, `TenantScopedCapabilityMixin` |
+| Capability + scope endpoints | `backend/apps/accounts/admin_user_views.py` — `GET /api/v1/admin/capabilities/`, extended `GET /api/v1/admin/scope/` |
+| Admin tenant API routing | `backend/apps/catalog/admin_urls.py` (mounted at `/api/v1/admin/`); views in `backend/apps/catalog/admin_views.py` |
+| Capability-gated legacy catalog writes | `backend/apps/catalog/views.py` (institution/program/intake write methods) |
+| Domain context endpoint | `backend/apps/catalog/views.py` — `CatalogContextView` → `GET /api/v1/catalog/context/` |
+| Frontend capability hooks | `apps/admissions/src/contexts/CapabilityContext.tsx` (`useCapabilities`), `apps/admissions/src/services/admin/capabilities.ts` (`adminCapabilityService`) |
+| Capability-driven navigation | `apps/admissions/src/components/navigation/tenantNav.ts` (`resolveTenantNavItem`, `useTenantNavItem`); consumed by `DesktopSidebar`, `MobileBottomNav`, `AppLayout` |
+| Super-admin route guard | `apps/admissions/src/components/AdminRoute.tsx` (`RequireSuperAdmin`); route config `apps/admissions/src/routes/config.tsx` |
+| Tenant console + panels | `apps/admissions/src/pages/admin/Tenants.tsx` (capability switcher) → `apps/admissions/src/pages/admin/tenants/` (`SuperAdminTenantConsole`, `TenantAdminSchoolConsole`, panels) |
+| Tenant onboarding wizard | `apps/admissions/src/pages/admin/tenants/TenantOnboardingWizard.tsx` (super-admin-only stepper) |
+| Permission matrix / canonical routes | `docs/canonical-truth-map.md` → "Enterprise Tenant Authority (Capabilities & Routes)" |
+
 ## Spec Completion Markers
 
 Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a spec's work is fully completed (all tasks done), add `"status": "completed"` to its `.config.kiro` file. This makes the status of past work immediately visible without reading every task file.

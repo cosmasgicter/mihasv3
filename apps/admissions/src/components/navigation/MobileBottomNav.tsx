@@ -1,14 +1,19 @@
 import React, { useState } from 'react'
-import { Home, FileText, Bell, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, Settings, FileSearch, CreditCard, MessageSquare, Clock, Building2 } from 'lucide-react'
+import { Home, FileText, Bell, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, Settings, FileSearch, CreditCard, MessageSquare, Clock } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
+import { useTenantNavItem } from './tenantNav'
+import { useCapabilities } from '@/contexts/CapabilityContext'
+import { filterAdminNavItems } from './adminNavAccess'
 
 
 export const MobileBottomNav = React.memo(function MobileBottomNav() {
   const location = useLocation()
   const { user, isAdmin } = useAuth()
+  const tenantNavItem = useTenantNavItem()
+  const caps = useCapabilities()
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [showStudentMore, setShowStudentMore] = useState(false)
 
@@ -37,20 +42,21 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
   const adminMoreSections = [
     {
       title: 'Management',
-      links: [
+      links: filterAdminNavItems([
         { to: '/admin/programs', icon: GraduationCap, label: 'Programs' },
-        { to: '/admin/tenants', icon: Building2, label: 'Tenants' },
+        // Capability-gated tenant item injected from the shared helper (R13.4).
+        ...(tenantNavItem ? [tenantNavItem] : []),
         { to: '/admin/intakes', icon: Calendar, label: 'Intakes' },
-      ]
+      ], caps)
     },
     {
       title: 'System',
-      links: [
+      links: filterAdminNavItems([
         { to: '/admin/audit', icon: FileSearch, label: 'Audit' },
         { to: '/admin/settings', icon: Settings, label: 'Settings' },
-      ]
+      ], caps)
     },
-  ]
+  ].filter((section) => section.links.length > 0)
 
   const links = isAdmin ? adminMainLinks : studentMainLinks
 

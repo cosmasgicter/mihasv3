@@ -58,18 +58,19 @@ class TestCommunicationTemplateCoverage:
             # Replace gen_random_uuid() with literal UUIDs for SQLite
             while "gen_random_uuid()" in sql:
                 sql = sql.replace("gen_random_uuid()", f"'{_uuid.uuid4()}'", 1)
-            # SQLite doesn't support ON CONFLICT ... DO UPDATE with the same syntax
-            # but does support INSERT OR REPLACE with UNIQUE constraint.
-            # Simpler: just INSERT directly since the table is empty in tests.
+            sql = sql.replace(
+                "INSERT INTO communication_templates (id, template_key, subject_template, body_template, channel, is_active, created_at, updated_at)",
+                "INSERT INTO communication_templates (id, template_key, version, subject_template, body_template, channel, is_active, created_at, updated_at)",
+            )
+            sql = re.sub(r"(\(\s*'[^']+'\s*,\s*'[^']+'\s*,)", r"\1 1,", sql)
+            # ``template_key`` is intentionally not unique in the Django model,
+            # so SQLite cannot apply the Postgres upsert clause. The test DB is
+            # empty here; plain INSERTs are enough to verify template coverage.
             sql = re.sub(
-                r"ON CONFLICT \(template_key\) DO UPDATE SET[^;]+;",
-                "ON CONFLICT (template_key) DO UPDATE SET "
-                "subject_template = excluded.subject_template, "
-                "body_template = excluded.body_template, "
-                "channel = excluded.channel, "
-                "is_active = excluded.is_active, "
-                "updated_at = datetime('now');",
+                r"\s*ON CONFLICT \(template_key\) DO UPDATE SET.*?(?=;)",
+                "",
                 sql,
+                flags=re.DOTALL,
             )
             sql = sql.replace("NOW()", "datetime('now')")
 

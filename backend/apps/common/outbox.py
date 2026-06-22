@@ -219,3 +219,193 @@ def queue_email(
         aggregate_id=None,
     )
     return email_record
+
+
+# ---------------------------------------------------------------------------
+# Batched variants (system-performance-hardening R6.4)
+# ---------------------------------------------------------------------------
+#
+# The per-row ``create_notification`` / ``queue_email`` helpers issue one INSERT
+# (plus one OutboxEvent INSERT) each. Periodic expiry tasks that touch many rows
+# per run amplify that into N round-trips. These batched variants persist the
+# same rows, with the same field normalization and the same OutboxEvent audit
+# trail, using a single ``bulk_create`` per table — so the resulting persisted
+# state is identical to calling the per-row helper N times, but with O(1)
+# queries instead of O(N).
+
+
+def create_notifications_bulk(specs):
+    """Persist many in-app notifications with a single bulk insert.
+
+    *specs* is an iterable of dicts accepting the same keys as
+    :func:`create_notification` (``user_id``, ``title``, ``message``, ``type``,
+    ``priority``, ``action_url``, ``metadata``, ``idempotency_key``). Field
+    normalization and OutboxEvent recording are preserved so the persisted
+    state matches N per-row ``create_notification`` calls.
+
+    Idempotency is preserved: specs whose ``idempotency_key`` already exists
+    (or repeats within the batch) are skipped, resolved with a single lookup
+    query rather than one ``exists()`` per row.
+
+    Returns the list of :class:`~apps.common.models.Notification` rows created.
+    """
+    specs = list(specs or [])
+    if not specs:
+        return []
+
+    now = timezone.now()
+
+    keyed = [s.get("idempotency_key") for s in specs if s.get("idempotency_key")]
+    existing_keys: set[str] = set()
+    if keyed:
+        existing_keys = set(
+            Notification.objects.filter(idempotency_key__in=keyed).values_list(
+                "idempotency_key", flat=True
+            )
+        )
+
+    notifications: list[Notification] = []
+    seen_keys: set[str] = set()
+    for spec in specs:
+        key = spec.get("idempotency_key")
+        if key:
+            if key in existing_keys or key in seen_keys:
+                continue
+            seen_keys.add(key)
+        notifications.append(
+            Notification(
+                user_id=spec["user_id"],
+                title=_plain_text(spec.get("title"), max_length=MAX_NOTIFICATION_TITLE_LENGTH)
+                or "Notification",
+                message=_plain_text(spec.get("message"), max_length=MAX_NOTIFICATION_MESSAGE_LENGTH),
+                type=_normalize_notification_type(spec.get("type")),
+                priority=_normalize_priority(spec.get("priority")),
+                action_url=_safe_action_url(spec.get("action_url")),
+                metadata=spec.get("metadata"),
+                idempotency_key=key,
+                is_read=False,
+                created_at=now,
+                updated_at=now,
+            )
+        )
+
+    if not notifications:
+        return []
+
+    with transaction.atomic():
+        Notification.objects.bulk_create(notifications)
+
+    # OutboxEvent recording is best-effort (mirrors _record_outbox_event) and
+    # must never roll back the notifications, so it runs outside the atomic
+    # block above.
+    events = [
+        OutboxEvent(
+            event_type="notification.created",
+            channel="notification",
+            aggregate_type="user",
+            aggregate_id=n.user_id,
+            payload={
+                "user_id": str(n.user_id),
+                "title": n.title,
+                "message": n.message,
+                "type": n.type,
+                "priority": n.priority,
+                "action_url": n.action_url,
+                "metadata": n.metadata or {},
+            },
+            status="published",
+            target_table="notifications",
+            target_id=n.id,
+            idempotency_key=n.idempotency_key,
+            created_at=now,
+            processed_at=now,
+        )
+        for n in notifications
+    ]
+    try:
+        OutboxEvent.objects.bulk_create(events)
+    except Exception:
+        logger.warning(
+            "Bulk outbox event recording failed for notifications — best-effort skip",
+            exc_info=True,
+        )
+
+    return notifications
+
+
+def queue_emails_bulk(specs, *, dispatch: bool = True):
+    """Persist many outbox emails with a single bulk insert and dispatch them.
+
+    *specs* is an iterable of dicts accepting ``recipient_email``, ``subject``,
+    ``body`` and optional ``recipient_name``. Rows and their OutboxEvents are
+    written with one ``bulk_create`` each; when *dispatch* is true a single
+    ``transaction.on_commit`` hook dispatches every queued email after commit,
+    matching the per-row :func:`queue_email` behaviour.
+
+    Returns the list of :class:`~apps.common.models.EmailQueue` rows created.
+    """
+    specs = list(specs or [])
+    if not specs:
+        return []
+
+    now = timezone.now()
+    emails = [
+        EmailQueue(
+            recipient_email=s["recipient_email"],
+            recipient_name=s.get("recipient_name") or "",
+            subject=s["subject"],
+            body=s["body"],
+            status="pending",
+            retry_count=0,
+            created_at=now,
+        )
+        for s in specs
+    ]
+
+    with transaction.atomic():
+        EmailQueue.objects.bulk_create(emails)
+
+    events = [
+        OutboxEvent(
+            event_type="email.queued",
+            channel="email",
+            aggregate_type="email",
+            aggregate_id=None,
+            payload={
+                "recipient_email": e.recipient_email,
+                "recipient_name": e.recipient_name or "",
+                "subject": e.subject,
+            },
+            status="published",
+            target_table="email_queue",
+            target_id=e.id,
+            created_at=now,
+            processed_at=now,
+        )
+        for e in emails
+    ]
+    try:
+        OutboxEvent.objects.bulk_create(events)
+    except Exception:
+        logger.warning(
+            "Bulk outbox event recording failed for emails — best-effort skip",
+            exc_info=True,
+        )
+
+    if dispatch:
+        email_ids = [str(e.id) for e in emails]
+
+        def _dispatch_all():
+            for email_id in email_ids:
+                try:
+                    dispatch_email(email_id)
+                except Exception:
+                    logger.warning(
+                        "dispatch_email failed for %s — best-effort skip",
+                        email_id,
+                        exc_info=True,
+                    )
+
+        transaction.on_commit(_dispatch_all)
+
+    return emails

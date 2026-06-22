@@ -34,6 +34,7 @@ const AdminDashboard = React.lazy(() => import('@/pages/admin/Dashboard'))
 const AdminApplications = React.lazy(() => import('@/pages/admin/Applications'))
 const AdminPrograms = React.lazy(() => import('@/pages/admin/Programs'))
 const AdminTenants = React.lazy(() => import('@/pages/admin/Tenants'))
+const AdminTenantOnboarding = React.lazy(() => import('@/pages/admin/tenants/TenantOnboardingWizard'))
 const AdminIntakes = React.lazy(() => import('@/pages/admin/Intakes'))
 const AdminUsers = React.lazy(() => import('@/pages/admin/Users'))
 const AdminSettings = React.lazy(() => import('@/pages/admin/Settings'))
@@ -55,6 +56,14 @@ export interface RouteConfig {
   lazy?: boolean
   /** Which layout-matched skeleton to show while the chunk loads */
   skeletonType?: SkeletonType
+  /**
+   * When true, an `admin`-guarded route additionally requires Super_Admin
+   * authority. The frontend guard blocks tenant-admin deep-links as a usability
+   * layer; the backend re-enforces the corresponding permission
+   * (enterprise-tenant-authority R13.5). `/admin/tenants` is intentionally NOT
+   * flagged — it is shared and renders the correct console per capability.
+   */
+  requiresSuperAdmin?: boolean
 }
 
 export const routes: RouteConfig[] = [
@@ -103,15 +112,19 @@ export const routes: RouteConfig[] = [
   // Admin routes
   { path: '/admin', element: AdminDashboard, guard: 'admin', lazy: true, skeletonType: 'dashboard' },
   { path: '/admin/dashboard', element: AdminDashboard, guard: 'admin', lazy: true, skeletonType: 'dashboard' },
-  { path: '/admin/profile', element: AdminSettings, guard: 'admin', lazy: true, skeletonType: 'detail' },
+  { path: '/admin/profile', element: AdminSettings, guard: 'admin', lazy: true, skeletonType: 'detail', requiresSuperAdmin: true },
   { path: '/admin/applications', element: AdminApplications, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
-  { path: '/admin/programs', element: AdminPrograms, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
+  { path: '/admin/programs', element: AdminPrograms, guard: 'admin', lazy: true, skeletonType: 'admin-table', requiresSuperAdmin: true },
   { path: '/admin/tenants', element: AdminTenants, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
-  { path: '/admin/intakes', element: AdminIntakes, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
+  // Super-admin-only tenant onboarding wizard. The frontend guard blocks
+  // tenant-admin deep-links as a usability layer; the backend re-enforces every
+  // mutation the wizard performs (enterprise-tenant-authority R13.5, R14.1).
+  { path: '/admin/tenants/new', element: AdminTenantOnboarding, guard: 'admin', lazy: true, skeletonType: 'admin-table', requiresSuperAdmin: true },
+  { path: '/admin/intakes', element: AdminIntakes, guard: 'admin', lazy: true, skeletonType: 'admin-table', requiresSuperAdmin: true },
   { path: '/admin/users', element: AdminUsers, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
-  { path: '/admin/audit', element: AuditTrail, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
-  { path: '/admin/program-fees', element: AdminProgramFees, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
-  { path: '/admin/settings', element: AdminSettings, guard: 'admin', lazy: true, skeletonType: 'detail' },
+  { path: '/admin/audit', element: AuditTrail, guard: 'admin', lazy: true, skeletonType: 'admin-table', requiresSuperAdmin: true },
+  { path: '/admin/program-fees', element: AdminProgramFees, guard: 'admin', lazy: true, skeletonType: 'admin-table', requiresSuperAdmin: true },
+  { path: '/admin/settings', element: AdminSettings, guard: 'admin', lazy: true, skeletonType: 'detail', requiresSuperAdmin: true },
   
   // 404 routes
   { path: '/404', element: NotFoundPage, guard: 'public', lazy: true, skeletonType: 'none' },

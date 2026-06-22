@@ -149,7 +149,14 @@ class ApplicationListCreateView(APIView):
                 'assigned_reviewer_id',
                 'institution_ref', 'canonical_program', 'program_offering', 'intake_ref',
             ).prefetch_related(
-                'applicationdocument_set', 'applicationgrade_set', 'payment_set',
+                # NOTE: ``payment_set`` is intentionally NOT prefetched here as a
+                # plain string. ``_with_payment_summary`` (below) attaches a
+                # window-function-bounded ``Prefetch("payment_set", ...)`` (R3);
+                # listing the plain lookup as well makes Django raise
+                # "'payment_set' lookup was already seen with a different
+                # queryset" at query evaluation. The bounded Prefetch is the
+                # sole ``payment_set`` prefetch on this branch.
+                'applicationdocument_set', 'applicationgrade_set',
                 'applicationcondition_set', 'applicationamendment_set',
             ).all()
             if role != "super_admin":
@@ -224,6 +231,35 @@ class ApplicationListCreateView(APIView):
         if not serializer.is_valid():
             return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         data = serializer.validated_data
+
+        # R7.11 / R7.12: bind application creation to the resolved tenant.
+        # Resolve the host this request arrived on (mirrors
+        # ``catalog/views.py._resolve_request_context``). When the request
+        # arrives on an active white-label domain the resolved tenant is the
+        # source of truth: a posted ``institution_id`` that differs is rejected
+        # without mutation (override not permitted), and the resolved binding is
+        # retained by forcing the assignment onto the resolved institution. On
+        # the shared Beanola portal (no resolved tenant) existing behaviour is
+        # preserved — a posted ``institution_id`` may still act as a
+        # white-label restriction as before.
+        from apps.catalog.services import InstitutionContextService
+
+        host = request.headers.get("X-Forwarded-Host") or request.get_host()
+        resolved_institution = InstitutionContextService().resolve(host).institution
+        if resolved_institution is not None:
+            posted_institution_id = data.get("institution_id")
+            if posted_institution_id is not None and str(posted_institution_id) != str(resolved_institution.id):
+                return Response(
+                    {
+                        "success": False,
+                        "error": "The submitted institution does not match the tenant resolved for this domain.",
+                        "code": "INSTITUTION_OVERRIDE_NOT_PERMITTED",
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            # Resolved binding wins (R7.11): force the assignment onto the
+            # resolved tenant so the offering is bound to that institution.
+            data["institution_id"] = resolved_institution.id
 
         from apps.applications.intake_enforcer import IntakeEnforcer
         assigned = None
@@ -557,6 +593,33 @@ class ApplicationReviewView(APIView):
                     )
                 raise
 
+            # R10.5/R10.8: emit an institution-scoped tenant Audit_Event for
+            # the admin payment-verification (review) decision so a tenant
+            # admin can audit it for their own school. Never blocks the
+            # response — TenantAuditService swallows writer failures.
+            try:
+                from apps.catalog.tenant_audit_service import TenantAuditService
+
+                latest_payment_id = (
+                    Payment.objects.filter(application_id=app.id)
+                    .order_by("-created_at")
+                    .values_list("id", flat=True)
+                    .first()
+                )
+                TenantAuditService.record_payment_verification(
+                    payment_id=latest_payment_id,
+                    application_id=app.id,
+                    institution_id=getattr(app, "institution_ref_id", None),
+                    outcome_status=payment_status,
+                    outcome_code="ADMIN_REVIEW",
+                    actor_id=getattr(request.user, "id", None),
+                    actor_role=getattr(request.user, "role", None),
+                    reason=notes,
+                    request=request,
+                )
+            except Exception:  # pragma: no cover - audit must never block a write
+                pass
+
             return Response({"success": True, "data": {
                 "message": f"Payment status updated to {payment_status}",
                 "application_id": str(app.id),
@@ -615,6 +678,25 @@ class ApplicationReviewView(APIView):
                         {"success": False, "error": exc.message, "code": exc.code},
                         status=getattr(exc, "status_code", None) or status.HTTP_400_BAD_REQUEST,
                     )
+                # R10.5/R10.8: an admin-forced submission is a review decision;
+                # emit an institution-scoped tenant Audit_Event before the early
+                # return so this path is observable alongside other review
+                # decisions. Never blocks the response.
+                try:
+                    from apps.catalog.tenant_audit_service import TenantAuditService
+
+                    TenantAuditService.record_review_decision(
+                        application_id=locked_app.id,
+                        institution_id=getattr(locked_app, "institution_ref_id", None),
+                        old_status=old_status,
+                        new_status=new_status,
+                        actor_id=getattr(request.user, "id", None),
+                        actor_role=getattr(request.user, "role", None),
+                        reason=reason or notes,
+                        request=request,
+                    )
+                except Exception:  # pragma: no cover - audit must never block a write
+                    pass
                 return Response({"success": True, "data": {"message": f"Status updated from {old_status} to {new_status}", "application_id": str(locked_app.id), "old_status": old_status, "new_status": new_status}})
 
             conditions_payload = request.data.get("conditions") if isinstance(request.data, dict) else None
@@ -741,5 +823,25 @@ class ApplicationReviewView(APIView):
                 response_data["intake_capacity"] = intake.max_capacity
                 response_data["intake_enrollment"] = intake.current_enrollment
         except Exception:
+            logger.debug("Could not enrich response with intake capacity", exc_info=True)
+        # R10.5/R10.8: emit an institution-scoped tenant Audit_Event for the
+        # application review decision so a tenant admin can audit review
+        # activity for their own school (filtered on ``changes.institution_id``).
+        # Never blocks the response — TenantAuditService swallows failures.
+        try:
+            from apps.catalog.tenant_audit_service import TenantAuditService
+
+            TenantAuditService.record_review_decision(
+                application_id=app.id,
+                institution_id=getattr(app, "institution_ref_id", None),
+                old_status=old_status,
+                new_status=new_status,
+                actor_id=getattr(request.user, "id", None),
+                actor_role=getattr(request.user, "role", None),
+                reason=reason or notes,
+                request=request,
+            )
+        except Exception:  # pragma: no cover - audit must never block a write
             pass
+
         return Response({"success": True, "data": response_data})

@@ -45,6 +45,11 @@ export const BACKEND_ERROR_CODES: Record<string, { http_status: number; message:
   INSUFFICIENT_PRIVILEGES: { http_status: 403, message: 'Insufficient privileges for this operation', category: 'auth' },
   SELF_DEACTIVATION_FORBIDDEN: { http_status: 403, message: 'Cannot deactivate your own account', category: 'auth' },
   DUPLICATE_EMAIL: { http_status: 409, message: 'An account with this email already exists', category: 'auth' },
+  // Enterprise tenant authority (capability resolution + scoped staff management)
+  CAPABILITY_RESOLUTION_FAILED: { http_status: 403, message: 'Your capabilities could not be resolved; the action is denied.', category: 'auth' },
+  STAFF_INVITE_FORBIDDEN: { http_status: 403, message: 'You cannot invite a user with that role into that institution.', category: 'auth' },
+  STAFF_CREATION_FAILED: { http_status: 400, message: 'Staff account could not be created. No changes were saved.', category: 'auth' },
+  INSTITUTION_OVERRIDE_NOT_PERMITTED: { http_status: 403, message: 'The submitted institution does not match the tenant resolved for this domain.', category: 'auth' },
   // Validation
   VALIDATION_ERROR: { http_status: 400, message: 'Validation failed', category: 'validation' },
   INVALID_FORMAT: { http_status: 400, message: 'Invalid format', category: 'validation' },

@@ -35,6 +35,73 @@ function isCompleteUserData(userData: Partial<UserData>): userData is UserData {
 const REQUIRED_FIELDS = ['full_name', 'email', 'role']
 const VALID_ROLES = ['student', 'reviewer', 'admin', 'super_admin']
 
+/**
+ * RFC-4180-correct CSV row parser. Handles:
+ * - Quoted fields containing commas, newlines, and apostrophes
+ * - Escaped double-quotes ("") inside quoted fields
+ * - Unquoted plain fields
+ */
+export function parseCSVRow(row: string): string[] {
+  const fields: string[] = []
+  let i = 0
+  while (i <= row.length) {
+    if (i === row.length) { fields.push(''); break }
+    if (row[i] === '"') {
+      let value = ''
+      i++ // skip opening quote
+      while (i < row.length) {
+        if (row[i] === '"') {
+          if (i + 1 < row.length && row[i + 1] === '"') {
+            value += '"'
+            i += 2
+          } else {
+            i++ // skip closing quote
+            break
+          }
+        } else {
+          value += row[i]
+          i++
+        }
+      }
+      fields.push(value)
+      if (i < row.length && row[i] === ',') i++ // skip delimiter
+    } else {
+      const nextComma = row.indexOf(',', i)
+      if (nextComma === -1) {
+        fields.push(row.slice(i))
+        break
+      }
+      fields.push(row.slice(i, nextComma))
+      i = nextComma + 1
+    }
+  }
+  return fields
+}
+
+/**
+ * Split CSV text into logical rows, handling quoted fields that contain newlines.
+ */
+export function splitCSVRows(text: string): string[] {
+  const rows: string[] = []
+  let current = ''
+  let inQuotes = false
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]!
+    if (ch === '"') {
+      inQuotes = !inQuotes
+      current += ch
+    } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+      if (ch === '\r' && text[i + 1] === '\n') i++ // skip \r\n
+      if (current.trim()) rows.push(current)
+      current = ''
+    } else {
+      current += ch
+    }
+  }
+  if (current.trim()) rows.push(current)
+  return rows
+}
+
 function splitFullName(fullName: string): { first_name: string; last_name: string } {
   const normalized = fullName.trim().replace(/\s+/g, ' ')
   if (!normalized) {
@@ -77,7 +144,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
     const reader = new FileReader()
     reader.onload = (e) => {
       const text = e.target?.result as string
-      const lines = text.split('\n').filter(line => line.trim())
+      const lines = splitCSVRows(text)
       
       if (lines.length < 2) {
         toast.error('Error', 'CSV file must have at least a header row and one data row')
@@ -85,7 +152,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
         return
       }
 
-      const headers = lines[0]!.split(',').map(h => h.trim().toLowerCase())
+      const headers = parseCSVRow(lines[0]!).map(h => h.trim().toLowerCase())
       const data: UserData[] = []
       
       // Check if required fields are present
@@ -100,7 +167,7 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
       }
 
       for (let i = 1; i < lines.length && i <= 6; i++) { // Preview first 5 rows
-        const values = lines[i]!.split(',').map(v => v.trim().replace(/"/g, ''))
+        const values = parseCSVRow(lines[i]!).map(v => v.trim())
         const userData: Partial<UserData> = {}
         
         headers.forEach((header, index) => {
@@ -158,14 +225,14 @@ export function UserImport({ isOpen, onClose, onImportComplete }: UserImportProp
     try {
       setImporting(true)
       const text = await file.text()
-      const lines = text.split('\n').filter(line => line.trim())
-      const headers = lines[0]!.split(',').map(h => h.trim().toLowerCase())
+      const lines = splitCSVRows(text)
+      const headers = parseCSVRow(lines[0]!).map(h => h.trim().toLowerCase())
 
       const clientErrors: ImportResult['errors'] = []
       const batchPayload: Array<{ email: string; first_name: string; last_name: string; phone?: string; role: string; password?: string }> = []
 
       for (let i = 1; i < lines.length; i++) {
-        const values = lines[i]!.split(',').map(v => v.trim().replace(/"/g, ''))
+        const values = parseCSVRow(lines[i]!).map(v => v.trim())
         const userData: Partial<UserData> = {}
 
         headers.forEach((header, index) => {

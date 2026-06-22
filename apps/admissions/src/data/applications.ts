@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/services/client'
 import { applicationService } from '@/services/applications'
-import { adminDashboardService } from '@/services/admin/dashboard'
+import { fetchDashboardStats, POLLING_INTERVAL } from '@/hooks/useAdminDashboardPolling'
 import { sanitizeForLog, sanitizeFilePath } from '@/lib/security'
 import type { Application } from '@/types/database'
 import { logger } from '@/lib/logger'
@@ -141,37 +141,40 @@ export const applicationsData = {
     })
   },
 
-  // Get dashboard stats
+  // Get dashboard stats.
+  //
+  // R11: `useAdminDashboardPolling` is the sole owner of admin dashboard metric
+  // refetching. This is a pure *consumer* of the shared
+  // ['admin-dashboard-polling'] React Query cache (mirroring useAdminPendingCount)
+  // — it issues no polling of its own (no refetchInterval). When the dashboard
+  // owner is mounted, its interval drives refetches and React Query dedups the
+  // shared key; on failure the last-good cached stats are retained and surfaced
+  // via query.error without crashing. On unmount the query unsubscribes.
   useStats: () => {
     return useQuery({
-      queryKey: QUERY_KEYS.applicationStats,
-      queryFn: async () => {
-        try {
-          const overview = await adminDashboardService.getOverview()
-          const stats = overview.stats
-          const totalReviewed = (stats.approvedApplications ?? 0) + (stats.rejectedApplications ?? 0)
-          const approvalRate = totalReviewed > 0
-            ? Number((((stats.approvedApplications ?? 0) / totalReviewed) * 100).toFixed(1))
-            : 0
+      queryKey: ['admin-dashboard-polling'],
+      queryFn: fetchDashboardStats,
+      select: (data) => {
+        const stats = data.stats
+        const approved = stats?.approvedApplications ?? 0
+        const rejected = stats?.rejectedApplications ?? 0
+        const totalReviewed = approved + rejected
+        const approvalRate = totalReviewed > 0
+          ? Number(((approved / totalReviewed) * 100).toFixed(1))
+          : 0
 
-          return {
-            totalApplications: stats?.totalApplications ?? 0,
-            todayApplications: stats?.todayApplications ?? 0,
-            pendingReviews: stats?.pendingApplications ?? 0,
-            approvalRate,
-            avgProcessingTime: stats?.avgProcessingTime ?? 0,
-            systemHealth: stats?.systemHealth ?? 'good',
-            activeUsers: stats?.activeUsers ?? 0
-          }
-        } catch (error: unknown) {
-          const message = toError(error).message
-          logger.error('Stats fetch error:', sanitizeForLog(message))
-          throw error
+        return {
+          totalApplications: stats?.totalApplications ?? 0,
+          todayApplications: stats?.todayApplications ?? 0,
+          pendingReviews: stats?.pendingApplications ?? 0,
+          approvalRate,
+          avgProcessingTime: stats?.avgProcessingTime ?? 0,
+          systemHealth: stats?.systemHealth ?? 'good',
+          activeUsers: stats?.activeUsers ?? 0,
         }
       },
-      staleTime: 60_000,
+      staleTime: POLLING_INTERVAL / 2,
       gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
-      refetchInterval: 60000,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       retry: (failureCount: number, error: unknown) => {

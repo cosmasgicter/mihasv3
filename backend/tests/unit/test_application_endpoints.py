@@ -176,7 +176,14 @@ class TestApplicationVerifyDocument:
         assert body["success"] is True
         assert "data" in body
         document.save.assert_called_once()
-        mock_audit.create.assert_called_once()
+        # Legacy audit row plus the additive tenant Audit_Event
+        # (enterprise-tenant-authority R10.5/R10.8) both route through
+        # AuditLog.objects.create; assert the legacy row was written.
+        legacy_calls = [
+            c for c in mock_audit.create.call_args_list
+            if c.kwargs.get("entity_type") == "application_documents"
+        ]
+        assert len(legacy_calls) == 1
 
     @patch(_APP)
     def test_missing_application_returns_404(self, mock_app_qs):
@@ -304,8 +311,15 @@ class TestApplicationVerifyDocument:
         )
         self.view(request, application_id=app_id)
 
-        mock_audit.create.assert_called_once()
-        call_kwargs = mock_audit.create.call_args[1]
+        # Legacy audit row plus the additive tenant Audit_Event
+        # (enterprise-tenant-authority R10.5/R10.8). Locate the legacy
+        # document-verification row among the calls and assert its fields.
+        legacy_calls = [
+            c for c in mock_audit.create.call_args_list
+            if c.kwargs.get("entity_type") == "application_documents"
+        ]
+        assert len(legacy_calls) == 1
+        call_kwargs = legacy_calls[0].kwargs
         assert call_kwargs["entity_type"] == "application_documents"
         assert call_kwargs["actor_id"] == str(self.admin.id)
         assert call_kwargs["action"] == "document_verified"

@@ -9,6 +9,9 @@ from ._locks import acquire_task_lock, release_task_lock
 
 logger = logging.getLogger(__name__)
 
+# Bound the per-run work (system-performance-hardening R6.4).
+MAX_CONDITIONS_PER_RUN = 50
+
 
 @shared_task(bind=True, max_retries=0, soft_time_limit=300, time_limit=360)
 def condition_expiry_task(self):
@@ -18,6 +21,12 @@ def condition_expiry_task(self):
     status 'pending', transitions each to 'expired', notifies the student,
     and checks if all conditions for the application are now resolved.
     If all resolved and any expired -> auto-reject via ConditionManager.
+
+    Persistence is batched (system-performance-hardening R6.4): every expired
+    condition's ``status`` is written with a single ``bulk_update`` and the
+    student notifications/emails with a single bulk insert each. The per-app
+    ``auto_promote_if_all_met`` step stays per-row because it carries its own
+    locking and forward-only transition logic that is not safe to batch.
     Requirements: 5.6, 5.7, 5.8
     """
     if not acquire_task_lock("condition_expiry_task"):
@@ -25,70 +34,98 @@ def condition_expiry_task(self):
         return
     try:
         from apps.applications.condition_manager import ConditionManager
-        from apps.applications.models import Application, ApplicationCondition
-        from apps.common.outbox import create_notification, queue_email
+        from apps.applications.models import ApplicationCondition
+        from apps.common.outbox import create_notifications_bulk, queue_emails_bulk
 
         logger.info("condition_expiry_task: starting")
-        today = timezone.now().date()
+        now = timezone.now()
+        today = now.date()
 
-        expired_conditions = ApplicationCondition.objects.filter(
-            status="pending",
-            deadline__lt=today,
-        ).select_related("application")
+        expired_conditions = list(
+            ApplicationCondition.objects.filter(
+                status="pending",
+                deadline__lt=today,
+            ).select_related("application")[:MAX_CONDITIONS_PER_RUN]
+        )
+
+        conditions_to_update = []
+        notification_specs = []
+        email_specs = []
         affected_app_ids = set()
 
-        expired_count = 0
-        auto_rejected = 0
-
         for condition in expired_conditions:
-            if expired_count >= 200:
-                break
             try:
                 affected_app_ids.add(condition.application_id)
                 # Use setattr to avoid triggering the payment sole-authority
                 # grep guard (this is an ApplicationCondition, not a Payment).
                 setattr(condition, "status", "expired")
-                condition.save(update_fields=["status", "updated_at"])
-                expired_count += 1
+                # bulk_update does not honour auto_now, so set updated_at here.
+                condition.updated_at = now
+                conditions_to_update.append(condition)
 
                 application = condition.application
-                dedup_key = f"condition_expired_{condition.id}"
-
-                create_notification(
-                    user_id=application.user_id,
-                    title="Condition Deadline Passed",
-                    message=(
-                        f"A condition for your application {application.application_number} "
-                        f"for {application.program} has expired: {condition.description}. "
-                        f"Please log in to check your application status."
-                    ),
-                    type="warning",
-                    priority="high",
-                    action_url=f"/student/application/{application.id}",
-                    idempotency_key=dedup_key,
+                notification_specs.append(
+                    {
+                        "user_id": application.user_id,
+                        "title": "Condition Deadline Passed",
+                        "message": (
+                            f"A condition for your application {application.application_number} "
+                            f"for {application.program} has expired: {condition.description}. "
+                            f"Please log in to check your application status."
+                        ),
+                        "type": "warning",
+                        "priority": "high",
+                        "action_url": f"/student/application/{application.id}",
+                        "idempotency_key": f"condition_expired_{condition.id}",
+                    }
                 )
-
-                queue_email(
-                    recipient_email=application.email,
-                    subject=f"Condition Deadline Passed — {application.program}",
-                    body=(
-                        f"<p>Dear {application.full_name},</p>"
-                        f"<p>A condition for your application to "
-                        f"<strong>{application.program}</strong> has expired:</p>"
-                        f"<p><strong>{condition.description}</strong> "
-                        f"(deadline: {condition.deadline})</p>"
-                        f"<p>Please log in to check your application status.</p>"
-                        f"<p>Best regards,<br>Beanola Admissions</p>"
-                    ),
+                email_specs.append(
+                    {
+                        "recipient_email": application.email,
+                        "subject": f"Condition Deadline Passed — {application.program}",
+                        "body": (
+                            f"<p>Dear {application.full_name},</p>"
+                            f"<p>A condition for your application to "
+                            f"<strong>{application.program}</strong> has expired:</p>"
+                            f"<p><strong>{condition.description}</strong> "
+                            f"(deadline: {condition.deadline})</p>"
+                            f"<p>Please log in to check your application status.</p>"
+                            f"<p>Best regards,<br>Beanola Admissions</p>"
+                        ),
+                    }
                 )
-
             except Exception:
                 logger.exception(
-                    "Failed to expire condition %s for application %s",
-                    condition.id,
-                    condition.application_id,
+                    "Failed to prepare expiry for condition %s on application %s",
+                    getattr(condition, "id", None),
+                    getattr(condition, "application_id", None),
                 )
 
+        expired_count = len(conditions_to_update)
+
+        # Single bulk persistence + single bulk notify/email.
+        if conditions_to_update:
+            try:
+                ApplicationCondition.objects.bulk_update(
+                    conditions_to_update, ["status", "updated_at"]
+                )
+            except Exception:
+                logger.exception("condition_expiry_task: bulk condition update failed")
+                expired_count = 0
+
+        if expired_count:
+            try:
+                create_notifications_bulk(notification_specs)
+            except Exception:
+                logger.exception("condition_expiry_task: bulk notification insert failed")
+            try:
+                queue_emails_bulk(email_specs)
+            except Exception:
+                logger.exception("condition_expiry_task: bulk email insert failed")
+
+        # Per-app auto-promote/reject check (retained per-row: own locking +
+        # forward-only transition rules, not safe to batch).
+        auto_rejected = 0
         for app_id in affected_app_ids:
             try:
                 promoted = ConditionManager.auto_promote_if_all_met(str(app_id))

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react'
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
 
@@ -105,6 +105,10 @@ export function VirtualizedApplicationsGrid({
   const columns = useResponsiveColumns()
   const totalRows = Math.ceil(applications.length / columns)
 
+  // Memoized Set for O(1) selection-membership checks (equivalent to
+  // selectedIds.includes(id) over the identical collection).
+  const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds])
+
   const { focusedRowIndex, setFocusedRowIndex, handleRowKeyDown } = useGridKeyboardNav(
     totalRows,
     columns,
@@ -151,7 +155,7 @@ export function VirtualizedApplicationsGrid({
               onViewDetails={onViewDetails}
               updatingStatus={updatingStatusId === app.id}
               updatingPayment={updatingPaymentId === app.id}
-              isSelected={selectedIds.includes(app.id)}
+              isSelected={selectedIdSet.has(app.id)}
               onSelect={onSelectionChange ? handleSelect : undefined}
             />
           </div>
@@ -217,7 +221,7 @@ export function VirtualizedApplicationsGrid({
                       onViewDetails={onViewDetails}
                       updatingStatus={updatingStatusId === app.id}
                       updatingPayment={updatingPaymentId === app.id}
-                      isSelected={selectedIds.includes(app.id)}
+                      isSelected={selectedIdSet.has(app.id)}
                       onSelect={onSelectionChange ? handleSelect : undefined}
                     />
                   </div>

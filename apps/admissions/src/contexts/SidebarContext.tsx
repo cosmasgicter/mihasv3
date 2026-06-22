@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS, getStorageItemWithLegacyFallback } from '@/lib/browserNamespace'
 
 interface SidebarContextType {
   collapsed: boolean
@@ -8,7 +9,8 @@ interface SidebarContextType {
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
-const SIDEBAR_STORAGE_KEY = 'mihas:sidebar-collapsed'
+const SIDEBAR_STORAGE_KEY = BROWSER_KEYS.sidebarCollapsed
+const LEGACY_SIDEBAR_STORAGE_KEY = LEGACY_BROWSER_KEYS.sidebarCollapsed
 
 function getInitialCollapsedState() {
   if (typeof window === 'undefined') {
@@ -16,7 +18,11 @@ function getInitialCollapsedState() {
   }
 
   try {
-    return window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true'
+    return getStorageItemWithLegacyFallback(
+      window.localStorage,
+      SIDEBAR_STORAGE_KEY,
+      [LEGACY_SIDEBAR_STORAGE_KEY],
+    ) === 'true'
   } catch {
     return false
   }
@@ -37,6 +43,7 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     try {
       window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(collapsed))
+      window.localStorage.removeItem(LEGACY_SIDEBAR_STORAGE_KEY)
     } catch {
     }
   }, [collapsed])

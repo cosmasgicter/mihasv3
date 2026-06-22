@@ -20,6 +20,7 @@ import { clearCsrfToken } from '@/lib/csrfToken'
 import { clearSession } from '@/lib/secureStorage'
 import { broadcastLogin, broadcastLogout } from '@/lib/authBroadcast'
 import { resetAuthFailureDebounce } from '@/lib/sessionHardening'
+import { BROWSER_EVENTS, BROWSER_KEYS, LEGACY_BROWSER_KEYS, removeStorageItemAndLegacy } from '@/lib/browserNamespace'
 import {
   buildProfileFromUser,
   fetchCurrentProfile,
@@ -219,12 +220,12 @@ export function useSessionListener() {
     try { await clearSession() } catch { /* best-effort */ }
 
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('mihas:post-auth-redirect')
-      sessionStorage.removeItem('mihas:post-auth-redirect')
-      localStorage.removeItem('mihas:wizard-auth-redirect-guard')
-      sessionStorage.removeItem('mihas:wizard-auth-redirect-guard')
+      removeStorageItemAndLegacy(localStorage, BROWSER_KEYS.postAuthRedirect, [LEGACY_BROWSER_KEYS.postAuthRedirect])
+      removeStorageItemAndLegacy(sessionStorage, BROWSER_KEYS.postAuthRedirect, [LEGACY_BROWSER_KEYS.postAuthRedirect])
+      removeStorageItemAndLegacy(localStorage, BROWSER_KEYS.wizardAuthRedirectGuard, [LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard])
+      removeStorageItemAndLegacy(sessionStorage, BROWSER_KEYS.wizardAuthRedirectGuard, [LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard])
       window.dispatchEvent(new CustomEvent('authSignedOut'))
-      window.dispatchEvent(new CustomEvent('mihas:auth-redirect', {
+      window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.authRedirect, {
         detail: { to: '/auth/signin', replace: true },
       }))
     }

@@ -1,6 +1,6 @@
 {
-  "name": "@mihas/student-portal",
+  "name": "@beanola/student-portal",
   "version": "0.1.0",
   "private": true,
-  "description": "MIHAS student management system — future project"
+  "description": "Beanola student management system — future project"
 }

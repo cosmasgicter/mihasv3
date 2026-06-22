@@ -1,0 +1,40 @@
+{
+  "data": {
+    "after": "<volatile>",
+    "pageSize": 20,
+    "results": [
+      {
+        "action_url": null,
+        "created_at": "<volatile>",
+        "id": "<volatile>",
+        "is_read": false,
+        "message": "<volatile>",
+        "read_at": "<volatile>",
+        "title": "<volatile>",
+        "type": "info"
+      },
+      {
+        "action_url": null,
+        "created_at": "<volatile>",
+        "id": "<volatile>",
+        "is_read": false,
+        "message": "<volatile>",
+        "read_at": "<volatile>",
+        "title": "<volatile>",
+        "type": "info"
+      },
+      {
+        "action_url": null,
+        "created_at": "<volatile>",
+        "id": "<volatile>",
+        "is_read": false,
+        "message": "<volatile>",
+        "read_at": "<volatile>",
+        "title": "<volatile>",
+        "type": "info"
+      }
+    ],
+    "totalCount": null
+  },
+  "success": true
+}

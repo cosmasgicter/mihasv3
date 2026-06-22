@@ -146,6 +146,28 @@ class ApplicationVerifyDocumentView(APIView):
             retention_category="standard",
         )
 
+        # R10.5/R10.8: emit an institution-scoped tenant Audit_Event so a
+        # tenant admin can read document-verification activity for their own
+        # school (filtered on ``changes.institution_id``). Never blocks the
+        # decision — TenantAuditService swallows writer failures.
+        try:
+            from apps.catalog.tenant_audit_service import TenantAuditService
+
+            TenantAuditService.record_document_verification(
+                document_id=document.id,
+                application_id=application.id,
+                institution_id=getattr(application, "institution_ref_id", None),
+                old_status=old_status,
+                new_status=verification_status,
+                document_type=document.document_type,
+                actor_id=getattr(request.user, "id", None),
+                actor_role=getattr(request.user, "role", None),
+                reason=notes,
+                request=request,
+            )
+        except Exception:  # pragma: no cover - audit must never block a write
+            pass
+
         try:
             from apps.common.communication_service import CommunicationService
             app = Application.objects.filter(id=document.application_id).first()
@@ -153,7 +175,7 @@ class ApplicationVerifyDocumentView(APIView):
                 template = 'document_verified' if verification_status == 'verified' else 'document_rejected'
                 CommunicationService.send(template, app, {'document_name': document.document_type or 'Document'})
         except Exception:
-            pass
+            logger.warning("Failed to send document verification notification for document=%s", document.id, exc_info=True)
 
         return Response({"success": True, "data": DocumentSerializer(document).data})
 

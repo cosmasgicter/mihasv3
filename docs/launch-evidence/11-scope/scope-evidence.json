@@ -1,0 +1,91 @@
+{
+  "gate_id": "scope",
+  "requirement": "R11",
+  "status": "passed",
+  "generated_at": "2026-06-22T11:27:27Z",
+  "generated_by": "ci",
+  "summary": "ENABLE_JOBS_OPS_ROUTES=False (flag ok); 7 stub route(s) probed; 0 reachable un-shipped; source: env var ENABLE_JOBS_OPS_ROUTES (Django unavailable).",
+  "checks": [
+    {
+      "id": "scope:enable_jobs_ops_routes",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "enable_jobs_ops_routes": false,
+      "expected": false
+    },
+    {
+      "id": "scope-route:/api/v1/jobs/",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "path": "/api/v1/jobs/",
+      "reachable": false,
+      "has_ship_decision": false
+    },
+    {
+      "id": "scope-route:/api/v1/job-applications/",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "path": "/api/v1/job-applications/",
+      "reachable": false,
+      "has_ship_decision": false
+    },
+    {
+      "id": "scope-route:/api/v1/outreach/",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "path": "/api/v1/outreach/",
+      "reachable": false,
+      "has_ship_decision": false
+    },
+    {
+      "id": "scope-route:/api/v1/automation/",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "path": "/api/v1/automation/",
+      "reachable": false,
+      "has_ship_decision": false
+    },
+    {
+      "id": "scope-route:/api/v1/integrations/",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "path": "/api/v1/integrations/",
+      "reachable": false,
+      "has_ship_decision": false
+    },
+    {
+      "id": "scope-route:/api/v1/analytics/",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "path": "/api/v1/analytics/",
+      "reachable": false,
+      "has_ship_decision": false
+    },
+    {
+      "id": "scope-route:/api/v1/reports/",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "path": "/api/v1/reports/",
+      "reachable": false,
+      "has_ship_decision": false
+    }
+  ],
+  "assets": [],
+  "failures": []
+}

@@ -19,7 +19,9 @@ import {
 } from '@/components/ui/skeletons'
 import { isLightweightPublicRoute } from '@/lib/routeRuntime'
 import { startLoaderTelemetry } from '@/lib/loaderTelemetry'
+import { BROWSER_EVENTS, LEGACY_BROWSER_EVENTS, listenWithLegacyEventFallback } from '@/lib/browserNamespace'
 import { useAuth } from '@/contexts/AuthContext'
+import { CapabilityProvider } from '@/contexts/CapabilityContext'
 import { useDeferredHydration } from '@/hooks/useDeferredHydration'
 import { SafeAreaProvider } from '@/components/ui/SafeAreaProvider'
 import { queryClient } from '@/lib/queryClient'
@@ -92,7 +94,11 @@ function renderRoute(route: RouteConfig) {
     case 'student':
       return <StudentRoute>{routeElement}</StudentRoute>
     case 'admin':
-      return <AdminRoute>{routeElement}</AdminRoute>
+      return (
+        <AdminRoute requireSuperAdmin={route.requiresSuperAdmin}>
+          {routeElement}
+        </AdminRoute>
+      )
     default:
       return routeElement
   }
@@ -141,8 +147,12 @@ function RoutedAuthenticatedApp() {
       navigate(destination, { replace: customEvent.detail?.replace ?? true })
     }
 
-    window.addEventListener('mihas:auth-redirect', handleAuthRedirect)
-    return () => window.removeEventListener('mihas:auth-redirect', handleAuthRedirect)
+    return listenWithLegacyEventFallback(
+      window,
+      BROWSER_EVENTS.authRedirect,
+      [LEGACY_BROWSER_EVENTS.authRedirect],
+      handleAuthRedirect,
+    )
   }, [navigate])
 
   const routesMarkup = (
@@ -171,9 +181,16 @@ function RoutedAuthenticatedApp() {
           {isLightweightRoute ? (
             routesMarkup
           ) : (
-            <Suspense fallback={layoutFallback}>
-              <AppLayout>{routesMarkup}</AppLayout>
-            </Suspense>
+            // CapabilityProvider wraps the whole authenticated layout (not just
+            // routed page content) so the navigation surfaces and the admin
+            // route guard can derive from the same backend capability set
+            // (enterprise-tenant-authority R13). The query only fetches for
+            // admins; everyone else gets the fail-closed no-access default.
+            <CapabilityProvider>
+              <Suspense fallback={layoutFallback}>
+                <AppLayout>{routesMarkup}</AppLayout>
+              </Suspense>
+            </CapabilityProvider>
           )}
         </div>
       </RouteErrorBoundary>

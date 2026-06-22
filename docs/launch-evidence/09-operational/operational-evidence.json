@@ -1,0 +1,264 @@
+{
+  "gate_id": "operational-readiness",
+  "requirement": "R9",
+  "status": "passed",
+  "generated_at": "2026-06-22T11:26:48Z",
+  "generated_by": "operator",
+  "summary": "Operational_Readiness_Gate PASSED (synthetic dry-run): all 14 settings satisfied; 12 credential(s) recorded present/absent (names only).",
+  "checks": [
+    {
+      "id": "operational:debug",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "setting": "DEBUG",
+      "debug_disabled": true
+    },
+    {
+      "id": "operational:secret_key",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "setting": "SECRET_KEY",
+      "min_length": 50,
+      "length_ok": true,
+      "is_example": false
+    },
+    {
+      "id": "operational:secure_cookies",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "",
+      "detail": "",
+      "setting": "SECURE_COOKIES",
+      "present": true
+    },
+    {
+      "id": "operational:trusted_origins",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "",
+      "detail": "",
+      "setting": "CSRF_TRUSTED_ORIGINS",
+      "present": true
+    },
+    {
+      "id": "operational:cors_allowed_hosts",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "",
+      "detail": "",
+      "setting": "CORS_ALLOWED_ORIGINS",
+      "present": true
+    },
+    {
+      "id": "operational:csrf_allowed_hosts",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "",
+      "detail": "",
+      "setting": "CSRF_ALLOWED_HOSTS",
+      "present": true
+    },
+    {
+      "id": "operational:https_redirect",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "",
+      "detail": "",
+      "setting": "SECURE_SSL_REDIRECT",
+      "present": true
+    },
+    {
+      "id": "operational:csp",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "",
+      "detail": "",
+      "setting": "CONTENT_SECURITY_POLICY",
+      "present": true
+    },
+    {
+      "id": "operational:hsts",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "",
+      "detail": "",
+      "setting": "SECURE_HSTS_SECONDS",
+      "min_seconds": 31536000,
+      "present": true
+    },
+    {
+      "id": "operational:rate_limits",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "setting": "PER_USER_RATE_LIMITS",
+      "endpoint_count": 12,
+      "failing_endpoints": []
+    },
+    {
+      "id": "operational:audit_retention",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "setting": "AUDIT_RETENTION_DAYS",
+      "standard_required": 90,
+      "security_required": 365
+    },
+    {
+      "id": "operational:backup_drill",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "setting": "BACKUP_RESTORE_DRILL",
+      "rto_max_minutes": 60,
+      "rpo_max_row_variance": 0
+    },
+    {
+      "id": "operational:asset_upload_validation",
+      "result": "pass",
+      "observed": "",
+      "threshold": "",
+      "detail": "",
+      "setting": "TENANT_ASSET_UPLOAD_VALIDATION",
+      "rejects_disallowed": true
+    },
+    {
+      "id": "operational:break_glass_doc",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "",
+      "detail": "",
+      "setting": "SUPER_ADMIN_BREAK_GLASS_DOC",
+      "present": true
+    },
+    {
+      "id": "operational:credential:AI_GATEWAY_API_KEY",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "present",
+      "detail": "",
+      "name": "AI_GATEWAY_API_KEY",
+      "present": true,
+      "required": true
+    },
+    {
+      "id": "operational:credential:AUDIT_LOG_ENCRYPTION_KEY",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "present",
+      "detail": "",
+      "name": "AUDIT_LOG_ENCRYPTION_KEY",
+      "present": true,
+      "required": true
+    },
+    {
+      "id": "operational:credential:AWS_S3_ACCESS_KEY_ID",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "present",
+      "detail": "",
+      "name": "AWS_S3_ACCESS_KEY_ID",
+      "present": true,
+      "required": true
+    },
+    {
+      "id": "operational:credential:AWS_S3_SECRET_ACCESS_KEY",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "present",
+      "detail": "",
+      "name": "AWS_S3_SECRET_ACCESS_KEY",
+      "present": true,
+      "required": true
+    },
+    {
+      "id": "operational:credential:DATABASE_URL",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "present",
+      "detail": "",
+      "name": "DATABASE_URL",
+      "present": true,
+      "required": true
+    },
+    {
+      "id": "operational:credential:EMAIL_HOST_PASSWORD",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "present",
+      "detail": "",
+      "name": "EMAIL_HOST_PASSWORD",
+      "present": true,
+      "required": true
+    },
+    {
+      "id": "operational:credential:GLITCHTIP_DSN",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "optional",
+      "detail": "",
+      "name": "GLITCHTIP_DSN",
+      "present": true,
+      "required": false
+    },
+    {
+      "id": "operational:credential:LENCO_API_SECRET_KEY",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "present",
+      "detail": "",
+      "name": "LENCO_API_SECRET_KEY",
+      "present": true,
+      "required": true
+    },
+    {
+      "id": "operational:credential:LENCO_PUBLIC_KEY",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "present",
+      "detail": "",
+      "name": "LENCO_PUBLIC_KEY",
+      "present": true,
+      "required": true
+    },
+    {
+      "id": "operational:credential:REDIS_URL",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "present",
+      "detail": "",
+      "name": "REDIS_URL",
+      "present": true,
+      "required": true
+    },
+    {
+      "id": "operational:credential:RESEND_API_KEY",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "optional",
+      "detail": "",
+      "name": "RESEND_API_KEY",
+      "present": true,
+      "required": false
+    },
+    {
+      "id": "operational:credential:SECRET_KEY",
+      "result": "pass",
+      "observed": "present",
+      "threshold": "present",
+      "detail": "",
+      "name": "SECRET_KEY",
+      "present": true,
+      "required": true
+    }
+  ],
+  "assets": [],
+  "failures": []
+}

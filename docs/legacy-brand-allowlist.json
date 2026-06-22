@@ -45,7 +45,7 @@
     {
       "path": "backend/apps/documents/payment_helpers.py",
       "classification": "named legacy-compatibility code with a guard",
-      "reason": "Comment noting legacy MIHAS- payment references stay matchable, plus the Lenco 'User-Agent: MIHAS/2.0' product token. New references use the BNL- prefix. Cannot be removed: changing the product token / dropping legacy-reference matching would break reconciliation of pre-existing payments."
+      "reason": "Comment noting legacy MIHAS- payment references stay matchable. New references use the BNL- prefix and outbound payment HTTP calls identify as Beanola. Cannot be removed: dropping legacy-reference matching would break reconciliation of pre-existing payments."
     },
     {
       "path": "backend/apps/documents/payment_service.py",
@@ -88,29 +88,9 @@
       "reason": "Client preview PDF type docstrings with MIHAS/KATC examples. Preview content only, unreachable from official-download paths (R6.3)."
     },
     {
-      "path": "apps/admissions/src/lib/pdf/README.md",
-      "classification": "historical archived document",
-      "reason": "Historical documentation for the MIHAS-KATC client PDF document system. Archived doc describing the preview/draft PDF system; not active runtime code."
-    },
-    {
       "path": "apps/admissions/src/lib/pdf/theme/index.ts",
       "classification": "dev/PDF-preview fixture not reachable from official-download paths",
       "reason": "Client preview PDF theme: MIHAS/KATC registered as preview tenant data, with info@mihas.edu.zm / info@katc.edu.zm tenant contacts. Unknown institutions fall back to a Beanola-generic preview; MIHAS is never silently rendered for an unknown school (R2.5). Preview-only, unreachable from official-download paths (R6.3)."
-    },
-    {
-      "path": "apps/admissions/src/lib/pdf/theme/colors.ts",
-      "classification": "dev/PDF-preview fixture not reachable from official-download paths",
-      "reason": "Client preview PDF theme banner ('MIHAS-KATC PDF Color System'). Preview theme asset reference, unreachable from official-download paths (R6.3)."
-    },
-    {
-      "path": "apps/admissions/src/lib/pdf/theme/spacing.ts",
-      "classification": "dev/PDF-preview fixture not reachable from official-download paths",
-      "reason": "Client preview PDF theme banner ('MIHAS-KATC PDF Spacing System'). Preview theme asset reference, unreachable from official-download paths (R6.3)."
-    },
-    {
-      "path": "apps/admissions/src/lib/pdf/theme/typography.ts",
-      "classification": "dev/PDF-preview fixture not reachable from official-download paths",
-      "reason": "Client preview PDF theme banner ('MIHAS-KATC PDF Typography System'). Preview theme asset reference, unreachable from official-download paths (R6.3)."
     },
     {
       "path": "apps/admissions/src/lib/pdf/components/SignatureBlock.tsx",

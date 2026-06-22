@@ -69,6 +69,12 @@ export const ERROR_CODE_MESSAGES: Record<string, string> = {
   SELF_DEACTIVATION_FORBIDDEN: 'You cannot deactivate your own account.',
   DUPLICATE_EMAIL: 'An account with this email already exists.',
 
+  // Enterprise tenant authority (capability resolution + scoped staff management)
+  CAPABILITY_RESOLUTION_FAILED: 'Your access could not be verified. Please try again or contact your administrator.',
+  STAFF_INVITE_FORBIDDEN: 'You cannot invite a user with that role into that institution.',
+  STAFF_CREATION_FAILED: 'The staff account could not be created. No changes were saved.',
+  INSTITUTION_OVERRIDE_NOT_PERMITTED: 'The selected institution does not match this school. Please try again.',
+
   // Validation
   VALIDATION_ERROR: 'Some of the details are not valid. Please review and try again.',
   INVALID_FORMAT: 'Invalid format. Please check your input.',

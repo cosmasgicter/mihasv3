@@ -1,0 +1,57 @@
+{
+  "data": {
+    "page": 1,
+    "pageSize": 20,
+    "results": [
+      {
+        "available_offerings": [
+          {
+            "accreditation_status": null,
+            "application_fee": "153.00",
+            "assignment_priority": 100,
+            "canonical_program_id": "<volatile>",
+            "code": "<volatile>",
+            "created_at": "<volatile>",
+            "duration_months": 36,
+            "id": "<volatile>",
+            "institution": {
+              "accreditation_status": null,
+              "address": null,
+              "code": "<volatile>",
+              "created_at": "<volatile>",
+              "description": "<volatile>",
+              "email": "<volatile>",
+              "full_name": "<volatile>",
+              "id": "<volatile>",
+              "is_active": true,
+              "name": "<volatile>",
+              "phone": "<volatile>",
+              "type": null,
+              "updated_at": "<volatile>",
+              "website": null
+            },
+            "institution_id": "<volatile>",
+            "is_active": true,
+            "name": "<volatile>",
+            "offering_status": "active",
+            "regulatory_body": null,
+            "requirements": {},
+            "tuition_fee": null,
+            "updated_at": "<volatile>"
+          }
+        ],
+        "code": "<volatile>",
+        "created_at": "<volatile>",
+        "description": "<volatile>",
+        "duration_months": 36,
+        "id": "<volatile>",
+        "is_active": true,
+        "name": "<volatile>",
+        "regulatory_body": "NMCZ",
+        "updated_at": "<volatile>"
+      }
+    ],
+    "totalCount": 1
+  },
+  "success": true
+}

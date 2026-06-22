@@ -34,10 +34,21 @@ logger = logging.getLogger(__name__)
 class PaymentVerificationMixin:
     """Mixin for payment verification and webhook methods."""
 
-    def verify_payment(self, payment_id: UUID) -> PaymentVerificationResult:
+    def verify_payment(
+        self,
+        payment_id: UUID,
+        *,
+        lenco_timeout: Optional[int] = None,
+        lenco_max_retries: int = 0,
+    ) -> PaymentVerificationResult:
         """Call the Lenco API to verify payment status and update records.
 
         Raises ``Payment.DoesNotExist`` when the payment is not found.
+
+        ``lenco_timeout`` / ``lenco_max_retries`` bound the external provider
+        call. Defaults (``_LENCO_TIMEOUT`` / no retries) preserve the historical
+        interactive behaviour; the payment poll task passes a <=10s timeout and
+        <=2 retries (R6.2).
         """
         payment = Payment.objects.get(id=payment_id)
 
@@ -67,7 +78,13 @@ class PaymentVerificationMixin:
                 payment_method=None, error='Payment processing is unavailable.',
             )
 
-        data, error = _call_lenco_collection_status(reference, api_secret, base_url, _LENCO_TIMEOUT)
+        data, error = _call_lenco_collection_status(
+            reference,
+            api_secret,
+            base_url,
+            lenco_timeout if lenco_timeout is not None else _LENCO_TIMEOUT,
+            max_retries=lenco_max_retries,
+        )
         if error is not None:
             return PaymentVerificationResult(
                 status=payment.status, amount=payment.amount,
@@ -185,12 +202,26 @@ class PaymentVerificationMixin:
                 )
 
     def verify(
-        self, payment_id: UUID, actor_id: Optional[UUID] = None
+        self,
+        payment_id: UUID,
+        actor_id: Optional[UUID] = None,
+        *,
+        lenco_timeout: Optional[int] = None,
+        lenco_max_retries: int = 0,
     ) -> PaymentVerificationResult:
-        """Hardened verify: routes through ``_transition`` for successful outcomes."""
+        """Hardened verify: routes through ``_transition`` for successful outcomes.
+
+        ``lenco_timeout`` / ``lenco_max_retries`` bound the external provider
+        call. Defaults preserve the interactive single-attempt behaviour; the
+        payment poll task passes a <=10s timeout and <=2 retries (R6.2).
+        """
         if not _forward_only_enabled():
             # LEGACY: preserve existing behaviour byte-for-byte.
-            return self.verify_payment(payment_id)
+            return self.verify_payment(
+                payment_id,
+                lenco_timeout=lenco_timeout,
+                lenco_max_retries=lenco_max_retries,
+            )
 
         payment = Payment.objects.get(id=payment_id)
 
@@ -233,7 +264,11 @@ class PaymentVerificationMixin:
             )
 
         data, error = _call_lenco_collection_status(
-            reference, api_secret, base_url, _LENCO_TIMEOUT,
+            reference,
+            api_secret,
+            base_url,
+            lenco_timeout if lenco_timeout is not None else _LENCO_TIMEOUT,
+            max_retries=lenco_max_retries,
         )
         if error is not None:
             return PaymentVerificationResult(

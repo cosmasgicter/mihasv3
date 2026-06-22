@@ -1,15 +1,31 @@
 import React, { Component, type ReactNode } from 'react'
 import { evaluateChunkAutoReloadPolicy } from '@/lib/chunkAutoReloadPolicy'
-import { logger } from '@/lib/logger'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 
 // Session storage keys for chunk auto-reload state
-const SS_RELOAD_GUARD = 'mihas_chunk_reload'
-const SS_RELOAD_TS = 'mihas_chunk_reload_ts'
-const SS_RELOAD_COUNT = 'mihas_chunk_reload_count'
+const SS_RELOAD_GUARD = BROWSER_KEYS.chunkReloadGuard
+const SS_RELOAD_TS = BROWSER_KEYS.chunkReloadTs
+const SS_RELOAD_COUNT = BROWSER_KEYS.chunkReloadCount
+const LEGACY_SS_RELOAD_GUARD = LEGACY_BROWSER_KEYS.chunkReloadGuard
+const LEGACY_SS_RELOAD_TS = LEGACY_BROWSER_KEYS.chunkReloadTs
+const LEGACY_SS_RELOAD_COUNT = LEGACY_BROWSER_KEYS.chunkReloadCount
 
 // Policy defaults
 const MAX_PER_SESSION = 3
 const COOLDOWN_MS = 30_000
+
+const logChunkReloadWarning = (message: string, context?: unknown): void => {
+  if (import.meta.env.DEV) {
+    console.warn(message, context)
+    return
+  }
+
+  void import('@/lib/logger')
+    .then(({ logger }) => logger.warn(message, context))
+    .catch(() => {
+      // Chunk recovery should keep working even if telemetry cannot load.
+    })
+}
 
 interface Props {
   children: ReactNode
@@ -48,8 +64,12 @@ export class LazyLoadErrorBoundary extends Component<Props, State> {
     let reloadCount = 0
     let lastReloadAt = 0
     try {
-      const storedCount = window.sessionStorage.getItem(SS_RELOAD_COUNT)
-      const storedTs = window.sessionStorage.getItem(SS_RELOAD_TS)
+      const storedCount =
+        window.sessionStorage.getItem(SS_RELOAD_COUNT) ??
+        window.sessionStorage.getItem(LEGACY_SS_RELOAD_COUNT)
+      const storedTs =
+        window.sessionStorage.getItem(SS_RELOAD_TS) ??
+        window.sessionStorage.getItem(LEGACY_SS_RELOAD_TS)
       if (storedCount !== null) reloadCount = Number(storedCount) || 0
       if (storedTs !== null) lastReloadAt = Number(storedTs) || 0
     } catch {
@@ -78,13 +98,16 @@ export class LazyLoadErrorBoundary extends Component<Props, State> {
         window.sessionStorage.setItem(SS_RELOAD_COUNT, String(reloadCount + 1))
         window.sessionStorage.setItem(SS_RELOAD_TS, String(now))
         window.sessionStorage.setItem(SS_RELOAD_GUARD, '1')
+        window.sessionStorage.removeItem(LEGACY_SS_RELOAD_COUNT)
+        window.sessionStorage.removeItem(LEGACY_SS_RELOAD_TS)
+        window.sessionStorage.removeItem(LEGACY_SS_RELOAD_GUARD)
       } catch {
         // best effort persistence
       }
-      logger.warn('Auto-reloading due to stale chunk...', { route, reloadCount: reloadCount + 1 })
+      logChunkReloadWarning('Auto-reloading due to stale chunk...', { route, reloadCount: reloadCount + 1 })
       window.location.reload()
     } else {
-      logger.warn('Chunk auto-reload denied by policy', { cause: decision.cause, context: decision.context })
+      logChunkReloadWarning('Chunk auto-reload denied by policy', { cause: decision.cause, context: decision.context })
     }
   }
 

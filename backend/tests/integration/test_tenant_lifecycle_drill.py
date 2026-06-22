@@ -59,6 +59,7 @@ from apps.catalog.models import (
     Institution,
     InstitutionAsset,
     InstitutionDocumentProfile,
+    InstitutionDomain,
     UserInstitutionMembership,
 )
 from apps.documents.models import ApplicationDocument, Payment
@@ -248,7 +249,12 @@ class TestTenantLifecycleDrill:
         institution = Institution.objects.get(id=institution_id)
 
         # ----------------------------------------------------------------- #
-        # Step 2 — Add a white-label domain (R3.1)                           #
+        # Step 2 — Add a white-label domain (R3.1) + drive it to active      #
+        #   Domains are now created in the verification-pending lifecycle    #
+        #   (R7.3): create → pending_dns, then verify → verified, then a     #
+        #   Super_Admin activates verified → active (R7.6). Routing (Step 10)#
+        #   only resolves an ``active`` domain, so the drill advances the     #
+        #   real lifecycle here rather than back-dooring the status.          #
         # ----------------------------------------------------------------- #
         resp = admin.post(
             f"/api/v1/admin/institutions/{institution_id}/domains/",
@@ -257,6 +263,26 @@ class TestTenantLifecycleDrill:
         )
         assert resp.status_code == 201, resp.content
         assert resp.json()["data"]["hostname"] == WHITE_LABEL_HOST
+        # Create initialises the verification state (R7.3): pending_dns + a
+        # ≥32-char token + a DNS record the tenant must publish.
+        domain_id = resp.json()["data"]["id"]
+        assert resp.json()["data"]["status"] == "pending_dns"
+        assert len(resp.json()["data"]["verification_token"]) >= 32
+        assert resp.json()["data"]["dns_record"]["value"]
+
+        # Simulate a successful DNS verification (the verification job's job,
+        # Task 7.3) by advancing pending_dns → verified, then activate via the
+        # super-admin endpoint (R7.6).
+        InstitutionDomain.objects.filter(id=domain_id).update(
+            status=InstitutionDomain.STATUS_VERIFIED, verified_at=timezone.now()
+        )
+        resp = admin.post(
+            f"/api/v1/admin/institutions/{institution_id}/domains/{domain_id}/activate/",
+            data={},
+            format="json",
+        )
+        assert resp.status_code == 200, resp.content
+        assert resp.json()["data"]["status"] == "active"
 
         # ----------------------------------------------------------------- #
         # Step 3 — Upload logo + signature assets (R6.1)                     #

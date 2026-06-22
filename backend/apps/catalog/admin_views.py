@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import os
+import secrets
 import uuid
 
+from django.conf import settings
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema
@@ -38,11 +41,16 @@ from apps.catalog.models import (
     InstitutionDomain,
     InstitutionRequiredDocument,
     Intake,
+    Program,
     ProgramIntake,
     UserInstitutionMembership,
 )
+from apps.catalog.serializers import ProgramSerializer
 from apps.catalog.services import AccessScopeService
 from apps.catalog.services import (
+    AdminCapabilityService,
+    DomainStatusMachine,
+    DomainTransitionError,
     InstitutionDocumentProfileService,
     OfferingAssignmentError,
     OfferingAssignmentService,
@@ -50,6 +58,7 @@ from apps.catalog.services import (
     validate_profile_payload,
     validate_template_payload,
 )
+from apps.catalog.catalog_cache import invalidate_catalog_scopes
 from apps.catalog.tenant_audit_service import TenantAuditService
 from apps.common.pagination import StandardPagination
 
@@ -57,6 +66,77 @@ from apps.common.pagination import StandardPagination
 # Maximum accepted institution-asset upload size (2 MiB). Logos/signatures/seals
 # are small brand images; anything larger is treated as an invalid asset (R5.3).
 _MAX_ASSET_BYTES = 2 * 1024 * 1024
+
+# Number of random bytes for a domain verification token. ``secrets.token_urlsafe``
+# emits roughly ``4 * ceil(n / 3)`` URL-safe characters, so 32 bytes yields a
+# ~43-character token — comfortably above the R7.3 floor of 32 characters
+# (and well under the ``verification_token`` column's 128-char cap).
+_DOMAIN_VERIFICATION_TOKEN_BYTES = 32
+
+
+def _domain_verification_base() -> str:
+    """Base host the tenant CNAMEs to for domain verification (R7.3).
+
+    Configurable via ``TENANT_DOMAIN_VERIFICATION_BASE`` so the platform's
+    verification zone can differ per environment; defaults to a neutral Beanola
+    host (never a legacy-school host).
+    """
+    return getattr(settings, "TENANT_DOMAIN_VERIFICATION_BASE", "verify.beanola.com")
+
+
+def _generate_dns_target() -> str:
+    """Generate a unique per-domain DNS target under the verification base (R7.3).
+
+    The tenant points their hostname at this target; the verification job
+    (Task 7.3) later resolves the hostname and matches it against this stored
+    ``dns_target``.
+    """
+    label = secrets.token_hex(8)
+    return f"{label}.{_domain_verification_base()}"
+
+
+def _build_dns_record(hostname: str, dns_target: str, verification_token: str) -> dict:
+    """The DNS record a tenant must publish to verify ownership/routing (R7.3)."""
+    return {
+        "type": "CNAME",
+        "name": hostname,
+        "value": dns_target,
+        "ttl": 3600,
+        "verification": {
+            "type": "TXT",
+            "name": f"_beanola-verify.{hostname}",
+            "value": verification_token,
+        },
+        "instructions": (
+            f"Create a CNAME record for {hostname} pointing to {dns_target}, then "
+            f"add a TXT record at _beanola-verify.{hostname} containing the "
+            "verification token. Verification runs automatically once DNS propagates."
+        ),
+    }
+
+
+def _domain_not_verified_response():
+    """Stable 409 when activating a domain whose status is not ``verified`` (R7.7)."""
+    return Response(
+        {
+            "success": False,
+            "error": "Domain must be verified before it can be activated.",
+            "code": "DOMAIN_NOT_VERIFIED",
+        },
+        status=status.HTTP_409_CONFLICT,
+    )
+
+
+def _hostname_conflict_response():
+    """Stable 409 when a hostname is already active for another tenant (R7.10)."""
+    return Response(
+        {
+            "success": False,
+            "error": "This hostname is already active for another tenant.",
+            "code": "HOSTNAME_CONFLICT",
+        },
+        status=status.HTTP_409_CONFLICT,
+    )
 
 
 def _write_allowed(user) -> bool:
@@ -66,6 +146,35 @@ def _write_allowed(user) -> bool:
 def _forbidden_write_response():
     return Response(
         {"success": False, "error": "Only super admins can manage tenant configuration.", "code": "FORBIDDEN"},
+        status=status.HTTP_403_FORBIDDEN,
+    )
+
+
+def _actor_id_str(user) -> str:
+    """The actor's profile id as a string (empty when unidentifiable)."""
+    return str(getattr(user, "id", "") or getattr(user, "pk", "") or "")
+
+
+def _self_mutation_forbidden_response():
+    """Stable 403 when a tenant-admin targets their own grant/membership (R6.7)."""
+    return Response(
+        {
+            "success": False,
+            "error": "You cannot alter your own membership or access grant.",
+            "code": "SELF_GRANT_FORBIDDEN",
+        },
+        status=status.HTTP_403_FORBIDDEN,
+    )
+
+
+def _staff_invite_forbidden_response():
+    """Stable 403 when an invite is out of scope or above the inviter's role (R6.3, R6.4, R6.8)."""
+    return Response(
+        {
+            "success": False,
+            "error": "You cannot invite a user with that role into that institution.",
+            "code": "STAFF_INVITE_FORBIDDEN",
+        },
         status=status.HTTP_403_FORBIDDEN,
     )
 
@@ -166,6 +275,8 @@ class AdminTenantListCreateView(APIView):
             entity_id=institution.id,
             institution_id=institution.id,
         )
+        # R4.3: a new tenant changes the shared catalog portal listing.
+        invalidate_catalog_scopes(institution.id, user=request.user)
         return Response({"success": True, "data": AdminInstitutionSerializer(institution).data}, status=status.HTTP_201_CREATED)
 
 
@@ -196,14 +307,26 @@ class AdminTenantDetailView(APIView):
             return Response({"success": False, "error": "Institution not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         serializer = AdminInstitutionSerializer(institution, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        institution = serializer.save()
+        verb = _verb_for_payload(request.data, created=False)
+        # R6.9: deactivating a tenant predictably suspends that tenant's staff
+        # memberships in the same transaction, so a deactivated tenant can never
+        # leave behind live memberships that would still resolve scope/capabilities.
+        with transaction.atomic():
+            institution = serializer.save()
+            if verb == "deactivated":
+                UserInstitutionMembership.objects.filter(
+                    institution_id=institution.id, is_active=True
+                ).update(is_active=False)
         _audit_config_change(
             request,
             resource="institution",
-            verb=_verb_for_payload(request.data, created=False),
+            verb=verb,
             entity_id=institution.id,
             institution_id=institution.id,
         )
+        # R4.3: tenant activation/branding change flows into cached catalog
+        # offerings + the shared portal listing; invalidate before returning.
+        invalidate_catalog_scopes(institution.id, user=request.user)
         return Response({"success": True, "data": AdminInstitutionSerializer(institution).data})
 
 
@@ -296,11 +419,161 @@ class AdminTenantDomainListCreateView(_InstitutionChildListCreateView):
     order_by = ("hostname",)
     audit_resource = "domain"
 
+    @extend_schema(
+        operation_id="admin_tenant_domains_create",
+        tags=["admin"],
+        request=AdminInstitutionDomainSerializer,
+        responses={201: OpenApiResponse(description="Domain created in pending_dns with DNS record to publish.")},
+    )
+    def post(self, request, institution_id):
+        """Create a tenant domain in the verification-pending lifecycle (R7.3).
+
+        Super-admin only (domain config is super-admin gated, R7.14). The new
+        domain is forced to ``status = pending_dns`` with a freshly generated
+        ≥32-char ``verification_token`` and a ``dns_target``; the response
+        carries the DNS record the tenant must publish. The domain only becomes
+        routable after the verification job (Task 7.3) advances it to
+        ``verified`` and a super-admin activates it (``verified → active``).
+        """
+        if not _write_allowed(request.user):
+            return _forbidden_write_response()
+
+        payload = request.data.copy()
+        payload["institution_id"] = str(institution_id)
+        serializer = self.serializer_class(data=payload)
+        serializer.is_valid(raise_exception=True)
+
+        hostname = serializer.validated_data["hostname"]
+        verification_token = secrets.token_urlsafe(_DOMAIN_VERIFICATION_TOKEN_BYTES)
+        dns_target = _generate_dns_target()
+
+        try:
+            with transaction.atomic():
+                instance = serializer.save(
+                    created_by_id=getattr(request.user, "id", None),
+                    status=InstitutionDomain.STATUS_PENDING_DNS,
+                    verification_token=verification_token,
+                    dns_target=dns_target,
+                    created_at=timezone.now(),
+                )
+        except IntegrityError:
+            # Defensive: a concurrent insert of the same hostname. The serializer
+            # already rejects known collisions, so this is the last line of
+            # defence and maps to the stable hostname-conflict code (R7.10).
+            return _hostname_conflict_response()
+
+        _audit_config_change(
+            request,
+            resource=self.audit_resource,
+            verb="created",
+            entity_id=getattr(instance, "id", None),
+            institution_id=institution_id,
+        )
+
+        data = self.serializer_class(instance).data
+        data["status"] = instance.status
+        data["verification_token"] = instance.verification_token
+        data["dns_target"] = instance.dns_target
+        data["dns_record"] = _build_dns_record(hostname, dns_target, verification_token)
+        return Response({"success": True, "data": data}, status=status.HTTP_201_CREATED)
+
 
 class AdminTenantDomainDetailView(_InstitutionChildDetailView):
     model = InstitutionDomain
     serializer_class = AdminInstitutionDomainSerializer
     audit_resource = "domain"
+
+
+class AdminTenantProgramListView(_InstitutionChildListCreateView):
+    """GET tenant program offerings scoped through the admin tenant boundary.
+
+    This is intentionally read-only. Assigning canonical programs to schools and
+    editing routing rules remains a Beanola platform operation handled by
+    platform-gated write endpoints; tenant admins use this endpoint only to see
+    their own school's offerings.
+    """
+
+    model = Program
+    serializer_class = ProgramSerializer
+    order_by = ("name",)
+
+    def get_queryset(self, request, institution_id):
+        return (
+            super()
+            .get_queryset(request, institution_id)
+            .select_related("institution", "canonical_program")
+        )
+
+    def post(self, request, institution_id):
+        return _forbidden_write_response()
+
+
+class AdminTenantDomainActivateView(APIView):
+    """POST .../domains/<id>/activate/ — activate a verified domain (R7.6, R7.7, R7.14).
+
+    Activation is restricted to Super_Admins (``IsSuperAdmin``, R7.14). A domain
+    may be activated only from ``verified`` (R7.6); any other status is rejected
+    with the stable ``DOMAIN_NOT_VERIFIED`` code and the status is left unchanged
+    (R7.7). On success the status moves ``verified → active`` (validated through
+    the :class:`DomainStatusMachine`) and ``approved_by`` records the activating
+    Super_Admin. A duplicate active hostname (the partial unique index
+    ``uq_institution_domains_active_hostname``) is mapped to ``HOSTNAME_CONFLICT``
+    with HTTP 409 (R7.10).
+    """
+
+    permission_classes = [IsSuperAdmin]
+    serializer_class = AdminInstitutionDomainSerializer
+
+    @extend_schema(
+        operation_id="admin_tenant_domain_activate",
+        tags=["admin"],
+        request=None,
+        responses={200: OpenApiResponse(response=AdminInstitutionDomainSerializer)},
+    )
+    def post(self, request, institution_id, item_id):
+        try:
+            domain = InstitutionDomain.objects.get(id=item_id, institution_id=institution_id)
+        except InstitutionDomain.DoesNotExist:
+            return Response(
+                {"success": False, "error": "Domain not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # R7.6/R7.7: only a ``verified`` domain may be activated. Anything else
+        # (including ``disabled``, which the state machine would otherwise allow
+        # to re-activate) is rejected here without mutating the domain.
+        if domain.status != InstitutionDomain.STATUS_VERIFIED:
+            return _domain_not_verified_response()
+
+        # Defence-in-depth: the machine must agree ``verified → active`` is legal.
+        try:
+            DomainStatusMachine.assert_transition(
+                domain.status, InstitutionDomain.STATUS_ACTIVE
+            )
+        except DomainTransitionError:
+            return _domain_not_verified_response()
+
+        domain.status = InstitutionDomain.STATUS_ACTIVE
+        domain.approved_by_id = getattr(request.user, "id", None)
+        try:
+            with transaction.atomic():
+                domain.save(update_fields=["status", "approved_by"])
+        except IntegrityError:
+            # Another tenant already holds this hostname as ``active`` (partial
+            # unique index). The atomic block rolled the row back unchanged.
+            return _hostname_conflict_response()
+
+        _audit_config_change(
+            request,
+            resource="domain",
+            verb="activated",
+            entity_id=domain.id,
+            institution_id=institution_id,
+        )
+
+        data = self.serializer_class(domain).data
+        data["status"] = domain.status
+        return Response({"success": True, "data": data})
 
 
 def _asset_invalid_response(message: str):
@@ -639,6 +912,18 @@ def _guard_template_payload(request):
 
 
 class AdminTenantTemplateListCreateView(_InstitutionChildListCreateView):
+    """List/create tenant document templates (R9.4).
+
+    R9.4 (template-read access vs production-edit restriction):
+      * READ (``GET``) is scoped by ``_InstitutionChildListCreateView.get_queryset``
+        through ``_scope_institution_ids(request.user)`` — a Tenant_Admin with
+        template-read scope sees only their own institution's templates; a
+        no-scope non-super-admin sees none (never another tenant's).
+      * Production template EDITS (``POST``/``PATCH``) are restricted to granted
+        actors via ``_write_allowed`` (Super_Admin), so a Tenant_Admin holding
+        only read access can view but never mutate production templates.
+    """
+
     model = InstitutionDocumentTemplate
     serializer_class = AdminDocumentTemplateSerializer
     audit_resource = "template"
@@ -657,6 +942,15 @@ class AdminTenantTemplateListCreateView(_InstitutionChildListCreateView):
 
 
 class AdminTenantTemplateDetailView(_InstitutionChildDetailView):
+    """Retrieve/update a single tenant document template (R9.4).
+
+    Read scoping and the production-edit restriction match
+    :class:`AdminTenantTemplateListCreateView`: ``get_queryset`` confines reads
+    to the actor's scoped institution(s), while ``PATCH`` is gated by
+    ``_write_allowed`` (Super_Admin) so only granted actors edit production
+    templates.
+    """
+
     model = InstitutionDocumentTemplate
     serializer_class = AdminDocumentTemplateSerializer
     audit_resource = "template"
@@ -847,10 +1141,27 @@ class AdminMembershipListCreateView(APIView):
         return _paginate(request, queryset, AdminMembershipSerializer)
 
     def post(self, request):
-        if not _write_allowed(request.user):
-            return _forbidden_write_response()
         serializer = AdminMembershipSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        target_user_id = data.get("user_id")
+        institution_id = data.get("institution_id")
+        target_role = data.get("role")
+
+        # Super_Admins may create any membership. A non-super-admin may invite
+        # staff only into an institution they manage, with a role at or below
+        # their own authority (R6.3, R6.4), never targeting themselves (R6.7),
+        # and never across tenants — ``can_invite_staff`` resolves an
+        # out-of-scope institution to no capability so a cross-tenant invite is
+        # rejected (R6.8).
+        if not is_super_admin(request.user):
+            if _actor_id_str(request.user) and str(target_user_id) == _actor_id_str(request.user):
+                return _self_mutation_forbidden_response()
+            if not AdminCapabilityService().can_invite_staff(
+                request.user, institution_id, target_role
+            ):
+                return _staff_invite_forbidden_response()
+
         membership = serializer.save(created_by_id=getattr(request.user, "id", None))
         _audit_config_change(
             request,

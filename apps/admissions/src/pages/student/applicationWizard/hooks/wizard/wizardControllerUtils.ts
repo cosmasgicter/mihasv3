@@ -2,12 +2,13 @@ import { safeJsonParse } from '@/lib/utils'
 import { sanitizeInput } from '@/lib/security'
 import { normalizePhoneNumberInput } from '../../types'
 import { AuthenticationError } from '@/services/client'
+import { BROWSER_KEYS } from '@/lib/browserNamespace'
 import type { Intake } from '@/types/database'
 import type { WizardIntake } from '../../types'
 
 // ── Constants ──
 
-export const WIZARD_AUTH_REDIRECT_GUARD_KEY = 'mihas:wizard-auth-redirect-guard'
+export const WIZARD_AUTH_REDIRECT_GUARD_KEY = BROWSER_KEYS.wizardAuthRedirectGuard
 export const WIZARD_SESSION_GRACE_MS = 5000
 export const IDENTITY_DOCUMENT_TYPES = new Set(['extra_kyc', 'nrc', 'passport'])
 export const SESSION_EXPIRED_BANNER = 'Your session expired. We saved your progress. Please sign in again to continue.'

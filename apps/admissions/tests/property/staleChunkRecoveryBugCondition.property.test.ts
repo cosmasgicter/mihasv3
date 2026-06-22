@@ -27,8 +27,8 @@ import { act } from 'react'
 import { LazyLoadErrorBoundary } from '@/components/LazyLoadErrorBoundary'
 
 // Session storage keys used by the chunk auto-reload system
-const SS_RELOAD_COUNT = 'mihas_chunk_reload_count'
-const SS_RELOAD_TS = 'mihas_chunk_reload_ts'
+const SS_RELOAD_COUNT = 'beanola_chunk_reload_count'
+const SS_RELOAD_TS = 'beanola_chunk_reload_ts'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -183,7 +183,7 @@ describe('[PBT] Bug Condition — Chunk Error Auto-Reload Not Triggered', () => 
     )
   })
 
-  it('sessionStorage mihas_chunk_reload_count is incremented after auto-reload trigger', () => {
+  it('sessionStorage beanola_chunk_reload_count is incremented after auto-reload trigger', () => {
     /**
      * EXPECTED (fixed): After auto-reload is triggered, the boundary should
      * persist the reload count to sessionStorage so the policy can track it.
@@ -228,7 +228,7 @@ describe('[PBT] Bug Condition — Chunk Error Auto-Reload Not Triggered', () => 
     )
   })
 
-  it('sessionStorage mihas_chunk_reload_ts is set to a recent timestamp after auto-reload trigger', () => {
+  it('sessionStorage beanola_chunk_reload_ts is set to a recent timestamp after auto-reload trigger', () => {
     /**
      * EXPECTED (fixed): After auto-reload is triggered, the boundary should
      * persist the reload timestamp to sessionStorage for cooldown tracking.

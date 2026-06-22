@@ -525,6 +525,29 @@ def _render_official_pdf(
     return render_official_document(context, template=template)
 
 
+def _beanola_brand() -> dict[str, Any]:
+    """Neutral Beanola brand used as the document-generation fallback (R9.3).
+
+    Sourced from :attr:`InstitutionContextService.BEANOLA_BRAND` so the neutral
+    fallback for a tenant that has no configured branding is the single
+    canonical neutral brand — never a hardcoded legacy-school default. The
+    lookup is wrapped defensively (and lazily imported to avoid a circular
+    import) so a resolver failure still yields neutral Beanola values rather
+    than leaking a school brand or raising inside the render path.
+    """
+    try:
+        from apps.catalog.services import InstitutionContextService
+
+        return InstitutionContextService.BEANOLA_BRAND
+    except Exception:  # pragma: no cover - defensive: never break the render
+        return {
+            "name": "Beanola Admissions",
+            "owner": "Beanola Technologies",
+            "primary_color": "#0F766E",
+            "secondary_color": "#334155",
+        }
+
+
 def _tenant_context(application) -> dict[str, Any]:
     institution = getattr(application, "institution_ref", None)
     institution_id = getattr(institution, "id", "") if institution else ""
@@ -532,12 +555,17 @@ def _tenant_context(application) -> dict[str, Any]:
         institution_id = getattr(application, "institution_ref_id", "")
     if not _is_valid_uuid(institution_id):
         institution_id = ""
+    # R9.3: when the tenant has no configured brand name/colour the document
+    # falls back to the neutral Beanola brand — never to a legacy-school default.
+    brand = _beanola_brand()
     return {
         "institution_id": str(institution_id),
         "name": _plain_text(getattr(institution, "brand_name", None))
         or _plain_text(getattr(institution, "name", None))
-        or _plain_text(getattr(application, "institution", None)),
-        "primary_color": _plain_text(getattr(institution, "primary_color", None)) or "#0F766E",
+        or _plain_text(getattr(application, "institution", None))
+        or brand["name"],
+        "primary_color": _plain_text(getattr(institution, "primary_color", None))
+        or brand["primary_color"],
         "admissions_email": _plain_text(getattr(institution, "admissions_email", None))
         or _plain_text(getattr(institution, "email", None)),
         "phone": _plain_text(getattr(institution, "phone", None)),
@@ -569,6 +597,17 @@ def _render_template(application, document_type: str, tenant: dict[str, Any], pa
 
 
 def _active_asset(application, asset_type: str):
+    """Return the active tenant branding asset for ``asset_type`` (R9.2/R9.3).
+
+    Resolution is pinned to the application's own ``institution_ref_id``, so the
+    returned ``InstitutionAsset`` always belongs to *this* tenant — a logo /
+    signature / seal is never sourced from another institution. When the tenant
+    has configured an active asset it is used (R9.2: the tenant's own branding);
+    when none exists this returns ``None`` and the renderer simply omits the
+    image (the neutral fallback) rather than substituting a legacy-school asset
+    (R9.3). Brand identity (name/colour) for the missing-asset case falls back to
+    the neutral Beanola brand via :func:`_tenant_context` / :func:`_beanola_brand`.
+    """
     institution_id = getattr(application, "institution_ref_id", None)
     if not _is_valid_uuid(institution_id):
         return None
@@ -702,7 +741,9 @@ def _draw_asset(c, asset, x, y, *, max_width, max_height) -> str:
     """Draw a tenant image asset, returning a provenance status string (R6.7).
 
     Returns one of:
-      - ``"none"`` — no asset configured.
+      - ``"none"`` — no asset configured. The image is omitted entirely (the
+        neutral fallback for a missing tenant branding asset, R9.3); a
+        legacy-school asset is NEVER substituted in its place.
       - ``"unsupported"`` — the asset type cannot be safely rasterised into the
         PDF (e.g. SVG). Untrusted SVG is NEVER executed/parsed here; it is
         treated as unsupported and skipped, and the caller records that fact in
@@ -742,10 +783,14 @@ def _draw_asset(c, asset, x, y, *, max_width, max_height) -> str:
 def _safe_hex(value: str):
     from reportlab.lib.colors import HexColor
 
+    # R9.3: the neutral colour fallback is the canonical Beanola brand colour,
+    # not a hardcoded legacy school colour. ``_beanola_brand()`` returns
+    # ``InstitutionContextService.BEANOLA_BRAND``.
+    fallback = _beanola_brand().get("primary_color", "#0F766E")
     try:
-        return HexColor(value or "#0F766E")
+        return HexColor(value or fallback)
     except Exception:
-        return HexColor("#0F766E")
+        return HexColor(fallback)
 
 
 def _document_details(application, payment=None):

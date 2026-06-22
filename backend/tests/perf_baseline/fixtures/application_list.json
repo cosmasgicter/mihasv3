@@ -1,0 +1,72 @@
+{
+  "failed": {
+    "application_fee": "750",
+    "grades_summary": "Biology: Grade 2\nChemistry: Grade 3",
+    "last_payment_reference": "<volatile>",
+    "paid_amount": null,
+    "paid_at": "<volatile>",
+    "payment_currency": "ZMW",
+    "payment_method": "card",
+    "payment_reference": "<volatile>",
+    "payment_status": null,
+    "points": 5,
+    "receipt_number": "<volatile>",
+    "total_subjects": 2
+  },
+  "multiple": {
+    "application_fee": "750",
+    "grades_summary": "Biology: Grade 2\nChemistry: Grade 3",
+    "last_payment_reference": "<volatile>",
+    "paid_amount": "750",
+    "paid_at": "<volatile>",
+    "payment_currency": "ZMW",
+    "payment_method": "mobile_money",
+    "payment_reference": "<volatile>",
+    "payment_status": null,
+    "points": 5,
+    "receipt_number": "<volatile>",
+    "total_subjects": 2
+  },
+  "no_payment": {
+    "application_fee": null,
+    "grades_summary": "Biology: Grade 2\nChemistry: Grade 3",
+    "last_payment_reference": "<volatile>",
+    "paid_amount": null,
+    "paid_at": "<volatile>",
+    "payment_currency": "ZMW",
+    "payment_method": null,
+    "payment_reference": "<volatile>",
+    "payment_status": null,
+    "points": 5,
+    "receipt_number": "<volatile>",
+    "total_subjects": 2
+  },
+  "paid": {
+    "application_fee": "750",
+    "grades_summary": "Biology: Grade 2\nChemistry: Grade 3",
+    "last_payment_reference": "<volatile>",
+    "paid_amount": "750",
+    "paid_at": "<volatile>",
+    "payment_currency": "ZMW",
+    "payment_method": "mobile_money",
+    "payment_reference": "<volatile>",
+    "payment_status": null,
+    "points": 5,
+    "receipt_number": "<volatile>",
+    "total_subjects": 2
+  },
+  "pending": {
+    "application_fee": "750",
+    "grades_summary": "Biology: Grade 2\nChemistry: Grade 3",
+    "last_payment_reference": "<volatile>",
+    "paid_amount": null,
+    "paid_at": "<volatile>",
+    "payment_currency": "ZMW",
+    "payment_method": "mobile_money",
+    "payment_reference": "<volatile>",
+    "payment_status": null,
+    "points": 5,
+    "receipt_number": "<volatile>",
+    "total_subjects": 2
+  }
+}

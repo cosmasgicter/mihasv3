@@ -1,0 +1,33 @@
+-- Composite index on applications(status, submitted_at) for the system
+-- performance hardening feature. The review-SLA task, the admin dashboard
+-- status + time-bucket aggregates, and admin application list filters all
+-- filter on status and order/range by submitted_at; this composite index
+-- (status first, submitted_at second) lets those queries use an index or
+-- index-only scan instead of a sequential scan on the applications table.
+--
+-- Spec: .kiro/specs/system-performance-hardening/
+-- Requirement: 7 (Database Index Additions)
+-- Requirements: 7.1, 7.2, 7.4, 7.5
+--
+-- Index naming convention: idx_<table>_<columns>, matching the existing
+-- production convention (idx_applications_status, idx_payments_status, ...).
+--
+-- Key order is status first, submitted_at second (R7.1).
+--
+-- The statement uses CREATE INDEX CONCURRENTLY IF NOT EXISTS so the build is
+-- online (no full-table lock), idempotent on re-run, and strictly additive
+-- (R7.2, R7.4). Because CONCURRENTLY cannot run inside a transaction,
+-- apply_sql_migrations detects this file and runs it in autocommit mode per
+-- the split-phase handling in production-schema-reconciliation Component 2.
+-- If a concurrent build is interrupted and leaves an INVALID index, the
+-- runner drops it via DROP INDEX CONCURRENTLY IF EXISTS and the IF NOT EXISTS
+-- guard makes a re-run safe; existing query behaviour is unchanged in the
+-- interim.
+--
+-- Deliberately NOT indexing applications.institution_ref_id: institution_ref
+-- maps to institution_id, which is already covered (R7.5).
+--
+-- Forward-only and additive; there is no destructive inverse to apply.
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_applications_status_submitted_at
+    ON applications (status, submitted_at);

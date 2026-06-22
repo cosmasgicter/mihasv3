@@ -291,7 +291,7 @@ describe('Preservation P6b: Best-Effort Logout', () => {
    * **Validates: Requirements 3.4**
    *
    * Property: The signOut cleanup pattern dispatches authSignedOut and
-   * mihas:auth-redirect events even when the API call would fail.
+   * Beanola auth-redirect events even when the API call would fail.
    * We simulate the cleanup steps and verify events are dispatched.
    */
   it('signOut cleanup dispatches events even when API call fails', () => {
@@ -340,7 +340,7 @@ describe('Preservation P6b: Best-Effort Logout', () => {
             // 3. Navigate to sign-in route using router-safe event dispatch
             if (typeof window !== 'undefined') {
               window.dispatchEvent(
-                new CustomEvent('mihas:auth-redirect', {
+                new CustomEvent('beanola:auth-redirect', {
                   detail: { to: '/auth/signin', replace: true },
                 })
               )
@@ -348,7 +348,7 @@ describe('Preservation P6b: Best-Effort Logout', () => {
 
             // Verify both events were dispatched despite API failure
             expect(dispatchedEvents).toContain('authSignedOut')
-            expect(dispatchedEvents).toContain('mihas:auth-redirect')
+            expect(dispatchedEvents).toContain('beanola:auth-redirect')
           } finally {
             // Restore original window state
             if (!hadWindow) {

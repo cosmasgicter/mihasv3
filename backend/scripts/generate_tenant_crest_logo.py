@@ -30,8 +30,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 # Resolve fonts relative to the repo root (this file lives in backend/scripts/).
 _REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-FONT_SERIF = os.path.join(_REPO_ROOT, "apps/admissions/public/fonts/pdf/playfair-display-v40-latin-700.ttf")
-FONT_SANS = os.path.join(_REPO_ROOT, "apps/admissions/public/fonts/pdf/source-sans-3-v19-latin-600.ttf")
+FONT_SERIF = os.path.join(_REPO_ROOT, "apps/admissions/src/lib/pdf/assets/fonts/playfair-display-v40-latin-700.ttf")
+FONT_SANS = os.path.join(_REPO_ROOT, "apps/admissions/src/lib/pdf/assets/fonts/source-sans-3-v19-latin-600.ttf")
 
 SIZE = 1024
 INK = (17, 24, 39)  # slate-900 arced text

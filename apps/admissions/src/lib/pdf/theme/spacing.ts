@@ -1,5 +1,5 @@
 /**
- * MIHAS-KATC PDF Spacing System
+ * Beanola tenant PDF spacing system
  *
  * 4-point baseline grid. Values are in points (1 pt = 1/72 inch).
  * @react-pdf/renderer uses points as its unit when no suffix is given.

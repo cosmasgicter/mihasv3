@@ -10,6 +10,9 @@ from ._locks import acquire_task_lock, release_task_lock
 
 logger = logging.getLogger(__name__)
 
+# Bound the per-run work (system-performance-hardening R6.4).
+MAX_APPS_PER_RUN = 50
+
 
 @shared_task(bind=True, max_retries=0, soft_time_limit=300, time_limit=360)
 def enrollment_confirmation_expiry_task(self):
@@ -20,6 +23,14 @@ def enrollment_confirmation_expiry_task(self):
     decrements enrollment, and triggers waitlist promotion.
 
     Also sends reminders 3 days before deadline.
+
+    Per-row processing is retained here by design (system-performance-hardening
+    R6.4 carve-out): each expiry transition is coupled to per-application
+    capacity side effects — ``IntakeEnforcer.decrement_enrollment`` and
+    ``WaitlistManager.promote_next`` — that require per-row locking for
+    correctness and cannot be safely collapsed into a single bulk write. The
+    run is instead bounded to at most 50 records per cohort so one sweep stays
+    predictable.
 
     Requirements: 10.6-10.8, 10.10
     """
@@ -45,7 +56,7 @@ def enrollment_confirmation_expiry_task(self):
             status__in=["approved", "conditionally_approved"],
             enrollment_confirmation_deadline__isnull=False,
             enrollment_confirmation_deadline__lt=now,
-        )[:200])
+        )[:MAX_APPS_PER_RUN])
 
         for app in expired_apps:
             try:
@@ -78,7 +89,7 @@ def enrollment_confirmation_expiry_task(self):
             enrollment_confirmation_deadline__isnull=False,
             enrollment_confirmation_deadline__gt=now,
             enrollment_confirmation_deadline__lte=reminder_threshold,
-        )[:200])
+        )[:MAX_APPS_PER_RUN])
 
         for app in reminder_apps:
             try:

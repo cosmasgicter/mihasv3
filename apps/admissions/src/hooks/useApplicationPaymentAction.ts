@@ -6,6 +6,7 @@ import { generateIdempotencyKey } from '@/lib/paymentStatus'
 import { initiatePayment, verifyPayment } from '@/services/payments'
 import { usePaymentRecoveryStore } from '@/stores/paymentRecoveryStore'
 import { toError } from '@/lib/toError'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS, getStorageItemWithLegacyFallback } from '@/lib/browserNamespace'
 
 export type PaymentActionStatus = 'idle' | 'initiating' | 'pending' | 'successful' | 'failed'
 
@@ -34,7 +35,8 @@ interface VerifyResponse {
   status: string
 }
 
-const PAYMENT_ERROR_STORAGE_PREFIX = 'mihas:payment-initiation-error:'
+const PAYMENT_ERROR_STORAGE_PREFIX = BROWSER_KEYS.paymentErrorPrefix
+const LEGACY_PAYMENT_ERROR_STORAGE_PREFIX = LEGACY_BROWSER_KEYS.paymentErrorPrefix
 const PAYMENT_INITIATE_RETRY_DELAYS_MS = [500, 1_500]
 
 function splitFullName(fullName?: string | null) {
@@ -49,7 +51,10 @@ function paymentErrorStorageKey(applicationId: string | null) {
 function readPersistedPaymentError(applicationId: string | null) {
   const key = paymentErrorStorageKey(applicationId)
   if (!key || typeof window === 'undefined') return null
-  try { return window.sessionStorage.getItem(key) } catch { return null }
+  try {
+    const legacyKey = applicationId ? `${LEGACY_PAYMENT_ERROR_STORAGE_PREFIX}${applicationId}` : null
+    return getStorageItemWithLegacyFallback(window.sessionStorage, key, legacyKey ? [legacyKey] : [])
+  } catch { return null }
 }
 
 function persistPaymentError(applicationId: string | null, message: string | null) {
@@ -58,6 +63,9 @@ function persistPaymentError(applicationId: string | null, message: string | nul
   try {
     if (message) window.sessionStorage.setItem(key, message)
     else window.sessionStorage.removeItem(key)
+    if (applicationId) {
+      window.sessionStorage.removeItem(`${LEGACY_PAYMENT_ERROR_STORAGE_PREFIX}${applicationId}`)
+    }
   } catch {}
 }
 

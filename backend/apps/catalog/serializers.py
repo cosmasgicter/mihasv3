@@ -4,6 +4,7 @@ Implements task 14.1.
 Requirements: 5.3
 """
 
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.catalog.models import CanonicalProgram, Institution, Intake, Program, Subject
@@ -27,12 +28,13 @@ class ProgramSerializer(serializers.ModelSerializer):
     """Program serializer with nested institution data."""
 
     institution = InstitutionSerializer(read_only=True)
+    institution_id = serializers.UUIDField(read_only=True)
     canonical_program_id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = Program
         fields = [
-            "id", "name", "code", "institution", "duration_months",
+            "id", "name", "code", "institution", "institution_id", "duration_months",
             "canonical_program_id", "assignment_priority", "offering_status",
             "application_fee", "tuition_fee", "requirements",
             "regulatory_body", "accreditation_status",
@@ -82,10 +84,40 @@ class CanonicalProgramSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
+    @extend_schema_field(ProgramSerializer(many=True))
     def get_available_offerings(self, obj):
         request = self.context.get("request")
         intake = request.query_params.get("intake") if request else None
-        institution = request.query_params.get("institution") if request else None
+        # Prefer the host-resolved tenant scope passed by the view (R8.7 /
+        # R18.3) so a white-label portal nests only the resolved tenant's
+        # offerings; fall back to an explicit ``?institution=`` query param for
+        # callers that scope directly. ``None`` (shared Beanola portal) lists
+        # every active offering grouped by canonical program (R8.6).
+        institution = self.context.get("institution_id")
+        if not institution and request:
+            institution = request.query_params.get("institution")
+
+        # Offerings prefetch fix (R4.4): when the list view attached the
+        # ``prefetched_offerings`` set, resolve offerings from it (filtering by
+        # intake/institution in Python) instead of issuing a per-object query.
+        # The prefetched rows are already ``active`` and ordered by
+        # ``assignment_priority``, ``name`` in the view, so the neutral-vs-tenant
+        # grouping and ordering are preserved exactly.
+        prefetched = getattr(obj, "prefetched_offerings", None)
+        if prefetched is not None:
+            offerings = prefetched
+            if institution:
+                offerings = [
+                    p for p in offerings if str(p.institution_id) == str(institution)
+                ]
+            if intake:
+                offerings = [
+                    p for p in offerings if getattr(p, "_intake_matches", None)
+                ]
+            return ProgramSerializer(offerings, many=True).data
+
+        # Fallback (no view-level prefetch, e.g. direct serializer use): keep the
+        # original per-object query so behavior is identical.
         queryset = Program.objects.select_related("institution").filter(
             canonical_program_id=obj.id,
             is_active=True,

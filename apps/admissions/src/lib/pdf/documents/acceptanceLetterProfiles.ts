@@ -71,7 +71,7 @@ export interface BankAccount {
 
 export interface AcceptanceProfile {
   /** Resolved institution short code. */
-  institutionCode: 'MIHAS' | 'KATC'
+  institutionCode: 'MIHAS' | 'KATC' | 'BEANOLA'
   /** Programme short code shown in the REF line, e.g. "RN", "COG", "EHT". */
   programCode: string
   /** Study mode, e.g. "Full Time", "Distance". */
@@ -300,12 +300,12 @@ const PROFILES: AcceptanceProfile[] = [MIHAS_RN, KATC_COG, KATC_EHT]
  */
 export function resolveInstitutionCode(
   institution: string | null | undefined,
-): 'MIHAS' | 'KATC' {
+): 'MIHAS' | 'KATC' | null {
   const value = (institution ?? '').trim().toLowerCase()
-  if (!value) return 'MIHAS'
+  if (!value) return null
   if (value.includes('katc') || value.includes('kalulushi')) return 'KATC'
   if (value.includes('mihas') || value.includes('mukuba')) return 'MIHAS'
-  return 'MIHAS'
+  return null
 }
 
 /**
@@ -334,12 +334,17 @@ export function computeIntakeTotal(feeChart: FeeChartRow[]): number {
  * omits fee-chart/requirements specifics rather than inventing them.
  */
 function genericProfile(
-  institutionCode: 'MIHAS' | 'KATC',
+  institutionCode: 'MIHAS' | 'KATC' | 'BEANOLA',
   program: string,
 ): AcceptanceProfile {
   const isKatc = institutionCode === 'KATC'
-  const accountName = isKatc ? KATC_ACCOUNT_NAME : MIHAS_ACCOUNT_NAME
-  const accountNumber = isKatc ? '5729097500125' : '5768098500188'
+  const isKnownTenant = institutionCode === 'MIHAS' || institutionCode === 'KATC'
+  const accountName = isKnownTenant
+    ? isKatc ? KATC_ACCOUNT_NAME : MIHAS_ACCOUNT_NAME
+    : 'Configured by the issuing school'
+  const accountNumber = isKnownTenant
+    ? isKatc ? '5729097500125' : '5768098500188'
+    : 'Configured in tenant template'
   const display = program?.trim() || 'your chosen programme'
   return {
     institutionCode,
@@ -352,7 +357,15 @@ function genericProfile(
       label: 'Tuition fees',
       accountName,
       accountNumber,
-      ...COMMON_BANK,
+      ...(isKnownTenant
+        ? COMMON_BANK
+        : {
+            bankName: 'Configured in tenant template',
+            branchName: 'Configured in tenant template',
+            branchCode: 'Configured in tenant template',
+            swiftCode: 'Configured in tenant template',
+            sortCode: 'Configured in tenant template',
+          }),
     },
     feeChart: [],
     notes: [],
@@ -375,6 +388,8 @@ export function resolveAcceptanceProfile(
   program: string | null | undefined,
 ): AcceptanceProfile {
   const code = resolveInstitutionCode(institution)
+  if (!code) return genericProfile('BEANOLA', program ?? '')
+
   const prog = (program ?? '').trim().toLowerCase()
 
   const candidates = PROFILES.filter((p) => p.institutionCode === code)

@@ -7,7 +7,7 @@ from celery import Celery
 # not fall back to development settings if the env var is omitted.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.prod")
 
-app = Celery("mihas")
+app = Celery("beanola")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 

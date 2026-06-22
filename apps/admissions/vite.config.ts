@@ -96,7 +96,7 @@ function normalizeProxyTarget(value: string): string {
  */
 function finaliseHtmlPlugin(): Plugin {
   return {
-    name: 'mihas-finalise-html',
+    name: 'beanola-finalise-html',
     apply: 'build',
     enforce: 'post',
     async closeBundle() {
@@ -291,6 +291,20 @@ export default defineConfig(({ mode, command }) => {
             }
 
             if (id.includes('node_modules')) {
+              // Sentry / GlitchTip SDK — only reached through the lazy
+              // `errorReporter` + lazy `logger` paths. This MUST be checked
+              // before the broad React rule below: `@sentry/react` contains
+              // `/react/` in its package path, and letting that branch catch it
+              // makes the eager `vendor-react` chunk statically import the
+              // monitoring SDK on every public page.
+              if (
+                id.includes('/@sentry/') ||
+                id.includes('/@sentry-internal/') ||
+                id.includes('@sentry+')
+              ) {
+                return 'vendor-sentry'
+              }
+
               // React core MUST get its own eager chunk. Without this rule
               // Rollup folds react + react-dom + scheduler into the first
               // manual chunk that depends on React — which is
@@ -349,14 +363,6 @@ export default defineConfig(({ mode, command }) => {
                 return 'vendor-charts'
               }
 
-              // Sentry / GlitchTip SDK — only reached through the lazy
-              // `errorReporter` + lazy `logger` paths. Pin it into its own
-              // chunk so it never folds into `vendor-react` (the eager startup
-              // graph). Keeping it isolated means the ~60-80KB SDK is fetched
-              // at idle/first-error only, not on first paint for every visitor.
-              if (id.includes('/@sentry/') || id.includes('/@sentry-internal/')) {
-                return 'vendor-sentry'
-              }
             }
           },
           assetFileNames: (assetInfo) => {

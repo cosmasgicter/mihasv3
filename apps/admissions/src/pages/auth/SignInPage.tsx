@@ -21,6 +21,12 @@ import { Seo } from '@/components/seo/Seo';
 import { isAdminRole } from '@/lib/auth/roles';
 import { logApiError } from '@/lib/apiErrorLogger';
 import { onSignInEmailBlur, onLoginSuccess } from '@/lib/speculativePrefetch';
+import {
+  BROWSER_KEYS,
+  LEGACY_BROWSER_KEYS,
+  getStorageItemWithLegacyFallback,
+  removeStorageItemAndLegacy,
+} from '@/lib/browserNamespace';
 
 const ADMIN_REDIRECT_ALLOWLIST = [
   '/admin/dashboard',
@@ -137,7 +143,7 @@ export default function SignInPage() {
       const fromHash = locationState?.from?.hash || '';
       const fromState = fromPath ? `${fromPath}${fromSearch}${fromHash}` : null;
       const storedRedirect = typeof window !== 'undefined'
-        ? sessionStorage.getItem('mihas:post-auth-redirect')
+        ? getStorageItemWithLegacyFallback(sessionStorage, BROWSER_KEYS.postAuthRedirect, [LEGACY_BROWSER_KEYS.postAuthRedirect])
         : null;
       const role = result?.user?.role;
       const requestedRedirect = fromState || redirectFromQuery || storedRedirect;
@@ -145,7 +151,7 @@ export default function SignInPage() {
       onLoginSuccess(result, role ?? undefined);
 
       if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('mihas:post-auth-redirect');
+        removeStorageItemAndLegacy(sessionStorage, BROWSER_KEYS.postAuthRedirect, [LEGACY_BROWSER_KEYS.postAuthRedirect]);
       }
 
       navigate(redirectTo, { replace: true });
@@ -153,7 +159,7 @@ export default function SignInPage() {
     onError: (error: unknown) => {
       logApiError('sign-in', '/auth/login/', error);
       if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('mihas:post-auth-redirect');
+        removeStorageItemAndLegacy(sessionStorage, BROWSER_KEYS.postAuthRedirect, [LEGACY_BROWSER_KEYS.postAuthRedirect]);
       }
     },
   });

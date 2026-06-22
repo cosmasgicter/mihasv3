@@ -1,0 +1,46 @@
+{
+  "gate_id": "bundle-guard",
+  "requirement": "R5",
+  "status": "passed",
+  "generated_at": "2026-06-22T11:26:37Z",
+  "generated_by": "ci",
+  "summary": "Entry path 139.3 KB gz; 0 forbidden chunk(s) on entry path; first PDF action 757.4 KB gz; vendor-sentry absent on public entry path.",
+  "checks": [
+    {
+      "id": "entry-path-exclusions",
+      "result": "pass",
+      "observed": "0 forbidden chunk(s)",
+      "threshold": "0 forbidden chunks on entry path",
+      "detail": "",
+      "forbidden_present": []
+    },
+    {
+      "id": "entry-gz-budget",
+      "result": "pass",
+      "observed": "139.3 KB",
+      "threshold": "150.0 KB",
+      "detail": "",
+      "entry_gz_bytes": 142676,
+      "entry_budget_bytes": 153600
+    },
+    {
+      "id": "pdf-gz-budget",
+      "result": "pass",
+      "observed": "757.4 KB",
+      "threshold": "772.0 KB",
+      "detail": "",
+      "first_pdf_action_gz_bytes": 775544,
+      "pdf_budget_bytes": 790528
+    },
+    {
+      "id": "sentry-public-entry",
+      "result": "pass",
+      "observed": "vendor-sentry absent",
+      "threshold": "vendor-sentry absent from public-route entry path",
+      "detail": "",
+      "sentry_on_public_entry": false
+    }
+  ],
+  "assets": [],
+  "failures": []
+}

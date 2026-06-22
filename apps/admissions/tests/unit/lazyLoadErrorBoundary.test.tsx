@@ -33,8 +33,8 @@ import { evaluateChunkAutoReloadPolicy } from '@/lib/chunkAutoReloadPolicy'
 const mockedPolicy = vi.mocked(evaluateChunkAutoReloadPolicy)
 
 // Session storage keys
-const SS_RELOAD_COUNT = 'mihas_chunk_reload_count'
-const SS_RELOAD_TS = 'mihas_chunk_reload_ts'
+const SS_RELOAD_COUNT = 'beanola_chunk_reload_count'
+const SS_RELOAD_TS = 'beanola_chunk_reload_ts'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -152,7 +152,7 @@ describe('LazyLoadErrorBoundary auto-reload behavior', () => {
     cleanup(container, root)
   })
 
-  it('increments mihas_chunk_reload_count in sessionStorage after auto-reload', () => {
+  it('increments beanola_chunk_reload_count in sessionStorage after auto-reload', () => {
     mockedPolicy.mockReturnValue({ allow: true })
 
     const error = createChunkError('Failed to fetch dynamically imported module /assets/App.js')
@@ -163,7 +163,7 @@ describe('LazyLoadErrorBoundary auto-reload behavior', () => {
     cleanup(container, root)
   })
 
-  it('sets mihas_chunk_reload_ts to a recent timestamp after auto-reload', () => {
+  it('sets beanola_chunk_reload_ts to a recent timestamp after auto-reload', () => {
     mockedPolicy.mockReturnValue({ allow: true })
 
     const before = Date.now()

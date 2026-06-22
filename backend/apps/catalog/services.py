@@ -1,4 +1,25 @@
-"""Multi-tenant catalog services for the Beanola admissions platform."""
+"""Multi-tenant catalog services for the Beanola admissions platform.
+
+Program / offering concept mapping (R8.1–R8.4) — the requirement vocabulary is
+named here and mapped onto the existing tables so no new tables are introduced:
+
+* **Canonical_Program**       → :class:`apps.catalog.models.CanonicalProgram`
+                                 (``canonical_programs``) — global Beanola program.
+* **Institution_Program_Offering** → :class:`apps.catalog.models.Program`
+                                 (``programs``) — a tenant's offering of a
+                                 canonical program (``canonical_program_id`` +
+                                 ``institution_id`` + ``offering_status``).
+* **Offering_Requirement**    → :class:`apps.catalog.models.InstitutionRequiredDocument`
+                                 + :class:`apps.catalog.models.InstitutionDocumentProfile`
+                                 — tenant-specific documents, fees, eligibility.
+* **Intake_Offering**         → :class:`apps.catalog.models.ProgramIntake`
+                                 (``program_intakes``) — offering availability in
+                                 a global :class:`Intake` period.
+
+Portal visibility (R8.6, R8.7) is centralized in :class:`OfferingDirectoryService`;
+canonical-program assignment authority (R8.8) lives in
+:meth:`AdminCapabilityService.can_manage_program`.
+"""
 
 from __future__ import annotations
 
@@ -8,10 +29,11 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
+from rest_framework.exceptions import PermissionDenied
 
-from apps.accounts.permissions import is_super_admin
+from apps.accounts.permissions import ROLE_HIERARCHY, is_super_admin
 from apps.catalog.models import (
     AccessGrant,
     CanonicalProgram,
@@ -213,7 +235,7 @@ class OfferingAssignmentService:
 
 
 class InstitutionDocumentProfileService:
-    """Resolve the single most-specific active document profile (R8.2).
+    """Resolve the single most-specific active document profile (R8.2, R9.1).
 
     Precedence (most -> least specific), mirroring the scope ordering used by
     ``OfferingAssignmentService.required_documents``:
@@ -225,6 +247,14 @@ class InstitutionDocumentProfileService:
     rows are never selected; the result is ``None`` when no active profile
     matches. Resolution always filters by ``(institution, document_type)``
     first so it never leaks across tenants or document types.
+
+    R9.1 (document requirements resolved by tenant, program, and intake): the
+    resolved institution id comes solely from the application's own
+    ``institution_ref_id`` and is pinned as the first filter on every candidate
+    scope, so the returned profile is always the single most-specific *active*
+    match for *this* tenant + (program, intake) context. A profile belonging to
+    another tenant can never be selected — there is no scope that omits the
+    institution filter — which is the isolation guarantee Property 18 exercises.
     """
 
     def resolve(self, application, document_type: str) -> InstitutionDocumentProfile | None:
@@ -411,6 +441,80 @@ class InstitutionContext:
     brand: dict[str, Any]
 
 
+class OfferingDirectoryService:
+    """Portal-facing listing of program offerings (R8.6, R8.7).
+
+    Names the **Institution_Program_Offering** visibility rules in one place so
+    the shared Beanola portal and a resolved white-label tenant portal read from
+    a single source of truth:
+
+    * **Shared Beanola portal (R8.6)** — every active offering across all
+      tenants, grouped by :class:`CanonicalProgram` (no institution filter).
+    * **Tenant portal (R8.7)** — only the offerings belonging to the resolved
+      tenant, grouped by canonical program.
+
+    An "active offering" is a :class:`Program` row with ``is_active=True`` and
+    ``offering_status == "active"``. Both listings group by canonical program by
+    returning the :class:`CanonicalProgram` queryset that has at least one such
+    offering, optionally constrained to an intake and/or a single tenant.
+    """
+
+    def canonical_program_directory(
+        self,
+        *,
+        institution_id: str | None = None,
+        intake_id: str | None = None,
+    ):
+        """Active canonical programs grouped-by-program for a portal listing.
+
+        With ``institution_id`` omitted this is the shared Beanola portal listing
+        (R8.6); with ``institution_id`` set to the resolved tenant it is the
+        tenant portal listing (R8.7). ``intake_id`` optionally restricts to
+        canonical programs with an active :class:`ProgramIntake` (Intake_Offering)
+        in that period. The queryset is intentionally identical to the historical
+        ``CanonicalProgramListView`` behavior so existing callers are unchanged.
+        """
+        # Tenant-isolation fix (R8.7 / R18.3): bind the institution + active-
+        # offering (+ intake) constraints to the SAME Program row. Chained
+        # ``.filter()`` calls across the multi-valued ``program`` reverse
+        # relation create INDEPENDENT joins, so ``program__institution_id`` and
+        # ``program__is_active/offering_status`` could match DIFFERENT Program
+        # rows — surfacing a canonical program for which a tenant has only an
+        # INACTIVE offering when another tenant has an active one (cross-tenant
+        # leak). An ``Exists`` correlated subquery forces every offering
+        # constraint onto one row.
+        offerings = Program.objects.filter(
+            is_active=True,
+            offering_status="active",
+            canonical_program_id=OuterRef("pk"),
+        )
+        if institution_id:
+            offerings = offerings.filter(institution_id=institution_id)
+        if intake_id:
+            offerings = offerings.filter(programintake__intake_id=intake_id)
+        return (
+            CanonicalProgram.objects.filter(is_active=True)
+            .filter(Exists(offerings))
+            .distinct()
+            .order_by("name")
+        )
+
+    def resolved_institution_id(self, portal_context, requested_institution_id=None):
+        """Resolve the tenant scope for a portal listing (R8.7).
+
+        An explicit ``requested_institution_id`` wins; otherwise the white-label
+        tenant resolved from the host by :class:`InstitutionContextService` is
+        used. Returns ``None`` for the shared Beanola portal so the listing spans
+        all tenants (R8.6).
+        """
+        if requested_institution_id:
+            return requested_institution_id
+        institution = getattr(portal_context, "institution", None)
+        if institution is not None:
+            return str(institution.id)
+        return None
+
+
 class InstitutionContextService:
     """Resolve shared Beanola portal vs white-label school hosts."""
 
@@ -425,20 +529,50 @@ class InstitutionContextService:
         hostname = (host or "").split(":", 1)[0].strip().lower()
         if not hostname:
             return InstitutionContext("shared", None, self.BEANOLA_BRAND.copy())
-        domains = list(
+        # Single indexed lookup on ``institution_domains.hostname`` (R7.8 100ms
+        # budget). We fetch every row for the hostname regardless of status so a
+        # genuinely-unknown host can be told apart from one an operator
+        # configured but that is not (yet/any longer) usable — only the latter
+        # is worth surfacing for operations review.
+        candidate_domains = list(
             InstitutionDomain.objects.select_related("institution")
-            .filter(hostname__iexact=hostname, is_active=True, institution__is_active=True)
+            .filter(hostname__iexact=hostname)
         )
-        # Hostname-collision fail-safe (R3.5): if more than one active domain
-        # across distinct active institutions matches case-insensitively, this is
-        # a configuration error. Never silently pick one school's data — fall
-        # back to the shared Beanola portal and surface the collision to operators.
-        distinct_institutions = {str(d.institution_id) for d in domains}
-        if len(distinct_institutions) > 1:
-            self._report_collision(hostname, domains)
+        if not candidate_domains:
+            # Unknown host → Neutral Beanola context (R7.9, R19.1). Logged for
+            # operations review (R19.4), but legitimate shared-portal/platform
+            # hosts are suppressed so we don't log every shared-portal request.
+            self._report_unknown(hostname)
             return InstitutionContext("shared", None, self.BEANOLA_BRAND.copy())
-        domain = domains[0] if domains else None
+
+        # Status-aware fail-closed gate (R7.8, R7.9, R19): a host resolves to a
+        # tenant ONLY when a single ``InstitutionDomain`` with
+        # ``status == active``, ``is_active``, and an active institution matches.
+        # Domains in ``pending_dns``/``pending_review``/``verified``/``disabled``/
+        # ``failed`` (or with an inactive row/institution) never resolve a tenant.
+        active_domains = [
+            d
+            for d in candidate_domains
+            if d.status == InstitutionDomain.STATUS_ACTIVE
+            and d.is_active
+            and d.institution is not None
+            and d.institution.is_active
+        ]
+        # Hostname-collision fail-safe (R3.5, R7.9): if more than one active
+        # domain across distinct active institutions matches case-insensitively,
+        # this is a configuration error. Never silently pick one school's data —
+        # fall back to the shared Beanola portal and surface the collision.
+        distinct_institutions = {str(d.institution_id) for d in active_domains}
+        if len(distinct_institutions) > 1:
+            self._report_collision(hostname, active_domains)
+            return InstitutionContext("shared", None, self.BEANOLA_BRAND.copy())
+        domain = active_domains[0] if active_domains else None
         if not domain:
+            # The hostname is configured but no usable active domain matched
+            # (non-active status, inactive row, or inactive institution). Fail
+            # closed to the Neutral Beanola context and surface for ops review
+            # (R7.9, R19.3, R19.4) — these were expected to resolve.
+            self._report_non_active(hostname, candidate_domains)
             return InstitutionContext("shared", None, self.BEANOLA_BRAND.copy())
         institution = domain.institution
         return InstitutionContext(
@@ -473,7 +607,61 @@ class InstitutionContextService:
                 level="error",
             )
         except Exception:
-            pass
+            logging.getLogger(__name__).warning(
+                "Failed to report domain collision to Sentry for hostname=%s", hostname, exc_info=True
+            )
+
+    @staticmethod
+    def _report_non_active(hostname: str, domains: list) -> None:
+        """Surface a configured-but-not-resolvable hostname for ops review (R19.4).
+
+        A row exists for ``hostname`` yet no usable active domain matched — the
+        domain is in a non-active status (``pending_dns``/``pending_review``/
+        ``verified``/``disabled``/``failed``), the row is inactive, or the
+        institution is inactive. This was expected to resolve, so it is logged
+        without leaking school data. Never raises.
+        """
+        import logging
+
+        statuses = sorted({str(getattr(d, "status", "")) for d in domains})
+        logging.getLogger(__name__).warning(
+            "domain.non_active: hostname %r matched %d configured domain(s) "
+            "(statuses=%s) but none are active; resolving to shared portal",
+            hostname,
+            len(domains),
+            ",".join(s for s in statuses if s),
+        )
+
+    @staticmethod
+    def _report_unknown(hostname: str) -> None:
+        """Surface an unknown host for ops review (R19.4) without log noise.
+
+        Legitimate shared-portal/platform hosts (Django ``ALLOWED_HOSTS`` plus
+        common local hosts) are suppressed so the neutral Beanola portal does
+        not log every request. Only unknown hosts that look like they were
+        expected to resolve are logged. Never raises.
+        """
+        import logging
+
+        try:
+            from django.conf import settings
+
+            allowed = {str(h).strip().lower() for h in getattr(settings, "ALLOWED_HOSTS", [])}
+        except Exception:
+            allowed = set()
+        # Common platform/dev hosts that legitimately serve the shared portal.
+        allowed.update({"localhost", "127.0.0.1", "testserver", "web", "0.0.0.0"})
+        if "*" in allowed or hostname in allowed:
+            return
+        # Suppress subdomains of an allowed wildcard suffix (e.g. ".beanola.com").
+        for entry in allowed:
+            if entry.startswith(".") and (hostname == entry[1:] or hostname.endswith(entry)):
+                return
+        logging.getLogger(__name__).warning(
+            "domain.unknown: hostname %r did not match any configured domain; "
+            "resolving to shared portal",
+            hostname,
+        )
 
 
 @dataclass(frozen=True)
@@ -541,8 +729,6 @@ class AccessScopeService:
         institution_ids.update(str(row.institution_id) for row in grants if row.institution_id)
         offering_ids = {str(row.program_id) for row in grants if row.program_id}
         application_ids = {str(row.application_id) for row in grants if row.application_id}
-        if self._legacy_admin_test_scope(user) and not institution_ids and not offering_ids and not application_ids:
-            return ScopeFilters(True, set(), set(), set())
         return ScopeFilters(False, institution_ids, offering_ids, application_ids)
 
     def filter_applications(self, queryset, user):
@@ -582,6 +768,554 @@ class AccessScopeService:
         if filters.offering_ids:
             query |= Q(application__program_offering_id__in=filters.offering_ids)
         return queryset.filter(query)
+
+
+# ---------------------------------------------------------------------------
+# Centralized authorization: capability catalogue + Capability_Set (R2 / R3)
+# ---------------------------------------------------------------------------
+#
+# ``AdminCapabilityService`` is the single authorization brain (R1.5, R3): every
+# authority decision resolves through it, composing the existing
+# ``is_super_admin``, ``ROLE_HIERARCHY``, and ``AccessScopeService`` rather than
+# comparing raw role strings in endpoint code. This block defines only the
+# capability vocabulary, the resolved-capability data shape, and the
+# fail-closed resolution error (task 2.1). Capability derivation, enforcement,
+# and scope helpers are added in task 2.2.
+
+
+class CapabilityResolutionError(Exception):
+    """Raised when a :class:`CapabilitySet` cannot be resolved for an actor.
+
+    Per R1.6 the caller MUST fail closed on this error: deny the action, expose
+    a Capability_Set containing zero capabilities, return no Tenant data, and
+    surface an authorization error indicating capabilities could not be
+    resolved.
+    """
+
+
+@dataclass(frozen=True)
+class CapabilitySet:
+    """The capabilities resolved for the current actor (R2.1).
+
+    ``role`` is the actor's canonical role string; ``is_super_admin`` and
+    ``all_access`` mirror the existing scope flags; ``platform_capabilities``
+    holds the actor's ``platform.*`` capabilities (full set for a Super_Admin,
+    empty otherwise); ``institution_capabilities`` maps an institution id to the
+    frozenset of ``tenant.*`` capabilities the actor holds for that institution.
+    """
+
+    role: str
+    is_super_admin: bool
+    all_access: bool
+    platform_capabilities: frozenset[str]
+    institution_capabilities: dict[str, frozenset[str]]
+
+
+class AdminCapabilityService:
+    """Centralized authorization service (R3) — capability catalogues + derivation.
+
+    Capability derivation (``get_capabilities`` / ``get_institution_capabilities``)
+    is implemented here (task 2.2), composing the existing ``is_super_admin``,
+    ``ROLE_HIERARCHY``, and a single ``AccessScopeService`` scope computation.
+    Enforcement (``require_capability`` / ``require_institution_capability``) and
+    scope helpers (``visible_institution_queryset``, ``can_manage_institution``,
+    ``can_manage_program``, ``can_manage_domain``, ``can_invite_staff``) are added
+    in task 2.3. This service is the only place authority is decided; endpoint
+    code never compares raw role strings (R1.5).
+    """
+
+    # --- Platform capability catalogue (R2.5) — 17 ``platform.*`` strings ---
+    PLATFORM_CAPABILITIES: frozenset[str] = frozenset(
+        {
+            "platform.tenant.read_all",
+            "platform.tenant.create",
+            "platform.tenant.update",
+            "platform.tenant.deactivate",
+            "platform.domain.manage",
+            "platform.asset.manage",
+            "platform.template.manage",
+            "platform.document.manage",
+            "platform.canonical_program.manage",
+            "platform.program_assignment.manage",
+            "platform.intake.manage",
+            "platform.user.create_global",
+            "platform.user.manage_all",
+            "platform.access_grant.manage",
+            "platform.audit.read_all",
+            "platform.routing.simulate_all",
+            "platform.settings.manage",
+        }
+    )
+
+    # --- Tenant capability catalogue (R2.6) — 17 ``tenant.*`` strings ---
+    TENANT_CAPABILITIES: frozenset[str] = frozenset(
+        {
+            "tenant.profile.read",
+            "tenant.profile.request_change",
+            "tenant.application.read",
+            "tenant.application.review",
+            "tenant.application.export",
+            "tenant.document.read",
+            "tenant.document.verify",
+            "tenant.payment.read",
+            "tenant.payment.verify",
+            "tenant.staff.read",
+            "tenant.staff.invite",
+            "tenant.staff.disable",
+            "tenant.audit.read",
+            "tenant.program.read",
+            "tenant.program.request_change",
+            "tenant.domain.read",
+            "tenant.domain.request_change",
+        }
+    )
+
+    # --- Capability derivation bundles (design "Capability derivation rule") ---
+    #
+    # The default bundle for any active tenant membership/grant is read-oriented
+    # (plan §4.2: "read-only by default"). It applies to every institution the
+    # actor is scoped to.
+    _DEFAULT_TENANT_READ_CAPABILITIES: frozenset[str] = frozenset(
+        {
+            "tenant.profile.read",
+            "tenant.application.read",
+            "tenant.document.read",
+            "tenant.payment.read",
+            "tenant.staff.read",
+            "tenant.audit.read",
+            "tenant.program.read",
+            "tenant.domain.read",
+        }
+    )
+
+    # Mutation capabilities are added only when explicitly granted. The grant /
+    # membership ``permissions`` JSON stores values from the serializer
+    # allowlist (``apps/catalog/admin_serializers.GRANT_PERMISSION_ALLOWLIST``:
+    # ``view``, ``review``, ``manage``, ``verify_documents``, ``verify_payments``,
+    # ``export``); this maps each granted value onto the design's
+    # granted-mutation ``tenant.*`` bundle ("mutate only when granted").
+    _GRANTED_MUTATION_CAPABILITIES: dict[str, frozenset[str]] = {
+        "view": frozenset(),
+        "review": frozenset({"tenant.application.review"}),
+        "verify_documents": frozenset({"tenant.document.verify"}),
+        "verify_payments": frozenset({"tenant.payment.verify"}),
+        "export": frozenset({"tenant.application.export"}),
+        "manage": frozenset(
+            {
+                "tenant.staff.invite",
+                "tenant.staff.disable",
+                "tenant.profile.request_change",
+                "tenant.program.request_change",
+                "tenant.domain.request_change",
+            }
+        ),
+    }
+
+    def get_capabilities(self, user) -> CapabilitySet:
+        """Resolve the actor's full :class:`CapabilitySet` (R1, R2.2, R2.3, R3.2, R3.3).
+
+        Composes the existing authority primitives — ``is_super_admin`` for the
+        platform/super-admin decision (R1.4), ``ROLE_HIERARCHY`` for the
+        canonical-role gate (R1.1), and a single ``AccessScopeService`` scope
+        computation for the per-institution tenant derivation (R3.3) — never a
+        raw role-string comparison in calling code (R1.5).
+
+        - A role outside the four canonical roles resolves to zero capabilities
+          (R1.1).
+        - A ``super_admin`` receives the full ``platform.*`` set; super-admin
+          authority is never derived from a membership or grant (R1.4, R2.2,
+          R3.2).
+        - Any other canonical role receives only ``tenant.*`` capabilities
+          derived per institution from active (``is_active``) and non-expired
+          memberships/grants (R2.3, R3.3); a generic ``admin`` with no active
+          membership/grant therefore resolves to zero capabilities (R1.3).
+        - Raises :class:`CapabilityResolutionError` on any dependency failure so
+          the caller fails closed (R1.6).
+        """
+        role = (getattr(user, "role", "") or "").strip().lower()
+
+        # R1.1: any actor whose role is not one of the four canonical roles has
+        # a Capability_Set containing zero capabilities.
+        if role not in ROLE_HIERARCHY:
+            return self._empty_capability_set(role)
+
+        # R1.4 / R2.2 / R3.2: Super_Admin authority comes ONLY from the
+        # ``super_admin`` role string, never from a membership or grant.
+        if is_super_admin(user):
+            return CapabilitySet(
+                role=role,
+                is_super_admin=True,
+                all_access=True,
+                platform_capabilities=self.PLATFORM_CAPABILITIES,
+                institution_capabilities={},
+            )
+
+        # Non-super-admin: derive tenant capabilities from the single
+        # AccessScopeService scope computation (one scope computation, R3.3).
+        try:
+            filters = AccessScopeService().filters_for_user(user)
+        except Exception as exc:  # R1.6: fail closed on dependency failure.
+            raise CapabilityResolutionError(
+                "Could not resolve access scope for actor."
+            ) from exc
+
+        institution_capabilities = self._derive_institution_capabilities(user, filters)
+
+        return CapabilitySet(
+            role=role,
+            is_super_admin=False,
+            all_access=filters.all_access,
+            platform_capabilities=frozenset(),
+            institution_capabilities=institution_capabilities,
+        )
+
+    def get_institution_capabilities(self, user, institution) -> frozenset[str]:
+        """The ``tenant.*`` capabilities the actor holds for one institution (R3.1).
+
+        Resolves through :meth:`get_capabilities` so there is a single derivation
+        path. A Super_Admin holds platform authority that subsumes every tenant
+        capability, so this returns the full ``tenant.*`` catalogue for them; any
+        other actor returns the per-institution set (empty when the institution
+        is out of scope). Raises :class:`CapabilityResolutionError` on dependency
+        failure (R1.6), propagated from :meth:`get_capabilities`.
+        """
+        capability_set = self.get_capabilities(user)
+        if capability_set.is_super_admin:
+            return self.TENANT_CAPABILITIES
+        institution_id = str(getattr(institution, "id", institution))
+        return capability_set.institution_capabilities.get(institution_id, frozenset())
+
+    # -- Internal derivation helpers ----------------------------------------
+
+    @staticmethod
+    def _empty_capability_set(role: str) -> CapabilitySet:
+        """A zero-capability set (R1.1, R1.3, R1.6 fail-closed shape)."""
+        return CapabilitySet(
+            role=role,
+            is_super_admin=False,
+            all_access=False,
+            platform_capabilities=frozenset(),
+            institution_capabilities={},
+        )
+
+    def _derive_institution_capabilities(
+        self, user, filters: ScopeFilters
+    ) -> dict[str, frozenset[str]]:
+        """Per-institution ``tenant.*`` capabilities for a non-super-admin (R2.3, R3.3).
+
+        ``filters`` (the single ``AccessScopeService`` scope computation) is the
+        authority for *which* institutions are in scope. Each in-scope
+        institution starts with the read-default bundle; granted-mutation
+        capabilities are then layered on from the ``permissions`` of the active,
+        non-expired memberships/grants for that institution. Institutions not in
+        ``filters.institution_ids`` are never keyed, so the scope stays single-
+        sourced and cross-tenant capabilities cannot appear.
+        """
+        scoped_ids = set(filters.institution_ids)
+        if not scoped_ids:
+            return {}
+
+        # Read-default bundle for every in-scope institution.
+        derived: dict[str, set[str]] = {
+            iid: set(self._DEFAULT_TENANT_READ_CAPABILITIES) for iid in scoped_ids
+        }
+
+        user_id = getattr(user, "id", None)
+        if not user_id:
+            return {iid: frozenset(caps) for iid, caps in derived.items()}
+
+        now = timezone.now()
+        try:
+            memberships = list(
+                UserInstitutionMembership.objects.filter(user_id=user_id, is_active=True)
+            )
+            grants = list(
+                AccessGrant.objects.filter(user_id=user_id, is_active=True).filter(
+                    Q(expires_at__isnull=True) | Q(expires_at__gt=now)
+                )
+            )
+        except Exception as exc:  # R1.6: fail closed on dependency failure.
+            raise CapabilityResolutionError(
+                "Could not resolve tenant capabilities for actor."
+            ) from exc
+
+        for row in (*memberships, *grants):
+            institution_id = getattr(row, "institution_id", None)
+            if not institution_id:
+                continue
+            key = str(institution_id)
+            if key not in derived:
+                continue
+            derived[key].update(self._mutations_from_permissions(row.permissions))
+
+        return {iid: frozenset(caps) for iid, caps in derived.items()}
+
+    @classmethod
+    def _mutations_from_permissions(cls, permissions) -> set[str]:
+        """Map a grant/membership ``permissions`` value to granted ``tenant.*`` mutations.
+
+        Tolerates the JSON shapes the column can hold — a list of permission
+        strings (canonical), a dict of ``{permission: truthy}`` flags, or a bare
+        string — and silently ignores any value outside the granted-mutation
+        map (unknown values grant nothing, never raise).
+        """
+        if not permissions:
+            return set()
+        if isinstance(permissions, dict):
+            values = [key for key, flag in permissions.items() if flag]
+        elif isinstance(permissions, str):
+            values = [permissions]
+        else:
+            try:
+                values = list(permissions)
+            except TypeError:
+                return set()
+        caps: set[str] = set()
+        for value in values:
+            caps |= cls._GRANTED_MUTATION_CAPABILITIES.get(str(value).strip().lower(), frozenset())
+        return caps
+
+    # -- Enforcement helpers (R3.4) -----------------------------------------
+
+    def require_capability(self, user, capability) -> None:
+        """Enforce a platform (``platform.*``) capability (R3.4).
+
+        Resolves the actor's :class:`CapabilitySet` through the single
+        derivation path and raises DRF :class:`PermissionDenied` when the
+        platform capability is absent. Fails closed: a
+        :class:`CapabilityResolutionError` is converted to ``PermissionDenied``
+        so the action is denied and no tenant data is returned (R1.6).
+        """
+        try:
+            capability_set = self.get_capabilities(user)
+        except CapabilityResolutionError as exc:
+            raise PermissionDenied(
+                "Your capabilities could not be resolved; the action is denied."
+            ) from exc
+        if capability not in capability_set.platform_capabilities:
+            raise PermissionDenied("You do not have permission to perform this action.")
+
+    def require_institution_capability(self, user, institution, capability) -> None:
+        """Enforce a per-institution (``tenant.*``) capability (R3.4).
+
+        Raises DRF :class:`PermissionDenied` when the actor does not hold
+        ``capability`` for ``institution``. Because
+        :meth:`get_institution_capabilities` returns an empty set for an
+        out-of-scope institution, this denies cross-tenant access without
+        confirming the institution exists. Fails closed on
+        :class:`CapabilityResolutionError` (R1.6).
+        """
+        try:
+            capabilities = self.get_institution_capabilities(user, institution)
+        except CapabilityResolutionError as exc:
+            raise PermissionDenied(
+                "Your capabilities could not be resolved; the action is denied."
+            ) from exc
+        if capability not in capabilities:
+            raise PermissionDenied("You do not have permission to perform this action.")
+
+    # -- Scope helper (R3.5, R4.5) ------------------------------------------
+
+    def visible_institution_queryset(self, user):
+        """An ``Institution`` queryset scoped to the actor (R3.5, R4.5).
+
+        Returns every institution for a Super_Admin (and for any caller whose
+        single ``AccessScopeService`` computation grants ``all_access``); the
+        membership/grant institution set for a scoped non-super-admin; and an
+        empty queryset (``.none()``) for an actor with no scope. Callers filter
+        through this **before** any ``.get()`` so an out-of-scope identifier
+        returns 404 / non-revealing 403 and is never confirmed to exist. Fails
+        closed: a scope-resolution failure raises
+        :class:`CapabilityResolutionError` (R1.6).
+        """
+        if is_super_admin(user):
+            return Institution.objects.all()
+        try:
+            filters = AccessScopeService().filters_for_user(user)
+        except Exception as exc:  # R1.6: fail closed on dependency failure.
+            raise CapabilityResolutionError(
+                "Could not resolve access scope for actor."
+            ) from exc
+        if filters.all_access:
+            return Institution.objects.all()
+        if not filters.institution_ids:
+            return Institution.objects.none()
+        return Institution.objects.filter(id__in=filters.institution_ids)
+
+    # -- Capability predicates (R3.1) ---------------------------------------
+
+    def can_manage_institution(self, user, institution) -> bool:
+        """Whether the actor may manage ``institution`` as a tenant object (R3.1).
+
+        Super_Admins manage every tenant. A non-super-admin manages an
+        institution only when it is within their scope and they hold the tenant
+        profile change-request capability for it; an out-of-scope institution
+        resolves to an empty capability set, so cross-tenant management is
+        impossible. Never raises — a resolution failure yields ``False``.
+        """
+        if is_super_admin(user):
+            return True
+        try:
+            capabilities = self.get_institution_capabilities(user, institution)
+        except CapabilityResolutionError:
+            return False
+        return "tenant.profile.request_change" in capabilities
+
+    def can_manage_program(self, user, program) -> bool:
+        """Whether the actor may manage ``program`` (R5.2, R8.8).
+
+        Program rows are tenant offerings. Creating, updating, deactivating, or
+        reassigning an offering is a platform operation because it assigns a
+        Beanola-owned Canonical_Program to a Tenant (R8.8). Tenant_Admins may
+        hold ``tenant.program.request_change``, but that is intentionally a
+        request-only capability surfaced by the UI; it must never authorize a
+        direct database mutation through a legacy catalog endpoint. Never raises
+        — a resolution failure yields ``False``.
+        """
+        try:
+            platform_caps = self.get_capabilities(user).platform_capabilities
+            return (
+                "platform.canonical_program.manage" in platform_caps
+                or "platform.program_assignment.manage" in platform_caps
+            )
+        except CapabilityResolutionError:
+            return False
+
+    def can_manage_domain(self, user, domain) -> bool:
+        """Whether the actor may manage ``domain`` (R3.1, R7.13, R7.14).
+
+        Super_Admins manage every domain (``platform.domain.manage``); direct
+        domain activation stays super-admin-only (R7.14, enforced at the view).
+        A non-super-admin manages a domain only when it belongs to an
+        institution in their scope and they hold ``tenant.domain.request_change``
+        for it. Never raises — a resolution failure yields ``False``.
+        """
+        if is_super_admin(user):
+            return True
+        institution_id = getattr(domain, "institution_id", None)
+        if not institution_id:
+            return False
+        try:
+            return (
+                "tenant.domain.request_change"
+                in self.get_institution_capabilities(user, institution_id)
+            )
+        except CapabilityResolutionError:
+            return False
+
+    def can_invite_staff(self, user, institution, target_role) -> bool:
+        """Whether the actor may invite a ``target_role`` user into ``institution`` (R6.3, R6.4).
+
+        Super_Admins may invite any role. A non-super-admin may invite only when
+        they hold ``tenant.staff.invite`` for ``institution`` (R6.3) **and** the
+        assignable ``target_role`` is at or below their own delegated authority
+        per ``ROLE_HIERARCHY`` (R6.4). An unknown ``target_role`` and any role
+        above the inviter's authority are rejected. Never raises — a resolution
+        failure yields ``False``.
+        """
+        if is_super_admin(user):
+            return True
+        try:
+            capabilities = self.get_institution_capabilities(user, institution)
+        except CapabilityResolutionError:
+            return False
+        if "tenant.staff.invite" not in capabilities:
+            return False
+        inviter_role = (getattr(user, "role", "") or "").strip().lower()
+        inviter_level = ROLE_HIERARCHY.get(inviter_role, 0)
+        target_level = ROLE_HIERARCHY.get((target_role or "").strip().lower(), 0)
+        if target_level == 0:
+            # Unknown / non-canonical target role — never assignable.
+            return False
+        return target_level <= inviter_level
+
+
+# ---------------------------------------------------------------------------
+# Tenant domain lifecycle state machine (R7.2)
+# ---------------------------------------------------------------------------
+
+
+class DomainTransitionError(Exception):
+    """Raised when an :class:`InstitutionDomain` status transition is rejected (R7.2).
+
+    Carries a stable ``code`` (``INVALID_DOMAIN_TRANSITION``) plus the offending
+    ``from_status``/``to_status`` so callers (the domain create/activate views,
+    the verification task) can map it onto a non-revealing API error.
+    """
+
+    code = "INVALID_DOMAIN_TRANSITION"
+
+    def __init__(self, from_status: str, to_status: str, message: str | None = None):
+        self.from_status = from_status
+        self.to_status = to_status
+        super().__init__(
+            message
+            or f"Domain status transition {from_status!r} -> {to_status!r} is not permitted."
+        )
+
+
+class DomainStatusMachine:
+    """Pure, table-driven state machine for ``InstitutionDomain.status`` (R7.2).
+
+    The machine is the single source of truth for which lifecycle transitions
+    are permitted. It holds no state of its own and touches no database — it is
+    a static decision table over the ``InstitutionDomain.STATUS_*`` constants —
+    so it is trivially testable and reused identically by the domain
+    create/activate endpoints (Task 7.2) and the verification Celery task
+    (Task 7.3).
+
+    Only these transitions are allowed; every other ``(from, to)`` pair
+    (including no-op self-transitions and any jump into ``active`` that does not
+    come from ``verified``) is rejected::
+
+        pending_dns    -> pending_review
+        pending_dns    -> failed
+        pending_review -> verified
+        verified       -> active
+        active         -> disabled
+        failed         -> pending_dns
+        disabled       -> active
+    """
+
+    ALLOWED_TRANSITIONS: frozenset[tuple[str, str]] = frozenset(
+        {
+            (InstitutionDomain.STATUS_PENDING_DNS, InstitutionDomain.STATUS_PENDING_REVIEW),
+            (InstitutionDomain.STATUS_PENDING_DNS, InstitutionDomain.STATUS_FAILED),
+            (InstitutionDomain.STATUS_PENDING_REVIEW, InstitutionDomain.STATUS_VERIFIED),
+            (InstitutionDomain.STATUS_VERIFIED, InstitutionDomain.STATUS_ACTIVE),
+            (InstitutionDomain.STATUS_ACTIVE, InstitutionDomain.STATUS_DISABLED),
+            (InstitutionDomain.STATUS_FAILED, InstitutionDomain.STATUS_PENDING_DNS),
+            (InstitutionDomain.STATUS_DISABLED, InstitutionDomain.STATUS_ACTIVE),
+        }
+    )
+
+    @classmethod
+    def can_transition(cls, from_status: str, to_status: str) -> bool:
+        """Whether ``from_status -> to_status`` is one of the allowed transitions.
+
+        Pure lookup against :attr:`ALLOWED_TRANSITIONS`; returns ``False`` for
+        any pair not in the table, including unknown status strings and
+        same-status no-ops.
+        """
+        return (from_status, to_status) in cls.ALLOWED_TRANSITIONS
+
+    @classmethod
+    def assert_transition(cls, from_status: str, to_status: str) -> None:
+        """Raise :class:`DomainTransitionError` unless the transition is allowed.
+
+        The companion to :meth:`can_transition` for call sites that should fail
+        loudly (e.g. activating a non-``verified`` domain → ``DOMAIN_NOT_VERIFIED``
+        at the view layer, R7.7) rather than branch on a boolean.
+        """
+        if not cls.can_transition(from_status, to_status):
+            raise DomainTransitionError(from_status, to_status)
+
+    @classmethod
+    def allowed_targets(cls, from_status: str) -> frozenset[str]:
+        """The set of statuses reachable from ``from_status`` in one transition."""
+        return frozenset(
+            target for source, target in cls.ALLOWED_TRANSITIONS if source == from_status
+        )
 
 
 # ---------------------------------------------------------------------------

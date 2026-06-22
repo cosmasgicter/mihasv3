@@ -3,6 +3,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui'
 import { logger } from '@/lib/logger'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS, getStorageItemWithLegacyFallback } from '@/lib/browserNamespace'
 
 interface AdminErrorBoundaryState {
   hasError: boolean
@@ -15,7 +16,8 @@ interface AdminErrorBoundaryProps {
   children: React.ReactNode
 }
 
-const ADMIN_ERROR_CONTEXT_KEY = 'mihas:admin-error-context'
+const ADMIN_ERROR_CONTEXT_KEY = BROWSER_KEYS.adminErrorContext
+const LEGACY_ADMIN_ERROR_CONTEXT_KEY = LEGACY_BROWSER_KEYS.adminErrorContext
 
 const isExtensionConflict = (message: string): boolean => (
   message.includes('Could not establish connection') ||
@@ -46,7 +48,11 @@ export class AdminErrorBoundary extends React.Component<
 
     if (typeof window !== 'undefined') {
       try {
-        const raw = sessionStorage.getItem(ADMIN_ERROR_CONTEXT_KEY)
+        const raw = getStorageItemWithLegacyFallback(
+          sessionStorage,
+          ADMIN_ERROR_CONTEXT_KEY,
+          [LEGACY_ADMIN_ERROR_CONTEXT_KEY],
+        )
         if (raw) {
           const parsed = JSON.parse(raw) as { message?: string; capturedAt?: string }
           if (parsed.message) {
@@ -110,6 +116,7 @@ export class AdminErrorBoundary extends React.Component<
           ...(import.meta.env.DEV && { stack: error.stack, componentStack: errorInfo.componentStack }),
           capturedAt,
         }))
+        sessionStorage.removeItem(LEGACY_ADMIN_ERROR_CONTEXT_KEY)
       } catch {
         // best effort persistence
       }
@@ -132,6 +139,7 @@ export class AdminErrorBoundary extends React.Component<
   clearPersistedContext = () => {
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem(ADMIN_ERROR_CONTEXT_KEY)
+      sessionStorage.removeItem(LEGACY_ADMIN_ERROR_CONTEXT_KEY)
     }
 
     this.setState({

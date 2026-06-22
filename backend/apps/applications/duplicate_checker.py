@@ -1,9 +1,12 @@
 # backend/apps/applications/duplicate_checker.py
 
+import logging
 from dataclasses import dataclass
 from typing import Optional
 from django.db.models import Q
 from apps.applications.models import Application
+
+logger = logging.getLogger(__name__)
 
 # Terminal statuses: applications in these statuses do NOT block new applications
 # for the same program+intake. A student can reapply after withdrawal, rejection, etc.
@@ -24,7 +27,7 @@ def _load_multi_intake_policy() -> str:
         if setting and setting.value:
             return str(setting.value)
     except Exception:
-        pass
+        logger.debug("Could not read multi_intake_policy setting, using default", exc_info=True)
     return "unrestricted"
 
 

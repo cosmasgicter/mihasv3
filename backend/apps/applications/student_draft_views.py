@@ -53,6 +53,7 @@ from apps.applications.services import (
 from apps.common.idempotency import idempotent
 from apps.common.openapi_helpers import ErrorResponseSerializer
 from apps.documents.models import Payment
+from apps.documents.payment_constants import RESOLVED_PAYMENT_STATUSES
 from rest_framework.throttling import UserRateThrottle
 
 from apps.common.throttling import AIUserScopedRateThrottle
@@ -173,7 +174,7 @@ class ApplicationDetailView(APIView):
                     data["intake_capacity"] = intake.max_capacity
                     data["intake_enrollment"] = intake.current_enrollment
             except Exception:
-                pass
+                logger.debug("Could not enrich application with intake capacity", exc_info=True)
         return Response({"success": True, "data": data})
 
     def patch(self, request, application_id):
@@ -212,7 +213,10 @@ class ApplicationDetailView(APIView):
                 {"success": False, "error": "Permission denied", "code": "INSUFFICIENT_PERMISSIONS"},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        if Payment.objects.filter(application_id=app.id).exists():
+        if Payment.objects.filter(
+            application_id=app.id,
+            status__in=RESOLVED_PAYMENT_STATUSES,
+        ).exists():
             return Response(
                 {
                     "success": False,

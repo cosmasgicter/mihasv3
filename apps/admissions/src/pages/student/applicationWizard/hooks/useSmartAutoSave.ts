@@ -3,6 +3,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { AuthenticationError } from '@/services/client'
 import { logger } from '@/lib/logger'
+import { BROWSER_EVENTS, LEGACY_BROWSER_EVENTS, listenWithLegacyEventFallback } from '@/lib/browserNamespace'
 
 interface UseSmartAutoSaveProps {
   onSave: (context?: { isManual: boolean }) => Promise<void>
@@ -41,7 +42,7 @@ export const useSmartAutoSave = ({
       if (error instanceof AuthenticationError) {
         setIsAuthExpired(true)
         if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('mihas:auth-expired'))
+          window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.authExpired))
         }
         logger.error('Auto-save auth expired:', error.message)
         return
@@ -60,8 +61,12 @@ export const useSmartAutoSave = ({
   // Reset auth-expired state when session recovers
   useEffect(() => {
     const handleRecovered = () => { setIsAuthExpired(false) }
-    window.addEventListener('mihas:auth-recovered', handleRecovered)
-    return () => { window.removeEventListener('mihas:auth-recovered', handleRecovered) }
+    return listenWithLegacyEventFallback(
+      window,
+      BROWSER_EVENTS.authRecovered,
+      [LEGACY_BROWSER_EVENTS.authRecovered],
+      handleRecovered,
+    )
   }, [])
 
   // Track changed fields for user feedback

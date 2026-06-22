@@ -21,7 +21,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin
+from apps.accounts.permissions import IsAdmin, IsOwnerOrAdmin, IsSuperAdmin, is_super_admin
+from apps.catalog.catalog_cache import invalidate_catalog_scopes
 from apps.catalog.services import AccessScopeService
 from apps.common.pagination import StandardPagination
 from apps.documents.models import ApplicationDocument, Payment, ProgramFee
@@ -491,6 +492,37 @@ class PaymentVerifyView(APIView):
             "payment_method": result.payment_method,
         }
 
+        # R10.5/R10.8: emit an institution-scoped tenant Audit_Event for the
+        # payment-verify decision so a tenant admin can audit verification
+        # activity for their own school (filtered on ``changes.institution_id``).
+        # The payment-domain ``PaymentAuditService`` row remains the canonical
+        # ``entity_type='payment'`` record; this is the tenant-observability
+        # mirror carrying ``institution_id``. Never blocks the response.
+        try:
+            from apps.catalog.tenant_audit_service import TenantAuditService
+
+            institution_id = (payment.metadata or {}).get("institution_id")
+            if not institution_id and payment.application_id:
+                from apps.applications.models import Application as _Application
+
+                institution_id = (
+                    _Application.objects.filter(id=payment.application_id)
+                    .values_list("institution_ref_id", flat=True)
+                    .first()
+                )
+            TenantAuditService.record_payment_verification(
+                payment_id=payment.id,
+                application_id=payment.application_id,
+                institution_id=institution_id,
+                outcome_status=result.status,
+                outcome_code=result.error or "PAYMENT_CONFIRMED",
+                actor_id=getattr(user, "id", None),
+                actor_role=role,
+                request=request,
+            )
+        except Exception:  # pragma: no cover - audit must never block a write
+            pass
+
         err = result.error
         if err is None:
             data["code"] = "PAYMENT_CONFIRMED"
@@ -617,12 +649,72 @@ class ProgramFeeViewSet(ModelViewSet):
     permission_classes = [IsAdmin]
     serializer_class = ProgramFeeSerializer
 
+    def get_permissions(self):
+        if getattr(self, "action", None) in {"create", "update", "partial_update", "destroy"}:
+            return [IsSuperAdmin()]
+        return [IsAdmin()]
+
     def get_queryset(self):
         program_id = self.kwargs.get("program_id")
-        return ProgramFee.objects.filter(
+        queryset = ProgramFee.objects.filter(
             Q(is_active=True) | Q(is_active__isnull=True),
             program_id=program_id,
-        ).order_by("-created_at")
+        )
+
+        request = getattr(self, "request", None)
+        if request is None:
+            return queryset.order_by("-created_at")
+
+        user = getattr(request, "user", None)
+        if not is_super_admin(user):
+            try:
+                from apps.catalog.models import Program
+
+                filters = AccessScopeService().filters_for_user(user)
+                if filters.all_access:
+                    pass
+                elif str(program_id) in filters.offering_ids:
+                    pass
+                elif filters.institution_ids and Program.objects.filter(
+                    id=program_id,
+                    institution_id__in=filters.institution_ids,
+                ).exists():
+                    pass
+                else:
+                    queryset = queryset.none()
+            except Exception:
+                logger.warning("Failed to scope program fees for actor", exc_info=True)
+                queryset = queryset.none()
+
+        return queryset.order_by("-created_at")
+
+    def _invalidate_fee_catalog(self, program_id):
+        """Invalidate catalog reads that derive a fee from this program (R4.3).
+
+        Resolved fees surface in the cached assignment-preview response, so a
+        fee write must clear the owning tenant's scope + the shared portal
+        before returning. The owning institution is resolved from the program;
+        a missing program degrades to invalidating the shared/actor scope only.
+        """
+        from apps.catalog.models import Program
+
+        # Resolving the owning institution is a DB read; it must never break the
+        # write path (R4.3 — invalidation is best-effort). A lookup failure
+        # degrades to invalidating the shared/actor scope only, exactly as the
+        # docstring describes.
+        try:
+            institution_id = (
+                Program.objects.filter(id=program_id)
+                .values_list("institution_id", flat=True)
+                .first()
+            )
+        except Exception:  # never break the write on invalidation
+            logger.warning(
+                "fee catalog invalidation: program lookup failed", exc_info=True
+            )
+            institution_id = None
+        actor = getattr(getattr(self, "request", None), "user", None)
+        invalidate_catalog_scopes(institution_id, user=actor)
 
     def perform_create(self, serializer):
         program_id = self.kwargs.get("program_id")
@@ -648,6 +740,7 @@ class ProgramFeeViewSet(ModelViewSet):
             created_at=timezone.now(),
             updated_at=timezone.now(),
         )
+        self._invalidate_fee_catalog(program_id)
 
     def perform_update(self, serializer):
         program_id = self.kwargs.get("program_id")
@@ -672,6 +765,7 @@ class ProgramFeeViewSet(ModelViewSet):
             )
 
         serializer.save(updated_at=timezone.now())
+        self._invalidate_fee_catalog(program_id)
 
     def destroy(self, request, *args, **kwargs):
         """Soft delete: set is_active=false instead of deleting the record."""
@@ -679,4 +773,6 @@ class ProgramFeeViewSet(ModelViewSet):
         instance.is_active = False
         instance.updated_at = timezone.now()
         instance.save(update_fields=["is_active", "updated_at"])
+        # R4.3: removing a fee changes the cached assignment-preview fee data.
+        self._invalidate_fee_catalog(instance.program_id)
         return Response(status=status.HTTP_204_NO_CONTENT)

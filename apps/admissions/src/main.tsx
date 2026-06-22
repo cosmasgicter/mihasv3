@@ -10,6 +10,7 @@ import {
   incrementReloadReasonCounter,
 } from '@/lib/reloadControl'
 import { evaluateChunkAutoReloadPolicy } from '@/lib/chunkAutoReloadPolicy'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 
 // Activate the global error reporter AFTER first paint. Sentry ships ~60-80 KB
 // gzipped; eager import of `@/lib/errorReporter` pulled it into the entry
@@ -33,9 +34,12 @@ if (typeof window !== 'undefined' && import.meta.env.VITE_GLITCHTIP_DSN) {
   }
 }
 
-const CHUNK_RELOAD_LAST_TS_KEY = 'mihas_chunk_reload_ts_v2'
-const CHUNK_RELOAD_COUNT_KEY = 'mihas_chunk_reload_count_v2'
-const CHUNK_RELOAD_ROUTE_KEY = 'mihas_chunk_reload_route_v2'
+const CHUNK_RELOAD_LAST_TS_KEY = BROWSER_KEYS.chunkReloadTsV2
+const CHUNK_RELOAD_COUNT_KEY = BROWSER_KEYS.chunkReloadCountV2
+const CHUNK_RELOAD_ROUTE_KEY = BROWSER_KEYS.chunkReloadRouteV2
+const LEGACY_CHUNK_RELOAD_LAST_TS_KEY = LEGACY_BROWSER_KEYS.chunkReloadTsV2
+const LEGACY_CHUNK_RELOAD_COUNT_KEY = LEGACY_BROWSER_KEYS.chunkReloadCountV2
+const LEGACY_CHUNK_RELOAD_ROUTE_KEY = LEGACY_BROWSER_KEYS.chunkReloadRouteV2
 const CHUNK_RELOAD_MAX_PER_SESSION = 1
 const CHUNK_RELOAD_COOLDOWN_MS = 120_000
 
@@ -58,9 +62,24 @@ if (typeof window !== 'undefined') {
   const canAttemptChunkAutoReload = (reason: 'chunk_preload_error' | 'chunk_import_error' | 'chunk_mime_error') => {
     const now = Date.now()
     const currentRoute = window.location.pathname
-    const reloadCount = Number.parseInt(sessionStorage.getItem(CHUNK_RELOAD_COUNT_KEY) ?? '0', 10) || 0
-    const lastTs = Number.parseInt(sessionStorage.getItem(CHUNK_RELOAD_LAST_TS_KEY) ?? '0', 10) || 0
-    const lastRoute = sessionStorage.getItem(CHUNK_RELOAD_ROUTE_KEY) ?? null
+    const reloadCount =
+      Number.parseInt(
+        sessionStorage.getItem(CHUNK_RELOAD_COUNT_KEY) ??
+          sessionStorage.getItem(LEGACY_CHUNK_RELOAD_COUNT_KEY) ??
+          '0',
+        10,
+      ) || 0
+    const lastTs =
+      Number.parseInt(
+        sessionStorage.getItem(CHUNK_RELOAD_LAST_TS_KEY) ??
+          sessionStorage.getItem(LEGACY_CHUNK_RELOAD_LAST_TS_KEY) ??
+          '0',
+        10,
+      ) || 0
+    const lastRoute =
+      sessionStorage.getItem(CHUNK_RELOAD_ROUTE_KEY) ??
+      sessionStorage.getItem(LEGACY_CHUNK_RELOAD_ROUTE_KEY) ??
+      null
 
     const decision = evaluateChunkAutoReloadPolicy({
       now,
@@ -109,6 +128,9 @@ if (typeof window !== 'undefined') {
     sessionStorage.setItem(CHUNK_RELOAD_LAST_TS_KEY, String(Date.now()))
     sessionStorage.setItem(CHUNK_RELOAD_ROUTE_KEY, window.location.pathname)
     sessionStorage.setItem(CHUNK_RELOAD_COUNT_KEY, String((Number.parseInt(sessionStorage.getItem(CHUNK_RELOAD_COUNT_KEY) ?? '0', 10) || 0) + 1))
+    sessionStorage.removeItem(LEGACY_CHUNK_RELOAD_LAST_TS_KEY)
+    sessionStorage.removeItem(LEGACY_CHUNK_RELOAD_ROUTE_KEY)
+    sessionStorage.removeItem(LEGACY_CHUNK_RELOAD_COUNT_KEY)
 
     performReload({
       reason,
@@ -203,7 +225,7 @@ if (typeof window !== 'undefined') {
     const preloader = document.getElementById('preloader')
     if (preloader) {
       preloader.classList.add('fade-out')
-      // Match the .mihas-preloader CSS transition (350ms) with a small
+      // Match the .beanola-preloader CSS transition (350ms) with a small
       // buffer so the fade animation fully plays before the node is torn
       // out of the DOM.
       setTimeout(() => preloader.remove(), 400)

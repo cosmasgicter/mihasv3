@@ -226,11 +226,22 @@ def _call_lenco_collection_status(
     api_secret: str,
     base_url: str,
     timeout: int,
+    max_retries: int = 0,
 ) -> tuple[dict | None, str | None]:
     """Call Lenco ``/collections/status/{reference}`` and return parsed data.
 
     Returns ``(data_dict, None)`` on success, or ``(None, error_string)``
     on failure. Pure HTTP call - no DB interaction.
+
+    ``max_retries`` (default 0) bounds how many *additional* attempts are made
+    on a transient transport failure (timeout, connection error, or 5xx via
+    ``raise_for_status``); the total number of HTTP attempts is
+    ``max_retries + 1``. The default of 0 preserves the historical
+    single-attempt behaviour for interactive (student/admin) verification. The
+    payment poll task passes a small bound (<=2) so a flaky provider does not
+    silently drop a reconcilable payment, while still completing the run within
+    its wall-clock budget (R6.2). A non-JSON body from a successful HTTP call is
+    not retried — it is a provider contract error, not a transport failure.
     """
     import logging as _logging
     import requests as _http_requests
@@ -238,30 +249,40 @@ def _call_lenco_collection_status(
     _logger = _logging.getLogger(__name__)
 
     url = f"{base_url.rstrip('/')}/collections/status/{reference}"
-    try:
-        resp = _http_requests.get(
-            url,
-            headers={
-                "Authorization": f"Bearer {api_secret}",
-                "User-Agent": "MIHAS/2.0",
-                "Accept": "application/json",
-            },
-            timeout=timeout,
-        )
-        resp.raise_for_status()
-    except _http_requests.RequestException:
-        _logger.info(
-            "Lenco API request failed for reference %s", reference, exc_info=True,
-        )
-        return None, "Unable to reach payment provider. Please try again later."
+    attempts = max(1, int(max_retries) + 1)
+    transport_error = "Unable to reach payment provider. Please try again later."
 
-    try:
-        data = resp.json().get("data", {}) or {}
-    except (ValueError, AttributeError):
-        _logger.error("Lenco API returned non-JSON response for reference %s", reference)
-        return None, "Unexpected response from payment provider."
+    for attempt in range(1, attempts + 1):
+        try:
+            resp = _http_requests.get(
+                url,
+                headers={
+                    "Authorization": f"Bearer {api_secret}",
+                    "User-Agent": "Beanola/2.0",
+                    "Accept": "application/json",
+                },
+                timeout=timeout,
+            )
+            resp.raise_for_status()
+        except _http_requests.RequestException:
+            _logger.info(
+                "Lenco API request failed for reference %s (attempt %d/%d)",
+                reference, attempt, attempts, exc_info=True,
+            )
+            if attempt < attempts:
+                continue
+            return None, transport_error
 
-    return data, None
+        try:
+            data = resp.json().get("data", {}) or {}
+        except (ValueError, AttributeError):
+            _logger.error("Lenco API returned non-JSON response for reference %s", reference)
+            return None, "Unexpected response from payment provider."
+
+        return data, None
+
+    # Defensive: the loop always returns, but keep type-checkers satisfied.
+    return None, transport_error
 
 
 def _classify_mobile_money_response(resp, lenco_data: dict) -> tuple[str, dict, str | None]:
@@ -476,7 +497,7 @@ def _call_lenco_mobile_money(
             },
             headers={
                 "Authorization": f"Bearer {api_secret}",
-                "User-Agent": "MIHAS/2.0",
+                "User-Agent": "Beanola/2.0",
                 "Accept": "application/json",
             },
             timeout=timeout,

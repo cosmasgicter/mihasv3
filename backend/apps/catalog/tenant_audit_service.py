@@ -63,6 +63,34 @@ ACTION_OFFICIAL_DOCUMENT_EMAILED = "official_document.emailed"
 #: A non-super-admin actor's out-of-scope read was masked as not-found.
 ACTION_SCOPE_DENIED = "scope.denied"
 
+#: An application review decision was made (status transition by an admin),
+#: e.g. ``submitted → under_review``, ``→ approved``, ``→ rejected`` (R10.5).
+ACTION_REVIEW_DECIDED = "application.review_decided"
+
+#: A document verification decision was made by an admin (R10.5). The new
+#: verification status is recorded in the payload (``verified`` / ``rejected``).
+ACTION_DOCUMENT_VERIFICATION_DECIDED = "document.verification_decided"
+
+#: A payment verification decision occurred (R10.5) — either a provider verify
+#: call (``PaymentVerifyView``) or an admin payment-status review decision. The
+#: outcome status + stable code are recorded; never applicant PII.
+ACTION_PAYMENT_VERIFICATION_DECIDED = "payment.verification_decided"
+
+#: Free-text reason/notes recorded on an Audit_Event are bounded to this many
+#: characters. Admin-authored notes are not value-scanned by the key-based PII
+#: redactor, so the length cap limits how much free text can ever be persisted.
+_MAX_REASON_LENGTH = 1000
+
+
+def _bounded_reason(value: Any) -> Optional[str]:
+    """Return a length-bounded reason string or ``None`` (never raises)."""
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    return text[:_MAX_REASON_LENGTH]
+
 #: Prefix shared by every tenant configuration-change action. The verb is one
 #: of ``created`` / ``updated`` / ``deactivated`` and ``<resource>`` is the
 #: tenant child type (``institution``, ``domain``, ``asset``, ``template``,
@@ -144,6 +172,12 @@ class TenantAuditService:
         institution_str = _uuid_str(institution_id)
         if institution_str and "institution_id" not in meta:
             meta["institution_id"] = institution_str
+        # R10.7: record the correlation id (set by ``RequestIDMiddleware``) so
+        # an Audit_Event can be tied back to the originating request/log line.
+        if request is not None and "request_id" not in meta:
+            request_id = getattr(request, "request_id", None)
+            if request_id:
+                meta["request_id"] = str(request_id)
 
         redacted = TenantAuditService._redact(meta)
 
@@ -490,6 +524,127 @@ class TenantAuditService:
         )
 
     # ------------------------------------------------------------------
+    # Review / document-verify / payment-verify decisions (R10.5)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def record_review_decision(
+        *,
+        application_id: Any,
+        institution_id: Any,
+        new_status: str,
+        old_status: Optional[str] = None,
+        actor_id: Optional[Any] = None,
+        actor_role: Optional[str] = None,
+        reason: Optional[str] = None,
+        request: Optional[Any] = None,
+    ) -> None:
+        """Record an application review decision (R10.5).
+
+        Carries the institution scope plus the status transition so a tenant
+        admin can audit review activity for their own school. The free-text
+        ``reason``/notes is length-bounded; applicant PII is never recorded as
+        a structured field (only the ids, role, status, and bounded reason).
+        """
+        TenantAuditService.record_event(
+            action=ACTION_REVIEW_DECIDED,
+            entity_type="application",
+            entity_id=application_id,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            institution_id=institution_id,
+            metadata={
+                "object_type": "application",
+                "application_id": _uuid_str(application_id),
+                "old_status": old_status,
+                "new_status": new_status,
+                "status": new_status,
+                "reason": _bounded_reason(reason),
+            },
+            request=request,
+        )
+
+    @staticmethod
+    def record_document_verification(
+        *,
+        document_id: Any,
+        application_id: Any,
+        institution_id: Any,
+        new_status: str,
+        old_status: Optional[str] = None,
+        document_type: Optional[str] = None,
+        actor_id: Optional[Any] = None,
+        actor_role: Optional[str] = None,
+        reason: Optional[str] = None,
+        request: Optional[Any] = None,
+    ) -> None:
+        """Record an admin document verification decision (R10.5).
+
+        Only the document/application/institution ids, the document type, the
+        verification status transition, and a length-bounded reason are stored
+        — never the document bytes, storage key, or applicant PII.
+        """
+        TenantAuditService.record_event(
+            action=ACTION_DOCUMENT_VERIFICATION_DECIDED,
+            entity_type="application_document",
+            entity_id=document_id,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            institution_id=institution_id,
+            metadata={
+                "object_type": "application_document",
+                "document_id": _uuid_str(document_id),
+                "application_id": _uuid_str(application_id),
+                "document_type": document_type,
+                "old_status": old_status,
+                "new_status": new_status,
+                "status": new_status,
+                "reason": _bounded_reason(reason),
+            },
+            request=request,
+        )
+
+    @staticmethod
+    def record_payment_verification(
+        *,
+        payment_id: Any,
+        institution_id: Any,
+        outcome_status: str,
+        application_id: Optional[Any] = None,
+        outcome_code: Optional[str] = None,
+        actor_id: Optional[Any] = None,
+        actor_role: Optional[str] = None,
+        reason: Optional[str] = None,
+        request: Optional[Any] = None,
+    ) -> None:
+        """Record a payment verification decision (R10.5).
+
+        Emitted for both a provider verify call and an admin payment-status
+        review decision. Carries the institution scope so a tenant admin can
+        audit payment-verify activity for their own school. Only the payment +
+        application + institution ids, the resolved outcome status, an optional
+        stable ``outcome_code``, and a length-bounded reason are stored — never
+        the amount, phone, MSISDN, or any applicant PII.
+        """
+        TenantAuditService.record_event(
+            action=ACTION_PAYMENT_VERIFICATION_DECIDED,
+            entity_type="payment",
+            entity_id=payment_id,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            institution_id=institution_id,
+            metadata={
+                "object_type": "payment",
+                "payment_id": _uuid_str(payment_id),
+                "application_id": _uuid_str(application_id),
+                "status": outcome_status,
+                "code": outcome_code,
+                "reason": _bounded_reason(reason),
+            },
+            request=request,
+        )
+
+    # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
@@ -557,6 +712,9 @@ __all__ = [
     "ACTION_OFFICIAL_DOCUMENT_DOWNLOADED",
     "ACTION_OFFICIAL_DOCUMENT_EMAILED",
     "ACTION_SCOPE_DENIED",
+    "ACTION_REVIEW_DECIDED",
+    "ACTION_DOCUMENT_VERIFICATION_DECIDED",
+    "ACTION_PAYMENT_VERIFICATION_DECIDED",
     "TENANT_CONFIG_ACTION_PREFIX",
     "OBSERVABILITY_CONFIG_PREFIX",
     "OBSERVABILITY_ROUTING_FAILURE_ACTION",

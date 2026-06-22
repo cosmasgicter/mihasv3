@@ -30,10 +30,10 @@ describe('resolveInstitutionCode', () => {
     ).toBe('MIHAS')
   })
 
-  it('falls back to MIHAS for empty/unknown', () => {
-    expect(resolveInstitutionCode('')).toBe('MIHAS')
-    expect(resolveInstitutionCode(null)).toBe('MIHAS')
-    expect(resolveInstitutionCode('Something Else')).toBe('MIHAS')
+  it('does not assign an institution identity for empty/unknown values', () => {
+    expect(resolveInstitutionCode('')).toBeNull()
+    expect(resolveInstitutionCode(null)).toBeNull()
+    expect(resolveInstitutionCode('Something Else')).toBeNull()
   })
 })
 
@@ -103,6 +103,18 @@ describe('resolveAcceptanceProfile — fallback', () => {
     expect(profile.requirements).toEqual([])
     // Still carries a valid tuition account so the commitment-fee clause renders.
     expect(profile.tuitionAccount.accountNumber).toBeTruthy()
+  })
+
+  it('returns a neutral Beanola profile for unknown institutions instead of MIHAS/KATC banking', () => {
+    const profile = resolveAcceptanceProfile('Unknown College', 'Diploma in Something New')
+
+    expect(profile.institutionCode).toBe('BEANOLA')
+    expect(profile.feeChart).toEqual([])
+    expect(profile.requirements).toEqual([])
+    expect(profile.tuitionAccount.accountName).toBe('Configured by the issuing school')
+    expect(profile.tuitionAccount.accountNumber).toBe('Configured in tenant template')
+    expect(profile.tuitionAccount.accountName).not.toContain('Mukuba')
+    expect(profile.tuitionAccount.accountName).not.toContain('Kalulushi')
   })
 })
 

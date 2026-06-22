@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CreditCard, Clock } from 'lucide-react'
+import { CreditCard, Clock, Zap } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 import { SectionCard } from '@/components/ui/SectionCard'
@@ -249,11 +249,11 @@ const PaymentStep = ({
             >
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30">
-                  <span className="text-lg">⚡</span>
+                  <Zap className="h-5 w-5 text-orange-700 dark:text-orange-300" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-orange-700 dark:text-orange-300">
-                    {devBypassing ? 'Simulating…' : '⚡ Simulate Payment (Dev)'}
+                    {devBypassing ? 'Simulating…' : 'Simulate Payment (Dev)'}
                   </p>
                   <p className="text-xs text-orange-600/70 dark:text-orange-400/70">Bypass Lenco gateway — dev only, tree-shaken from production builds.</p>
                 </div>

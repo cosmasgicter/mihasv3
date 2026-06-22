@@ -1,6 +1,17 @@
 """Development settings — relaxed security for local dev."""
 
+import os
+
 from .base import *  # noqa: F401,F403
+
+# ---------------------------------------------------------------------------
+# Safety guard: dev settings must NEVER be loaded in a production process.
+# ---------------------------------------------------------------------------
+if os.environ.get("ENVIRONMENT", "").lower() == "production" or os.environ.get("DJANGO_PRODUCTION_MODE", ""):
+    raise RuntimeError(
+        "Development settings (config.settings.dev) loaded in a production environment. "
+        "Set DJANGO_SETTINGS_MODULE to config.settings.prod instead."
+    )
 
 DEBUG = True
 
@@ -25,7 +36,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 # Database — allow non-SSL connections locally
 DATABASES = {
     "default": dj_database_url.config(  # noqa: F405
-        default=os.environ.get("DATABASE_URL", "postgres://localhost:5432/mihas"),  # noqa: F405
+        default=os.environ.get("DATABASE_URL", "postgres://localhost:5432/beanola"),  # noqa: F405
         conn_max_age=600,
         conn_health_checks=True,
         ssl_require=False,

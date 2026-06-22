@@ -2,6 +2,8 @@ import { FileText, GraduationCap, ScrollText, Settings, Users, Zap } from 'lucid
 import { Link } from 'react-router-dom'
 import { ScaleOnHover } from '@/components/motion'
 import { SectionCard } from '@/components/ui/SectionCard'
+import { useCapabilities } from '@/contexts/CapabilityContext'
+import { canSeeAdminNavPath } from '@/components/navigation/adminNavAccess'
 
 interface DashboardQuickActionsProps {
   pendingApplications: number
@@ -14,6 +16,7 @@ export function DashboardQuickActions({
   totalPrograms,
   totalStudents
 }: DashboardQuickActionsProps) {
+  const caps = useCapabilities()
   const quickActions = [
     { label: 'Applications', description: `${pendingApplications} pending`, to: '/admin/applications', icon: FileText },
     { label: 'Programs', description: `${totalPrograms} active`, to: '/admin/programs', icon: GraduationCap },
@@ -21,6 +24,7 @@ export function DashboardQuickActions({
     { label: 'Audit Trail', description: 'System activity', to: '/admin/audit', icon: ScrollText },
     { label: 'Settings', description: 'Configure platform', to: '/admin/settings', icon: Settings }
   ]
+  const visibleQuickActions = quickActions.filter((action) => canSeeAdminNavPath(caps, action.to))
 
   return (
     <SectionCard
@@ -28,7 +32,7 @@ export function DashboardQuickActions({
       icon={<Zap className="h-5 w-5" aria-hidden="true" />}
     >
       <div className="space-y-2">
-        {quickActions.map((action) => {
+        {visibleQuickActions.map((action) => {
           const Icon = action.icon
           return (
             <ScaleOnHover key={action.label}>

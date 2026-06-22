@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useMemo } from 'react'
 import { Button } from '@/components/ui/Button'
 import { FileText, CheckCircle } from 'lucide-react'
 import { ApplicationCard, ApplicationSummary } from './ApplicationCard'
@@ -33,6 +33,10 @@ export function ApplicationsTable({
 }: ApplicationsTableProps) {
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null)
   const [updatingPayment, setUpdatingPayment] = useState<string | null>(null)
+
+  // Memoized Set for O(1) selection-membership checks (equivalent to
+  // selectedIds.includes(id) over the identical collection).
+  const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds])
 
   const handleSelect = (id: string, selected: boolean) => {
     if (!onSelectionChange) return
@@ -116,7 +120,7 @@ export function ApplicationsTable({
                 onViewDetails={onViewDetails}
                 updatingStatus={updatingStatus === app.id}
                 updatingPayment={updatingPayment === app.id}
-                isSelected={selectedIds.includes(app.id)}
+                isSelected={selectedIdSet.has(app.id)}
                 onSelect={onSelectionChange ? handleSelect : undefined}
               />
             ))}

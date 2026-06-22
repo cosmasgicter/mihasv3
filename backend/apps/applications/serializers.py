@@ -21,7 +21,7 @@ from apps.applications.identifier_resolver import IdentifierResolver
 from apps.common.serializer_fields import SexField
 from apps.common.validators import validate_nrc, validate_phone_e164, validate_zambian_phone
 from apps.documents.models import ApplicationGrade, Payment
-from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
+from apps.documents.payment_constants import COMPLETED_PAYMENT_STATUSES
 
 logger = logging.getLogger(__name__)
 
@@ -150,9 +150,13 @@ def get_application_grades(application: Application) -> list[ApplicationGrade]:
     )
 
 
-def build_grades_summary(application: Application) -> str:
-    """Produce the text format the admissions UI already knows how to parse."""
-    grades = get_application_grades(application)
+def grades_summary_from_grades(grades: list[ApplicationGrade]) -> str:
+    """Produce the text grade summary from an already-resolved grade list.
+
+    Split out so the list serializer can derive summary/total/points from a
+    single grade fetch (see ApplicationListSerializer._grade_summary) without
+    re-resolving grades per field.
+    """
     if not grades:
         return ""
 
@@ -161,6 +165,11 @@ def build_grades_summary(application: Application) -> str:
         subject_name = getattr(getattr(entry, "subject", None), "name", None) or str(entry.subject_id)
         summary_lines.append(f"{subject_name}: Grade {entry.grade}")
     return "\n".join(summary_lines)
+
+
+def build_grades_summary(application: Application) -> str:
+    """Produce the text format the admissions UI already knows how to parse."""
+    return grades_summary_from_grades(get_application_grades(application))
 
 
 def build_grades_payload(application: Application) -> list[dict[str, object]]:
@@ -175,12 +184,17 @@ def build_grades_payload(application: Application) -> list[dict[str, object]]:
     ]
 
 
-def calculate_points_from_grades(application: Application) -> int:
-    grades = sorted(
-        entry.grade for entry in get_application_grades(application)
+def points_from_grades(grades: list[ApplicationGrade]) -> int:
+    """Compute ECZ points from an already-resolved grade list."""
+    ordered = sorted(
+        entry.grade for entry in grades
         if isinstance(entry.grade, int) and 1 <= entry.grade <= 9
     )
-    return sum(grades[:5]) if grades else 0
+    return sum(ordered[:5]) if ordered else 0
+
+
+def calculate_points_from_grades(application: Application) -> int:
+    return points_from_grades(get_application_grades(application))
 
 
 def calculate_application_age(application: Application) -> int:
@@ -255,8 +269,11 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
             return direct_summary
 
         # Prefer the prefetched payment_set to avoid 2 queries per row (N+1).
-        # The list views prefetch 'payment_set'; when present we sort in
-        # Python instead of issuing per-row queries.
+        # The list views attach a window-bounded Prefetch of 'payment_set'
+        # (see _with_payment_summary); when present we compute the summary in
+        # Python instead of issuing per-row queries. Verified states
+        # (verified, paid, successful, force_approved) are treated as the same
+        # verified value via COMPLETED_PAYMENT_STATUSES; deferred is distinct.
         prefetch_cache = getattr(obj, "_prefetched_objects_cache", {})
         if "payment_set" in prefetch_cache:
             payments = list(obj.payment_set.all())
@@ -276,7 +293,7 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
                     getattr(p, "created_at", None),
                 )
 
-            successful = [p for p in payments if getattr(p, "status", None) in RECEIPT_ELIGIBLE_STATUSES]
+            successful = [p for p in payments if getattr(p, "status", None) in COMPLETED_PAYMENT_STATUSES]
             latest_successful_payment = max(successful, key=_successful_recency, default=None)
         else:
             latest_payment = (
@@ -287,7 +304,7 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
             )
             latest_successful_payment = (
                 Payment.objects
-                .filter(application_id=getattr(obj, "id", None), status__in=RECEIPT_ELIGIBLE_STATUSES)
+                .filter(application_id=getattr(obj, "id", None), status__in=COMPLETED_PAYMENT_STATUSES)
                 .order_by("-verified_at", "-updated_at", "-created_at")
                 .first()
             )
@@ -303,6 +320,10 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
             "last_payment_reference": getattr(latest_payment, "transaction_reference", None),
             "currency": getattr(latest_successful_payment, "currency", None)
             or getattr(latest_payment, "currency", None),
+            # Latest payment amount of ANY status — preserves the pre-feature
+            # application_fee value (previously the payment_summary_amount
+            # annotation) for pending/failed-only applications (R3.3).
+            "latest_amount": getattr(latest_payment, "amount", None),
         }
         cache[cache_key] = summary
         return summary
@@ -352,13 +373,19 @@ class ApplicationPaymentSummaryMixin(serializers.Serializer):
         amount so the admin UI shows e.g. "K1 / K1" instead of "K1 / K150".
         Falls back to the model column when no Payment row exists yet.
         """
-        # List path: annotated latest-payment amount (no N+1).
+        # List path: annotated latest-payment amount (no N+1). Retained for
+        # back-compat with callers/tests that still set the annotation; the
+        # always-on prefetch path no longer emits it.
         annotated = getattr(obj, "payment_summary_amount", None)
         if annotated is not None:
             return annotated
-        # Detail path / fallback: latest payment amount via the shared
-        # summary cache, else the legacy model column.
+        # Prefetch/detail path: the latest payment amount of any status
+        # (preserves the pre-feature payment_summary_amount value), then the
+        # latest verified amount, else the legacy model column.
         summary = self._get_payment_summary(obj)
+        latest_amount = summary.get("latest_amount")
+        if latest_amount is not None:
+            return latest_amount
         paid = summary.get("paid_amount")
         if paid is not None:
             return paid
@@ -714,14 +741,38 @@ class ApplicationListSerializer(ApplicationPaymentSummaryMixin, serializers.Mode
             return None
         return getattr(verifier, "email", None)
 
+    def _grade_summary(self, obj) -> dict[str, object]:
+        """Compute the grade summary, total subjects, and points once per
+        application per serializer instance.
+
+        Mirrors the ``_payment_summary_cache`` pattern: grades are resolved a
+        single time (prefetch-first via ``get_application_grades``; at most one
+        query when prefetch is absent) and the dependent fields are derived from
+        that one fetch, preserving the exact Zambian ECZ grading output.
+        """
+        cache = getattr(self, "_grade_summary_cache", None)
+        if cache is None:
+            cache = {}
+            self._grade_summary_cache = cache
+
+        cache_key = getattr(obj, "id", id(obj))
+        if cache_key not in cache:
+            grades = get_application_grades(obj)
+            cache[cache_key] = {
+                "summary": grades_summary_from_grades(grades),
+                "total": len(grades),
+                "points": points_from_grades(grades),
+            }
+        return cache[cache_key]
+
     def get_grades_summary(self, obj) -> str:
-        return build_grades_summary(obj)
+        return self._grade_summary(obj)["summary"]
 
     def get_total_subjects(self, obj) -> int:
-        return len(get_application_grades(obj))
+        return self._grade_summary(obj)["total"]
 
     def get_points(self, obj) -> int:
-        return calculate_points_from_grades(obj)
+        return self._grade_summary(obj)["points"]
 
     def get_age(self, obj) -> int:
         return calculate_application_age(obj)

@@ -27,7 +27,7 @@ describe('lazy import recovery', () => {
   })
 
   it('clears the guard after a successful import', async () => {
-    const storage = createMemoryStorage({ 'mihas:lazy-chunk-recovery:wizard-storage': '123' })
+    const storage = createMemoryStorage({ 'beanola:lazy-chunk-recovery:wizard-storage': '123' })
 
     const mod = await importWithChunkRecovery(
       async () => ({ uploadApplicationFile: vi.fn() }),
@@ -38,7 +38,7 @@ describe('lazy import recovery', () => {
     )
 
     expect(mod).toHaveProperty('uploadApplicationFile')
-    expect(storage.removeItem).toHaveBeenCalledWith('mihas:lazy-chunk-recovery:wizard-storage')
+    expect(storage.removeItem).toHaveBeenCalledWith('beanola:lazy-chunk-recovery:wizard-storage')
   })
 
   it('runs cleanup and reloads once for a recoverable stale chunk error', async () => {
@@ -62,14 +62,14 @@ describe('lazy import recovery', () => {
     ).rejects.toThrow('Recovering from deploy')
 
     expect(storage.setItem).toHaveBeenCalledWith(
-      'mihas:lazy-chunk-recovery:wizard-smart-features',
+      'beanola:lazy-chunk-recovery:wizard-smart-features',
       expect.any(String)
     )
     expect(cleanup).toHaveBeenCalledTimes(1)
     expect(reload).toHaveBeenCalledTimes(1)
   })
 
-  it('does not loop reloads when the guard is already present', async () => {
+  it('does not loop reloads when the legacy guard is already present', async () => {
     const storage = createMemoryStorage({ 'mihas:lazy-chunk-recovery:wizard-smart-features': 'existing' })
     const cleanup = vi.fn(async () => {})
     const reload = vi.fn()
@@ -92,4 +92,3 @@ describe('lazy import recovery', () => {
     expect(reload).not.toHaveBeenCalled()
   })
 })
-

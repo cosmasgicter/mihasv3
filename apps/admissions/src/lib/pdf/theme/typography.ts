@@ -1,9 +1,12 @@
 /**
- * MIHAS-KATC PDF Typography System
+ * Beanola tenant PDF typography system
  *
- * Four font families, registered once at module load. All TTF files live in
- * /public/fonts/pdf/ and are served same-origin to avoid Google-Fonts-CDN
- * runtime dependency.
+ * Four font families, registered once at module load. The TTF files live in
+ * `src/lib/pdf/assets/fonts/` and are imported as Vite URL assets (`?url`), so
+ * they are emitted as hashed, immutable-cacheable files under `/assets/` at
+ * build time rather than being publicly fetchable from `public/`. This keeps
+ * the PDF-only fonts off the public web-fetch path (perf-hardening R10.2) while
+ * still serving them same-origin to avoid a Google-Fonts-CDN runtime dependency.
  *
  * Scale follows a modular 1.25 (major third) ratio — small enough to feel
  * institutional, large enough for clear hierarchy.
@@ -24,12 +27,17 @@ import { Font } from '@react-pdf/renderer'
 // drops glyphs when weight interpolation is requested against a single
 // variable-font file, producing visibly broken text in the rendered PDF.
 // Static fonts render every glyph predictably.
-const PLAYFAIR_SEMIBOLD_URL = '/fonts/pdf/playfair-display-v40-latin-600.ttf'
-const PLAYFAIR_BOLD_URL = '/fonts/pdf/playfair-display-v40-latin-700.ttf'
-const SOURCE_SANS_REGULAR_URL = '/fonts/pdf/source-sans-3-v19-latin-regular.ttf'
-const SOURCE_SANS_SEMIBOLD_URL = '/fonts/pdf/source-sans-3-v19-latin-600.ttf'
-const JETBRAINS_MONO_URL = '/fonts/pdf/jetbrains-mono-v24-latin-500.ttf'
-const PINYON_SCRIPT_URL = '/fonts/pdf/pinyon-script-v24-latin-regular.ttf'
+//
+// Imported via Vite's `?url` suffix so each TTF is emitted as a hashed asset
+// under `/assets/` (immutable-cached) and is NOT served from the public
+// web-fetch path. @react-pdf fetches the emitted same-origin URL at render
+// time. Importing only resolves a string — no network activity until render.
+import PLAYFAIR_SEMIBOLD_URL from '../assets/fonts/playfair-display-v40-latin-600.ttf?url'
+import PLAYFAIR_BOLD_URL from '../assets/fonts/playfair-display-v40-latin-700.ttf?url'
+import SOURCE_SANS_REGULAR_URL from '../assets/fonts/source-sans-3-v19-latin-regular.ttf?url'
+import SOURCE_SANS_SEMIBOLD_URL from '../assets/fonts/source-sans-3-v19-latin-600.ttf?url'
+import JETBRAINS_MONO_URL from '../assets/fonts/jetbrains-mono-v24-latin-500.ttf?url'
+import PINYON_SCRIPT_URL from '../assets/fonts/pinyon-script-v24-latin-regular.ttf?url'
 
 export const FONT_FAMILY = {
   display: 'Playfair Display',

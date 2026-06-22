@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { hasDraftData } from '@/lib/draftManager'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 
 describe('draftManager storage detection', () => {
   beforeEach(() => {
@@ -10,8 +11,9 @@ describe('draftManager storage detection', () => {
 
   it('does not count cleanup metadata as an active draft', () => {
     localStorage.setItem('draftDeleted', 'true')
-    localStorage.setItem('mihas:application-reminder-request', JSON.stringify({ email: 'student@example.com' }))
-    localStorage.setItem('mihas:wizard-auth-redirect-guard', JSON.stringify({ createdAt: Date.now() }))
+    localStorage.setItem(BROWSER_KEYS.applicationReminderRequest, JSON.stringify({ email: 'student@example.com' }))
+    localStorage.setItem(BROWSER_KEYS.wizardAuthRedirectGuard, JSON.stringify({ createdAt: Date.now() }))
+    localStorage.setItem(LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard, JSON.stringify({ createdAt: Date.now() }))
 
     expect(hasDraftData()).toBe(false)
   })

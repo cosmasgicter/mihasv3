@@ -174,6 +174,138 @@ and the source/restore branch (Neon) or container (local) used.
 > session, application list, payment read). Do **not** repoint production at a
 > drill branch.
 
+## Backup-And-Restore Drill With Row-Count Verification (R1.7)
+
+This is the canonical, repeatable drill that proves a `deploy/backup-db.sh`
+dump can be restored and that **no rows were lost in the round-trip**. It backs
+up the production DB with the *exact* command path used by `backup-db.sh`,
+restores into a throwaway **scratch** database, then compares
+`SELECT count(*)` for the critical tables between the source and the restored
+scratch DB. **Any per-table mismatch fails the drill.**
+
+> Run this from the EC2 box (where the `postgres` container and `.env` live) so
+> the dump uses the real production source, or from a Neon restore branch /
+> local parity DB for a non-production rehearsal. **Never restore into the live
+> production database or the live Neon production branch** — the restore target
+> is always a scratch DB. **Never echo or commit secret values** (the
+> `POSTGRES_PASSWORD`, R2 keys, the `.pem`); the commands below reference them
+> by env-var name only, and they expand *inside* the `postgres` container where
+> `$POSTGRES_USER` / `$POSTGRES_DB` are already set.
+
+### Critical tables verified by this drill
+
+The drill compares row counts for the four tables whose loss would be
+operationally unrecoverable:
+
+| Table | Why it is verified |
+|-------|--------------------|
+| `applications` | Core admissions records — the platform's primary data |
+| `payments` | Canonical payment ledger (source of truth, FK to `applications`) |
+| `notifications` | Student/admin notification history |
+| `user_institution_memberships` | Tenant-authority memberships — losing these breaks scoped admin access |
+
+### Procedure
+
+All steps run from `~/mihas` on the EC2 box (`cd ~/mihas`). The drill never
+touches the production volume — it only reads the source DB and writes to a
+separate scratch database.
+
+**1. Take a backup (same path as `deploy/backup-db.sh`).**
+
+Use the nightly script as-is — it dumps `--no-owner --no-privileges
+--format=custom` out of the running `postgres` container, ships to R2, and
+removes the local copy. For a self-contained drill that keeps the dump local
+long enough to restore it, run just the dump leg into a scratch file:
+
+```bash
+# Custom-format dump straight out of the running production container.
+# (Identical flags to backup-db.sh; $POSTGRES_USER/$POSTGRES_DB expand in-container.)
+docker compose -f docker-compose.prod.yml exec -T postgres bash -lc \
+  'pg_dump --no-owner --no-privileges --format=custom -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+  > /tmp/mihas-drill.pgcustom
+```
+
+**2. Create a scratch database and restore into it.**
+
+The scratch DB lives in the same `postgres:17-alpine` container (matching
+`deploy/docker-compose.prod.yml`) but is a *separate* database, so the
+production DB is untouched:
+
+```bash
+SCRATCH="mihas_restore_drill"
+
+# Create an empty scratch DB (drop first so the drill is re-runnable).
+docker compose -f docker-compose.prod.yml exec -T postgres bash -lc \
+  "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -v ON_ERROR_STOP=1 \
+     -c 'DROP DATABASE IF EXISTS ${SCRATCH};' \
+     -c 'CREATE DATABASE ${SCRATCH};'"
+
+# Restore the dump into the scratch DB (clean + if-exists makes it idempotent).
+docker compose -f docker-compose.prod.yml exec -T postgres bash -lc \
+  "pg_restore --no-owner --no-privileges --clean --if-exists \
+     -U \"\$POSTGRES_USER\" -d ${SCRATCH}" < /tmp/mihas-drill.pgcustom
+```
+
+**3. Verify per-table row counts match (fails on mismatch).**
+
+Count each critical table in the source DB and the scratch DB, then compare. The
+gate exits non-zero (drill FAIL) on any mismatch:
+
+```bash
+SCRATCH="mihas_restore_drill"
+TABLES="applications payments notifications user_institution_memberships"
+FAIL=0
+
+for t in $TABLES; do
+  SRC=$(docker compose -f docker-compose.prod.yml exec -T postgres bash -lc \
+    "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -t -A -c 'SELECT count(*) FROM ${t};'")
+  DST=$(docker compose -f docker-compose.prod.yml exec -T postgres bash -lc \
+    "psql -U \"\$POSTGRES_USER\" -d ${SCRATCH} -t -A -c 'SELECT count(*) FROM ${t};'")
+  if [ "$SRC" = "$DST" ]; then
+    echo "OK   ${t}: source=${SRC} restored=${DST}"
+  else
+    echo "FAIL ${t}: source=${SRC} restored=${DST} (row-count mismatch)"
+    FAIL=1
+  fi
+done
+
+if [ "$FAIL" -ne 0 ]; then
+  echo "RESTORE DRILL FAILED: row counts diverged — do not trust this backup."
+else
+  echo "RESTORE DRILL PASSED: all critical tables match."
+fi
+```
+
+**4. Tear down the scratch DB and shred the dump.**
+
+Never leave a DB dump on disk (matches the `backup-db.sh` / RUNBOOK rule):
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T postgres bash -lc \
+  "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -c 'DROP DATABASE IF EXISTS mihas_restore_drill;'"
+shred -u /tmp/mihas-drill.pgcustom
+```
+
+### Pass / fail criteria
+
+- **PASS** — the dump restores cleanly **and** `count(*)` for every table in
+  the critical-tables list is identical between the source and the restored
+  scratch DB.
+- **FAIL** — the restore errors, or any single table's count diverges. A FAIL
+  means the backup is not trustworthy: investigate the dump (was the source
+  quiesced? did `pg_dump` complete?) before relying on it for recovery.
+- A successful re-run of step 2 into the same scratch DB must be a no-op on the
+  counts (`--clean --if-exists` is idempotent), confirming the restore is safe
+  to repeat during a real incident.
+
+### Drill evidence to record each run
+
+Per the quarterly **Restore Drill** cadence above, record: drill start time,
+restore-ready time, the four per-table source/restored counts, PASS/FAIL, and
+any issues found. For a non-production rehearsal, also record the Neon restore
+branch or scratch container used. Do **not** repoint production at the scratch
+DB.
+
 ## Rollback Posture (R9.7)
 
 This section is the canonical rollback posture for the platform. It is

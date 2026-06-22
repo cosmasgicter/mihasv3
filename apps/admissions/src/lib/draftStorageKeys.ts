@@ -1,3 +1,5 @@
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
+
 const KNOWN_DRAFT_STORAGE_KEYS = [
   'applicationDraft',
   'applicationWizardDraft',
@@ -8,12 +10,15 @@ const KNOWN_DRAFT_STORAGE_KEYS = [
   'wizardState',
   'applicationState',
   'draftDeleted',
-  'mihas:application-reminder-request',
-  'mihas:wizard-auth-redirect-guard',
+  BROWSER_KEYS.applicationReminderRequest,
+  BROWSER_KEYS.wizardAuthRedirectGuard,
+  LEGACY_BROWSER_KEYS.applicationReminderRequest,
+  LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard,
 ] as const
 
 const KNOWN_DRAFT_STORAGE_PREFIXES = [
-  'mihas:application-reminder-request:',
+  `${BROWSER_KEYS.applicationReminderRequest}:`,
+  LEGACY_BROWSER_KEYS.applicationReminderRequestPrefix,
 ] as const
 
 export function isDraftStorageKey(key: string): boolean {

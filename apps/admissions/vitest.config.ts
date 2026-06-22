@@ -9,6 +9,7 @@ export default defineConfig({
     include: ['tests/**/*.{test,spec,property}.{ts,tsx}'],
     exclude: [
       'tests/e2e/**',
+      'tests/playwright/**',
       // (a) Calls React components as plain functions — needs rewrite with render()
       'tests/unit/optimized-auth-routes.test.tsx',
       // (a) Imports non-existent module ../../lib/auth/permissions — not yet implemented

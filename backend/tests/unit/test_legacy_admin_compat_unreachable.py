@@ -4,11 +4,10 @@ R4.9: THE production access model SHALL be membership/grant-driven; the existing
 test-settings-only legacy-admin compatibility path SHALL NOT be relied upon or
 extended into production behaviour.
 
-``AccessScopeService`` carries a single, deliberately-narrow compatibility
-branch (``_legacy_admin_test_scope``) that grants a membership-less ``admin``
-all-access **only** so legacy unit fixtures (which never created memberships)
-keep passing. That branch is gated entirely behind ``_test_settings_active()``,
-which is True **iff** ``DJANGO_SETTINGS_MODULE`` ends with ``.test``.
+``AccessScopeService`` still exposes the legacy test-settings gate for
+historical contract coverage, but the compatibility branch no longer grants a
+membership-less ``admin`` all-access. A generic ``admin`` must have an active
+membership or grant before any tenant data is visible, even under test settings.
 
 These tests pin two things so the compat path can never leak into production:
 
@@ -113,11 +112,11 @@ class TestProductionScopeMembershipDriven:
         assert filters.all_access is False
         assert filters.institution_ids == {tenant_world.institution_id}
 
-    def test_compat_branch_would_change_result_under_tests(self, tenant_world):
-        """Guard: with the compat branch ACTIVE (test settings), the SAME
-        membership-less admin would get all-access. This documents exactly what
-        production must avoid — and proves the production assertions above are
-        not vacuous.
+    def test_compat_gate_does_not_grant_all_access_under_tests(self, tenant_world):
+        """Guard: even with the legacy compat gate ACTIVE (test settings), the
+        SAME membership-less admin stays empty-scoped. This pins the hardened
+        behavior so future test helpers cannot reintroduce role-derived
+        all-access.
 
         Uses ``tenant_world`` only to ensure DB access is configured; the admin
         itself has no membership/grant.
@@ -131,6 +130,10 @@ class TestProductionScopeMembershipDriven:
         try:
             svc.AccessScopeService._test_settings_active = staticmethod(lambda: True)
             filters = AccessScopeService().filters_for_user(admin)
-            assert filters.all_access is True  # compat path grants all-access
+            assert filters.all_access is False
+            assert filters.institution_ids == set()
+            assert filters.offering_ids == set()
+            assert filters.application_ids == set()
+            assert filters.has_no_scope is True
         finally:
             svc.AccessScopeService._test_settings_active = staticmethod(original)

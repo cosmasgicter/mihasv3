@@ -96,13 +96,14 @@ describe('sessionHardening module', () => {
   });
 
   describe('dispatchAuthRecovered', () => {
-    it('dispatches mihas:auth-recovered custom event', async () => {
+    it('dispatches Beanola auth-recovered custom event', async () => {
       const { dispatchAuthRecovered } = await import('@/lib/sessionHardening');
+      const { BROWSER_EVENTS } = await import('@/lib/browserNamespace');
       const listener = vi.fn();
-      window.addEventListener('mihas:auth-recovered', listener);
+      window.addEventListener(BROWSER_EVENTS.authRecovered, listener);
       dispatchAuthRecovered();
       expect(listener).toHaveBeenCalledTimes(1);
-      window.removeEventListener('mihas:auth-recovered', listener);
+      window.removeEventListener(BROWSER_EVENTS.authRecovered, listener);
     });
   });
 
@@ -117,25 +118,27 @@ describe('sessionHardening module', () => {
 // ─── 2. Auth context / session listener behavior ────────────────────────────────
 
 describe('Auth session state preservation', () => {
-  it('mihas:auth-recovered event is a CustomEvent', () => {
+  it('Beanola auth-recovered event is a CustomEvent', async () => {
+    const { BROWSER_EVENTS } = await import('@/lib/browserNamespace');
     const events: Event[] = [];
     const handler = (e: Event) => events.push(e);
-    window.addEventListener('mihas:auth-recovered', handler);
-    window.dispatchEvent(new CustomEvent('mihas:auth-recovered'));
+    window.addEventListener(BROWSER_EVENTS.authRecovered, handler);
+    window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.authRecovered));
     expect(events).toHaveLength(1);
     expect(events[0]).toBeInstanceOf(CustomEvent);
-    window.removeEventListener('mihas:auth-recovered', handler);
+    window.removeEventListener(BROWSER_EVENTS.authRecovered, handler);
   });
 
-  it('mihas:auth-expired event carries session message', () => {
+  it('Beanola auth-expired event carries session message', async () => {
+    const { BROWSER_EVENTS } = await import('@/lib/browserNamespace');
     const events: CustomEvent[] = [];
     const handler = (e: Event) => events.push(e as CustomEvent);
-    window.addEventListener('mihas:auth-expired', handler);
-    window.dispatchEvent(new CustomEvent('mihas:auth-expired', {
+    window.addEventListener(BROWSER_EVENTS.authExpired, handler);
+    window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.authExpired, {
       detail: { message: 'Your session expired. We saved your progress. Please sign in again to continue.' }
     }));
     expect(events[0].detail.message).toContain('session expired');
-    window.removeEventListener('mihas:auth-expired', handler);
+    window.removeEventListener(BROWSER_EVENTS.authExpired, handler);
   });
 });
 
@@ -167,26 +170,26 @@ describe('Route guard hardening contracts', () => {
 // ─── 4. Wizard persistence through auth recovery ────────────────────────────────
 
 describe('Wizard autosave auth recovery', () => {
-  it('useAutoSave listens for mihas:auth-recovered to resume cloud saves', async () => {
+  it('useAutoSave listens for Beanola auth-recovered to resume cloud saves', async () => {
     const fs = await import('fs');
     const path = await import('path');
     const src = fs.readFileSync(
       path.resolve(__dirname, '../../src/hooks/useAutoSave.ts'),
       'utf-8'
     );
-    expect(src).toContain('mihas:auth-recovered');
+    expect(src).toContain('BROWSER_EVENTS.authRecovered');
     // Must reset authExpiredRef on recovery
     expect(src).toMatch(/authExpiredRef/);
   });
 
-  it('useSmartAutoSave listens for mihas:auth-recovered', async () => {
+  it('useSmartAutoSave listens for Beanola auth-recovered', async () => {
     const fs = await import('fs');
     const path = await import('path');
     const src = fs.readFileSync(
       path.resolve(__dirname, '../../src/pages/student/applicationWizard/hooks/useSmartAutoSave.ts'),
       'utf-8'
     );
-    expect(src).toContain('mihas:auth-recovered');
+    expect(src).toContain('BROWSER_EVENTS.authRecovered');
   });
 
   it('wizard shows progress-saved message during auth recovery', async () => {

@@ -1,5 +1,5 @@
 {
-  "name": "mihas-monorepo",
+  "name": "beanola-platform",
   "private": true,
   "workspaces": ["apps/*", "shared"],
   "overrides": {

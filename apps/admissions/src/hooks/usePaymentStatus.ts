@@ -186,6 +186,8 @@ export function usePaymentStatus(applicationId: string, applicationPaymentStatus
 
     timeoutRef.current = setTimeout(async () => {
       if (!mountedRef.current) return
+      // Terminal-status guard: stop if status resolved between schedule and fire
+      if (statusRef.current === 'successful' || statusRef.current === 'failed' || statusRef.current === 'deferred') return
       pollCountRef.current += 1
       await fetchStatus()
       if (!mountedRef.current) return

@@ -9,6 +9,7 @@
  *
  * @module sessionHardening
  */
+import { BROWSER_EVENTS } from '@/lib/browserNamespace'
 
 // ─── Diagnostic Messages ───────────────────────────────────────────────────────
 
@@ -52,6 +53,6 @@ export function resetAuthFailureDebounce(): void {
 /** Dispatch when auth recovery succeeds (refresh worked) — autosave can resume */
 export function dispatchAuthRecovered(): void {
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('mihas:auth-recovered'))
+    window.dispatchEvent(new CustomEvent(BROWSER_EVENTS.authRecovered))
   }
 }

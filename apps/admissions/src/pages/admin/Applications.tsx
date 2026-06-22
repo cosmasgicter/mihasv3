@@ -48,6 +48,11 @@ import { toError } from '@/lib/toError'
 
 const EXPORT_BATCH_SIZE = 500
 
+// Admin card-grid virtualization threshold (R10.6): a single fixed integer
+// within the inclusive range 30–50. The card grid switches to the virtualized
+// renderer once the loaded application count exceeds this value.
+export const ADMIN_CARD_VIRTUALIZATION_THRESHOLD = 40
+
 const sanitizeSearchTerm = (value: string) => {
   return value
     .trim()
@@ -898,7 +903,7 @@ export default function Applications() {
             onSelectionChange={setSelectedIds}
             loading={isRefreshing}
           />
-        ) : applications.length > 100 ? (
+        ) : applications.length > ADMIN_CARD_VIRTUALIZATION_THRESHOLD ? (
           <VirtualizedApplicationsGrid
             applications={applications}
             onStatusUpdate={handleStatusUpdate as (id: string, status: string) => Promise<void>}

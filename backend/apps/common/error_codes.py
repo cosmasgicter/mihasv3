@@ -114,6 +114,35 @@ ERROR_CODES.update({
     },
 })
 
+# --- Enterprise tenant authority (multi-tenant Beanola) ---
+# Centralized authority + tenant-scoped staff management codes. Authority
+# decisions resolve through ``AdminCapabilityService``; these stable codes
+# back the fail-closed responses for capability resolution, scoped staff
+# invitation, transactional staff creation, and domain-resolved institution
+# binding (spec enterprise-tenant-authority — R1.6, R6.3/R6.5, R7.12).
+ERROR_CODES.update({
+    "CAPABILITY_RESOLUTION_FAILED": {
+        "http_status": status.HTTP_403_FORBIDDEN,
+        "message": "Your capabilities could not be resolved; the action is denied.",
+        "category": "auth",
+    },
+    "STAFF_INVITE_FORBIDDEN": {
+        "http_status": status.HTTP_403_FORBIDDEN,
+        "message": "You cannot invite a user with that role into that institution.",
+        "category": "auth",
+    },
+    "STAFF_CREATION_FAILED": {
+        "http_status": status.HTTP_400_BAD_REQUEST,
+        "message": "Staff account could not be created. No changes were saved.",
+        "category": "auth",
+    },
+    "INSTITUTION_OVERRIDE_NOT_PERMITTED": {
+        "http_status": status.HTTP_403_FORBIDDEN,
+        "message": "The submitted institution does not match the tenant resolved for this domain.",
+        "category": "auth",
+    },
+})
+
 # --- Validation ---
 ERROR_CODES.update({
     "VALIDATION_ERROR": {

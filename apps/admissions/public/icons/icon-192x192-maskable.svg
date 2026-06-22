@@ -1,16 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="MIHAS maskable icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="Beanola maskable icon">
   <defs>
-    <linearGradient id="mihas-maskable-gradient-192" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1d4ed8" />
-      <stop offset="100%" stop-color="#0f172a" />
+    <linearGradient id="beanola-maskable-gradient-192" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="58%" stop-color="#0f766e" />
+      <stop offset="100%" stop-color="#111827" />
     </linearGradient>
   </defs>
-  <rect width="192" height="192" fill="#0f172a" />
-  <!-- 15% safe padding for maskable crop area -->
-  <rect x="29" y="29" width="134" height="134" rx="30" fill="url(#mihas-maskable-gradient-192)" />
-  <rect x="64" y="74" width="12" height="46" fill="#ffffff" rx="2" />
-  <rect x="82" y="88" width="28" height="12" fill="#ffffff" rx="2" />
-  <rect x="110" y="74" width="12" height="46" fill="#ffffff" rx="2" />
-  <circle cx="126" cy="73" r="9" fill="#22d3ee" />
-  <text x="96" y="133" text-anchor="middle" font-size="14" font-family="Inter, Arial, sans-serif" font-weight="700" letter-spacing="1" fill="#ffffff">MIHAS</text>
+  <rect width="192" height="192" fill="#f8fafc" />
+  <rect x="29" y="29" width="134" height="134" rx="30" fill="url(#beanola-maskable-gradient-192)" />
+  <path d="M69 61h31c15 0 24 7 24 19 0 8-4 14-12 17 10 3 15 10 15 20 0 13-10 22-27 22H69V61Z" fill="#ffffff" />
+  <path d="M84 75v17h14c7 0 11-3 11-9 0-5-4-8-11-8H84Zm0 31v19h16c8 0 12-4 12-10s-4-9-12-9H84Z" fill="#2563eb" opacity="0.9" />
+  <circle cx="125" cy="66" r="9" fill="#f59e0b" />
 </svg>

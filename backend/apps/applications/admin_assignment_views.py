@@ -193,7 +193,7 @@ class ApplicationAssignView(APIView):
         try:
             CommunicationService.send('reviewer_assigned', app)
         except Exception:
-            pass
+            logger.warning("Failed to send reviewer_assigned notification for app=%s", app.id, exc_info=True)
 
         return Response({
             "success": True,
@@ -236,7 +236,7 @@ class ApplicationAutoAssignView(APIView):
             if setting and setting.value:
                 max_workload = int(setting.value)
         except Exception:
-            pass
+            logger.debug("Could not read max_reviewer_workload setting, using default=%s", max_workload, exc_info=True)
 
         reviewers = list(
             Profile.objects.filter(
@@ -297,7 +297,7 @@ class ApplicationAutoAssignView(APIView):
                                 action_url=f"/admin/applications/{app.id}",
                             )
                         except Exception:
-                            pass
+                            logger.warning("Failed to notify reviewer %s for auto-assigned app=%s", reviewer.id, app.id, exc_info=True)
 
                         assignments.append({
                             "application_id": str(app.id),

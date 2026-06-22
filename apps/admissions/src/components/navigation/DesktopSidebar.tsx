@@ -1,10 +1,13 @@
-import React, { useState, useCallback } from 'react'
-import { Home, FileText, Bell, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, Settings, FileSearch, CreditCard, DollarSign, MessageSquare, Clock, Sparkles, Building2 } from 'lucide-react'
+import React, { useState, useCallback, useMemo } from 'react'
+import { Home, FileText, Bell, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, Settings, FileSearch, CreditCard, DollarSign, MessageSquare, Clock, Sparkles } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { Tooltip } from '@/components/ui'
 import { cn } from '@/lib/utils'
+import { useTenantNavItem } from './tenantNav'
+import { useCapabilities } from '@/contexts/CapabilityContext'
+import { filterAdminNavItems } from './adminNavAccess'
 
 interface NavItem {
   to: string
@@ -33,7 +36,8 @@ const adminSections: NavSection[] = [
     title: 'Management',
     items: [
       { to: '/admin/users', icon: Users, label: 'Users' },
-      { to: '/admin/tenants', icon: Building2, label: 'Tenants' },
+      // The tenant item (/admin/tenants) is injected by the component from the
+      // shared capability-gated helper so all nav surfaces stay in parity.
       { to: '/admin/programs', icon: GraduationCap, label: 'Programs' },
       { to: '/admin/intakes', icon: Calendar, label: 'Intakes' },
       { to: '/admin/program-fees', icon: DollarSign, label: 'Program Fees' },
@@ -72,7 +76,28 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
   const location = useLocation()
   const { user, isAdmin } = useAuth()
   const { collapsed, setCollapsed } = useSidebar()
-  const visibleAdminSections = adminSections
+  const tenantNavItem = useTenantNavItem()
+  const caps = useCapabilities()
+
+  // Inject the capability-gated tenant item into the Management section so the
+  // sidebar derives the same decision as the mobile/app-layout nav (R13.4).
+  const visibleAdminSections = useMemo<NavSection[]>(() => {
+    const filteredSections = adminSections.map((section) => ({
+      ...section,
+      items: filterAdminNavItems(section.items, caps),
+    }))
+
+    const sectionsWithTenantItem = !tenantNavItem ? filteredSections : filteredSections.map((section) => {
+      if (section.id !== 'management') return section
+      const usersIndex = section.items.findIndex((item) => item.to === '/admin/users')
+      const items = [...section.items]
+      const insertAt = usersIndex >= 0 ? usersIndex + 1 : items.length
+      items.splice(insertAt, 0, tenantNavItem)
+      return { ...section, items }
+    })
+
+    return sectionsWithTenantItem.filter((section) => section.items.length > 0)
+  }, [tenantNavItem, caps.isSuperAdmin])
   
   // Track which sections are expanded (all expanded by default)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(

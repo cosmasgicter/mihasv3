@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { logger } from '@/lib/logger'
 import { toError } from '@/lib/toError'
+import { BROWSER_KEYS } from '@/lib/browserNamespace'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -50,7 +51,7 @@ const SANDBOX_WIDGET_URL = 'https://pay.sandbox.lenco.co/js/v1/inline.js'
 const WIDGET_URL =
   import.meta.env.VITE_LENCO_WIDGET_URL ||
   (import.meta.env.PROD ? PRODUCTION_WIDGET_URL : SANDBOX_WIDGET_URL)
-const WIDGET_SCRIPT_ID = 'mihas-lenco-inline-widget'
+const WIDGET_SCRIPT_ID = BROWSER_KEYS.lencoWidgetScriptId
 const SCRIPT_LOAD_TIMEOUT_MS = 15_000
 
 let scriptLoadPromise: Promise<void> | null = null

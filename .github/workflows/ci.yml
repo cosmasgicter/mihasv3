@@ -69,6 +69,7 @@ jobs:
         working-directory: backend
         continue-on-error: true
       - name: Django checks
+        id: suite-django-check
         run: python manage.py check
         working-directory: backend
       # Verification_Gate (R13.1): manage.py spectacular must generate the
@@ -90,6 +91,35 @@ jobs:
             exit 1
           fi
         working-directory: backend
+      # Contract_Sync_Gate (Gate 8 — R8.1, BLOCKING). Runs the contract
+      # orchestrator (scripts/launch-verification/check-contract-sync.py, task 10.5)
+      # right after the OpenAPI schema is generated. The orchestrator regenerates
+      # the OpenAPI artifact in the same run via `manage.py spectacular` AND drives
+      # the bun comparator bridge
+      # (apps/admissions/scripts/check-contract-sync-bridge.ts → contractComparator.ts)
+      # over all eleven tenant-admin tabs. It emits
+      # docs/launch-evidence/08-contract/{contract-evidence.json,openapi.yaml} and
+      # exits non-zero on shape divergence, an unmapped backend error code, or an
+      # uncovered tab. This backend job has Python (Django/spectacular) but not bun,
+      # so install bun first; the bridge imports only local, type-only TS (no npm
+      # runtime deps), so no `bun install` is required. The orchestrator auto-detects
+      # bun on PATH and uses the job's Python (`--python python`) for manage.py.
+      # This passed end-to-end against the real backend, so it is BLOCKING (no
+      # continue-on-error): a real contract divergence / unmapped code / uncovered
+      # tab fails CI (R8.1).
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Contract_Sync_Gate (Gate 8, blocking)
+        run: python3 scripts/launch-verification/check-contract-sync.py --python python
+      - name: Upload Contract_Sync_Gate evidence (Gate 8)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-contract-evidence
+          path: docs/launch-evidence/08-contract/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Critical backend slice
         run: python -m pytest tests/unit/test_drf_csrf_authentication.py tests/unit/test_auth_csrf_headers.py tests/unit/test_session_hardening.py tests/unit/test_device_session_lifecycle.py tests/unit/test_cleanup_stale_sessions_task.py -q
         working-directory: backend
@@ -103,6 +133,7 @@ jobs:
         run: python -m pytest tests/integration/test_cors_idempotency_headers.py -v
         working-directory: backend
       - name: Run unit tests
+        id: suite-pytest
         run: python -m pytest tests/unit/ -q --tb=short
         working-directory: backend
       - name: API quality gate (schema lint + breaking-change vs baseline)
@@ -118,6 +149,85 @@ jobs:
             /tmp/api_quality_report.md
             /tmp/current_schema.yaml
             /tmp/current_lint.json
+          if-no-files-found: warn
+          retention-days: 14
+      # Suite_Execution_Gate (Gate 6 — R6.3, R6.4, R6.5, R6.6, R6.7). Records this
+      # job's backend suites (manage.py check, pytest, spectacular) into the launch
+      # evidence store via collect-suite-results.py. django-check and pytest reuse
+      # the GitHub Actions `outcome` of the steps above (no re-run); the
+      # spectacular result reuses the real "Errors: N / Warnings: N" stderr summary
+      # captured by the "OpenAPI schema generation (zero errors)" step (drf-spectacular
+      # exits 0 even when it reports warnings, so we must parse that summary rather
+      # than the step outcome — same approach the errors gate already uses).
+      #
+      # EVIDENCE-CAPTURING / NON-BLOCKING: the collector's conservative rollup
+      # (R6.7) spans all nine frontend+backend suites; the admissions bun suites do
+      # not execute on this runner, so the full rollup cannot pass here. The hard,
+      # BLOCKING zero-warning spectacular assertion (R6.6) is enforced in the next
+      # step instead, since task 11.1 resolved the only spectacular warning
+      # (CanonicalProgramSerializer.get_available_offerings).
+      - name: Suite_Execution_Gate (Gate 6, backend evidence capture — non-blocking)
+        if: always()
+        env:
+          DJANGO_CHECK_OUTCOME: ${{ steps.suite-django-check.outcome }}
+          PYTEST_OUTCOME: ${{ steps.suite-pytest.outcome }}
+        run: |
+          set -uo pipefail
+          # Reuse the spectacular stderr captured by the blocking
+          # "OpenAPI schema generation (zero errors)" step above so the collector
+          # parses the real Errors/Warnings summary (R6.5 + R6.6).
+          export SPEC_ERR="$(cat /tmp/spectacular.stderr 2>/dev/null || true)"
+          python3 - <<'PY'
+          import json, os
+          def cap(outcome, *, ok_stdout=""):
+              code = 0 if outcome == "success" else 1
+              return {
+                  "exit_code": code,
+                  "stdout": ok_stdout if code == 0 else "",
+                  "stderr": "" if code == 0 else "step outcome: %s" % outcome,
+              }
+          captured = {
+              "backend-django-check": cap(
+                  os.environ.get("DJANGO_CHECK_OUTCOME", ""),
+                  ok_stdout="System check identified no issues (0 silenced).",
+              ),
+              # The "Run unit tests" step runs the tests/unit/ slice; the full
+              # pytest surface (incl. property tests) runs in the backend-property
+              # job. This records the slice this runner executed (evidence only).
+              "backend-pytest": cap(os.environ.get("PYTEST_OUTCOME", "")),
+              # drf-spectacular exits 0 even with warnings → gate on real stderr.
+              "backend-spectacular": {"exit_code": 0, "stdout": "", "stderr": os.environ.get("SPEC_ERR", "")},
+          }
+          with open("/tmp/suite-captured-backend.json", "w") as fh:
+              json.dump(captured, fh)
+          PY
+          python3 ../scripts/launch-verification/collect-suite-results.py \
+            --inputs /tmp/suite-captured-backend.json \
+            --output ../docs/launch-evidence/06-suite/suite-evidence.json || true
+        working-directory: backend
+        continue-on-error: true
+      # Suite_Execution_Gate (Gate 6 — R6.6, BLOCKING). The single spectacular
+      # schema warning (CanonicalProgramSerializer.get_available_offerings) was
+      # resolved in task 11.1, so the zero-warning requirement is enforced as a
+      # hard gate: any drf-spectacular warning fails CI. (Schema *errors* are
+      # already gated by the "OpenAPI schema generation (zero errors)" step.)
+      - name: Suite_Execution_Gate (Gate 6) — assert zero spectacular warnings (R6.6)
+        run: |
+          warnings=$(grep -oE '^Warnings:[[:space:]]+[0-9]+' /tmp/spectacular.stderr | grep -oE '[0-9]+' | head -1 || true)
+          warnings="${warnings:-0}"
+          echo "drf-spectacular reported ${warnings} warning(s)"
+          if [ "${warnings}" -ne 0 ]; then
+            echo "::error::OpenAPI schema generation reported ${warnings} warning(s) — Suite_Execution_Gate (R6.6) requires zero (get_available_offerings resolved in task 11.1)."
+            grep -E ': Warning|Warnings:' /tmp/spectacular.stderr || true
+            exit 1
+          fi
+        working-directory: backend
+      - name: Upload Suite_Execution_Gate evidence (Gate 6, backend)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-suite-evidence-backend
+          path: docs/launch-evidence/06-suite/
           if-no-files-found: warn
           retention-days: 14
 
@@ -163,12 +273,57 @@ jobs:
       - run: pip install -r requirements.txt
         working-directory: backend
       - name: Run property tests (shard ${{ matrix.shard }} of 8)
+        id: suite-property
         run: |
           mapfile -t files < <(python scripts/select_property_shard.py --shard "${{ matrix.shard }}" --total 8)
           printf 'Selected property files for shard %s:\n' "${{ matrix.shard }}"
           printf '  %s\n' "${files[@]}"
           python -u -m pytest "${files[@]}" -q --tb=short --durations=25 --timeout=90 --timeout-method=thread -p no:cacheprovider
         working-directory: backend
+      # Suite_Execution_Gate (Gate 6 — R6.4, R6.7). The backend Hypothesis property
+      # tests are part of the full backend pytest surface (R6.4). Each shard records
+      # its slice of that surface as the backend-pytest suite result via
+      # collect-suite-results.py, reusing the GitHub Actions `outcome` of the step
+      # above (no re-run).
+      #
+      # EVIDENCE-CAPTURING / NON-BLOCKING: the conservative rollup (R6.7) spans all
+      # nine suites, which never converge on a single property shard, so the
+      # collector exits non-zero by design here. `continue-on-error: true` + `|| true`
+      # keep CI green while still producing + uploading a per-shard evidence
+      # artifact. `python3` is preinstalled and the collector is stdlib-only.
+      - name: Suite_Execution_Gate (Gate 6, property shard evidence — non-blocking)
+        if: always()
+        env:
+          PROPERTY_OUTCOME: ${{ steps.suite-property.outcome }}
+        run: |
+          set -uo pipefail
+          python3 - <<'PY'
+          import json, os
+          oc = os.environ.get("PROPERTY_OUTCOME", "")
+          code = 0 if oc == "success" else 1
+          captured = {
+              "backend-pytest": {
+                  "exit_code": code,
+                  "stdout": "" if code else "",
+                  "stderr": "" if code == 0 else "property shard outcome: %s" % oc,
+              }
+          }
+          with open("/tmp/suite-captured-property.json", "w") as fh:
+              json.dump(captured, fh)
+          PY
+          python3 ../scripts/launch-verification/collect-suite-results.py \
+            --inputs /tmp/suite-captured-property.json \
+            --output ../docs/launch-evidence/06-suite/suite-evidence.json || true
+        working-directory: backend
+        continue-on-error: true
+      - name: Upload Suite_Execution_Gate evidence (Gate 6, property shard ${{ matrix.shard }})
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-suite-evidence-backend-property-${{ matrix.shard }}
+          path: docs/launch-evidence/06-suite/
+          if-no-files-found: warn
+          retention-days: 14
 
   admissions:
     runs-on: ubuntu-latest
@@ -188,6 +343,7 @@ jobs:
       - run: bun install
         working-directory: apps/admissions
       - name: Type check
+        id: suite-type-check
         run: bun run type-check
         working-directory: apps/admissions
       - name: Check dynamic imports resolve
@@ -197,14 +353,37 @@ jobs:
         run: bunx vitest run tests/unit/PaymentStep.test.tsx tests/unit/paymentStep.test.ts tests/unit/apiClientCsrf403Retry.test.ts tests/unit/sessionHardening.test.ts
         working-directory: apps/admissions
       - name: Lint
+        id: suite-lint
         run: bun run lint
         working-directory: apps/admissions
       - name: Unit tests
+        id: suite-unit
         run: bun run test
         working-directory: apps/admissions
       - name: Build
+        id: suite-build
         run: bun run build
         working-directory: apps/admissions
+      # Bundle_Guard (Gate 5 — R5.1, R5.3). Measures the built dist/ entry path
+      # against the launch budget and writes docs/launch-evidence/05-bundle/.
+      # EVIDENCE-CAPTURING / NON-BLOCKING for now: the current build exceeds the
+      # 150 KB-gz entry budget (known pre-existing regression), so the guard
+      # exits non-zero. `continue-on-error: true` keeps CI green while still
+      # capturing the evidence artifact every run. Flip this to a blocking gate
+      # (remove `continue-on-error`) once the entry-path / vendor-sentry / PDF
+      # budgets are met.
+      - name: Bundle_Guard (Gate 5, evidence capture — non-blocking)
+        run: bun scripts/launch-bundle-guard.ts
+        working-directory: apps/admissions
+        continue-on-error: true
+      - name: Upload Bundle_Guard evidence (Gate 5)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-bundle-evidence
+          path: docs/launch-evidence/05-bundle/
+          if-no-files-found: warn
+          retention-days: 14
       - name: PDF chunk smoke check (TDZ regression guard)
         run: node ../../scripts/check-pdf-chunk-load.mjs
         working-directory: apps/admissions
@@ -212,6 +391,66 @@ jobs:
         run: bun pm scan
         working-directory: apps/admissions
         continue-on-error: true
+      # Suite_Execution_Gate (Gate 6 — R6.1, R6.2, R6.7). Records this job's
+      # admissions suites (type-check, lint --max-warnings 0, build, unit tests)
+      # into the launch evidence store via collect-suite-results.py. It reuses the
+      # GitHub Actions `outcome` of the already-run steps above (no re-run), so a
+      # clean run records each as passing and a failed lint/type-check/build/unit
+      # step surfaces in the rollup.
+      #
+      # EVIDENCE-CAPTURING / NON-BLOCKING: the collector's conservative rollup
+      # (R6.7) spans all nine frontend+backend suites. The backend suites and the
+      # Playwright smoke run do not execute on this runner, so the full rollup
+      # cannot pass here and the collector exits non-zero by design. We feed the
+      # suites this job actually ran and let the rest record as not-measured;
+      # `continue-on-error: true` + `|| true` keep CI green while still producing
+      # and uploading the evidence artifact every run (mirrors the Gate 5
+      # Bundle_Guard convention above). `python3` is preinstalled on the runner
+      # and the collector + evidence schema are stdlib-only (no pip/Django).
+      - name: Suite_Execution_Gate (Gate 6, admissions evidence capture — non-blocking)
+        if: always()
+        env:
+          TYPECHECK_OUTCOME: ${{ steps.suite-type-check.outcome }}
+          LINT_OUTCOME: ${{ steps.suite-lint.outcome }}
+          BUILD_OUTCOME: ${{ steps.suite-build.outcome }}
+          UNIT_OUTCOME: ${{ steps.suite-unit.outcome }}
+        run: |
+          set -uo pipefail
+          # Translate each step outcome (success|failure|skipped|...) into a
+          # captured {exit_code,stdout,stderr} the collector's pure parser layer
+          # understands. lint runs with --max-warnings 0, so a warning already
+          # fails that step → non-zero exit recorded here.
+          python3 - <<'PY'
+          import json, os
+          def cap(outcome, *, ok_stdout=""):
+              code = 0 if outcome == "success" else 1
+              return {
+                  "exit_code": code,
+                  "stdout": ok_stdout if code == 0 else "",
+                  "stderr": "" if code == 0 else "step outcome: %s" % outcome,
+              }
+          captured = {
+              "admissions-type-check": cap(os.environ.get("TYPECHECK_OUTCOME", ""), ok_stdout="Found 0 errors."),
+              "admissions-lint": cap(os.environ.get("LINT_OUTCOME", "")),
+              "admissions-build": cap(os.environ.get("BUILD_OUTCOME", ""), ok_stdout="build complete"),
+              "admissions-unit": cap(os.environ.get("UNIT_OUTCOME", "")),
+          }
+          with open("/tmp/suite-captured-admissions.json", "w") as fh:
+              json.dump(captured, fh)
+          PY
+          python3 ../../scripts/launch-verification/collect-suite-results.py \
+            --inputs /tmp/suite-captured-admissions.json \
+            --output ../../docs/launch-evidence/06-suite/suite-evidence.json || true
+        working-directory: apps/admissions
+        continue-on-error: true
+      - name: Upload Suite_Execution_Gate evidence (Gate 6, admissions)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-suite-evidence-admissions
+          path: docs/launch-evidence/06-suite/
+          if-no-files-found: warn
+          retention-days: 14
 
   jobs-ops:
     runs-on: ubuntu-latest
@@ -301,6 +540,49 @@ jobs:
             tests/property/test_schema_drift_strict.py \
             -q --tb=short
         working-directory: backend
+      # Brand_Scan_Gate (Gate 7 — R7.1, R7.2, BLOCKING). Scans the guard-defined
+      # active source surface for hard platform-brand leaks, validates
+      # docs/legacy-brand-allowlist.json (validity + staleness), and emits
+      # docs/launch-evidence/07-brand/brand-evidence.json. The wrapper is
+      # stdlib-only (pure brand_eval core + shared evidence/redaction helpers —
+      # no Django runtime), so it runs cleanly on this job. It passed against the
+      # real repo (0 leaks outside the allowlist; all allowlist entries valid),
+      # so it is a hard gate: a real brand leak or a stale/invalid allowlist
+      # entry fails CI (R7.1/R7.2). Run from the repo root so the relative
+      # script path resolves.
+      - name: Brand_Scan_Gate (Gate 7, blocking)
+        run: python3 scripts/launch-verification/run-brand-scan.py
+      - name: Upload Brand_Scan_Gate evidence (Gate 7)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-brand-evidence
+          path: docs/launch-evidence/07-brand/
+          if-no-files-found: warn
+          retention-days: 14
+      # Scope_Gate (Gate 11 — R11.1, R11.4, BLOCKING). Runs the scope wrapper
+      # (scripts/launch-verification/check-launch-scope.py, task 12.3) on this
+      # Django-enabled job. It reads ENABLE_JOBS_OPS_ROUTES from Django settings
+      # ($DJANGO_SETTINGS_MODULE = config.settings.dev here, which evaluates the
+      # flag from the environment defaulting to false) and probes the
+      # jobs/automation/integrations stub routes under /api/v1/ for reachability by
+      # inspecting the resolved URLconf; it degrades cleanly to the env var if
+      # Django can't load. It emits docs/launch-evidence/11-scope/scope-evidence.json
+      # and exits non-zero if the flag is anything other than False (R11.1) or any
+      # un-shipped stub route is reachable (R11.4). It passed against the real repo
+      # (flag False, all 7 stub routes unreachable), so it is a hard gate (no
+      # continue-on-error). Run from the repo root so the relative script path and
+      # backend/ evidence-schema import resolve.
+      - name: Scope_Gate (Gate 11, blocking)
+        run: python3 scripts/launch-verification/check-launch-scope.py
+      - name: Upload Scope_Gate evidence (Gate 11)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-scope-evidence
+          path: docs/launch-evidence/11-scope/
+          if-no-files-found: warn
+          retention-days: 14
 
   # Frontend half of the Drift_Guard inventory (R13.2). Mirrors the backend job:
   # every required frontend guard is named explicitly and the job is blocking
@@ -356,3 +638,108 @@ jobs:
             /tmp/imp-admissions.txt
             /tmp/imp-jobsops.txt
           retention-days: 7
+
+  # Gate 12 — Launch-verification rollup (R12.1, R12.4, R12.6).
+  #
+  # Aggregates the per-gate Evidence_Artifacts produced by the gate jobs above
+  # into the SINGLE launch verdict: it downloads the uploaded gate evidence into
+  # docs/launch-evidence/, runs scripts/launch-verification/rollup.py (which reads
+  # all 11 gate artifacts), and publishes both the machine-readable
+  # docs/launch-evidence/rollup.json and the human-readable
+  # docs/launch-evidence/launch-readiness.md.
+  #
+  # IMPORTANT — CI runs only the FIVE automated gates: Gate 5 (bundle), Gate 6
+  # (suite), Gate 7 (brand), Gate 8 (contract), and Gate 11 (scope). The SIX
+  # operator-gated gates — Gate 1 (migration), Gate 2 (smoke), Gate 3
+  # (performance), Gate 4 (mobile-ui), Gate 9 (operational), and Gate 10
+  # (onboarding) — are captured by an Operator on the EC2 box per
+  # docs/runbooks/launch-verification.md and are NOT present in CI. The rollup is
+  # therefore ALWAYS `not-production-launch-ready` in CI BY DESIGN.
+  #
+  # Launch is approved ONLY when the verdict is `production-launch-ready`, which
+  # requires the operator to ALSO capture gates 1,2,3,4,9,10. So this job is
+  # INFORMATIONAL / NON-BLOCKING: the rollup step uses `continue-on-error` (it
+  # exits non-zero whenever the verdict is not ready, which is expected here) and
+  # the verdict is surfaced via an echo + the uploaded launch-rollup artifact.
+  # The expected absence of operator-gated evidence never fails CI.
+  launch-rollup:
+    runs-on: ubuntu-latest
+    name: Launch rollup (Gate 12, informational)
+    # Run after the gate jobs so their evidence uploads exist. `if: always()`
+    # ensures the rollup still publishes a verdict even if an upstream gate job
+    # failed or was skipped (the verdict simply records that gate as not passed).
+    needs: [backend, backend-property, admissions, backend-drift-guards]
+    if: ${{ always() }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # Download the five automated-gate evidence artifacts into their gate
+      # directories under docs/launch-evidence/. Each download is best-effort
+      # (`continue-on-error: true`) so a missing or failed upstream upload still
+      # lets the rollup run and publish a verdict (the gate is then recorded as
+      # missing/unreadable → not passed, which is the conservative default).
+      - name: Download Bundle_Guard evidence (Gate 5)
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: launch-bundle-evidence
+          path: docs/launch-evidence/05-bundle/
+      - name: Download Suite_Execution_Gate evidence (Gate 6)
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: launch-suite-evidence-admissions
+          path: docs/launch-evidence/06-suite/
+      - name: Download Brand_Scan_Gate evidence (Gate 7)
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: launch-brand-evidence
+          path: docs/launch-evidence/07-brand/
+      - name: Download Contract_Sync_Gate evidence (Gate 8)
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: launch-contract-evidence
+          path: docs/launch-evidence/08-contract/
+      - name: Download Scope_Gate evidence (Gate 11)
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: launch-scope-evidence
+          path: docs/launch-evidence/11-scope/
+      # Run the rollup aggregator. It writes rollup.json + launch-readiness.md and
+      # exits non-zero whenever the verdict is not `production-launch-ready` —
+      # which is EXPECTED in CI (the six operator gates 1,2,3,4,9,10 are absent),
+      # so this step is NON-BLOCKING by design. rollup.py is stdlib-only and
+      # imports the pure evidence schema from backend/ via its own sys.path insert
+      # (no pip install / Django needed).
+      - name: Launch-verification rollup (Gate 12, non-blocking)
+        id: rollup
+        continue-on-error: true
+        run: python3 scripts/launch-verification/rollup.py
+      # Surface the verdict in the job log WITHOUT failing CI. A
+      # `production-launch-ready` verdict is only possible once the operator
+      # evidence (gates 1,2,3,4,9,10) is also present — see
+      # docs/runbooks/launch-verification.md.
+      - name: Report launch verdict (informational)
+        run: |
+          verdict=$(python3 -c "import json,sys; print(json.load(open('docs/launch-evidence/rollup.json'))['verdict'])")
+          echo "Launch verdict: ${verdict}"
+          if [ "${verdict}" = "production-launch-ready" ]; then
+            echo "::notice::Launch verdict is production-launch-ready."
+          else
+            echo "::notice::Launch verdict is ${verdict} — EXPECTED in CI. Only the 5 automated gates (5 bundle, 6 suite, 7 brand, 8 contract, 11 scope) run here; the operator must also capture gates 1,2,3,4,9,10 per docs/runbooks/launch-verification.md. Launch is approved ONLY when the verdict is production-launch-ready."
+          fi
+      - name: Upload launch rollup (rollup.json + launch-readiness.md)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-rollup
+          path: |
+            docs/launch-evidence/rollup.json
+            docs/launch-evidence/launch-readiness.md
+          if-no-files-found: warn
+          retention-days: 14

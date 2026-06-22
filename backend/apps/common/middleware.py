@@ -192,7 +192,7 @@ class MetricsMiddleware:
                     },
                 )
         except Exception:
-            pass  # Metrics are best-effort - never block the response
+            logger.debug("Metrics emission failed", exc_info=True)  # best-effort - never block the response
 
         return response
 

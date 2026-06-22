@@ -11,6 +11,7 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { LazyLoadErrorBoundary } from '@/components/LazyLoadErrorBoundary'
 import { isMarketingPublicRoute } from '@/lib/publicRouteMode'
 import { useDeferredHydration } from '@/hooks/useDeferredHydration'
+import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 const LandingPage = lazy(() => import('@/pages/LandingPage'))
 const MaintenancePage = lazy(() => import('@/pages/MaintenancePage'))
 
@@ -33,9 +34,20 @@ function App() {
   useEffect(() => {
     // App boot succeeded — clear the chunk reload guard so future
     // deployments can trigger a fresh reload if needed
-    sessionStorage.removeItem('mihas_chunk_reload')
-    sessionStorage.removeItem('mihas_chunk_reload_ts')
-    sessionStorage.removeItem('mihas_chunk_reload_count')
+    [
+      BROWSER_KEYS.chunkReloadGuard,
+      BROWSER_KEYS.chunkReloadTs,
+      BROWSER_KEYS.chunkReloadCount,
+      BROWSER_KEYS.chunkReloadTsV2,
+      BROWSER_KEYS.chunkReloadCountV2,
+      BROWSER_KEYS.chunkReloadRouteV2,
+      LEGACY_BROWSER_KEYS.chunkReloadGuard,
+      LEGACY_BROWSER_KEYS.chunkReloadTs,
+      LEGACY_BROWSER_KEYS.chunkReloadCount,
+      LEGACY_BROWSER_KEYS.chunkReloadTsV2,
+      LEGACY_BROWSER_KEYS.chunkReloadCountV2,
+      LEGACY_BROWSER_KEYS.chunkReloadRouteV2,
+    ].forEach((key) => sessionStorage.removeItem(key))
     if (MAINTENANCE_MODE) {
       window.__dismissPreloader?.()
     }

@@ -10,6 +10,7 @@ import { sanitizeForLog, safeJsonParse } from './sanitize'
 import { generateSecureToken } from './security'
 import { logger } from '@/lib/logger'
 import { cachedGetItem, cachedSetItem, cachedRemoveItem } from './localStorageCache'
+import { useDraftStore } from '@/stores/draftStore'
 
 export interface ApplicationDraft {
   id?: string
@@ -565,9 +566,7 @@ class ApplicationSessionManager {
           if (blockedIds.length > 0) {
             this.clearAllLocalStorage()
             try {
-              void import('@/stores/draftStore').then(({ useDraftStore }) => {
-                useDraftStore.getState().markCleared()
-              })
+              useDraftStore.getState().markCleared()
             } catch {
               // best effort store sync
             }
@@ -606,9 +605,7 @@ class ApplicationSessionManager {
       }
 
       try {
-        void import('@/stores/draftStore').then(({ useDraftStore }) => {
-          useDraftStore.getState().markCleared()
-        })
+        useDraftStore.getState().markCleared()
       } catch {
         // best effort store sync
       }

@@ -4,6 +4,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { extractAuthUser } from '@/lib/authSession'
 import { authService } from '@/services/auth'
 import {
+  LEGACY_BROWSER_KEYS,
+  getStorageItemWithLegacyFallback,
+  removeStorageItemAndLegacy,
+} from '@/lib/browserNamespace'
+import {
   getCachedAuthUser,
   shouldRedirectToSignIn,
   hasRecentWizardRedirectGuard,
@@ -42,7 +47,11 @@ export function useWizardSessionRecovery({
       authRecoveryInFlightRef.current = false
       setError(current => (current === SESSION_EXPIRED_BANNER ? '' : current))
       try {
-        sessionStorage.removeItem(WIZARD_AUTH_REDIRECT_GUARD_KEY)
+        removeStorageItemAndLegacy(
+          sessionStorage,
+          WIZARD_AUTH_REDIRECT_GUARD_KEY,
+          [LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard],
+        )
       } catch {
         // best effort guard cleanup
       }
@@ -119,7 +128,11 @@ export function useWizardSessionRecovery({
       const now = Date.now()
       let rawGuard: string | null = null
       try {
-        rawGuard = sessionStorage.getItem(WIZARD_AUTH_REDIRECT_GUARD_KEY)
+        rawGuard = getStorageItemWithLegacyFallback(
+          sessionStorage,
+          WIZARD_AUTH_REDIRECT_GUARD_KEY,
+          [LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard],
+        )
       } catch {
         rawGuard = null
       }
@@ -132,6 +145,7 @@ export function useWizardSessionRecovery({
       preserveDraftBeforeAuthRedirect()
       try {
         sessionStorage.setItem(WIZARD_AUTH_REDIRECT_GUARD_KEY, JSON.stringify({ createdAt: now }))
+        sessionStorage.removeItem(LEGACY_BROWSER_KEYS.wizardAuthRedirectGuard)
       } catch {
         // best effort loop guard
       }
