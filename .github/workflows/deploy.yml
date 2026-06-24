@@ -92,9 +92,7 @@ jobs:
           # disk_gate.sh holds the testable disk-usage threshold gate (R1.4);
           # it is sourced by the deploy script below so the gate that runs in
           # production is the same one the property test exercises.
-          source: |
-            deploy/docker-compose.prod.yml
-            deploy/disk_gate.sh
+          source: deploy/docker-compose.prod.yml,deploy/disk_gate.sh
           target: /home/${{ secrets.EC2_USER }}/mihas
           strip_components: 1
 
