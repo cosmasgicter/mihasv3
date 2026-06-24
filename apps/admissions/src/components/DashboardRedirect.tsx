@@ -8,10 +8,10 @@ export function DashboardRedirect() {
   const [redirectPath, setRedirectPath] = useState<string | null>(null)
   const [nullUserTimeout, setNullUserTimeout] = useState(false)
 
-  // 3s timeout before allowing redirect to signin when user is null
+  // Short timeout before allowing redirect to signin when user is null
   useEffect(() => {
     if (!loading && !user) {
-      const timer = setTimeout(() => setNullUserTimeout(true), 300)
+      const timer = setTimeout(() => setNullUserTimeout(true), 500)
       return () => clearTimeout(timer)
     }
   }, [loading, user])

@@ -118,6 +118,60 @@ Sessions endpoint validates `user_id` before querying. Response always uses the 
 
 ---
 
+## Payments Contract
+
+All payment endpoints live under `/api/v1/payments/`. They use the standard `{ success, data, error, code }` envelope and cookie-based auth unless noted.
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/api/v1/payments/initiate/` | Yes | Create a pending card-widget Payment and return Lenco checkout data. |
+| POST | `/api/v1/payments/mobile-money/` | Yes | Create a pending mobile-money Payment. |
+| POST | `/api/v1/payments/defer/` | Yes | Mark the application payment as deferred so the student can submit now and pay later. |
+| POST | `/api/v1/payments/{id}/verify/` | Yes | Manually verify a pending payment against the Lenco API. |
+| POST | `/api/v1/payments/webhook/lenco/` | No | Lenco gateway webhook (HMAC-validated). |
+| GET | `/api/v1/payments/resolve-fee/` | Yes | Resolve the application fee for a program + residency category. |
+| POST | `/api/v1/payments/dev-bypass/` | Yes | **Development only** — simulate a successful payment when `DEBUG=true` and `PAYMENT_DEV_BYPASS=true`. |
+
+### Defer payment
+
+`POST /api/v1/payments/defer/`
+
+Request body:
+```json
+{
+  "application_id": "<uuid>"
+}
+```
+
+Success response (`201 Created`):
+```json
+{
+  "success": true,
+  "data": {
+    "payment_id": "<uuid> | null",
+    "reference": "<string>",
+    "amount": "<string>",
+    "currency": "ZMW",
+    "status": "deferred"
+  }
+}
+```
+
+Behavior:
+- Creates a `deferred` Payment record (or reuses an existing deferred row) for the application.
+- Sets the parent application's `payment_status` to `deferred`.
+- Students may defer only their own applications; admins may defer any application.
+- Throttled to 6 requests/minute per user (`payment_defer` scope).
+- Idempotent: repeated calls with the same idempotency key return the same deferred record.
+
+Error codes:
+- `VALIDATION_ERROR` — missing or invalid `application_id`.
+- `NOT_FOUND` — application does not exist.
+- `INSUFFICIENT_PERMISSIONS` — student tried to defer another user's application.
+- `PAYMENT_ERROR` — business-rule violation (e.g. payment already resolved) or unexpected failure.
+
+---
+
 ## Health Check Endpoints
 
 | Method | Path | Purpose |
