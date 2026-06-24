@@ -9,11 +9,20 @@ absent in the live DB). The ``get_queryset`` methods stay lazy + select_related
 """
 
 import os
+import importlib
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
 
-from django.test import Client, SimpleTestCase
+from django.test import Client, SimpleTestCase, override_settings
+from django.urls import clear_url_caches
+
+
+def _reload_urlconf():
+    import config.urls
+
+    importlib.reload(config.urls)
+    clear_url_caches()
 
 
 def _unwrap(response):
@@ -26,6 +35,19 @@ def _unwrap(response):
 class JobsOpsSeedReadInvariantTests(SimpleTestCase):
     """Requirement 2.4, 3.1 — GET handlers return seed envelopes without
     evaluating the JobApplication querysets against missing tables."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._jobs_ops_routes = override_settings(ENABLE_JOBS_OPS_ROUTES=True)
+        cls._jobs_ops_routes.enable()
+        _reload_urlconf()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._jobs_ops_routes.disable()
+        _reload_urlconf()
+        super().tearDownClass()
 
     def setUp(self):
         self.client = Client()

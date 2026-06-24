@@ -391,7 +391,14 @@ def test_property_6_application_list_shape_equivalent(payment_specs, grade_count
         intake=world.intake, suffix=f"p6app-{sfx}", status="submitted",
     )
 
+    has_current_payment = False
     for index, (p_status, method, currency, amount, verified) in enumerate(payment_specs):
+        if p_status in {"pending", "deferred"}:
+            if has_current_payment:
+                p_status = "failed"
+                verified = False
+            else:
+                has_current_payment = True
         build_payment(
             application=application, amount=Decimal(amount), currency=currency,
             status=p_status, payment_method=method,

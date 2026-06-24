@@ -35,6 +35,7 @@ Run (sqlite test DB, never the production/Neon DB)::
 from __future__ import annotations
 
 import pytest
+from django.core.cache import cache
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from rest_framework.test import APIClient
@@ -199,6 +200,7 @@ class TestCapabilityEndpointShape:
         the memberships (platform authority) but the institutions still exist, so
         the institution list is populated for them too.
         """
+        cache.clear()
         actor = build_profile(role=role)
 
         for index, spec in enumerate(membership_specs):

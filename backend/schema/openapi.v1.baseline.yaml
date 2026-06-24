@@ -290,14 +290,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: List admin audit logs
-  /api/v1/admin/dashboard/:
+  /api/v1/admin/capabilities/:
     get:
-      operationId: admin_dashboard_retrieve
+      operationId: admin_capabilities
       description: |-
-        GET /api/v1/admin/dashboard/
+        GET /api/v1/admin/capabilities/ — the actor's full Capability_Set (R2.1).
 
-        Application counts by status, period totals (today/week/month),
-        recent activity. Admin only.
+        Sibling alias of ``AdminScopeView`` returning the same Capability_Endpoint
+        payload inside the ``{"success": true, "data": ...}`` envelope (R2.4): the
+        actor's ``role``, ``is_super_admin`` flag, ``all_access`` flag, platform-level
+        ``capabilities`` list (full ``platform.*`` set for a Super_Admin per R2.2,
+        empty otherwise), and an ``institutions`` list where each entry includes its
+        ``id``, ``code``, ``name``, and per-institution ``tenant.*`` ``capabilities``
+        list (R2.3). Resolves through the centralized ``AdminCapabilityService`` and
+        fails closed when capabilities cannot be resolved (R1.6).
       tags:
       - admin
       security:
@@ -308,7 +314,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminDashboardResponse'
+                type: object
+                additionalProperties: {}
           description: ''
         '401':
           description: Authentication required — missing or invalid credentials.
@@ -335,7 +342,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      summary: Retrieve admin dashboard
+      summary: Get admin capabilities
+  /api/v1/admin/dashboard/:
+    get:
+      operationId: api_v1_admin_dashboard_retrieve
+      description: |-
+        GET /api/v1/admin/dashboard/
+
+        Application counts by status, period totals (today/week/month),
+        recent activity. Admin only.
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDashboard'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve api v1 admin dashboard
   /api/v1/admin/institutions/:
     get:
       operationId: admin_tenant_institutions_list
@@ -1234,7 +1287,16 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Retrieve api v1 admin institutions domains
     post:
-      operationId: api_v1_admin_institutions_domains_create
+      operationId: admin_tenant_domains_create
+      description: |-
+        Create a tenant domain in the verification-pending lifecycle (R7.3).
+
+        Super-admin only (domain config is super-admin gated, R7.14). The new
+        domain is forced to ``status = pending_dns`` with a freshly generated
+        ≥32-char ``verification_token`` and a ``dns_target``; the response
+        carries the DNS record the tenant must publish. The domain only becomes
+        routable after the verification job (Task 7.3) advances it to
+        ``verified`` and a super-admin activates it (``verified → active``).
       parameters:
       - in: path
         name: institution_id
@@ -1260,12 +1322,8 @@ paths:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminInstitutionDomain'
-          description: ''
+        '201':
+          description: Domain created in pending_dns with DNS record to publish.
         '400':
           description: Bad request — validation error. Response body follows the platform
             error envelope.
@@ -1298,7 +1356,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      summary: Create api v1 admin institutions domains
+      summary: Create admin tenant domains
   /api/v1/admin/institutions/{institution_id}/domains/{item_id}/:
     patch:
       operationId: api_v1_admin_institutions_domains_partial_update
@@ -1371,6 +1429,206 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Update api v1 admin institutions domains partial
+  /api/v1/admin/institutions/{institution_id}/domains/{item_id}/activate/:
+    post:
+      operationId: admin_tenant_domain_activate
+      description: |-
+        POST .../domains/<id>/activate/ — activate a verified domain (R7.6, R7.7, R7.14).
+
+        Activation is restricted to Super_Admins (``IsSuperAdmin``, R7.14). A domain
+        may be activated only from ``verified`` (R7.6); any other status is rejected
+        with the stable ``DOMAIN_NOT_VERIFIED`` code and the status is left unchanged
+        (R7.7). On success the status moves ``verified → active`` (validated through
+        the :class:`DomainStatusMachine`) and ``approved_by`` records the activating
+        Super_Admin. A duplicate active hostname (the partial unique index
+        ``uq_institution_domains_active_hostname``) is mapped to ``HOSTNAME_CONFLICT``
+        with HTTP 409 (R7.10).
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInstitutionDomain'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Submit admin tenant domain activate
+  /api/v1/admin/institutions/{institution_id}/programs/:
+    get:
+      operationId: api_v1_admin_institutions_programs_retrieve
+      description: |-
+        GET tenant program offerings scoped through the admin tenant boundary.
+
+        This is intentionally read-only. Assigning canonical programs to schools and
+        editing routing rules remains a Beanola platform operation handled by
+        platform-gated write endpoints; tenant admins use this endpoint only to see
+        their own school's offerings.
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Program'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve api v1 admin institutions programs
+    post:
+      operationId: api_v1_admin_institutions_programs_create
+      description: |-
+        GET tenant program offerings scoped through the admin tenant boundary.
+
+        This is intentionally read-only. Assigning canonical programs to schools and
+        editing routing rules remains a Beanola platform operation handled by
+        platform-gated write endpoints; tenant admins use this endpoint only to see
+        their own school's offerings.
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Program'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Program'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Program'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Program'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create api v1 admin institutions programs
   /api/v1/admin/institutions/{institution_id}/required-documents/:
     get:
       operationId: api_v1_admin_institutions_required_documents_retrieve
@@ -1560,6 +1818,17 @@ paths:
   /api/v1/admin/institutions/{institution_id}/templates/:
     get:
       operationId: api_v1_admin_institutions_templates_retrieve
+      description: |-
+        List/create tenant document templates (R9.4).
+
+        R9.4 (template-read access vs production-edit restriction):
+          * READ (``GET``) is scoped by ``_InstitutionChildListCreateView.get_queryset``
+            through ``_scope_institution_ids(request.user)`` — a Tenant_Admin with
+            template-read scope sees only their own institution's templates; a
+            no-scope non-super-admin sees none (never another tenant's).
+          * Production template EDITS (``POST``/``PATCH``) are restricted to granted
+            actors via ``_write_allowed`` (Super_Admin), so a Tenant_Admin holding
+            only read access can view but never mutate production templates.
       parameters:
       - in: path
         name: institution_id
@@ -1607,6 +1876,17 @@ paths:
       summary: Retrieve api v1 admin institutions templates
     post:
       operationId: api_v1_admin_institutions_templates_create
+      description: |-
+        List/create tenant document templates (R9.4).
+
+        R9.4 (template-read access vs production-edit restriction):
+          * READ (``GET``) is scoped by ``_InstitutionChildListCreateView.get_queryset``
+            through ``_scope_institution_ids(request.user)`` — a Tenant_Admin with
+            template-read scope sees only their own institution's templates; a
+            no-scope non-super-admin sees none (never another tenant's).
+          * Production template EDITS (``POST``/``PATCH``) are restricted to granted
+            actors via ``_write_allowed`` (Super_Admin), so a Tenant_Admin holding
+            only read access can view but never mutate production templates.
       parameters:
       - in: path
         name: institution_id
@@ -1674,6 +1954,14 @@ paths:
   /api/v1/admin/institutions/{institution_id}/templates/{item_id}/:
     patch:
       operationId: api_v1_admin_institutions_templates_partial_update
+      description: |-
+        Retrieve/update a single tenant document template (R9.4).
+
+        Read scoping and the production-edit restriction match
+        :class:`AdminTenantTemplateListCreateView`: ``get_queryset`` confines reads
+        to the actor's scoped institution(s), while ``PATCH`` is gated by
+        ``_write_allowed`` (Super_Admin) so only granted actors edit production
+        templates.
       parameters:
       - in: path
         name: institution_id
@@ -1981,6 +2269,63 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Submit admin routing simulate
+  /api/v1/admin/scope/:
+    get:
+      operationId: admin_dashboard_retrieve
+      description: |-
+        GET /api/v1/admin/scope/ — the actor's tenant access scope + capabilities.
+
+        Returns the admin's role, whether they have all-institution access, and the
+        concrete institutions they may act on. Drives the frontend multi-tenant UX:
+        a scoped school admin (``all_access=false`` with one institution) is
+        auto-locked to it with no switcher; a super-admin (``all_access=true``) gets
+        the full institution list to power an institution switcher/filter.
+
+        Extended for the Capability_Endpoint (R2.1): the response additionally
+        carries ``is_super_admin``, a platform-level ``capabilities`` list, and a
+        per-institution ``capabilities`` list on each institution entry, while
+        keeping the existing ``role``, ``all_access``, and ``institutions[{id, code,
+        name}]`` keys for backward compatibility. Capabilities resolve through the
+        centralized ``AdminCapabilityService`` so authority never depends on legacy
+        role-string assumptions (R1.5).
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDashboardResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve admin dashboard
   /api/v1/admin/settings/:
     get:
       operationId: admin_settings_list
@@ -2686,7 +3031,24 @@ paths:
       summary: List admin users
     post:
       operationId: admin_users_create
-      description: Create a new user with role assignment (admin registration).
+      description: |-
+        Create a new user with role assignment (admin registration / staff invite).
+
+        Two shapes share this endpoint:
+
+        * **Global/platform user** — no ``institution_id`` in the payload. Only a
+          Super_Admin may create an unscoped ``super_admin`` or global ``admin``
+          (R6.1, R6.2); a non-super-admin is confined to non-privileged roles
+          here.
+        * **Tenant staff invite** — an ``institution_id`` is supplied. A
+          non-super-admin must hold ``tenant.staff.invite`` for that institution
+          and the assignable ``role`` must sit at or below their own authority,
+          decided centrally by ``AdminCapabilityService.can_invite_staff`` (R6.3,
+          R6.4) — an out-of-scope institution resolves to no capability, so a
+          cross-tenant invite is impossible (R6.8). The user, profile, and
+          ``UserInstitutionMembership`` are created inside one
+          ``transaction.atomic()`` block, so a membership failure rolls back the
+          user and profile and surfaces ``STAFF_CREATION_FAILED`` (R6.5, R6.6).
       tags:
       - admin
       requestBody:
@@ -3003,129 +3365,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Get admin users export
-  /api/v1/analytics/funnel/:
-    get:
-      operationId: analytics_funnel
-      tags:
-      - analytics
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FunnelAnalyticsResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Get analytics funnel
-  /api/v1/analytics/outreach/:
-    get:
-      operationId: analytics_outreach
-      tags:
-      - analytics
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OutreachAnalyticsResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Get analytics outreach
-  /api/v1/analytics/sources/:
-    get:
-      operationId: analytics_sources
-      tags:
-      - analytics
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SourceAnalyticsResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Get analytics sources
   /api/v1/applications/:
     get:
       operationId: applications_list
@@ -6701,391 +6940,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Get auth session
-  /api/v1/automation/rules/:
-    get:
-      operationId: automation_rules_list
-      tags:
-      - automation
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AutomationRuleListResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: List automation rules
-    post:
-      operationId: automation_rules_create
-      tags:
-      - automation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AutomationRule'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AutomationRule'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AutomationRule'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AutomationRuleResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Create automation rules
-  /api/v1/automation/runs/:
-    get:
-      operationId: automation_runs_list
-      tags:
-      - automation
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AutomationRunListResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: List automation runs
-    post:
-      operationId: automation_runs_create
-      tags:
-      - automation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AutomationRun'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AutomationRun'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AutomationRun'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '202':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AutomationRunResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Create automation runs
-  /api/v1/automation/runs/{run_id}/:
-    get:
-      operationId: automation_runs_retrieve
-      parameters:
-      - in: path
-        name: run_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - automation
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AutomationRunResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Retrieve automation runs
-  /api/v1/automation/runs/{run_id}/approve/:
-    post:
-      operationId: automation_runs_approve
-      parameters:
-      - in: path
-        name: run_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - automation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AutomationAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AutomationAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AutomationAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AutomationActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit automation runs approve
-  /api/v1/automation/runs/{run_id}/cancel/:
-    post:
-      operationId: automation_runs_cancel
-      parameters:
-      - in: path
-        name: run_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - automation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AutomationAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AutomationAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AutomationAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AutomationActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit automation runs cancel
   /api/v1/catalog/assignment-preview/:
     get:
       operationId: catalog_assignment_preview
@@ -7186,8 +7040,22 @@ paths:
   /api/v1/catalog/canonical-programs/:
     get:
       operationId: catalog_canonical_programs_list
-      description: GET /api/v1/catalog/canonical-programs/ - shared program-first
-        choices.
+      description: |-
+        GET /api/v1/catalog/canonical-programs/ — program-first offering listing.
+
+        Lists active **Institution_Program_Offering** rows (``Program`` with
+        ``offering_status == "active"``) grouped by **Canonical_Program** (R8.6,
+        R8.7). The portal scope is decided by :class:`OfferingDirectoryService`:
+
+        * **Shared Beanola portal (R8.6)** — no resolved tenant and no ``institution``
+          query param: every active offering across all tenants, grouped by canonical
+          program.
+        * **Tenant portal (R8.7)** — a white-label host resolved by
+          :class:`InstitutionContextService` (or an explicit ``institution`` param):
+          only that resolved tenant's offerings.
+
+        This is a read-only public listing; it never mutates offerings and is not a
+        canonical-program assignment surface (assignment is Super_Admin-only, R8.8).
       parameters:
       - in: query
         name: institution
@@ -7833,7 +7701,15 @@ paths:
       operationId: catalog_programs_list
       description: |-
         GET /api/v1/catalog/programs/ - list programs (public + admin)
-        POST /api/v1/catalog/programs/ - create program (admin only)
+        POST /api/v1/catalog/programs/ - create program offering (gated)
+
+        Creating a ``Program`` is creating an **Institution_Program_Offering** — i.e.
+        assigning a **Canonical_Program** to a Tenant. That assignment is restricted
+        to Super_Admins (``platform.canonical_program.manage`` /
+        ``platform.program_assignment.manage``); a Tenant_Admin is limited to
+        requesting offering changes (``tenant.program.request_change``) and can never
+        create a cross-tenant offering. Authority is decided per-object through
+        :meth:`AdminCapabilityService.can_manage_program` (R8.8, R5.2).
       parameters:
       - in: query
         name: page
@@ -7884,7 +7760,15 @@ paths:
       operationId: catalog_programs_create
       description: |-
         GET /api/v1/catalog/programs/ - list programs (public + admin)
-        POST /api/v1/catalog/programs/ - create program (admin only)
+        POST /api/v1/catalog/programs/ - create program offering (gated)
+
+        Creating a ``Program`` is creating an **Institution_Program_Offering** — i.e.
+        assigning a **Canonical_Program** to a Tenant. That assignment is restricted
+        to Super_Admins (``platform.canonical_program.manage`` /
+        ``platform.program_assignment.manage``); a Tenant_Admin is limited to
+        requesting offering changes (``tenant.program.request_change``) and can never
+        create a cross-tenant offering. Authority is decided per-object through
+        :meth:`AdminCapabilityService.can_manage_program` (R8.8, R5.2).
       tags:
       - catalog
       requestBody:
@@ -9055,1200 +8939,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/v1/integrations/openai/test/:
-    post:
-      operationId: integrations_openai_test
-      tags:
-      - integrations
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IntegrationAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/IntegrationAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/IntegrationAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IntegrationsActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit integrations openai test
-  /api/v1/integrations/telegram/connect/:
-    post:
-      operationId: integrations_telegram_connect
-      tags:
-      - integrations
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TelegramSubscription'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TelegramSubscription'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TelegramSubscription'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TelegramSubscriptionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit integrations telegram connect
-  /api/v1/integrations/telegram/test/:
-    post:
-      operationId: integrations_telegram_test
-      tags:
-      - integrations
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IntegrationAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/IntegrationAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/IntegrationAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IntegrationsActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit integrations telegram test
-  /api/v1/integrations/telegram/webhook/:
-    post:
-      operationId: integrations_telegram_webhook
-      tags:
-      - integrations
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IntegrationAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/IntegrationAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/IntegrationAction'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IntegrationsActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit integrations telegram webhook
-  /api/v1/job-applications/:
-    get:
-      operationId: job_applications_list
-      tags:
-      - job-applications
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobApplicationListResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: List job applications
-    post:
-      operationId: job_applications_create
-      tags:
-      - job-applications
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JobApplication'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/JobApplication'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/JobApplication'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobApplicationResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Create job applications
-  /api/v1/job-applications/{application_id}/:
-    get:
-      operationId: job_applications_retrieve
-      parameters:
-      - in: path
-        name: application_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - job-applications
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobApplicationResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Retrieve job applications
-  /api/v1/job-applications/{application_id}/approve/:
-    post:
-      operationId: job_applications_approve
-      parameters:
-      - in: path
-        name: application_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - job-applications
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit job applications approve
-  /api/v1/job-applications/{application_id}/pause/:
-    post:
-      operationId: job_applications_pause
-      parameters:
-      - in: path
-        name: application_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - job-applications
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit job applications pause
-  /api/v1/job-applications/{application_id}/reject/:
-    post:
-      operationId: job_applications_reject
-      parameters:
-      - in: path
-        name: application_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - job-applications
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit job applications reject
-  /api/v1/job-applications/{application_id}/resume/:
-    post:
-      operationId: job_applications_resume
-      parameters:
-      - in: path
-        name: application_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - job-applications
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '202':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit job applications resume
-  /api/v1/job-applications/{application_id}/submit/:
-    post:
-      operationId: job_applications_submit
-      parameters:
-      - in: path
-        name: application_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - job-applications
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '202':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit job applications submit
-  /api/v1/jobs/:
-    get:
-      operationId: jobs_list
-      parameters:
-      - in: query
-        name: page
-        schema:
-          type: integer
-      - in: query
-        name: pageSize
-        schema:
-          type: integer
-      - in: query
-        name: recommendation
-        schema:
-          type: string
-      tags:
-      - jobs
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsListResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: List jobs
-  /api/v1/jobs/{job_id}/:
-    get:
-      operationId: jobs_retrieve
-      parameters:
-      - in: path
-        name: job_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - jobs
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsDetailResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Retrieve jobs
-  /api/v1/jobs/{job_id}/dismiss/:
-    post:
-      operationId: jobs_dismiss
-      parameters:
-      - in: path
-        name: job_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - jobs
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit jobs dismiss
-  /api/v1/jobs/{job_id}/score/:
-    post:
-      operationId: jobs_score
-      parameters:
-      - in: path
-        name: job_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - jobs
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '202':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit jobs score
-  /api/v1/jobs/{job_id}/tailor-documents/:
-    post:
-      operationId: jobs_tailor_documents
-      parameters:
-      - in: path
-        name: job_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - jobs
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '202':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit jobs tailor documents
-  /api/v1/jobs/{job_id}/watch/:
-    post:
-      operationId: jobs_watch
-      parameters:
-      - in: path
-        name: job_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - jobs
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/JobAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit jobs watch
-  /api/v1/jobs/discovery-runs/:
-    post:
-      operationId: jobs_discovery_run_create
-      tags:
-      - jobs
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DiscoveryRun'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/DiscoveryRun'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/DiscoveryRun'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '202':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsDiscoveryRunResponse'
-          description: ''
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Create jobs discovery run
-  /api/v1/jobs/discovery-runs/{run_id}/:
-    get:
-      operationId: jobs_discovery_run_retrieve
-      parameters:
-      - in: path
-        name: run_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - jobs
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobsDiscoveryRunResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Retrieve jobs discovery run
   /api/v1/meta/platform/:
     get:
       operationId: meta_platform
@@ -10294,8 +8984,44 @@ paths:
         GET /api/v1/notifications/ - list notifications for current user.
         POST /api/v1/notifications/ - admin send notification (delegates to NotificationSendView).
 
-        Supports pagination (?page=1&pageSize=20) and filtering (?type=info&is_read=true).
-        Without params, returns all notifications in the paginated envelope for backward compatibility.
+        Two read modes:
+        - **Page-number mode** (no ``after``): supports ``?page=1&pageSize=20`` and
+          filtering (``?type=info&is_read=true``), returning the existing
+          ``{page, pageSize, totalCount, results}`` envelope for backward
+          compatibility. Without params, returns notifications in the same paginated
+          envelope.
+        - **Cursor mode** (``?after=<id>``): orders by descending ``(created_at, id)``
+          and returns rows strictly less than the anchor's composite key, capped at
+          ``min(pageSize default 20, max 100)``. Issues no ``count()`` query and
+          reports ``totalCount`` as ``null`` (R9, system-performance-hardening).
+      parameters:
+      - in: query
+        name: after
+        schema:
+          type: string
+        description: 'Cursor mode: opaque last-seen notification id. Returns rows
+          strictly before the anchor''s (created_at, id) key in descending order.
+          totalCount is null and no full-count query is executed.'
+      - in: query
+        name: is_read
+        schema:
+          type: boolean
+        description: Filter by read state
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Page number (page-number mode, default 1)
+      - in: query
+        name: pageSize
+        schema:
+          type: integer
+        description: Page size (default 20, max 100)
+      - in: query
+        name: type
+        schema:
+          type: string
+        description: Filter by notification type
       tags:
       - notifications
       security:
@@ -10307,6 +9033,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NotificationListResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
           description: ''
         '401':
           description: Authentication required — missing or invalid credentials.
@@ -11161,388 +9893,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Get admin notification history
-  /api/v1/outreach/campaigns/:
-    get:
-      operationId: outreach_campaigns_list
-      tags:
-      - outreach
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OutreachCampaignListResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: List outreach campaigns
-    post:
-      operationId: outreach_campaigns_create
-      tags:
-      - outreach
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OutreachCampaign'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/OutreachCampaign'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/OutreachCampaign'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OutreachCampaignResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Create outreach campaigns
-  /api/v1/outreach/contacts/:
-    get:
-      operationId: outreach_contacts_list
-      tags:
-      - outreach
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OutreachContactListResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: List outreach contacts
-    post:
-      operationId: outreach_contacts_create
-      tags:
-      - outreach
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OutreachContact'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/OutreachContact'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/OutreachContact'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OutreachContactResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Create outreach contacts
-  /api/v1/outreach/contacts/enrich/:
-    post:
-      operationId: outreach_contacts_enrich
-      tags:
-      - outreach
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OutreachAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/OutreachAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/OutreachAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '202':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OutreachActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit outreach contacts enrich
-  /api/v1/outreach/messages/generate/:
-    post:
-      operationId: outreach_messages_generate
-      tags:
-      - outreach
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OutreachMessage'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/OutreachMessage'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/OutreachMessage'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OutreachMessageResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit outreach messages generate
-  /api/v1/outreach/messages/send/:
-    post:
-      operationId: outreach_messages_send
-      tags:
-      - outreach
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OutreachAction'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/OutreachAction'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/OutreachAction'
-        required: true
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '202':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OutreachActionResponse'
-          description: ''
-        '400':
-          description: Bad request — validation error. Response body follows the platform
-            error envelope.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Submit outreach messages send
   /api/v1/payments/:
     get:
       operationId: payments_list
@@ -12755,47 +11105,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Delete api v1 programs fees
-  /api/v1/reports/daily-digest/:
-    get:
-      operationId: reports_daily_digest
-      tags:
-      - reports
-      security:
-      - jwtBearerAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DailyDigestResponse'
-          description: ''
-        '401':
-          description: Authentication required — missing or invalid credentials.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden — the authenticated user lacks permission for this
-            action.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Resource not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error. Logged to GlitchTip.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      summary: Get reports daily digest
   /api/v1/sessions/:
     get:
       operationId: sessions_list
@@ -15159,152 +13468,6 @@ components:
           default: true
       required:
       - data
-    AutomationAction:
-      type: object
-      properties:
-        message:
-          type: string
-        status:
-          type: string
-        reference_id:
-          type: string
-          format: uuid
-      required:
-      - message
-      - reference_id
-      - status
-    AutomationActionResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/AutomationAction'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    AutomationRule:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        rule_type:
-          type: string
-        is_enabled:
-          type: boolean
-        config: {}
-      required:
-      - config
-      - id
-      - is_enabled
-      - name
-      - rule_type
-    AutomationRuleListResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/AutomationRulePage'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    AutomationRulePage:
-      type: object
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/AutomationRule'
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        totalCount:
-          type: integer
-      required:
-      - page
-      - pageSize
-      - results
-      - totalCount
-    AutomationRuleResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/AutomationRule'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    AutomationRun:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        run_type:
-          type: string
-        status:
-          type: string
-        trigger_source:
-          type: string
-        summary:
-          type: string
-        blocked_reason:
-          type: string
-        updated_at:
-          type: string
-          format: date-time
-      required:
-      - blocked_reason
-      - id
-      - run_type
-      - status
-      - summary
-      - trigger_source
-      - updated_at
-    AutomationRunListResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/AutomationRunPage'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    AutomationRunPage:
-      type: object
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/AutomationRun'
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        totalCount:
-          type: integer
-      required:
-      - page
-      - pageSize
-      - results
-      - totalCount
-    AutomationRunResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/AutomationRun'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
     BatchUserImportResponse:
       type: object
       properties:
@@ -15348,15 +13511,15 @@ components:
           maxLength: 20
         role:
           enum:
-          - reviewer
-          - admin
           - super_admin
+          - admin
+          - reviewer
           - student
           type: string
           description: |-
-            * `reviewer` - reviewer
-            * `admin` - admin
             * `super_admin` - super_admin
+            * `admin` - admin
+            * `reviewer` - reviewer
             * `student` - student
           x-spec-enum-id: 1a3817a8a61ce783
         password:
@@ -15398,7 +13561,9 @@ components:
           type: boolean
           nullable: true
         available_offerings:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/Program'
           readOnly: true
         created_at:
           type: string
@@ -15662,30 +13827,6 @@ components:
           x-spec-enum-id: 59be9d5dfcb369b9
       required:
       - status
-    DailyDigest:
-      type: object
-      properties:
-        headline:
-          type: string
-        summary:
-          type: string
-        generated_at:
-          type: string
-          format: date-time
-      required:
-      - generated_at
-      - headline
-      - summary
-    DailyDigestResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/DailyDigest'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
     DeferPaymentData:
       type: object
       description: Shape of the `data` field in DeferPaymentView 201 response.
@@ -15727,33 +13868,6 @@ components:
       required:
       - data
       - success
-    DiscoveryRun:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        source:
-          type: string
-        status:
-          type: string
-        jobs_discovered:
-          type: integer
-        started_at:
-          type: string
-          format: date-time
-          nullable: true
-        completed_at:
-          type: string
-          format: date-time
-          nullable: true
-      required:
-      - completed_at
-      - id
-      - jobs_discovered
-      - source
-      - started_at
-      - status
     Document:
       type: object
       description: Read-only serializer for listing documents.
@@ -16193,35 +14307,6 @@ components:
       required:
       - code
       - error
-    FunnelAnalytics:
-      type: object
-      properties:
-        discovered:
-          type: integer
-        reviewed:
-          type: integer
-        applied:
-          type: integer
-        interviews:
-          type: integer
-        offers:
-          type: integer
-      required:
-      - applied
-      - discovered
-      - interviews
-      - offers
-      - reviewed
-    FunnelAnalyticsResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/FunnelAnalytics'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
     GeneratedText:
       type: object
       properties:
@@ -16409,228 +14494,6 @@ components:
       - message
       - reference_id
       - status
-    IntegrationsActionResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/IntegrationAction'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    JobAction:
-      type: object
-      properties:
-        message:
-          type: string
-        status:
-          type: string
-        reference_id:
-          type: string
-          format: uuid
-      required:
-      - message
-      - reference_id
-      - status
-    JobApplication:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        job_id:
-          type: string
-          format: uuid
-        title:
-          type: string
-        company:
-          type: string
-        status:
-          type: string
-        automation_mode:
-          type: string
-        evidence_count:
-          type: integer
-        updated_at:
-          type: string
-          format: date-time
-      required:
-      - automation_mode
-      - company
-      - evidence_count
-      - id
-      - job_id
-      - status
-      - title
-      - updated_at
-    JobApplicationListResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/JobApplicationPage'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    JobApplicationPage:
-      type: object
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/JobApplication'
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        totalCount:
-          type: integer
-      required:
-      - page
-      - pageSize
-      - results
-      - totalCount
-    JobApplicationResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/JobApplication'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    JobDetail:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        title:
-          type: string
-        company:
-          type: string
-        location:
-          type: string
-        work_mode:
-          type: string
-        match_score:
-          type: integer
-        recommendation:
-          type: string
-        application_url:
-          type: string
-          format: uri
-        fit_reasons:
-          type: array
-          items:
-            type: string
-        missing_signals:
-          type: array
-          items:
-            type: string
-        source_names:
-          type: array
-          items:
-            type: string
-      required:
-      - application_url
-      - company
-      - fit_reasons
-      - id
-      - location
-      - match_score
-      - missing_signals
-      - recommendation
-      - source_names
-      - title
-      - work_mode
-    JobSummary:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        title:
-          type: string
-        company:
-          type: string
-        location:
-          type: string
-        work_mode:
-          type: string
-        match_score:
-          type: integer
-        recommendation:
-          type: string
-      required:
-      - company
-      - id
-      - location
-      - match_score
-      - recommendation
-      - title
-      - work_mode
-    JobsActionResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/JobAction'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    JobsDetailResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/JobDetail'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    JobsDiscoveryRunResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/DiscoveryRun'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    JobsListResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/JobsPage'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    JobsPage:
-      type: object
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/JobSummary'
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        totalCount:
-          type: integer
-      required:
-      - page
-      - pageSize
-      - results
-      - totalCount
     Login:
       type: object
       description: Validates login credentials.
@@ -16991,208 +14854,6 @@ components:
       - institution_id
       - status
       - template_version
-    OutreachAction:
-      type: object
-      properties:
-        message:
-          type: string
-        status:
-          type: string
-        reference_id:
-          type: string
-          format: uuid
-      required:
-      - message
-      - reference_id
-      - status
-    OutreachActionResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/OutreachAction'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    OutreachAnalytics:
-      type: object
-      properties:
-        campaigns_sent:
-          type: integer
-        positive_replies:
-          type: integer
-        interviews_generated:
-          type: integer
-      required:
-      - campaigns_sent
-      - interviews_generated
-      - positive_replies
-    OutreachAnalyticsResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/OutreachAnalytics'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    OutreachCampaign:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        campaign_type:
-          type: string
-        status:
-          type: string
-        target_count:
-          type: integer
-      required:
-      - campaign_type
-      - id
-      - name
-      - status
-      - target_count
-    OutreachCampaignListResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/OutreachCampaignPage'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    OutreachCampaignPage:
-      type: object
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/OutreachCampaign'
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        totalCount:
-          type: integer
-      required:
-      - page
-      - pageSize
-      - results
-      - totalCount
-    OutreachCampaignResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/OutreachCampaign'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    OutreachContact:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        full_name:
-          type: string
-        email:
-          type: string
-          format: email
-        company:
-          type: string
-        role:
-          type: string
-        relationship_status:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-      required:
-      - company
-      - email
-      - full_name
-      - id
-      - relationship_status
-      - role
-      - tags
-    OutreachContactListResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/OutreachContactPage'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    OutreachContactPage:
-      type: object
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/OutreachContact'
-        page:
-          type: integer
-        pageSize:
-          type: integer
-        totalCount:
-          type: integer
-      required:
-      - page
-      - pageSize
-      - results
-      - totalCount
-    OutreachContactResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/OutreachContact'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
-    OutreachMessage:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        subject:
-          type: string
-        body:
-          type: string
-        status:
-          type: string
-        message_type:
-          type: string
-      required:
-      - body
-      - id
-      - message_type
-      - status
-      - subject
-    OutreachMessageResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/OutreachMessage'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
     PaginatedProgramFeeList:
       type: object
       required:
@@ -18399,6 +16060,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/Institution'
           readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+          readOnly: true
         duration_months:
           type: integer
           maximum: 2147483647
@@ -18456,6 +16121,7 @@ components:
       - created_at
       - id
       - institution
+      - institution_id
       - name
       - updated_at
     ProgramCreateUpdate:
@@ -18823,36 +16489,6 @@ components:
       - updated_at
       - updated_by
       - value
-    SourceAnalytics:
-      type: object
-      properties:
-        source:
-          type: string
-        freshness_hours:
-          type: integer
-        duplicate_ratio:
-          type: number
-          format: double
-        success_rate:
-          type: number
-          format: double
-      required:
-      - duplicate_ratio
-      - freshness_hours
-      - source
-      - success_rate
-    SourceAnalyticsResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/SourceAnalytics'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
     StatusTransition:
       type: object
       properties:
@@ -18956,33 +16592,6 @@ components:
       - document_id
       - status
       - task_id
-    TelegramSubscription:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        chat_id:
-          type: string
-        status:
-          type: string
-        scope:
-          type: string
-      required:
-      - chat_id
-      - id
-      - scope
-      - status
-    TelegramSubscriptionResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/TelegramSubscription'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
     TenantAuditLog:
       type: object
       description: |-

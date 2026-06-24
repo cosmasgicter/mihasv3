@@ -22,6 +22,12 @@ _ALERT_THROTTLE_TTL = 900  # 15 minutes
 DNS_LOOKUP_TIMEOUT_SECONDS = 10
 
 
+def _truncate_pg_safe(value: str, limit: int = 1000) -> str:
+    """Return a bounded string safe for PostgreSQL text fields."""
+    clean = value.replace("\x00", "\uFFFD")
+    return clean.encode("utf-8", "replace").decode("utf-8")[:limit]
+
+
 def _log_error_and_alert(error_msg: str) -> None:
     """Log error to GlitchTip and dispatch a throttled alert email.
 
@@ -323,7 +329,7 @@ def verify_institution_domain_task(domain_id):
             )
         else:
             domain.last_checked_at = now
-            domain.last_error = (error_message or "Domain verification failed.")[:1000]
+            domain.last_error = _truncate_pg_safe(error_message or "Domain verification failed.")
             domain.save(update_fields=["last_checked_at", "last_error"])
             logger.info(
                 "verify_institution_domain_task: domain %s verification failed: %s",

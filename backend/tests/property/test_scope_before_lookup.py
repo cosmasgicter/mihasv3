@@ -44,6 +44,7 @@ from __future__ import annotations
 import json
 
 import pytest
+from django.core.cache import cache
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from rest_framework.test import APIClient
@@ -194,6 +195,7 @@ class TestProperty5ScopeBeforeLookup:
         (or a random unknown id) through ``ProgramDetailView``, gets a
         non-revealing masked not-found that is byte-identical between the two —
         the program's existence is never confirmed and no tenant-B data leaks."""
+        cache.clear()
         world_a, world_b = build_two_tenant_worlds()
         actor = build_profile(role="admin")
         build_membership(user=actor, institution=world_a.institution, role="admin")
@@ -220,6 +222,7 @@ class TestProperty5ScopeBeforeLookup:
         ``InstitutionDetailView``, gets a non-revealing denial that is
         id-independent — no tenant-B identifier/name/code/attribute leaks and
         existence is never confirmed."""
+        cache.clear()
         world_a, world_b = build_two_tenant_worlds()
         actor = build_profile(role="admin")
         build_membership(user=actor, institution=world_a.institution, role="admin")
@@ -243,6 +246,7 @@ class TestProperty5ScopeBeforeLookup:
     ):
         """A malformed (non-UUID) id on either detail endpoint is rejected with a
         non-revealing not-found and never discloses any tenant data."""
+        cache.clear()
         world_a, world_b = build_two_tenant_worlds()
         actor = build_profile(role="admin")
         build_membership(user=actor, institution=world_a.institution, role="admin")
@@ -264,6 +268,7 @@ class TestProperty5ScopeBeforeLookup:
         unknown id surfaces the same non-revealing 404 ``NOT_FOUND`` envelope on
         both detail endpoints — confirming the masked-not-found path is the same
         shape an out-of-scope tenant-admin observes."""
+        cache.clear()
         super_admin = build_profile(role="super_admin")
         client = _client_for(super_admin)
 

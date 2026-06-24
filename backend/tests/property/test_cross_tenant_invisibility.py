@@ -41,6 +41,8 @@ from __future__ import annotations
 import json
 
 import pytest
+from django.conf import settings as django_settings
+from django.core.cache import cache
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from rest_framework.test import APIClient
@@ -385,6 +387,7 @@ class TestProperty4CrossTenantInvisibility:
         present (no vacuous pass). Tenant B carries an arbitrary number of
         additional rows, none of which may surface. ``salt`` only widens the
         example space so the property genuinely runs the full ≥100 iterations."""
+        cache.clear()
         del salt  # entropy only — keeps Hypothesis from exhausting the space
         ctx, client = _build_isolated_pair(extra_b_apps=extra_b_apps)
         request_fn, a_witness_fn = SURFACES[surface_key]
@@ -415,9 +418,12 @@ class TestProperty4CrossTenantInvisibility:
             }
 
         # Analytics (count) dimension of Property 4: the scoped funnel total
-        # counts only tenant A's single application — never tenant B's — so a
-        # cross-tenant *count* can never be inferred even though no identifier is
-        # exposed. Tenant B's count varies per example; A's scoped total stays 1.
+        # counts only tenant A's single application when the jobs/ops analytics
+        # scaffold is explicitly enabled. The launch default keeps that surface
+        # disabled, where a 404 is the expected non-leaking response.
         if surface_key == "analytics_funnel":
-            assert status_code == 200, (status_code, body)
-            assert body["data"]["funnel"]["total"] == 1, body["data"]["funnel"]
+            if getattr(django_settings, "ENABLE_JOBS_OPS_ROUTES", False):
+                assert status_code == 200, (status_code, body)
+                assert body["data"]["funnel"]["total"] == 1, body["data"]["funnel"]
+            else:
+                assert status_code == 404, (status_code, body)

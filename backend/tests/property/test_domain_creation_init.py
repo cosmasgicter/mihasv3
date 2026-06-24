@@ -37,6 +37,7 @@ from __future__ import annotations
 import uuid
 
 import pytest
+from django.core.cache import cache
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from rest_framework.test import APIClient
@@ -109,6 +110,7 @@ class TestDomainCreationInitState:
         ``201`` whose domain is ``pending_dns`` with a ≥32-char
         ``verification_token``, a non-empty ``dns_target``, and a ``dns_record``
         in the response envelope — and the persisted row matches."""
+        cache.clear()
         client = _super_admin_client()
         institution = build_institution()
         # Prepend a per-example unique label so the hostname-uniqueness check

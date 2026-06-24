@@ -1,12 +1,12 @@
 {
   "summary": {
-    "total_endpoints": 220,
-    "endpoints_with_issues": 129,
-    "total_issues": 957,
+    "total_endpoints": 187,
+    "endpoints_with_issues": 99,
+    "total_issues": 850,
     "errors": 1,
-    "warnings": 827,
-    "info": 129,
-    "score": 88.09
+    "warnings": 770,
+    "info": 79,
+    "score": 87.17
   },
   "issues": [
     {
@@ -346,13 +346,6 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/admin/institutions/{institution_id}/domains/",
-      "path": "/paths//api/v1/admin/institutions/{institution_id}/domains//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
       "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'institution_id' should use camelCase or kebab-case in POST /api/v1/admin/institutions/{institution_id}/domains/",
@@ -399,6 +392,62 @@
       "category": "naming",
       "message": "Path parameter 'item_id' should use camelCase or kebab-case in PATCH /api/v1/admin/institutions/{institution_id}/domains/{item_id}/",
       "path": "/paths//api/v1/admin/institutions/{institution_id}/domains/{item_id}//patch/parameters[1]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/domains/{item_id}/activate/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'item_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/domains/{item_id}/activate/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "url_structure",
+      "message": "Path has excessive nesting (8 levels): /api/v1/admin/institutions/{institution_id}/domains/{item_id}/activate/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/domains/{item_id}/activate/",
+      "suggestion": "Consider flattening the resource hierarchy or using query parameters"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case in POST /api/v1/admin/institutions/{institution_id}/domains/{item_id}/activate/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/domains/{item_id}/activate//post/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'item_id' should use camelCase or kebab-case in POST /api/v1/admin/institutions/{institution_id}/domains/{item_id}/activate/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/domains/{item_id}/activate//post/parameters[1]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/programs/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case in GET /api/v1/admin/institutions/{institution_id}/programs/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/programs//get/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case in POST /api/v1/admin/institutions/{institution_id}/programs/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/programs//post/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
@@ -486,25 +535,11 @@
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/admin/institutions/{institution_id}/templates/",
-      "path": "/paths//api/v1/admin/institutions/{institution_id}/templates//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
       "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'institution_id' should use camelCase or kebab-case in GET /api/v1/admin/institutions/{institution_id}/templates/",
       "path": "/paths//api/v1/admin/institutions/{institution_id}/templates//get/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/admin/institutions/{institution_id}/templates/",
-      "path": "/paths//api/v1/admin/institutions/{institution_id}/templates//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
     },
     {
       "severity": "warning",
@@ -533,13 +568,6 @@
       "message": "Path has excessive nesting (7 levels): /api/v1/admin/institutions/{institution_id}/templates/{item_id}/",
       "path": "/paths//api/v1/admin/institutions/{institution_id}/templates/{item_id}/",
       "suggestion": "Consider flattening the resource hierarchy or using query parameters"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for PATCH /api/v1/admin/institutions/{institution_id}/templates/{item_id}/",
-      "path": "/paths//api/v1/admin/institutions/{institution_id}/templates/{item_id}//patch/description",
-      "suggestion": "Add a detailed description for better API documentation"
     },
     {
       "severity": "warning",
@@ -624,27 +652,6 @@
       "message": "Query parameter 'include_inactive' should use camelCase or kebab-case in GET /api/v1/admin/users/export/",
       "path": "/paths//api/v1/admin/users/export//get/parameters[0]/name",
       "suggestion": "Use camelCase (e.g., 'pageSize') or kebab-case (e.g., 'page-size')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/analytics/funnel/",
-      "path": "/paths//api/v1/analytics/funnel//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/analytics/outreach/",
-      "path": "/paths//api/v1/analytics/outreach//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/analytics/sources/",
-      "path": "/paths//api/v1/analytics/sources//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
     },
     {
       "severity": "info",
@@ -1481,104 +1488,6 @@
     },
     {
       "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/automation/rules/",
-      "path": "/paths//api/v1/automation/rules//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/automation/rules/",
-      "path": "/paths//api/v1/automation/rules//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/automation/runs/",
-      "path": "/paths//api/v1/automation/runs//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/automation/runs/",
-      "path": "/paths//api/v1/automation/runs//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 202 for POST /api/v1/automation/runs/",
-      "path": "/paths//api/v1/automation/runs//post/responses/202",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'run_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/automation/runs/{run_id}/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/automation/runs/{run_id}/",
-      "path": "/paths//api/v1/automation/runs/{run_id}//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'run_id' should use camelCase or kebab-case in GET /api/v1/automation/runs/{run_id}/",
-      "path": "/paths//api/v1/automation/runs/{run_id}//get/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'run_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/automation/runs/{run_id}/approve/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/automation/runs/{run_id}/approve/",
-      "path": "/paths//api/v1/automation/runs/{run_id}/approve//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'run_id' should use camelCase or kebab-case in POST /api/v1/automation/runs/{run_id}/approve/",
-      "path": "/paths//api/v1/automation/runs/{run_id}/approve//post/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'run_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/automation/runs/{run_id}/cancel/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/automation/runs/{run_id}/cancel/",
-      "path": "/paths//api/v1/automation/runs/{run_id}/cancel//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'run_id' should use camelCase or kebab-case in POST /api/v1/automation/runs/{run_id}/cancel/",
-      "path": "/paths//api/v1/automation/runs/{run_id}/cancel//post/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
       "category": "responses",
       "message": "Uncommon status code 409 for GET /api/v1/catalog/assignment-preview/",
       "path": "/paths//api/v1/catalog/assignment-preview//get/responses/409",
@@ -1888,352 +1797,16 @@
     {
       "severity": "info",
       "category": "documentation",
-      "message": "Missing description for POST /api/v1/integrations/openai/test/",
-      "path": "/paths//api/v1/integrations/openai/test//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/integrations/telegram/connect/",
-      "path": "/paths//api/v1/integrations/telegram/connect//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/integrations/telegram/test/",
-      "path": "/paths//api/v1/integrations/telegram/test//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/integrations/telegram/webhook/",
-      "path": "/paths//api/v1/integrations/telegram/webhook//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/job-applications/",
-      "path": "/paths//api/v1/job-applications//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/job-applications/",
-      "path": "/paths//api/v1/job-applications//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'application_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/job-applications/{application_id}/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/job-applications/{application_id}/",
-      "path": "/paths//api/v1/job-applications/{application_id}//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'application_id' should use camelCase or kebab-case in GET /api/v1/job-applications/{application_id}/",
-      "path": "/paths//api/v1/job-applications/{application_id}//get/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'application_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/job-applications/{application_id}/approve/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/job-applications/{application_id}/approve/",
-      "path": "/paths//api/v1/job-applications/{application_id}/approve//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/job-applications/{application_id}/approve/",
-      "path": "/paths//api/v1/job-applications/{application_id}/approve//post/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'application_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/job-applications/{application_id}/pause/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/job-applications/{application_id}/pause/",
-      "path": "/paths//api/v1/job-applications/{application_id}/pause//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/job-applications/{application_id}/pause/",
-      "path": "/paths//api/v1/job-applications/{application_id}/pause//post/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'application_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/job-applications/{application_id}/reject/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/job-applications/{application_id}/reject/",
-      "path": "/paths//api/v1/job-applications/{application_id}/reject//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/job-applications/{application_id}/reject/",
-      "path": "/paths//api/v1/job-applications/{application_id}/reject//post/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'application_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/job-applications/{application_id}/resume/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/job-applications/{application_id}/resume/",
-      "path": "/paths//api/v1/job-applications/{application_id}/resume//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 202 for POST /api/v1/job-applications/{application_id}/resume/",
-      "path": "/paths//api/v1/job-applications/{application_id}/resume//post/responses/202",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/job-applications/{application_id}/resume/",
-      "path": "/paths//api/v1/job-applications/{application_id}/resume//post/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'application_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/job-applications/{application_id}/submit/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/job-applications/{application_id}/submit/",
-      "path": "/paths//api/v1/job-applications/{application_id}/submit//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 202 for POST /api/v1/job-applications/{application_id}/submit/",
-      "path": "/paths//api/v1/job-applications/{application_id}/submit//post/responses/202",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/job-applications/{application_id}/submit/",
-      "path": "/paths//api/v1/job-applications/{application_id}/submit//post/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/jobs/",
-      "path": "/paths//api/v1/jobs//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'job_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/jobs/{job_id}/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/jobs/{job_id}/",
-      "path": "/paths//api/v1/jobs/{job_id}//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'job_id' should use camelCase or kebab-case in GET /api/v1/jobs/{job_id}/",
-      "path": "/paths//api/v1/jobs/{job_id}//get/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'job_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/jobs/{job_id}/dismiss/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/jobs/{job_id}/dismiss/",
-      "path": "/paths//api/v1/jobs/{job_id}/dismiss//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'job_id' should use camelCase or kebab-case in POST /api/v1/jobs/{job_id}/dismiss/",
-      "path": "/paths//api/v1/jobs/{job_id}/dismiss//post/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'job_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/jobs/{job_id}/score/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/jobs/{job_id}/score/",
-      "path": "/paths//api/v1/jobs/{job_id}/score//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 202 for POST /api/v1/jobs/{job_id}/score/",
-      "path": "/paths//api/v1/jobs/{job_id}/score//post/responses/202",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'job_id' should use camelCase or kebab-case in POST /api/v1/jobs/{job_id}/score/",
-      "path": "/paths//api/v1/jobs/{job_id}/score//post/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'job_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/jobs/{job_id}/tailor-documents/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/jobs/{job_id}/tailor-documents/",
-      "path": "/paths//api/v1/jobs/{job_id}/tailor-documents//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 202 for POST /api/v1/jobs/{job_id}/tailor-documents/",
-      "path": "/paths//api/v1/jobs/{job_id}/tailor-documents//post/responses/202",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'job_id' should use camelCase or kebab-case in POST /api/v1/jobs/{job_id}/tailor-documents/",
-      "path": "/paths//api/v1/jobs/{job_id}/tailor-documents//post/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'job_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/jobs/{job_id}/watch/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/jobs/{job_id}/watch/",
-      "path": "/paths//api/v1/jobs/{job_id}/watch//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'job_id' should use camelCase or kebab-case in POST /api/v1/jobs/{job_id}/watch/",
-      "path": "/paths//api/v1/jobs/{job_id}/watch//post/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/jobs/discovery-runs/",
-      "path": "/paths//api/v1/jobs/discovery-runs//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 202 for POST /api/v1/jobs/discovery-runs/",
-      "path": "/paths//api/v1/jobs/discovery-runs//post/responses/202",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'run_id' should use camelCase or kebab-case",
-      "path": "/paths//api/v1/jobs/discovery-runs/{run_id}/",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/jobs/discovery-runs/{run_id}/",
-      "path": "/paths//api/v1/jobs/discovery-runs/{run_id}//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Path parameter 'run_id' should use camelCase or kebab-case in GET /api/v1/jobs/discovery-runs/{run_id}/",
-      "path": "/paths//api/v1/jobs/discovery-runs/{run_id}//get/parameters[0]/name",
-      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
       "message": "Missing description for GET /api/v1/meta/platform/",
       "path": "/paths//api/v1/meta/platform//get/description",
       "suggestion": "Add a detailed description for better API documentation"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Query parameter 'is_read' should use camelCase or kebab-case in GET /api/v1/notifications/",
+      "path": "/paths//api/v1/notifications//get/parameters[1]/name",
+      "suggestion": "Use camelCase (e.g., 'pageSize') or kebab-case (e.g., 'page-size')"
     },
     {
       "severity": "warning",
@@ -2248,69 +1821,6 @@
       "message": "Path parameter 'user_id' should use camelCase or kebab-case in GET /api/v1/notifications/user/{user_id}/",
       "path": "/paths//api/v1/notifications/user/{user_id}//get/parameters[2]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/outreach/campaigns/",
-      "path": "/paths//api/v1/outreach/campaigns//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/outreach/campaigns/",
-      "path": "/paths//api/v1/outreach/campaigns//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/outreach/contacts/",
-      "path": "/paths//api/v1/outreach/contacts//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/outreach/contacts/",
-      "path": "/paths//api/v1/outreach/contacts//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/outreach/contacts/enrich/",
-      "path": "/paths//api/v1/outreach/contacts/enrich//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 202 for POST /api/v1/outreach/contacts/enrich/",
-      "path": "/paths//api/v1/outreach/contacts/enrich//post/responses/202",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/outreach/messages/generate/",
-      "path": "/paths//api/v1/outreach/messages/generate//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/outreach/messages/send/",
-      "path": "/paths//api/v1/outreach/messages/send//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
-    },
-    {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 202 for POST /api/v1/outreach/messages/send/",
-      "path": "/paths//api/v1/outreach/messages/send//post/responses/202",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
     },
     {
       "severity": "warning",
@@ -2458,13 +1968,6 @@
       "message": "Path parameter 'program_id' should use camelCase or kebab-case in DELETE /api/v1/programs/{program_id}/fees/{id}/",
       "path": "/paths//api/v1/programs/{program_id}/fees/{id}//delete/parameters[1]/name",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
-    },
-    {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/reports/daily-digest/",
-      "path": "/paths//api/v1/reports/daily-digest//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
     },
     {
       "severity": "warning",
@@ -4170,55 +3673,6 @@
     {
       "severity": "warning",
       "category": "naming",
-      "message": "Property 'reference_id' in schema 'AutomationAction' should use camelCase",
-      "path": "/components/schemas/AutomationAction/properties/reference_id",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'rule_type' in schema 'AutomationRule' should use camelCase",
-      "path": "/components/schemas/AutomationRule/properties/rule_type",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'is_enabled' in schema 'AutomationRule' should use camelCase",
-      "path": "/components/schemas/AutomationRule/properties/is_enabled",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'run_type' in schema 'AutomationRun' should use camelCase",
-      "path": "/components/schemas/AutomationRun/properties/run_type",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'trigger_source' in schema 'AutomationRun' should use camelCase",
-      "path": "/components/schemas/AutomationRun/properties/trigger_source",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'blocked_reason' in schema 'AutomationRun' should use camelCase",
-      "path": "/components/schemas/AutomationRun/properties/blocked_reason",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'updated_at' in schema 'AutomationRun' should use camelCase",
-      "path": "/components/schemas/AutomationRun/properties/updated_at",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
       "message": "Property 'first_name' in schema 'BatchUserItem' should use camelCase",
       "path": "/components/schemas/BatchUserItem/properties/first_name",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -4345,13 +3799,6 @@
     {
       "severity": "warning",
       "category": "naming",
-      "message": "Property 'generated_at' in schema 'DailyDigest' should use camelCase",
-      "path": "/components/schemas/DailyDigest/properties/generated_at",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
       "message": "Property 'payment_id' in schema 'DeferPaymentData' should use camelCase",
       "path": "/components/schemas/DeferPaymentData/properties/payment_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -4361,27 +3808,6 @@
       "category": "naming",
       "message": "Property 'application_id' in schema 'DeferPaymentRequest' should use camelCase",
       "path": "/components/schemas/DeferPaymentRequest/properties/application_id",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'jobs_discovered' in schema 'DiscoveryRun' should use camelCase",
-      "path": "/components/schemas/DiscoveryRun/properties/jobs_discovered",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'started_at' in schema 'DiscoveryRun' should use camelCase",
-      "path": "/components/schemas/DiscoveryRun/properties/started_at",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'completed_at' in schema 'DiscoveryRun' should use camelCase",
-      "path": "/components/schemas/DiscoveryRun/properties/completed_at",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {
@@ -4674,97 +4100,6 @@
     {
       "severity": "warning",
       "category": "naming",
-      "message": "Property 'reference_id' in schema 'JobAction' should use camelCase",
-      "path": "/components/schemas/JobAction/properties/reference_id",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'job_id' in schema 'JobApplication' should use camelCase",
-      "path": "/components/schemas/JobApplication/properties/job_id",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'automation_mode' in schema 'JobApplication' should use camelCase",
-      "path": "/components/schemas/JobApplication/properties/automation_mode",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'evidence_count' in schema 'JobApplication' should use camelCase",
-      "path": "/components/schemas/JobApplication/properties/evidence_count",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'updated_at' in schema 'JobApplication' should use camelCase",
-      "path": "/components/schemas/JobApplication/properties/updated_at",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'work_mode' in schema 'JobDetail' should use camelCase",
-      "path": "/components/schemas/JobDetail/properties/work_mode",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'match_score' in schema 'JobDetail' should use camelCase",
-      "path": "/components/schemas/JobDetail/properties/match_score",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'application_url' in schema 'JobDetail' should use camelCase",
-      "path": "/components/schemas/JobDetail/properties/application_url",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'fit_reasons' in schema 'JobDetail' should use camelCase",
-      "path": "/components/schemas/JobDetail/properties/fit_reasons",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'missing_signals' in schema 'JobDetail' should use camelCase",
-      "path": "/components/schemas/JobDetail/properties/missing_signals",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'source_names' in schema 'JobDetail' should use camelCase",
-      "path": "/components/schemas/JobDetail/properties/source_names",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'work_mode' in schema 'JobSummary' should use camelCase",
-      "path": "/components/schemas/JobSummary/properties/work_mode",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'match_score' in schema 'JobSummary' should use camelCase",
-      "path": "/components/schemas/JobSummary/properties/match_score",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
       "message": "Property 'payment_id' in schema 'MobileMoneyInitiateData' should use camelCase",
       "path": "/components/schemas/MobileMoneyInitiateData/properties/payment_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -4942,69 +4277,6 @@
       "category": "naming",
       "message": "Property 'task_id' in schema 'OfficialDocumentStatus' should use camelCase",
       "path": "/components/schemas/OfficialDocumentStatus/properties/task_id",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'reference_id' in schema 'OutreachAction' should use camelCase",
-      "path": "/components/schemas/OutreachAction/properties/reference_id",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'campaigns_sent' in schema 'OutreachAnalytics' should use camelCase",
-      "path": "/components/schemas/OutreachAnalytics/properties/campaigns_sent",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'positive_replies' in schema 'OutreachAnalytics' should use camelCase",
-      "path": "/components/schemas/OutreachAnalytics/properties/positive_replies",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'interviews_generated' in schema 'OutreachAnalytics' should use camelCase",
-      "path": "/components/schemas/OutreachAnalytics/properties/interviews_generated",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'campaign_type' in schema 'OutreachCampaign' should use camelCase",
-      "path": "/components/schemas/OutreachCampaign/properties/campaign_type",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'target_count' in schema 'OutreachCampaign' should use camelCase",
-      "path": "/components/schemas/OutreachCampaign/properties/target_count",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'full_name' in schema 'OutreachContact' should use camelCase",
-      "path": "/components/schemas/OutreachContact/properties/full_name",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'relationship_status' in schema 'OutreachContact' should use camelCase",
-      "path": "/components/schemas/OutreachContact/properties/relationship_status",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'message_type' in schema 'OutreachMessage' should use camelCase",
-      "path": "/components/schemas/OutreachMessage/properties/message_type",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {
@@ -6214,6 +5486,13 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'institution_id' in schema 'Program' should use camelCase",
+      "path": "/components/schemas/Program/properties/institution_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'duration_months' in schema 'Program' should use camelCase",
       "path": "/components/schemas/Program/properties/duration_months",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -6529,27 +5808,6 @@
     {
       "severity": "warning",
       "category": "naming",
-      "message": "Property 'freshness_hours' in schema 'SourceAnalytics' should use camelCase",
-      "path": "/components/schemas/SourceAnalytics/properties/freshness_hours",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'duplicate_ratio' in schema 'SourceAnalytics' should use camelCase",
-      "path": "/components/schemas/SourceAnalytics/properties/duplicate_ratio",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'success_rate' in schema 'SourceAnalytics' should use camelCase",
-      "path": "/components/schemas/SourceAnalytics/properties/success_rate",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
       "message": "Property 'application_id' in schema 'StatusTransition' should use camelCase",
       "path": "/components/schemas/StatusTransition/properties/application_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -6615,13 +5873,6 @@
       "category": "naming",
       "message": "Property 'document_id' in schema 'TaskQueued' should use camelCase",
       "path": "/components/schemas/TaskQueued/properties/document_id",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'chat_id' in schema 'TelegramSubscription' should use camelCase",
-      "path": "/components/schemas/TelegramSubscription/properties/chat_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {

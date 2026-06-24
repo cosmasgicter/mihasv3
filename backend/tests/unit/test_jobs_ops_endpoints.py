@@ -1,12 +1,21 @@
 """Regression tests for the Jobs Ops v1 API surface."""
 
+import importlib
 import os
 import uuid
 
-from django.test import Client, SimpleTestCase
+from django.test import Client, SimpleTestCase, override_settings
+from django.urls import clear_url_caches
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 os.environ["TESTING"] = "1"
+
+
+def _reload_urlconf():
+    import config.urls
+
+    importlib.reload(config.urls)
+    clear_url_caches()
 
 
 def _unwrap(response):
@@ -17,6 +26,19 @@ def _unwrap(response):
 
 
 class JobsOpsEndpointTests(SimpleTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._jobs_ops_routes = override_settings(ENABLE_JOBS_OPS_ROUTES=True)
+        cls._jobs_ops_routes.enable()
+        _reload_urlconf()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._jobs_ops_routes.disable()
+        _reload_urlconf()
+        super().tearDownClass()
+
     def setUp(self):
         self.client = Client()
 

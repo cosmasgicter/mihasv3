@@ -52,7 +52,7 @@ NON_LOCAL_NATIONALITIES = st.text(min_size=0, max_size=50).filter(
 
 # Non-local countries (anything except 'Zambia' and 'ZM')
 NON_LOCAL_COUNTRIES = st.text(min_size=0, max_size=50).filter(
-    lambda c: c not in ("Zambia", "ZM")
+    lambda c: c is None or c.strip().upper() not in ("ZAMBIA", "ZM")
 )
 
 # Nullable text for nationality/country fields

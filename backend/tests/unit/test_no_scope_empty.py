@@ -32,8 +32,11 @@ Run (sqlite-in-memory; the default ``DATABASE_URL`` points at Neon)::
 
 from __future__ import annotations
 
+import importlib
+
 import pytest
 from django.core.cache import cache
+from django.urls import clear_url_caches
 from rest_framework.test import APIClient
 
 from apps.accounts.authentication import JWTUser
@@ -69,6 +72,21 @@ def _clear_cache():
     cache.clear()
     yield
     cache.clear()
+
+
+@pytest.fixture(autouse=True)
+def _enable_jobs_ops_routes(settings):
+    """The funnel endpoint belongs to the opt-in jobs/ops scaffold."""
+    previous = getattr(settings, "ENABLE_JOBS_OPS_ROUTES", False)
+    settings.ENABLE_JOBS_OPS_ROUTES = True
+    import config.urls
+
+    importlib.reload(config.urls)
+    clear_url_caches()
+    yield
+    settings.ENABLE_JOBS_OPS_ROUTES = previous
+    importlib.reload(config.urls)
+    clear_url_caches()
 
 
 @pytest.fixture()

@@ -35,8 +35,11 @@ production Neon branch)::
 
 from __future__ import annotations
 
+import importlib
+
 import pytest
 from django.core.cache import cache
+from django.urls import clear_url_caches
 from rest_framework.test import APIClient
 
 from apps.accounts.authentication import JWTUser
@@ -74,6 +77,25 @@ def _clear_cache():
     cache.clear()
     yield
     cache.clear()
+
+
+@pytest.fixture(autouse=True)
+def _enable_jobs_ops_routes(settings):
+    """These endpoint tests cover the scaffold analytics route explicitly.
+
+    Launch settings keep jobs/ops routes disabled by default, so this module
+    opts in and reloads the URLconf around each test that exercises the route.
+    """
+    previous = getattr(settings, "ENABLE_JOBS_OPS_ROUTES", False)
+    settings.ENABLE_JOBS_OPS_ROUTES = True
+    import config.urls
+
+    importlib.reload(config.urls)
+    clear_url_caches()
+    yield
+    settings.ENABLE_JOBS_OPS_ROUTES = previous
+    importlib.reload(config.urls)
+    clear_url_caches()
 
 
 # ---------------------------------------------------------------------------

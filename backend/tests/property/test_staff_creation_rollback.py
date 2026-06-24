@@ -42,6 +42,7 @@ import uuid
 from unittest import mock
 
 import pytest
+from django.core.cache import cache
 from django.db import DatabaseError, IntegrityError
 from hypothesis import given, settings
 from hypothesis import strategies as st
@@ -110,6 +111,7 @@ class TestProperty9StaffCreationRollback:
         """When the membership write fails, neither a Profile row nor an
         orphaned membership row survives, and the response is the non-revealing
         ``STAFF_CREATION_FAILED`` (R6.5, R6.6)."""
+        cache.clear()
         institution = build_institution(suffix=_sfx())
         client = _super_admin_client()
 
@@ -138,8 +140,9 @@ class TestProperty9StaffCreationRollback:
             resp = client.post("/api/v1/admin/users/", payload, format="json")
 
         # R6.6: the surrounding atomic block rolled the profile back.
-        assert resp.status_code == 400, (resp.status_code, resp.data)
-        assert resp.data.get("code") == "STAFF_CREATION_FAILED", resp.data
+        body = getattr(resp, "data", None) or resp.json()
+        assert resp.status_code == 400, (resp.status_code, body)
+        assert body.get("code") == "STAFF_CREATION_FAILED", body
         assert Profile.objects.filter(email__iexact=email).count() == before
         # No orphaned membership row for the (never-persisted) invited profile.
         assert not UserInstitutionMembership.objects.filter(
