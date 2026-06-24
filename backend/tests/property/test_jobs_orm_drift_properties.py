@@ -15,11 +15,15 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.test")
 os.environ["TESTING"] = "1"
 
+import importlib
 import uuid
+from contextlib import contextmanager
 from unittest.mock import patch
 
 from hypothesis import given, settings
 from hypothesis import strategies as st
+from django.test import override_settings
+from django.urls import clear_url_caches
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 
@@ -29,6 +33,24 @@ class _FakeUser:
 
 
 _factory = APIRequestFactory()
+
+
+def _reload_urlconf():
+    import config.urls
+
+    importlib.reload(config.urls)
+    clear_url_caches()
+
+
+@contextmanager
+def _jobs_ops_routes_enabled():
+    """Opt into scaffold jobs/ops URLs for route-preservation properties."""
+    try:
+        with override_settings(ENABLE_JOBS_OPS_ROUTES=True):
+            _reload_urlconf()
+            yield
+    finally:
+        _reload_urlconf()
 
 # AI-result shapes: well-formed, partial, junk, and the "unavailable" None.
 ai_score_results = st.one_of(
@@ -121,14 +143,15 @@ def test_seed_reads_preserve_envelope_shape():
     """
     from django.test import Client
 
-    client = Client()
-    for path in (
-        "/api/v1/jobs/",
-        "/api/v1/jobs/7db809ec-6655-4bf0-93b5-38b778342680/",
-        "/api/v1/job-applications/",
-    ):
-        response = client.get(path)
-        assert response.status_code == 200
-        payload = response.json()
-        assert payload.get("success") is True
-        assert "data" in payload
+    with _jobs_ops_routes_enabled():
+        client = Client()
+        for path in (
+            "/api/v1/jobs/",
+            "/api/v1/jobs/7db809ec-6655-4bf0-93b5-38b778342680/",
+            "/api/v1/job-applications/",
+        ):
+            response = client.get(path)
+            assert response.status_code == 200
+            payload = response.json()
+            assert payload.get("success") is True
+            assert "data" in payload
