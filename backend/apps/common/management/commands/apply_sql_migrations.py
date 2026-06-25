@@ -129,6 +129,8 @@ _INDEX_NAME_RE = re.compile(
     re.IGNORECASE,
 )
 
+_DOLLAR_QUOTE_START_RE = re.compile(r"\$[A-Za-z_][A-Za-z0-9_]*?\$|\$\$")
+
 
 # Non-additive operation patterns (Task 1.5 / Requirement 1.2).
 #
@@ -290,6 +292,131 @@ def _extract_concurrently_index_names(sql: str) -> list[str]:
     """
     stripped = _strip_sql_line_comments(sql)
     return [quoted or unquoted for quoted, unquoted in _INDEX_NAME_RE.findall(stripped)]
+
+
+def _split_sql_statements(sql: str) -> list[str]:
+    """Split SQL into executable statements without breaking quoted bodies.
+
+    Postgres rejects ``CREATE INDEX CONCURRENTLY`` when several statements
+    are sent as one multi-command string, because the server executes that
+    string as one implicit transaction. For concurrent-index migrations we
+    therefore send one statement per ``cursor.execute`` while the connection
+    is in autocommit mode.
+
+    The splitter handles the syntax used by our hand-written migrations:
+    single-quoted strings with doubled quotes, double-quoted identifiers,
+    ``--`` line comments, ``/* ... */`` block comments, and PostgreSQL
+    dollar-quoted function bodies.
+    """
+    statements: list[str] = []
+    current: list[str] = []
+    i = 0
+    in_single_quote = False
+    in_double_quote = False
+    in_line_comment = False
+    in_block_comment = False
+    dollar_tag: str | None = None
+
+    while i < len(sql):
+        char = sql[i]
+        nxt = sql[i + 1] if i + 1 < len(sql) else ""
+
+        if in_line_comment:
+            current.append(char)
+            if char == "\n":
+                in_line_comment = False
+            i += 1
+            continue
+
+        if in_block_comment:
+            current.append(char)
+            if char == "*" and nxt == "/":
+                current.append(nxt)
+                in_block_comment = False
+                i += 2
+            else:
+                i += 1
+            continue
+
+        if dollar_tag is not None:
+            if sql.startswith(dollar_tag, i):
+                current.append(dollar_tag)
+                i += len(dollar_tag)
+                dollar_tag = None
+            else:
+                current.append(char)
+                i += 1
+            continue
+
+        if in_single_quote:
+            current.append(char)
+            if char == "'" and nxt == "'":
+                current.append(nxt)
+                i += 2
+                continue
+            if char == "'":
+                in_single_quote = False
+            i += 1
+            continue
+
+        if in_double_quote:
+            current.append(char)
+            if char == '"' and nxt == '"':
+                current.append(nxt)
+                i += 2
+                continue
+            if char == '"':
+                in_double_quote = False
+            i += 1
+            continue
+
+        if char == "-" and nxt == "-":
+            current.extend([char, nxt])
+            in_line_comment = True
+            i += 2
+            continue
+
+        if char == "/" and nxt == "*":
+            current.extend([char, nxt])
+            in_block_comment = True
+            i += 2
+            continue
+
+        if char == "'":
+            current.append(char)
+            in_single_quote = True
+            i += 1
+            continue
+
+        if char == '"':
+            current.append(char)
+            in_double_quote = True
+            i += 1
+            continue
+
+        if char == "$":
+            match = _DOLLAR_QUOTE_START_RE.match(sql, i)
+            if match:
+                dollar_tag = match.group(0)
+                current.append(dollar_tag)
+                i = match.end()
+                continue
+
+        if char == ";":
+            statement = "".join(current).strip()
+            if statement:
+                statements.append(statement)
+            current = []
+            i += 1
+            continue
+
+        current.append(char)
+        i += 1
+
+    trailing = "".join(current).strip()
+    if trailing:
+        statements.append(trailing)
+    return statements
 
 
 def _drop_invalid_indexes(index_names: list[str]) -> list[str]:
@@ -568,8 +695,9 @@ class Command(BaseCommand):
 
         phase_one_error: Exception | None = None
         try:
-            with connection.cursor() as cursor:
-                cursor.execute(sql)
+            for statement in _split_sql_statements(sql):
+                with connection.cursor() as cursor:
+                    cursor.execute(statement)
         except Exception as exc:
             phase_one_error = exc
             logger.exception(

@@ -409,6 +409,7 @@ def test_excluded_subdirectories_are_not_recursed(
 from apps.common.management.commands.apply_sql_migrations import (  # noqa: E402
     _extract_concurrently_index_names,
     _has_concurrently,
+    _split_sql_statements,
 )
 
 
@@ -474,6 +475,23 @@ class TestConcurrentlyDetection:
             "CREATE INDEX CONCURRENTLY idx_real ON foo(bar);\n"
         )
         assert _extract_concurrently_index_names(sql) == ["idx_real"]
+
+    def test_split_sql_statements_preserves_quoted_semicolons(self):
+        sql = """
+        CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_a ON foo(a);
+        INSERT INTO audit_log(message) VALUES ('keeps ; inside strings');
+        CREATE FUNCTION f() RETURNS void AS $$
+        BEGIN
+          RAISE NOTICE 'keeps ; inside dollar bodies';
+        END;
+        $$ LANGUAGE plpgsql;
+        """
+        statements = _split_sql_statements(sql)
+
+        assert len(statements) == 3
+        assert statements[0].startswith("CREATE INDEX CONCURRENTLY")
+        assert "keeps ; inside strings" in statements[1]
+        assert "RAISE NOTICE" in statements[2]
 
 
 @pytest.mark.django_db(transaction=True)
@@ -541,6 +559,66 @@ def test_concurrently_index_runs_in_autocommit_and_records_history(
             "DROP INDEX IF EXISTS idx_aux_concurrently_target_name"
         )
         cur.execute("DROP TABLE IF EXISTS _aux_concurrently_target")
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.skipif(
+    connection.vendor != "postgresql",
+    reason="CREATE INDEX CONCURRENTLY is Postgres-only",
+)
+def test_concurrently_multi_statement_file_runs_each_statement_separately(
+    fresh_migration_history, migrations_dir
+):
+    """A CONCURRENTLY file with several indexes must not be one server query."""
+    with connection.cursor() as cur:
+        cur.execute(
+            "CREATE TABLE IF NOT EXISTS _aux_concurrently_multi_target "
+            "(id INT PRIMARY KEY, name TEXT, code TEXT)"
+        )
+
+    _write(
+        migrations_dir / "0001_concurrently_multi.sql",
+        """
+        CREATE INDEX CONCURRENTLY IF NOT EXISTS
+            idx_aux_concurrently_multi_target_name
+            ON _aux_concurrently_multi_target(name);
+        CREATE INDEX CONCURRENTLY IF NOT EXISTS
+            idx_aux_concurrently_multi_target_code
+            ON _aux_concurrently_multi_target(code);
+        """,
+    )
+
+    call_command(
+        "apply_sql_migrations",
+        "--migrations-dir",
+        str(migrations_dir),
+        stdout=StringIO(),
+    )
+
+    with connection.cursor() as cur:
+        cur.execute(
+            "SELECT c.relname, i.indisvalid FROM pg_index i "
+            "JOIN pg_class c ON c.oid = i.indexrelid "
+            "WHERE c.relname IN (%s, %s) ORDER BY c.relname",
+            [
+                "idx_aux_concurrently_multi_target_code",
+                "idx_aux_concurrently_multi_target_name",
+            ],
+        )
+        assert cur.fetchall() == [
+            ("idx_aux_concurrently_multi_target_code", True),
+            ("idx_aux_concurrently_multi_target_name", True),
+        ]
+        cur.execute(
+            "SELECT migration_name FROM migration_history "
+            "WHERE migration_name = %s",
+            ["0001_concurrently_multi.sql"],
+        )
+        assert cur.fetchone() is not None
+
+        cur.execute("DROP INDEX IF EXISTS idx_aux_concurrently_multi_target_code")
+        cur.execute("DROP INDEX IF EXISTS idx_aux_concurrently_multi_target_name")
+        cur.execute("DROP TABLE IF EXISTS _aux_concurrently_multi_target")
 
 
 @pytest.mark.django_db(transaction=True)
