@@ -1,0 +1,67 @@
+name: Production DB Audit
+
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: production-db-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Audit EC2 database and running stack
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd ~/mihas
+
+            COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env"
+
+            echo "::group::running-stack"
+            ${COMPOSE} ps
+            echo "::endgroup::"
+
+            echo "::group::public-runtime-pins"
+            grep -E '^(BACKEND_IMAGE|FRONTEND_IMAGE|APP_HOST|API_HOST|JOBS_HOST|ENABLE_JOBS_OPS_ROUTES)=' .env || true
+            echo "::endgroup::"
+
+            echo "::group::migration-history"
+            ${COMPOSE} exec -T postgres sh -lc \
+              'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "SELECT count(*) FROM migration_history;"'
+            ${COMPOSE} exec -T postgres sh -lc \
+              'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "SELECT migration_name FROM migration_history ORDER BY migration_name;"'
+            echo "::endgroup::"
+
+            echo "::group::pending-sql-migrations"
+            ${COMPOSE} exec -T web python manage.py apply_sql_migrations --dry-run --no-color
+            echo "::endgroup::"
+
+            echo "::group::strict-schema-drift"
+            ${COMPOSE} exec -T web python manage.py check_schema_drift \
+              --strict \
+              --check-fk-indexes \
+              --check-migration-history-coverage \
+              --no-color
+            echo "::endgroup::"
+
+            echo "::group::readiness"
+            ${COMPOSE} exec -T web python - <<'PY'
+            import json
+            import urllib.request
+
+            req = urllib.request.Request(
+                "http://127.0.0.1:8000/health/ready/",
+                headers={"Host": "api.beanola.com", "X-Forwarded-Proto": "https"},
+            )
+            with urllib.request.urlopen(req, timeout=10) as response:
+                print(json.dumps({"status": response.status, "body": response.read().decode()}))
+            PY
+            echo "::endgroup::"
