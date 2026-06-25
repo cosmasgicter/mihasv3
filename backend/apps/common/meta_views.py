@@ -40,10 +40,10 @@ class PlatformMetaView(APIView):
     def get(self, request):
         return Response(
             {
-                "product": "AI Job Hunting Platform",
+                "product": "Beanola Admissions Platform",
                 "creator": {"name": "Cosmas Kanchepa"},
                 "developer": {"name": "Beanola Technologies", "url": "https://beanola.com"},
                 "api_version": "v1",
-                "status": "production_v1_seeded",
+                "status": "production_ready",
             }
         )
