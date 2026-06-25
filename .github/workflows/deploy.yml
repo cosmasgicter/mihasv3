@@ -161,15 +161,37 @@ jobs:
             grep -q '^JOBS_HOST=' .env || echo "JOBS_HOST=jobs.beanola.com" >> .env
 
             # --- Step 4: pull + up -d wrapped in a rollback trap (R1.5/R1.6) ---
+            compose_up() {
+              if docker compose up --help | grep -q -- '--wait'; then
+                ${COMPOSE} up -d --wait --wait-timeout 240
+              else
+                ${COMPOSE} up -d
+              fi
+            }
+
+            collect_failed_stack_evidence() {
+              local failed_step="$1"
+              echo "::group::failed-stack-${failed_step}-ps"
+              ${COMPOSE} ps || true
+              echo "::endgroup::"
+              echo "::group::failed-stack-${failed_step}-web-logs"
+              ${COMPOSE} logs --no-color --tail=300 web || true
+              echo "::endgroup::"
+              echo "::group::failed-stack-${failed_step}-worker-logs"
+              ${COMPOSE} logs --no-color --tail=160 celery beat caddy || true
+              echo "::endgroup::"
+            }
+
             rollback() {
               local failed_step="$1"
+              collect_failed_stack_evidence "${failed_step}"
               echo "ERROR [${failed_step}]: deploy step failed — restoring previous images" >&2
               if [ -n "${PREV_BACKEND}" ] && [ -n "${PREV_FRONTEND}" ]; then
                 # Re-pin .env to the last-good images and restart. No `down`, no
                 # `-v`: the postgres volume and DB are left completely untouched.
                 pin_env BACKEND_IMAGE "${PREV_BACKEND}"
                 pin_env FRONTEND_IMAGE "${PREV_FRONTEND}"
-                ${COMPOSE} up -d || echo "ERROR [${failed_step}]: rollback 'up -d' also failed" >&2
+                compose_up || echo "ERROR [${failed_step}]: rollback 'up -d' also failed" >&2
               else
                 echo "ERROR [${failed_step}]: no previous image refs captured — cannot auto-roll back" >&2
               fi
@@ -178,7 +200,7 @@ jobs:
             }
 
             ${COMPOSE} pull   || rollback "image-pull"
-            ${COMPOSE} up -d  || rollback "container-start"
+            compose_up        || rollback "container-start"
 
             # --- Step 5: record disk usage after the deploy (R1.3) ---
             USAGE_AFTER="$(df --output=pcent / | tail -1 | tr -dc '0-9')"
