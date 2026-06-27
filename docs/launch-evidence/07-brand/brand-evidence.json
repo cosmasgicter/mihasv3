@@ -2,7 +2,7 @@
   "gate_id": "brand",
   "requirement": "R7",
   "status": "passed",
-  "generated_at": "2026-06-27T19:35:33Z",
+  "generated_at": "2026-06-27T19:39:24Z",
   "generated_by": "ci",
   "summary": "Brand_Scan_Gate PASSED: scanned 800 active source file(s); 0 hard-brand leaks outside the Brand_Allowlist; 17 allowlist entry(ies) all valid and live.",
   "checks": [

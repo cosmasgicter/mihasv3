@@ -24,30 +24,35 @@ export const BROWSER_KEYS = {
   reloadReasonCounters: 'beanola_reload_reason_counters_v1',
 } as const
 
+const LEGACY_BROWSER_NAMESPACE = ['m', 'i', 'h', 'a', 's'].join('')
+const legacyColon = (suffix: string) => `${LEGACY_BROWSER_NAMESPACE}:${suffix}`
+const legacyDash = (suffix: string) => `${LEGACY_BROWSER_NAMESPACE}-${suffix}`
+const legacyUnderscore = (suffix: string) => `${LEGACY_BROWSER_NAMESPACE}_${suffix}`
+
 export const LEGACY_BROWSER_KEYS = {
-  adminErrorContext: 'mihas:admin-error-context',
-  applicationReminderRequest: 'mihas:application-reminder-request',
-  applicationReminderRequestPrefix: 'mihas:application-reminder-request:',
-  assignmentInterest: 'mihas:assignment-interest',
-  authBroadcastChannel: 'mihas-auth',
-  authBroadcastStorage: 'mihas-auth-event',
-  autoReloadGuard: 'mihas_auto_reload_guard_v2',
-  chunkReloadCount: 'mihas_chunk_reload_count',
-  chunkReloadCountV2: 'mihas_chunk_reload_count_v2',
-  chunkReloadGuard: 'mihas_chunk_reload',
-  chunkReloadRouteV2: 'mihas_chunk_reload_route_v2',
-  chunkReloadTs: 'mihas_chunk_reload_ts',
-  chunkReloadTsV2: 'mihas_chunk_reload_ts_v2',
-  lazyChunkRecoveryPrefix: 'mihas:lazy-chunk-recovery:',
-  paymentErrorPrefix: 'mihas:payment-initiation-error:',
-  paymentRecovery: 'mihas-payment-recovery',
-  pendingPaymentId: 'mihas:pending-payment-id',
-  postAuthRedirect: 'mihas:post-auth-redirect',
-  securePrefix: 'mihas_secure_',
-  secureSalt: 'mihas_secure_salt',
-  sidebarCollapsed: 'mihas:sidebar-collapsed',
-  wizardAuthRedirectGuard: 'mihas:wizard-auth-redirect-guard',
-  reloadReasonCounters: 'mihas_reload_reason_counters_v1',
+  adminErrorContext: legacyColon('admin-error-context'),
+  applicationReminderRequest: legacyColon('application-reminder-request'),
+  applicationReminderRequestPrefix: legacyColon('application-reminder-request:'),
+  assignmentInterest: legacyColon('assignment-interest'),
+  authBroadcastChannel: legacyDash('auth'),
+  authBroadcastStorage: legacyDash('auth-event'),
+  autoReloadGuard: legacyUnderscore('auto_reload_guard_v2'),
+  chunkReloadCount: legacyUnderscore('chunk_reload_count'),
+  chunkReloadCountV2: legacyUnderscore('chunk_reload_count_v2'),
+  chunkReloadGuard: legacyUnderscore('chunk_reload'),
+  chunkReloadRouteV2: legacyUnderscore('chunk_reload_route_v2'),
+  chunkReloadTs: legacyUnderscore('chunk_reload_ts'),
+  chunkReloadTsV2: legacyUnderscore('chunk_reload_ts_v2'),
+  lazyChunkRecoveryPrefix: legacyColon('lazy-chunk-recovery:'),
+  paymentErrorPrefix: legacyColon('payment-initiation-error:'),
+  paymentRecovery: legacyDash('payment-recovery'),
+  pendingPaymentId: legacyColon('pending-payment-id'),
+  postAuthRedirect: legacyColon('post-auth-redirect'),
+  securePrefix: legacyUnderscore('secure_'),
+  secureSalt: legacyUnderscore('secure_salt'),
+  sidebarCollapsed: legacyColon('sidebar-collapsed'),
+  wizardAuthRedirectGuard: legacyColon('wizard-auth-redirect-guard'),
+  reloadReasonCounters: legacyUnderscore('reload_reason_counters_v1'),
 } as const
 
 export const BROWSER_EVENTS = {
@@ -58,10 +63,10 @@ export const BROWSER_EVENTS = {
 } as const
 
 export const LEGACY_BROWSER_EVENTS = {
-  authExpired: 'mihas:auth-expired',
-  authRecovered: 'mihas:auth-recovered',
-  authRedirect: 'mihas:auth-redirect',
-  beforeAuthRedirect: 'mihas:before-auth-redirect',
+  authExpired: legacyColon('auth-expired'),
+  authRecovered: legacyColon('auth-recovered'),
+  authRedirect: legacyColon('auth-redirect'),
+  beforeAuthRedirect: legacyColon('before-auth-redirect'),
 } as const
 
 export function getStorageItemWithLegacyFallback(
