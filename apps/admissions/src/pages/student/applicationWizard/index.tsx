@@ -1,6 +1,7 @@
-import { ArrowLeft, ArrowRight, CheckCircle, Send } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, Send, Trash2 } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState, useRef, useCallback, useSyncExternalStore } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Seo } from '@/components/seo/Seo'
 
 import { useOptimizedAnimation } from '@/hooks/useOptimizedAnimation'
@@ -39,6 +40,11 @@ import type { StepKey } from './steps/config'
 import type { SubjectGrade } from './types'
 import { WIZARD_COPY } from './constants'
 import { usePortalBrand } from '@/hooks/usePortalBrand'
+import { studentApplicationNewPath, studentApplicationResumePath } from '@/routes/routeRegistry'
+import { parseWizardDraftIntent } from './hooks/wizard/useWizardDraftLoader'
+import { applicationService } from '@/services/applications'
+import { isProtectedDraftPaymentError } from '@/lib/applicationSession'
+import { useDraftStore } from '@/stores/draftStore'
 
 // --- Lightweight online/offline hook ---
 const onlineSubscribe = (cb: () => void) => {
@@ -102,6 +108,10 @@ const ApplicationWizardContent = () => {
     isDraftSaving,
     draftSaved,
     draftLoaded,
+    draftApplicationsLoading,
+    draftApplications,
+    duplicateDraftConflict,
+    clearDuplicateDraftConflict,
     gradesHydrating,
     submittedApplication,
     applicationId,
@@ -144,6 +154,9 @@ const ApplicationWizardContent = () => {
   } = useWizardController()
 
   const navigate = useNavigate()
+  const location = useLocation()
+  const queryClient = useQueryClient()
+  const [deletingDraftId, setDeletingDraftId] = useState<string | null>(null)
 
   const stepValidation = useStepValidation(form, currentStepIndex, {
     paymentStatus,
@@ -167,6 +180,53 @@ const ApplicationWizardContent = () => {
   const isOnline = useIsOnline()
   const keyboardOpen = useKeyboardOpen()
   const { brandName: portalBrandName } = usePortalBrand()
+  const draftIntent = parseWizardDraftIntent(location.search)
+  const locationParams = new URLSearchParams(location.search)
+  const isLocalDraftIntent = locationParams.get('localDraft') === 'true'
+  const wizardModeSummary = (() => {
+    if (draftIntent.mode === 'new') {
+      return {
+        label: 'New application',
+        description: 'Saved drafts will not be restored into this application.',
+        className: 'border-primary/20 bg-primary/5 text-primary',
+      }
+    }
+    if (draftIntent.mode === 'resume') {
+      return {
+        label: 'Resuming draft',
+        description: 'Only the selected saved draft is loaded in this session.',
+        className: 'border-success/25 bg-success/5 text-success',
+      }
+    }
+    if (draftIntent.mode === 'local' || isLocalDraftIntent) {
+      return {
+        label: 'Local draft',
+        description: 'Your browser draft is being continued without clearing local progress.',
+        className: 'border-warning/25 bg-warning/5 text-warning',
+      }
+    }
+    return {
+      label: applicationId ? 'Draft in progress' : 'Application in progress',
+      description: 'Autosave is active while you complete the application.',
+      className: 'border-border bg-muted/50 text-foreground',
+    }
+  })()
+  const draftChoices = (draftApplications?.applications ?? []) as Array<{
+    id?: string
+    program?: string | null
+    intake?: string | null
+    institution?: string | null
+    updated_at?: string | null
+    created_at?: string | null
+  }>
+  const showDraftChoice = Boolean(
+    user &&
+    draftLoaded &&
+    !draftApplicationsLoading &&
+    draftIntent.mode === 'auto' &&
+    !applicationId &&
+    draftChoices.length > 0
+  )
 
   // Pause auto-save during critical operations (Req 9.1, 9.2):
   // - Payment step with payment in progress (initiating or pending)
@@ -186,7 +246,7 @@ const ApplicationWizardContent = () => {
   const smartAutoSave = useSmartAutoSave({
     onSave: saveWizardDraft,
     watchValues,
-    enabled: draftLoaded && !loading && !uploading && !restoringDraft && !success && !isPaymentInProgress
+    enabled: draftLoaded && !showDraftChoice && !loading && !uploading && !restoringDraft && !success && !isPaymentInProgress
   })
 
   const progressPercent = overallProgress.percentage
@@ -565,6 +625,144 @@ const ApplicationWizardContent = () => {
 
   const handleGetUsedSubjects = () => getUsedSubjects()
 
+  const handleDeleteChoiceDraft = async (draftId: string) => {
+    if (!window.confirm('Delete this draft? This cannot be undone.')) return
+
+    setDeletingDraftId(draftId)
+    try {
+      await applicationService.delete(draftId)
+      useDraftStore.getState().markCleared()
+      queryClient.removeQueries({ queryKey: ['applications', 'detail', draftId] })
+      await queryClient.invalidateQueries({ queryKey: ['applications'] })
+      window.dispatchEvent(new CustomEvent('draftCleared', { detail: { deletedIds: [draftId], blockedIds: [] } }))
+      if (draftChoices.length <= 1) {
+        navigate(studentApplicationNewPath(), { replace: true })
+      }
+    } catch (deleteError) {
+      if (isProtectedDraftPaymentError(deleteError)) {
+        setError('This draft has payment activity and cannot be deleted. Continue it or contact admissions for help.')
+      } else {
+        setError('We could not delete this draft. Please try again.')
+      }
+    } finally {
+      setDeletingDraftId(null)
+    }
+  }
+
+  if (showDraftChoice) {
+    const latestDraft = draftChoices[0]
+    return (
+      <>
+        <Seo
+          title={`Choose Application Draft | ${portalBrandName}`}
+          description={`Choose whether to continue a saved ${portalBrandName} draft or start a new application.`}
+          path="/student/application-wizard"
+          noindex
+        />
+        <PageShell
+          title="Choose an application"
+          eyebrow="Application Flow"
+          subtitle="Continue a saved draft or begin a clean application."
+          maxWidth="4xl"
+          tone="application"
+        >
+          <div className="grid gap-4">
+            <SectionCard
+              title="Saved drafts"
+              description="Pick the draft you want to continue. Starting new will not attach this session to an old application."
+              icon={<CheckCircle className="h-5 w-5" />}
+            >
+              <Alert variant="warning" className="mb-4">
+                <AlertTitle>Payment-linked drafts</AlertTitle>
+                <AlertDescription>
+                  Drafts with payment activity cannot be deleted from this screen. Continue the draft or contact admissions for help.
+                </AlertDescription>
+              </Alert>
+              <div className="grid gap-3">
+                {draftChoices.slice(0, 5).map((draft, index) => {
+                  const draftId = String(draft.id || '')
+                  if (!draftId) return null
+                  const updatedAt = draft.updated_at || draft.created_at
+                  const title = draft.program || 'Untitled application'
+                  const subtitle = [draft.institution, draft.intake].filter(Boolean).join(' · ')
+                  const status = String((draft as { status?: unknown }).status || 'draft').replace(/_/g, ' ')
+                  return (
+                    <div key={draftId} className="grid gap-4 rounded-lg border border-border bg-card p-4 sm:grid-cols-[1fr_auto] sm:items-center">
+                      <div className="min-w-0 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-foreground">{index === 0 ? 'Latest draft' : 'Saved draft'}</p>
+                          <span className="inline-flex min-h-6 items-center rounded-full border border-primary/20 bg-primary/5 px-2.5 text-xs font-semibold capitalize text-primary">
+                            {status}
+                          </span>
+                        </div>
+                        <p className="break-words text-base font-semibold text-foreground">{title}</p>
+                        {subtitle && <p className="break-words text-sm text-muted-foreground">{subtitle}</p>}
+                        {updatedAt && (
+                          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            Last saved {new Date(updatedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      <div className="grid gap-2 sm:min-w-44">
+                        <Button
+                          type="button"
+                          variant="primary"
+                          className="w-full sm:w-auto"
+                          onClick={() => {
+                            void handleLoadDraft(draft, draftId)
+                          }}
+                        >
+                          Continue draft
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full text-destructive hover:bg-destructive/5 sm:w-auto"
+                          loading={deletingDraftId === draftId}
+                          disabled={deletingDraftId === draftId}
+                          onClick={() => {
+                            void handleDeleteChoiceDraft(draftId)
+                          }}
+                        >
+                          {deletingDraftId !== draftId && <Trash2 className="h-4 w-4" aria-hidden="true" />}
+                          Delete draft
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </SectionCard>
+
+            <SectionCard
+              title="Start new"
+              description="Begin a separate application without restoring saved draft data."
+              icon={<ArrowRight className="h-5 w-5" />}
+            >
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  form.reset()
+                  setError('')
+                  navigate(studentApplicationNewPath(), { replace: true })
+                }}
+              >
+                Start a new application
+              </Button>
+              {latestDraft?.id && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Your saved draft remains available and will not be changed unless you continue or delete it.
+                </p>
+              )}
+            </SectionCard>
+          </div>
+        </PageShell>
+      </>
+    )
+  }
+
 
   return (
     <>
@@ -614,6 +812,14 @@ const ApplicationWizardContent = () => {
           You appear to be offline. Your progress is saved locally and will sync when you reconnect.
         </div>
       )}
+      <div
+        className={`mx-auto mb-4 flex max-w-2xl flex-col gap-1 rounded-lg border px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between ${wizardModeSummary.className}`}
+        role="status"
+        aria-live="polite"
+      >
+        <span className="font-semibold">{wizardModeSummary.label}</span>
+        <span className="text-xs leading-5 text-foreground/80 sm:text-right">{wizardModeSummary.description}</span>
+      </div>
       <div className="w-full">
         <Container size="md" className="py-4 sm:py-8">
           <div className="mb-8 space-y-4">
@@ -667,12 +873,12 @@ const ApplicationWizardContent = () => {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                  <div className="flex min-w-0 items-center gap-1.5">
                     {wizardReadiness.canSubmit ? (
                       <CheckCircle className="h-3.5 w-3.5 text-success" />
                     ) : (
-                      <div className="h-3.5 w-3.5 rounded-full border-2 border-muted-foreground" />
+                      <div className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-muted-foreground" />
                     )}
                     <span className={`min-w-0 break-words font-medium ${
                       wizardReadiness.canSubmit ? 'text-success' : 'text-foreground/80'
@@ -681,7 +887,7 @@ const ApplicationWizardContent = () => {
                     </span>
                   </div>
                   {!wizardReadiness.canSubmit && wizardReadiness.missingItems.length > 0 && (
-                    <span className="text-foreground/75">
+                    <span className="min-w-0 break-words text-foreground/75">
                       {WIZARD_COPY.missingFieldsPrefix} {wizardReadiness.missingItems.slice(0, 2).map(item => item.label).join(', ')}
                       {wizardReadiness.missingItems.length > 2 && ` +${wizardReadiness.missingItems.length - 2} more`}
                     </span>
@@ -689,7 +895,7 @@ const ApplicationWizardContent = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex min-h-[44px] w-full flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 sm:w-auto sm:min-w-[17rem] sm:flex-nowrap sm:justify-end sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
               {/* Auto-save status indicator */}
               <AutoSaveIndicator
                 status={
@@ -698,6 +904,7 @@ const ApplicationWizardContent = () => {
                     : smartAutoSave.saveStatus as 'idle' | 'saving' | 'saved' | 'error'
                 }
                 lastSavedAt={smartAutoSave.lastSaved ? smartAutoSave.lastSaved.getTime() : null}
+                className="min-h-[24px] min-w-[5.5rem]"
               />
               
               {/* Legacy changed fields indicator */}
@@ -756,12 +963,62 @@ const ApplicationWizardContent = () => {
                 <AlertDescription className="mt-1 text-foreground">{error}</AlertDescription>
               </div>
               <div className="flex gap-2 flex-shrink-0">
+                {duplicateDraftConflict && duplicateDraftConflict.existingId && (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    className="min-h-touch"
+                    onClick={() => {
+                      const existingDraft = draftChoices.find(draft => String(draft.id || '') === duplicateDraftConflict.existingId)
+                      clearDuplicateDraftConflict()
+                      if (existingDraft) {
+                        void handleLoadDraft(existingDraft, duplicateDraftConflict.existingId!)
+                      } else {
+                        navigate(studentApplicationResumePath(duplicateDraftConflict.existingId!), { replace: true })
+                      }
+                    }}
+                  >
+                    Continue existing
+                  </Button>
+                )}
+                {duplicateDraftConflict && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="min-h-touch"
+                    onClick={() => {
+                      clearDuplicateDraftConflict()
+                      goToStep(0)
+                    }}
+                  >
+                    Change program
+                  </Button>
+                )}
+                {duplicateDraftConflict && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="min-h-touch"
+                    onClick={() => {
+                      clearDuplicateDraftConflict()
+                      navigate('/student/dashboard')
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                )}
                 {(error.toLowerCase().includes('network') || error.toLowerCase().includes('connection') || error.toLowerCase().includes('failed to') || error.toLowerCase().includes('timeout')) && (
                   <Button type="button" variant="outline" size="sm" className="min-h-touch" onClick={wrappedHandleNextStep}>
                     Retry
                   </Button>
                 )}
-                <Button type="button" variant="ghost" size="sm" className="min-h-touch" onClick={() => setError('')}>
+                <Button type="button" variant="ghost" size="sm" className="min-h-touch" onClick={() => {
+                  clearDuplicateDraftConflict()
+                  setError('')
+                }}>
                   Dismiss
                 </Button>
               </div>

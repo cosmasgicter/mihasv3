@@ -100,9 +100,22 @@ class AdminInstitutionDomainSerializer(serializers.ModelSerializer):
         model = InstitutionDomain
         fields = [
             "id", "institution_id", "hostname", "is_primary",
-            "is_active", "verified_at", "created_at",
+            "is_active", "status", "verification_token", "dns_target",
+            "verified_at", "last_checked_at", "last_error", "created_at",
+            "created_by_id", "approved_by_id",
         ]
-        read_only_fields = ["id", "verified_at", "created_at"]
+        read_only_fields = [
+            "id",
+            "status",
+            "verification_token",
+            "dns_target",
+            "verified_at",
+            "last_checked_at",
+            "last_error",
+            "created_at",
+            "created_by_id",
+            "approved_by_id",
+        ]
 
     def validate_hostname(self, value):
         hostname = value.strip().lower()
@@ -476,6 +489,7 @@ class AdminRoutingSimulationSerializer(serializers.Serializer):
     country = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=128)
     nationality = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=128)
     institution_id = serializers.UUIDField(required=False, allow_null=True)
+    host = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=255)
 
 
 class TenantAuditLogSerializer(serializers.Serializer):

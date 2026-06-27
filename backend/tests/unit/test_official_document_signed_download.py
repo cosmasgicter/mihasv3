@@ -16,10 +16,14 @@ import uuid
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import pytest
+from rest_framework.test import APIClient
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
+from apps.applications import document_views as legacy_document_views
 from apps.applications import official_document_views as odv
+from tests.tenant_fixtures import build_profile, build_tenant_world
 
 
 class _Doc:
@@ -51,6 +55,22 @@ def _super_admin():
             "last_name": "Admin",
         }
     )
+
+
+def _client_for(profile) -> APIClient:
+    client = APIClient()
+    client.force_authenticate(
+        user=JWTUser(
+            {
+                "user_id": str(profile.id),
+                "email": profile.email,
+                "role": profile.role,
+                "first_name": profile.first_name,
+                "last_name": profile.last_name,
+            }
+        )
+    )
+    return client
 
 
 def test_download_url_is_signed_not_raw():
@@ -161,6 +181,8 @@ def test_status_reports_queued_when_current_document_is_stale():
     ), patch.object(
         odv, "official_document_matches_current_inputs", return_value=False
     ) as freshness, patch.object(
+        odv, "_latest_render_failure", return_value=None
+    ) as failure, patch.object(
         odv, "_signed_download_url", return_value=_SIGNED_URL
     ) as signer:
         response = odv.OfficialDocumentDetailView.as_view()(
@@ -175,4 +197,153 @@ def test_status_reports_queued_when_current_document_is_stale():
     assert response.data["data"]["document_id"] is None
     assert "download_url" not in response.data["data"]
     freshness.assert_called_once_with(application, "application_slip", doc)
+    failure.assert_called_once_with(application, "application_slip", current_document=doc)
     signer.assert_not_called()
+
+
+def test_status_reports_setup_required_after_profile_failure():
+    """GET surfaces terminal tenant setup failures instead of endless queued."""
+    factory = APIRequestFactory()
+    application = SimpleNamespace(
+        id=uuid.uuid4(),
+        institution_ref_id=uuid.uuid4(),
+        status="approved",
+    )
+    request = factory.get(
+        f"/api/v1/applications/{application.id}/official-documents/acceptance_letter/"
+    )
+    force_authenticate(request, user=_super_admin())
+
+    with patch.object(odv, "_get_authorized_application", return_value=(application, None)), patch.object(
+        odv, "_current_official_version", return_value=None
+    ), patch.object(
+        odv, "_latest_render_failure",
+        return_value=("setup_required", "DOCUMENT_PROFILE_NOT_CONFIGURED"),
+    ):
+        response = odv.OfficialDocumentDetailView.as_view()(
+            request,
+            application_id=application.id,
+            document_type="acceptance_letter",
+        )
+
+    assert response.status_code == 200
+    assert response.data["success"] is True
+    data = response.data["data"]
+    assert data["status"] == "setup_required"
+    assert data["document_id"] is None
+    assert data["error_code"] == "DOCUMENT_PROFILE_NOT_CONFIGURED"
+    assert data["setup_required"] is True
+    assert "download_url" not in data
+
+
+def test_list_includes_latest_setup_required_failure():
+    """The list endpoint includes latest terminal failures per type."""
+    factory = APIRequestFactory()
+    application = SimpleNamespace(
+        id=uuid.uuid4(),
+        institution_ref_id=uuid.uuid4(),
+        status="approved",
+    )
+    request = factory.get(f"/api/v1/applications/{application.id}/official-documents/")
+    force_authenticate(request, user=_super_admin())
+
+    def failure_for(_application, document_type, *, current_document=None):
+        if document_type == "acceptance_letter":
+            return ("setup_required", "DOCUMENT_PROFILE_NOT_CONFIGURED")
+        return None
+
+    with patch.object(odv, "_get_authorized_application", return_value=(application, None)), patch.object(
+        odv, "_current_official_version", return_value=None
+    ), patch.object(odv, "_latest_render_failure", side_effect=failure_for):
+        response = odv.OfficialDocumentListView.as_view()(
+            request,
+            application_id=application.id,
+        )
+
+    assert response.status_code == 200
+    assert response.data["success"] is True
+    assert response.data["data"] == [
+        {
+            "document_id": None,
+            "document_type": "acceptance_letter",
+            "status": "setup_required",
+            "generated_at": None,
+            "template_version": None,
+            "institution_id": str(application.institution_ref_id),
+            "error_code": "DOCUMENT_PROFILE_NOT_CONFIGURED",
+            "setup_required": True,
+        }
+    ]
+
+
+def test_legacy_application_slip_endpoint_delegates_to_official_document_route():
+    """Legacy generation endpoints are deprecated wrappers over official docs."""
+    factory = APIRequestFactory()
+    application = SimpleNamespace(
+        id=uuid.uuid4(),
+        institution_ref_id=uuid.uuid4(),
+        status="submitted",
+    )
+    request = factory.post(f"/api/v1/applications/{application.id}/application-slip/")
+    force_authenticate(request, user=_super_admin())
+
+    with patch.object(
+        legacy_document_views, "_get_scoped_application", return_value=application
+    ), patch.object(
+        odv, "_get_authorized_application", return_value=(application, None)
+    ), patch.object(
+        odv, "_current_official_version", return_value=None
+    ), patch.object(
+        odv, "_enqueue_generation", return_value="task-legacy"
+    ), patch.object(
+        odv, "_audit_official_document_queued"
+    ):
+        response = legacy_document_views.ApplicationSlipView.as_view()(
+            request,
+            application_id=application.id,
+        )
+
+    assert response.status_code == 202
+    assert response.data["success"] is True
+    assert response.data["data"]["status"] == "queued"
+    assert response.data["data"]["document_type"] == "application_slip"
+    assert response["Deprecation"] == "true"
+    assert "official-documents/application_slip" in response["Link"]
+
+
+@pytest.mark.django_db
+def test_tenant_admin_cannot_generate_out_of_scope_official_document():
+    world = build_tenant_world(application_status="submitted")
+    tenant_admin = build_profile(role="admin")
+    client = _client_for(tenant_admin)
+
+    response = client.post(
+        f"/api/v1/applications/{world.application.id}/official-documents/application_slip/"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "success": False,
+        "error": "Document not found",
+        "code": "NOT_FOUND",
+    }
+
+
+@pytest.mark.django_db
+def test_super_admin_can_generate_official_document_for_any_tenant():
+    world = build_tenant_world(application_status="submitted")
+    super_admin = build_profile(role="super_admin")
+    client = _client_for(super_admin)
+
+    with patch.object(odv, "_enqueue_generation", return_value="task-super"), patch.object(
+        odv, "_audit_official_document_queued"
+    ):
+        response = client.post(
+            f"/api/v1/applications/{world.application.id}/official-documents/application_slip/"
+        )
+
+    assert response.status_code == 202
+    body = response.json()
+    assert body["success"] is True
+    assert body["data"]["document_type"] == "application_slip"
+    assert body["data"]["status"] == "queued"

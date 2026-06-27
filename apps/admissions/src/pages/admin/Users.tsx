@@ -260,26 +260,26 @@ export default function AdminUsers() {
           { label: 'State', value: state.error ? 'Needs attention' : 'Ready', helper: state.error || 'Permissions and role actions available' },
         ]}
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Link to="/admin">
-              <Button variant="ghost" size="sm" className="min-h-touch min-w-touch">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
+            <Link to="/admin" className="w-full sm:w-auto">
+              <Button variant="ghost" size="sm" className="min-h-touch min-w-touch w-full sm:w-auto">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
             </Link>
-            <Button onClick={() => dispatch({ type: 'TOGGLE_STATS' })} variant="ghost" size="sm" className="min-h-touch min-w-touch">
+            <Button onClick={() => dispatch({ type: 'TOGGLE_STATS' })} variant="ghost" size="sm" className="min-h-touch min-w-touch w-full sm:w-auto">
               <BarChart3 className="mr-2 h-4 w-4" />
               {dialogs.showStats ? 'Hide stats' : 'Show stats'}
             </Button>
-            <Button onClick={() => dispatch({ type: 'OPEN_IMPORT' })} variant="ghost" size="sm" className="min-h-touch min-w-touch">
+            <Button onClick={() => dispatch({ type: 'OPEN_IMPORT' })} variant="ghost" size="sm" className="min-h-touch min-w-touch w-full sm:w-auto">
               <Upload className="mr-2 h-4 w-4" />
               Import
             </Button>
-            <Button onClick={() => dispatch({ type: 'OPEN_EXPORT' })} variant="ghost" size="sm" className="min-h-touch min-w-touch">
+            <Button onClick={() => dispatch({ type: 'OPEN_EXPORT' })} variant="ghost" size="sm" className="min-h-touch min-w-touch w-full sm:w-auto">
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
-            <Button onClick={() => dispatch({ type: 'OPEN_CREATE' })} size="sm" className="min-h-touch min-w-touch">
+            <Button onClick={() => dispatch({ type: 'OPEN_CREATE' })} size="sm" className="min-h-touch min-w-touch w-full sm:w-auto">
               <UserPlus className="mr-2 h-4 w-4" />
               Add user
             </Button>

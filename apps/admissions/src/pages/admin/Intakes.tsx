@@ -348,14 +348,14 @@ export default function AdminIntakes() {
         { label: 'Next action', value: 'Add intake', helper: 'Create the next admission window when ready' },
       ]}
       actions={
-        <div className="flex items-center gap-2">
-          <Link to="/admin">
-            <Button variant="ghost" size="sm">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <Link to="/admin" className="w-full sm:w-auto">
+            <Button variant="ghost" size="sm" className="w-full sm:w-auto">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
           </Link>
-          <Button onClick={openCreate}>
+          <Button onClick={openCreate} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" /> Add Intake
           </Button>
         </div>

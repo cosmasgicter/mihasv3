@@ -241,7 +241,11 @@ function FileUpload({
               <img
                 src={preview.url}
                 alt={primaryFile?.name ?? 'Uploaded file preview'}
+                width={48}
+                height={48}
                 className="h-12 w-12 rounded-md object-cover flex-shrink-0"
+                loading="lazy"
+                decoding="async"
                 onError={(e) => {
                   // Hide broken preview and show file icon fallback
                   e.currentTarget.style.display = 'none'

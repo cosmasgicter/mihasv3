@@ -25,7 +25,7 @@ from rest_framework.test import APIRequestFactory  # noqa: E402
 
 from apps.accounts.authentication import JWTUser  # noqa: E402
 from apps.accounts.session_views import SessionListView  # noqa: E402
-from apps.applications.views import ApplicationTrackView  # noqa: E402
+from apps.applications.public_views import ApplicationTrackView  # noqa: E402
 
 _default_settings = settings(max_examples=5, deadline=None)
 

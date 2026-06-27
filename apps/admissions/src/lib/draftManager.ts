@@ -114,7 +114,8 @@ export class DraftManager {
     try {
       // Quick check for specific keys first
       if (localStorage.getItem('applicationWizardDraft') ||
-          localStorage.getItem('applicationDraft')) {
+          localStorage.getItem('applicationDraft') ||
+          Object.keys(localStorage).some(key => key.startsWith('applicationWizardDraft:'))) {
         return true
       }
 

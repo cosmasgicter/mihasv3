@@ -21,7 +21,7 @@ ADMIN_3_ID = "33333333-3333-3333-3333-333333333333"
 USER_1_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 from rest_framework import status as http_status
 
-from apps.applications.views import _enqueue_document_task
+from apps.applications._view_helpers import _enqueue_document_task
 
 # Patch targets for _enqueue_document_task (lazy imports inside the function)
 _IDEM = "apps.common.models.IdempotencyKey.objects"

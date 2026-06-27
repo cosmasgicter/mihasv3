@@ -22,7 +22,7 @@ from django.test import override_settings
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
-from apps.applications.views import ApplicationReviewView
+from apps.applications.admin_review_views import ApplicationReviewView
 
 
 @pytest.fixture(autouse=True)

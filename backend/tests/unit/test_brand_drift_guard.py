@@ -41,6 +41,9 @@ BRAND_PATTERNS = (
     "mihas.edu.zm",
     "mihas.beanola.com",
     "mihas.local",
+    "mihas:",
+    "mihas_",
+    "mihas-",
 )
 
 # Only scan real source files; skip caches and compiled artifacts.

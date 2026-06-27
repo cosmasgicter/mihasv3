@@ -29,7 +29,7 @@ from hypothesis import strategies as st  # noqa: E402
 from rest_framework.test import APIRequestFactory, force_authenticate  # noqa: E402
 
 from apps.accounts.authentication import JWTUser  # noqa: E402
-from apps.applications.views import ApplicationGradesView  # noqa: E402
+from apps.applications.student_submission_views import ApplicationGradesView  # noqa: E402
 
 _default_settings = settings(max_examples=5, deadline=None)
 

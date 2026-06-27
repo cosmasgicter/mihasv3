@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { GuardInlineSkeleton } from '@/components/ui/GuardInlineSkeleton'
+import {
+  CANONICAL_ADMIN_DASHBOARD_PATH,
+  CANONICAL_SIGN_IN_PATH,
+  CANONICAL_STUDENT_DASHBOARD_PATH,
+} from '@/routes/routeRegistry'
 
 export function DashboardRedirect() {
   const { user, loading, isAdmin } = useAuth()
@@ -22,16 +27,16 @@ export function DashboardRedirect() {
     
     if (!user) {
       if (!nullUserTimeout) return
-      setRedirectPath('/auth/signin')
+      setRedirectPath(CANONICAL_SIGN_IN_PATH)
       return
     }
 
     if (isAdmin) {
-      setRedirectPath('/admin')
+      setRedirectPath(CANONICAL_ADMIN_DASHBOARD_PATH)
       return
     }
 
-    setRedirectPath('/student/dashboard')
+    setRedirectPath(CANONICAL_STUDENT_DASHBOARD_PATH)
   }, [loading, user, isAdmin, redirectPath, nullUserTimeout])
 
   if (loading || !redirectPath) {

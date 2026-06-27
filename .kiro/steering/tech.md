@@ -212,6 +212,12 @@ conventions every backend and frontend change must follow. Spec of record:
   backend tenant API paths, deprecated legacy catalog write paths, and the domain
   context endpoint are registered in `docs/canonical-truth-map.md`. Register new
   capabilities there before merging.
+- **New work consumes canonical services.** Before adding a route, hook, helper,
+  document renderer, tenant endpoint, or route alias, check
+  `docs/canonical-truth-map.md` and
+  `docs/runbooks/canonical-multi-tenant-alignment.md`. Operational steps live in
+  `docs/runbooks/multi-tenant-operations.md`. Extend the canonical service with
+  a drift guard instead of adding a parallel implementation.
 
 ## Lenco Payment Integration
 
@@ -290,23 +296,38 @@ Webhook URL registered with Lenco: `***REMOVED***/api/v1/payments/webhook/lenco/
 
 ## Document and Email Generation
 
-Two separate PDF systems, by design:
+There are two document-generation categories, but only one official-document
+authority:
 
 | System | Scope | Engine | Entry point |
 |--------|-------|--------|-------------|
-| Branded student documents | Application slip, payment receipt, acceptance letter | `@react-pdf/renderer` v4 | `@/lib/pdf` barrel — `generateApplicationSlip`, `generatePaymentReceipt`, `generateAcceptanceLetter` |
+| Official student/admin documents | Application slip, payment receipt, acceptance letter, conditional offer, and future tenant-branded official records | Backend renderers + tenant `InstitutionDocumentProfile` / `InstitutionAsset` config | `GET/POST /api/v1/applications/{id}/official-documents/{document_type}/` via `apps/admissions/src/services/officialDocuments.ts` |
+| Frontend PDF previews | Dev-only or explicitly non-official previews | `@react-pdf/renderer` v4 | `apps/admissions/src/pages/dev/*` and tightly scoped preview helpers only |
 | Admin large-table exports | Audit trail, applications roster | `jspdf` + `jspdf-autotable` (+ `pdf-lib` for user export) | `@/lib/auditExports`, `@/lib/exportUtils` |
 
 **Rules:**
-- Any new **student-facing** branded document (letter, certificate, slip) goes in `@/lib/pdf/documents/` and uses the shared primitives.
-- Any new **admin tabular export** that stays in admin-only flows can continue to use `jspdf`.
-- Never mix — a branded document built with jspdf will drift from the design system; a large-table export built with `@react-pdf` will struggle with performance at 2,000+ rows.
-- Custom fonts for `@react-pdf` live in `apps/admissions/public/fonts/pdf/` and are registered idempotently by `registerPdfFonts()` — not via `@fontsource` npm packages.
-- Default signatory for acceptance letters: Dr Solomon Musonda, MD — Managing Director for both MIHAS and KATC. A real scanned signature (`/images/signatures/solomon-musonda.png`) is used by default; pass `signatureImage` to override. For nursing programs the letter auto-derives a "School of Nursing" division line under the institution name — see `deriveSignatoryDivision()` in `AcceptanceLetter.tsx`. All signature fields (name, role, postnominal, signatureImage, division) are overridable per letter.
+- Any new **official** student/admin document must be rendered by the backend
+  official-document pipeline and configured through tenant document profiles and
+  assets. Do not add a production official-document caller to `@/lib/pdf`.
+- Frontend `@/lib/pdf` code is legacy/preview-only unless a specific
+  non-official preview use case is documented. It must not be reachable from
+  student/admin official download or email flows.
+- Any new **admin tabular export** that stays in admin-only flows can continue
+  to use `jspdf`.
+- Never mix official documents and table exports — official records need stored
+  backend provenance/fingerprints, while large-table exports optimize for
+  browser-side admin convenience.
+- Tenant signatories, logos, signatures, seals, letter content, requirements,
+  and fee blocks come from backend tenant configuration. Do not hardcode MIHAS
+  or KATC signatories as generic defaults.
 
 Transactional emails use a Python component system at `backend/apps/common/email/`. Call `render_message(message_type, context)` which returns `(subject, html, text)`. Supported types: `application_submitted`, `payment_received`, `interview_scheduled`, `acceptance`, `conditional_acceptance`, `rejection`, `password_reset`. The `communication_templates` DB table still drives per-intake subject overrides; the component system owns structure and visual identity.
 
-See `apps/admissions/src/lib/pdf/README.md`, `backend/apps/common/email/README.md`, and `docs/adrs/ADR-008-react-pdf-adoption.md` for the full story.
+See `docs/runbooks/canonical-multi-tenant-alignment.md`,
+`backend/apps/common/email/README.md`, and the official-document sections in
+`docs/canonical-truth-map.md` for the current authority. Historical React-PDF
+docs explain the legacy/preview implementation, not the production official
+document authority.
 
 ## Error Monitoring
 

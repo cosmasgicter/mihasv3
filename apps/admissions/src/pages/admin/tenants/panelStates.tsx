@@ -14,7 +14,7 @@
  * Reuses the canonical `ErrorDisplay` / `EmptyState` primitives and the shared
  * `tenantErrorMessage` so collision/authorization copy stays consistent.
  */
-import { ShieldAlert } from 'lucide-react'
+import { Info, ShieldAlert } from 'lucide-react'
 
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
@@ -72,5 +72,18 @@ export function PanelNoAccess({ description }: { description?: string }) {
         'Your account does not have permission to view this section. Contact your platform administrator if you believe this is an error.'
       }
     />
+  )
+}
+
+/**
+ * Explains why a readable panel is intentionally read-only. Use this instead
+ * of rendering disabled platform-only controls for tenant admins.
+ */
+export function PanelReadOnlyNotice({ description }: { description: string }) {
+  return (
+    <p className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/30 p-3 text-sm text-muted-foreground">
+      <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+      <span>{description}</span>
+    </p>
   )
 }

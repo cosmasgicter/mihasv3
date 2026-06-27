@@ -21,7 +21,8 @@ import uuid
 
 from django.urls import resolve
 
-from apps.documents.views import PaymentVerifyView, SuperAdminPaymentCorrectionView
+from apps.documents.payment_admin_views import SuperAdminPaymentCorrectionView
+from apps.documents.payment_query_views import PaymentVerifyView
 
 
 # A valid UUID string that matches the ``<uuid:payment_id>`` converter

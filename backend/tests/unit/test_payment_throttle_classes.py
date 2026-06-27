@@ -26,12 +26,9 @@ from apps.documents.throttles import (
     PaymentInitiateThrottle,
     PaymentVerifyThrottle,
 )
-from apps.documents.views import (
-    DeferPaymentView,
-    MobileMoneyInitiateView,
-    PaymentInitiateView,
-    PaymentVerifyView,
-)
+from apps.documents.mobile_money_views import MobileMoneyInitiateView
+from apps.documents.payment_query_views import PaymentVerifyView
+from apps.documents.payment_widget_views import DeferPaymentView, PaymentInitiateView
 from apps.common.throttling import PaymentUserScopedRateThrottle
 
 factory = APIRequestFactory()

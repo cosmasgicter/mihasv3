@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { adminNavRoutes, pathFor, routeByPath } from '@/routes/routeRegistry'
 
 const readSource = (relativePath: string) =>
   readFileSync(resolve(process.cwd(), relativePath), 'utf8')
@@ -16,24 +17,18 @@ const ADMIN_CORE_ROUTES = [
 ]
 
 describe('admin route + action parity checklist', () => {
-  it('keeps core admin routes defined in router config', () => {
-    const routesSource = readSource('src/routes/config.tsx')
-
+  it('keeps core admin routes defined in the canonical route registry', () => {
     for (const route of ADMIN_CORE_ROUTES) {
-      expect(routesSource).toContain(`path: '${route}'`)
+      expect(routeByPath(route)?.path, route).toBe(route)
     }
   })
 
-  it('keeps desktop, app-layout, and mobile admin navigation paths in parity', () => {
-    const desktopSidebar = readSource('src/components/navigation/DesktopSidebar.tsx')
-    const appLayout = readSource('src/components/navigation/AppLayout.tsx')
-    const mobileNav = readSource('src/components/navigation/MobileBottomNav.tsx')
-
+  it('keeps admin navigation paths derived from the canonical registry', () => {
+    const navPaths = adminNavRoutes().map((route) => route.path)
     for (const route of ADMIN_CORE_ROUTES) {
-      expect(desktopSidebar, `DesktopSidebar missing ${route}`).toContain(route)
-      expect(appLayout, `AppLayout adminNavItems missing ${route}`).toContain(route)
-      expect(mobileNav, `MobileBottomNav missing ${route}`).toContain(route)
+      expect(navPaths, `admin nav missing ${route}`).toContain(route)
     }
+    expect(pathFor('admin.tenants')).toBe('/admin/tenants')
   })
 
   it('keeps approval controls reachable from both card and table admin application flows', () => {

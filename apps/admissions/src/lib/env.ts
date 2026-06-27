@@ -5,7 +5,7 @@ function isMeaningfulValue(value: string | undefined): value is string {
 }
 
 function readImportMetaEnv(key: string): string | undefined {
-  const override = (globalThis as { __MIHAS_IMPORT_META_ENV__?: EnvLookup }).__MIHAS_IMPORT_META_ENV__
+  const override = (globalThis as { __BEANOLA_IMPORT_META_ENV__?: EnvLookup }).__BEANOLA_IMPORT_META_ENV__
   if (override) {
     const value = override[key]
     if (isMeaningfulValue(value)) {

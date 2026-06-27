@@ -1,4 +1,4 @@
-import { Download, RotateCcw } from 'lucide-react'
+import { AlertTriangle, Download, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useOfficialDocument } from '@/hooks/useOfficialDocument'
 import { useToastStore } from '@/hooks/useToast'
@@ -41,19 +41,22 @@ export function DownloadReceiptButton({
   }
 
   const isWorking = uiState === 'generating' || uiState === 'queued'
+  const isSetupRequired = uiState === 'setup_required'
   const label =
     uiState === 'generating'
       ? 'Generating…'
       : uiState === 'queued'
         ? 'Queued…'
-        : uiState === 'failed'
-          ? 'Retry'
-          : 'Download Receipt'
+        : isSetupRequired
+          ? 'Setup Required'
+          : uiState === 'failed'
+            ? 'Retry'
+            : 'Download Receipt'
 
   return (
     <Button
       onClick={handleDownload}
-      disabled={disabled || isBusy}
+      disabled={disabled || isBusy || isSetupRequired}
       loading={isWorking}
       variant="outline"
       size="sm"
@@ -61,7 +64,9 @@ export function DownloadReceiptButton({
       className="min-h-touch gap-2"
     >
       {!isWorking && (
-        uiState === 'failed'
+        isSetupRequired
+          ? <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+          : uiState === 'failed'
           ? <RotateCcw className="h-4 w-4" aria-hidden="true" />
           : <Download className="h-4 w-4" aria-hidden="true" />
       )}

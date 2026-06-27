@@ -13,7 +13,8 @@ from apps.applications.amendment_service import (
     AmendmentError,
     AmendmentService,
 )
-from apps.applications.views import ApplicationAmendmentReviewView, ApplicationAmendmentView
+from apps.applications.admin_amendment_views import ApplicationAmendmentReviewView
+from apps.applications.student_amendment_views import ApplicationAmendmentView
 
 
 _AO = "apps.applications.views.Application.objects"

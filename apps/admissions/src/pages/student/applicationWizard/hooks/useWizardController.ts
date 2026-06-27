@@ -82,10 +82,10 @@ import {
 } from './wizard/wizardControllerUtils'
 import { useWizardSessionRecovery } from './wizard/useWizardSessionRecovery'
 import { useWizardProfileAutoPopulate } from './wizard/useWizardProfileAutoPopulate'
-import { useWizardDraftLoader } from './wizard/useWizardDraftLoader'
+import { parseWizardDraftIntent, useWizardDraftLoader } from './wizard/useWizardDraftLoader'
 import { useWizardGrades } from './wizard/useWizardGrades'
 import { useWizardFileUploads } from './wizard/useWizardFileUploads'
-import { useWizardDraftPersistence } from './wizard/useWizardDraftPersistence'
+import { useWizardDraftPersistence, type DuplicateDraftConflict } from './wizard/useWizardDraftPersistence'
 
 // Re-export pure helpers so existing test imports keep working
 export {
@@ -133,6 +133,10 @@ interface UseWizardControllerResult {
   isDraftSaving: boolean
   draftSaved: boolean
   draftLoaded: boolean
+  draftApplicationsLoading: boolean
+  draftApplications: { applications?: unknown[] } | undefined
+  duplicateDraftConflict: DuplicateDraftConflict | null
+  clearDuplicateDraftConflict: () => void
   gradesHydrating: boolean
   submittedApplication: SubmittedApplicationSummary | null
   applicationId: string | null
@@ -209,6 +213,7 @@ const useWizardController = (): UseWizardControllerResult => {
   const [draftSaved, setDraftSaved] = useState(false)
   const [restoringDraft, setRestoringDraft] = useState(false)
   const [draftLoaded, setDraftLoaded] = useState(false)
+  const [duplicateDraftConflict, setDuplicateDraftConflict] = useState<DuplicateDraftConflict | null>(null)
   const [confirmSubmission, setConfirmSubmission] = useState(false)
   const [gradesHydrating, setGradesHydrating] = useState(false)
   const [programs, setPrograms] = useState<WizardProgram[]>([])
@@ -220,6 +225,10 @@ const useWizardController = (): UseWizardControllerResult => {
   const [submitAssignmentFailureCode, setSubmitAssignmentFailureCode] =
     useState<AssignmentFailureCode | null>(null)
   const [assignmentInterestTick, setAssignmentInterestTick] = useState(0)
+  const wizardDraftIntent = useMemo(
+    () => parseWizardDraftIntent(location.search),
+    [location.search]
+  )
 
   const findProgramId = useCallback(
     (
@@ -622,6 +631,7 @@ const useWizardController = (): UseWizardControllerResult => {
     setApplicationId,
     setRestoringDraft,
     setDraftLoaded,
+    setDuplicateDraftConflict,
     setGradesHydrating,
     setError,
     setIsDraftSaving,
@@ -743,12 +753,18 @@ const useWizardController = (): UseWizardControllerResult => {
     }
   }, [intakes, intakeIds, setValue, watch])
 
+  const clearDuplicateDraftConflict = useCallback(() => {
+    setDuplicateDraftConflict(null)
+    setError('')
+  }, [])
+
   useWizardProfileAutoPopulate({
     user,
     profile,
     authLoading,
     restoringDraft,
     draftLoaded,
+    allowAfterDraftLoaded: wizardDraftIntent.mode === 'new',
     getValues,
     setValue,
   })
@@ -1464,6 +1480,10 @@ const useWizardController = (): UseWizardControllerResult => {
     isDraftSaving,
     draftSaved,
     draftLoaded,
+    draftApplicationsLoading,
+    draftApplications,
+    duplicateDraftConflict,
+    clearDuplicateDraftConflict,
     gradesHydrating,
     submittedApplication,
     applicationId,

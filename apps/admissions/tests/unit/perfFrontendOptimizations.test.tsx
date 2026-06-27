@@ -21,6 +21,19 @@ import { createRoot } from 'react-dom/client'
 import { act } from 'react'
 
 const EXPORT_UTILS_PATH = path.resolve(__dirname, '../../src/lib/exportUtils.ts')
+const APP_ROOT = path.resolve(__dirname, '../..')
+const PUBLIC_ROOT = path.join(APP_ROOT, 'public')
+const CADDYFILE_PATH = path.join(APP_ROOT, 'Caddyfile')
+const DIRECT_IMG_FILES = [
+  'src/components/auth/AuthShell.tsx',
+  'src/components/landing/LandingPageSections.tsx',
+  'src/components/layout/PublicSiteHeader.tsx',
+  'src/components/layout/SharedFooter.tsx',
+  'src/components/ui/FileUpload.tsx',
+  'src/components/ui/UserMenu.tsx',
+  'src/pages/admin/tenants/primitives.tsx',
+  'src/pages/student/applicationWizard/components/SubmissionSuccess.tsx',
+]
 
 // ---------------------------------------------------------------------------
 // R10.4 — Spreadsheet writer is dynamically imported (excluded from initial bundle)
@@ -86,6 +99,62 @@ describe('R10.6 — admin card virtualization threshold is a fixed 40', () => {
     expect(Number.isInteger(ADMIN_CARD_VIRTUALIZATION_THRESHOLD)).toBe(true)
     expect(ADMIN_CARD_VIRTUALIZATION_THRESHOLD).toBeGreaterThanOrEqual(30)
     expect(ADMIN_CARD_VIRTUALIZATION_THRESHOLD).toBeLessThanOrEqual(50)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// R10.8 — Public assets and cache policy stay cheap on the single EC2 host
+// ---------------------------------------------------------------------------
+
+function collectFiles(root: string, predicate: (filePath: string) => boolean): string[] {
+  const entries = fs.readdirSync(root, { withFileTypes: true })
+  return entries.flatMap((entry) => {
+    const fullPath = path.join(root, entry.name)
+    if (entry.isDirectory()) return collectFiles(fullPath, predicate)
+    return predicate(fullPath) ? [fullPath] : []
+  })
+}
+
+describe('R10.8 — static asset payload and cache policy guardrails', () => {
+  it('keeps web-exposed PNG assets at or below 60KB each', () => {
+    const pngFiles = collectFiles(PUBLIC_ROOT, (filePath) => filePath.endsWith('.png'))
+    const oversized = pngFiles
+      .map((filePath) => ({
+        relativePath: path.relative(APP_ROOT, filePath),
+        size: fs.statSync(filePath).size,
+      }))
+      .filter(({ size }) => size > 60 * 1024)
+
+    expect(oversized).toEqual([])
+  })
+
+  it('serves fonts with immutable cache headers on every SPA host block', () => {
+    const caddyfile = fs.readFileSync(CADDYFILE_PATH, 'utf-8')
+    const fontMatchers = caddyfile.match(/@fonts path \/fonts\/\*/g) ?? []
+    const fontHeaders = caddyfile.match(/header @fonts Cache-Control "public, max-age=31536000, immutable"/g) ?? []
+
+    expect(fontMatchers.length).toBeGreaterThanOrEqual(2)
+    expect(fontHeaders.length).toBe(fontMatchers.length)
+  })
+
+  it('keeps admin-only color CSS out of the unauthenticated global entry CSS', () => {
+    const indexCss = fs.readFileSync(path.join(APP_ROOT, 'src/index.css'), 'utf-8')
+    const appLayout = fs.readFileSync(path.join(APP_ROOT, 'src/components/navigation/AppLayout.tsx'), 'utf-8')
+
+    expect(indexCss).not.toContain('admin-colors.css')
+    expect(appLayout).toContain("@/styles/admin-colors.css")
+  })
+
+  it('gives every direct image element explicit intrinsic dimensions', () => {
+    const missingDimensions = DIRECT_IMG_FILES.flatMap((relativePath) => {
+      const source = fs.readFileSync(path.join(APP_ROOT, relativePath), 'utf-8')
+      const imageBlocks = source.match(/<img[\s\S]*?\/>/g) ?? []
+      return imageBlocks
+        .filter((block) => !/\bwidth=/.test(block) || !/\bheight=/.test(block))
+        .map((block) => `${relativePath}: ${block.split('\n')[0].trim()}`)
+    })
+
+    expect(missingDimensions).toEqual([])
   })
 })
 

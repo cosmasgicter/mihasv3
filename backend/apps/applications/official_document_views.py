@@ -64,6 +64,7 @@ from apps.applications.tasks.pdf_generation import (
 )
 from apps.catalog.services import AccessScopeService
 from apps.common.openapi_helpers import ErrorResponseSerializer, envelope_serializer
+from apps.common.models import AuditLog
 from apps.documents.models import ApplicationDocument, Payment
 from apps.documents.payment_constants import RECEIPT_ELIGIBLE_STATUSES
 
@@ -89,6 +90,15 @@ _NON_DRAFT_SUBMITTED_STATUSES = {
     "waitlisted",
     "conditionally_approved",
     "approved",
+}
+
+_SETUP_REQUIRED_FAILURE_CODES = {
+    "DOCUMENT_PROFILE_NOT_CONFIGURED",
+    "DOCUMENT_TEMPLATE_NOT_CONFIGURED",
+    "DOCUMENT_ASSET_NOT_CONFIGURED",
+    "TENANT_DOCUMENT_PROFILE_NOT_CONFIGURED",
+    "TENANT_DOCUMENT_TEMPLATE_NOT_CONFIGURED",
+    "TENANT_ASSET_NOT_CONFIGURED",
 }
 
 
@@ -239,7 +249,15 @@ def _signed_download_url(document) -> str | None:
         return None
 
 
-def _build_envelope(application, document_type: str, *, document=None, status_value: str, task_id=None) -> dict:
+def _build_envelope(
+    application,
+    document_type: str,
+    *,
+    document=None,
+    status_value: str,
+    task_id=None,
+    error_code: str | None = None,
+) -> dict:
     """Build the official-document data envelope (R5.1, R5.9)."""
     data: dict = {
         "document_id": str(document.id) if document is not None else None,
@@ -267,7 +285,45 @@ def _build_envelope(application, document_type: str, *, document=None, status_va
     if task_id is not None:
         data["task_id"] = task_id
 
+    if error_code:
+        data["error_code"] = error_code
+        if error_code in _SETUP_REQUIRED_FAILURE_CODES:
+            data["setup_required"] = True
+
     return data
+
+
+def _latest_render_failure(application, document_type: str, *, current_document=None) -> tuple[str, str | None] | None:
+    """Return the latest backend render-failure status for this document type.
+
+    The renderer records permanent failures as non-PII AuditLog rows keyed on
+    the application id. When no current matching Official_Document exists, the
+    status endpoint should surface that terminal failure instead of reporting
+    ``queued`` forever. A stale current document can still exist; only a failure
+    newer than that stored document is allowed to override the pending status.
+    """
+    failure = (
+        AuditLog.objects.filter(
+            action="official_document_render_failed",
+            entity_id=getattr(application, "id", None),
+            changes__document_type=document_type,
+        )
+        .order_by("-created_at")
+        .first()
+    )
+    if failure is None:
+        return None
+
+    current_uploaded_at = getattr(current_document, "uploaded_at", None)
+    if current_uploaded_at is not None and failure.created_at < current_uploaded_at:
+        return None
+
+    changes = failure.changes if isinstance(failure.changes, dict) else {}
+    code = changes.get("error_code")
+    code = code if isinstance(code, str) else None
+    if code in _SETUP_REQUIRED_FAILURE_CODES:
+        return "setup_required", code
+    return "failed", code
 
 
 def _audit_official_document_queued(request, application, document_type: str, task_id) -> None:
@@ -279,6 +335,11 @@ def _audit_official_document_queued(request, application, document_type: str, ta
     institution ids, the document type, and the opaque Celery ``task_id`` — no
     applicant PII, credentials, or document bytes (R16.4).
     """
+    request_path = getattr(request, "path", "") or ""
+    if getattr(request, "_suppress_official_document_queue_audit", False) or (
+        "/official-documents/" not in request_path
+    ):
+        return
     try:
         from apps.catalog.tenant_audit_service import TenantAuditService
 
@@ -341,12 +402,14 @@ def _enqueue_generation(application, document_type: str):
 class OfficialDocumentStatusSerializer(serializers.Serializer):
     document_id = serializers.CharField(allow_null=True)
     document_type = serializers.CharField()
-    status = serializers.ChoiceField(choices=["ready", "queued", "failed"])
+    status = serializers.ChoiceField(choices=["ready", "queued", "failed", "setup_required"])
     download_url = serializers.CharField(required=False)
     generated_at = serializers.CharField(allow_null=True)
     template_version = serializers.IntegerField(allow_null=True)
     institution_id = serializers.CharField(allow_null=True)
     task_id = serializers.CharField(required=False)
+    error_code = serializers.CharField(required=False)
+    setup_required = serializers.BooleanField(required=False)
 
 
 OfficialDocumentResponseSerializer = envelope_serializer(
@@ -474,9 +537,22 @@ class OfficialDocumentDetailView(APIView):
         ):
             data = _build_envelope(application, document_type, document=current, status_value="ready")
         else:
-            # Permitted but not yet generated → a pending/queued status the
-            # client can poll until the renderer produces the document.
-            data = _build_envelope(application, document_type, document=None, status_value="queued")
+            failure = _latest_render_failure(
+                application, document_type, current_document=current
+            )
+            if failure is not None:
+                status_value, error_code = failure
+                data = _build_envelope(
+                    application,
+                    document_type,
+                    document=None,
+                    status_value=status_value,
+                    error_code=error_code,
+                )
+            else:
+                # Permitted but not yet generated → a pending/queued status the
+                # client can poll until the renderer produces the document.
+                data = _build_envelope(application, document_type, document=None, status_value="queued")
 
         return Response({"success": True, "data": data}, status=status.HTTP_200_OK)
 
@@ -513,6 +589,22 @@ class OfficialDocumentListView(APIView):
                 results.append(
                     _build_envelope(
                         application, document_type, document=current, status_value="ready"
+                    )
+                )
+                continue
+
+            failure = _latest_render_failure(
+                application, document_type, current_document=current
+            )
+            if failure is not None:
+                status_value, error_code = failure
+                results.append(
+                    _build_envelope(
+                        application,
+                        document_type,
+                        document=None,
+                        status_value=status_value,
+                        error_code=error_code,
                     )
                 )
 

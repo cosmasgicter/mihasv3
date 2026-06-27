@@ -5,19 +5,25 @@ from unittest.mock import MagicMock, patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
+from rest_framework.response import Response
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
 from apps.applications.models import Application
+from apps.applications.serializers import ApplicationSerializer
 from apps.applications.services import ApplicationSubmissionError
-from apps.applications.views import (
+from apps.applications.interview_views import ApplicationInterviewListView
+from apps.applications.student_draft_views import (
     ApplicationDetailView,
+    ApplicationDraftDetailView,
+    ApplicationDraftListView,
     ApplicationDraftView,
+)
+from apps.applications.student_submission_views import (
     ApplicationGradesView,
-    ApplicationInterviewListView,
     ApplicationSubmitView,
 )
-from apps.documents.views import DocumentUploadView
+from apps.documents.document_storage_views import DocumentUploadView
 
 
 def _make_user(user_id=None, role="student"):
@@ -605,6 +611,225 @@ class TestApplicationDraftView:
         assert response.status_code == 400
         assert response.data["code"] == "VALIDATION_ERROR"
         mock_draft_objects.update_or_create.assert_not_called()
+
+    def test_save_draft_rejects_oversized_snapshot_payload(self):
+        student = _student_user()
+        request = _auth_request(
+            self.factory,
+            "post",
+            "/api/v1/applications/draft/",
+            student,
+            data={"draft_data": {"body": "x" * ((512 * 1024) + 1)}},
+            format="json",
+        )
+
+        response = ApplicationDraftView.as_view()(request)
+
+        assert response.status_code == 413
+        assert response.data["error"]["code"] == "DRAFT_TOO_LARGE"
+
+    def test_save_draft_rejects_deeply_nested_snapshot_payload(self):
+        student = _student_user()
+        nested = {}
+        cursor = nested
+        for index in range(12):
+            cursor["child"] = {}
+            cursor = cursor["child"]
+
+        request = _auth_request(
+            self.factory,
+            "post",
+            "/api/v1/applications/draft/",
+            student,
+            data={"draft_data": nested},
+            format="json",
+        )
+
+        response = ApplicationDraftView.as_view()(request)
+
+        assert response.status_code == 400
+        assert response.data["error"]["code"] == "DRAFT_TOO_NESTED"
+
+
+class TestApplicationDraftListView:
+    def setup_method(self):
+        self.factory = APIRequestFactory()
+
+    @patch("apps.applications.admin_review_views.ApplicationListCreateView.post")
+    def test_post_delegates_to_canonical_application_create(self, mock_post):
+        student = _student_user()
+        mock_post.return_value = Response({"success": True, "data": {"id": "draft-1"}}, status=201)
+
+        request = _auth_request(
+            self.factory,
+            "post",
+            "/api/v1/applications/drafts/",
+            student,
+            data={
+                "full_name": "Test Student",
+                "date_of_birth": "2001-01-01",
+                "sex": "female",
+                "phone": "+260971234567",
+                "email": "student@example.com",
+                "residence_town": "Lusaka",
+                "program": "Nursing",
+                "intake": "January 2026",
+                "institution": "Beanola Test College",
+            },
+            format="json",
+        )
+
+        response = ApplicationDraftListView.as_view()(request)
+
+        assert response.status_code == 201
+        mock_post.assert_called_once()
+
+
+class TestApplicationDraftDetailView:
+    def setup_method(self):
+        self.factory = APIRequestFactory()
+        self.view = ApplicationDraftDetailView.as_view()
+
+    @patch("apps.applications.student_draft_views._get_owned_draft_application")
+    def test_draft_detail_masks_missing_or_foreign_draft(self, mock_get_owned_draft_application):
+        mock_get_owned_draft_application.return_value = None
+        student = _student_user()
+        app_id = uuid.uuid4()
+
+        request = _auth_request(
+            self.factory,
+            "get",
+            f"/api/v1/applications/drafts/{app_id}/",
+            student,
+        )
+        response = self.view(request, application_id=app_id)
+
+        assert response.status_code == 404
+        assert response.data["code"] == "NOT_FOUND"
+
+    @patch("apps.applications.student_draft_views.ApplicationSerializer")
+    @patch("apps.applications.student_draft_views._get_owned_draft_application")
+    def test_draft_detail_patch_updates_only_owned_draft(self, mock_get_owned_draft_application, mock_serializer):
+        student = _student_user()
+        app_id = uuid.uuid4()
+        application = _make_application(app_id=app_id, status="draft", user_id=student.id)
+        mock_get_owned_draft_application.return_value = application
+        serializer_instance = MagicMock()
+        serializer_instance.is_valid.return_value = True
+        serializer_instance.save.return_value = application
+        serializer_instance.data = {"id": str(app_id), "full_name": "Updated Student"}
+        mock_serializer.return_value = serializer_instance
+
+        request = _auth_request(
+            self.factory,
+            "patch",
+            f"/api/v1/applications/drafts/{app_id}/",
+            student,
+            data={"full_name": "Updated Student"},
+            format="json",
+        )
+        response = self.view(request, application_id=app_id)
+
+        assert response.status_code == 200
+        assert response.data["success"] is True
+        serializer_instance.is_valid.assert_called_once()
+        serializer_instance.save.assert_called_once()
+
+    @patch("apps.applications.student_draft_views.Payment.objects")
+    @patch("apps.applications.student_draft_views._get_owned_draft_application")
+    def test_draft_detail_delete_blocks_payment_linked_draft(self, mock_get_owned_draft_application, mock_payment_objects):
+        student = _student_user()
+        app_id = uuid.uuid4()
+        application = _make_application(app_id=app_id, status="draft", user_id=student.id)
+        mock_get_owned_draft_application.return_value = application
+        mock_payment_objects.filter.return_value.exists.return_value = True
+
+        request = _auth_request(
+            self.factory,
+            "delete",
+            f"/api/v1/applications/drafts/{app_id}/",
+            student,
+        )
+        response = self.view(request, application_id=app_id)
+
+        assert response.status_code == 409
+        assert response.data["code"] == "DRAFT_HAS_PAYMENT_ACTIVITY"
+        application.delete.assert_not_called()
+
+    @patch("apps.applications.student_draft_views.Payment.objects")
+    @patch("apps.applications.student_draft_views._get_owned_draft_application")
+    def test_draft_detail_delete_removes_unpaid_draft_application(self, mock_get_owned_draft_application, mock_payment_objects):
+        student = _student_user()
+        app_id = uuid.uuid4()
+        application = _make_application(app_id=app_id, status="draft", user_id=student.id)
+        mock_get_owned_draft_application.return_value = application
+        mock_payment_objects.filter.return_value.exists.return_value = False
+
+        request = _auth_request(
+            self.factory,
+            "delete",
+            f"/api/v1/applications/drafts/{app_id}/",
+            student,
+        )
+        response = self.view(request, application_id=app_id)
+
+        assert response.status_code == 204
+        application.delete.assert_called_once()
+
+
+class TestApplicationDraftTimestampConsistency:
+    def setup_method(self):
+        self.factory = APIRequestFactory()
+
+    def test_application_serializer_patch_advances_updated_at_and_version(self):
+        student = _student_user()
+        app_id = uuid.uuid4()
+        application = Application(
+            id=app_id,
+            user_id=str(student.id),
+            application_number="APP-TEST-001",
+            public_tracking_code="TRKTEST001",
+            full_name="Original Student",
+            nrc_number="123456/78/9",
+            passport_number="",
+            date_of_birth="2001-01-01",
+            sex="female",
+            phone="+260971234567",
+            email="student@example.com",
+            residence_town="Lusaka",
+            program="Nursing",
+            intake="January 2026",
+            institution="Beanola Test College",
+            status="draft",
+            version=3,
+        )
+        application.save = MagicMock()
+
+        request = _auth_request(
+            self.factory,
+            "patch",
+            f"/api/v1/applications/drafts/{app_id}/",
+            student,
+            data={"full_name": "Updated Student"},
+            format="json",
+        )
+        request.user = student
+        serializer = ApplicationSerializer(
+            application,
+            data={"full_name": "Updated Student"},
+            partial=True,
+            context={"request": request},
+        )
+
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+
+        assert updated.full_name == "Updated Student"
+        assert updated.version == 4
+        assert updated.updated_at is not None
+        application.save.assert_called_once()
+        assert "updated_at" in application.save.call_args.kwargs["update_fields"]
+        assert "version" in application.save.call_args.kwargs["update_fields"]
 
 
 # ---------------------------------------------------------------------------

@@ -10,6 +10,7 @@
  */
 import { secureStorage } from './secureStorage'
 import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from './browserNamespace'
+import { isDraftStorageKey } from './draftStorageKeys'
 
 const isTesting = typeof process !== 'undefined' && (process.env.VITEST !== undefined || process.env.NODE_ENV === 'test')
 
@@ -30,7 +31,7 @@ async function flushPendingWrites() {
         localStorage.removeItem(key)
       } else {
         // If it's a draft key, route through secureStorage encryption
-        if (key === 'applicationDraft' || key === 'applicationWizardDraft') {
+        if (isDraftStorageKey(key)) {
           let parsedValue: unknown = value
           try {
             parsedValue = JSON.parse(value)
@@ -95,7 +96,7 @@ export function cachedGetItem(key: string): string | null {
 export function cachedSetItem(key: string, value: string): void {
   _lsCache.set(key, value)
   if (isTesting) {
-    if (key === 'applicationDraft' || key === 'applicationWizardDraft') {
+    if (isDraftStorageKey(key)) {
       localStorage.setItem(key, value)
       localStorage.setItem(BROWSER_KEYS.securePrefix + key, value)
       localStorage.removeItem(LEGACY_BROWSER_KEYS.securePrefix + key)

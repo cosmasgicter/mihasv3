@@ -71,6 +71,9 @@ const PROFILE_SAMPLE: Record<string, string> = {
   date: '15 January 2026',
 }
 
+const PROFILE_TOKEN_SET = new Set<string>(PROFILE_TOKENS)
+const PROFILE_TOKEN_RE = /\{\{\s*([a-z_]+)\s*\}\}/gi
+
 interface SectionRow {
   key: string
   value: string
@@ -106,10 +109,21 @@ const EMPTY_DRAFT: ProfileDraft = {
 
 /** Replace `{{token}}` with sample values; unknown tokens render inert. */
 function renderProfilePreview(body: string): string {
-  return body.replace(/\{\{\s*([a-z_]+)\s*\}\}/gi, (match, token: string) => {
+  return body.replace(PROFILE_TOKEN_RE, (match, token: string) => {
     const key = token.toLowerCase()
     return key in PROFILE_SAMPLE ? PROFILE_SAMPLE[key]! : `[unknown token: ${token}]`
   })
+}
+
+function unknownProfileTokens(value: string): string[] {
+  const unknown = new Set<string>()
+  for (const match of value.matchAll(PROFILE_TOKEN_RE)) {
+    const token = String(match[1] || '').toLowerCase()
+    if (token && !PROFILE_TOKEN_SET.has(token as (typeof PROFILE_TOKENS)[number])) {
+      unknown.add(token)
+    }
+  }
+  return [...unknown]
 }
 
 /** Build the structured profile payload from the draft, dropping empty rows. */
@@ -170,6 +184,7 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
   const queryClient = useQueryClient()
   const [draft, setDraft] = useState<ProfileDraft>(EMPTY_DRAFT)
   const [previewId, setPreviewId] = useState<string>('')
+  const [formError, setFormError] = useState<string>('')
 
   const profilesQuery = useQuery({
     queryKey: ['admin', 'tenants', 'document-profiles', institutionId],
@@ -248,6 +263,13 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
       toast.error(`A profile can have at most ${TENANT_PROFILE_CAPS.maxSections} sections`)
       return
     }
+    const invalidSection = draft.sections.find(row => unknownProfileTokens(row.value).length > 0)
+    if (invalidSection) {
+      const tokens = unknownProfileTokens(invalidSection.value).map(token => `{{${token}}}`).join(', ')
+      setFormError(`Unsupported token in "${invalidSection.key || 'section'}": ${tokens}`)
+      return
+    }
+    setFormError('')
     createMutation.mutate(draftToPayload(draft))
   }
 
@@ -320,6 +342,14 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
       icon={<FileStack className="h-5 w-5" />}
     >
       <form className="grid gap-4" onSubmit={handleSubmit}>
+        {formError && (
+          <div
+            role="alert"
+            className="rounded-lg border border-destructive/25 bg-destructive/10 p-3 text-sm text-destructive"
+          >
+            {formError}
+          </div>
+        )}
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="space-y-1.5 text-sm">
             <span className="font-medium text-foreground">Document type</span>
@@ -415,11 +445,19 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
               <Textarea
                 value={row.value}
                 maxLength={TENANT_PROFILE_CAPS.maxSectionChars}
-                onChange={event => updateSection(index, { value: event.target.value })}
+                onChange={event => {
+                  setFormError('')
+                  updateSection(index, { value: event.target.value })
+                }}
                 placeholder="Prose with safe tokens, e.g. Dear {{student_name}}, welcome to {{program}}."
                 aria-label={`Section ${index + 1} content`}
                 rows={4}
               />
+              {unknownProfileTokens(row.value).length > 0 && (
+                <p className="text-xs text-destructive" role="alert">
+                  Unsupported token: {unknownProfileTokens(row.value).map(token => `{{${token}}}`).join(', ')}
+                </p>
+              )}
             </div>
           ))}
           <div className="flex flex-wrap items-center gap-2">
@@ -508,7 +546,7 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" loading={createMutation.isPending}>
+          <Button type="submit" loading={createMutation.isPending} className="w-full sm:w-auto">
             <FileStack className="h-4 w-4" aria-hidden="true" /> Save profile
           </Button>
         </div>
@@ -539,7 +577,13 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button type="button" size="xs" variant="outline" onClick={() => cloneMutation.mutate(latest.id)} loading={cloneMutation.isPending}>
+                  <Button
+                    type="button"
+                    size="xs"
+                    variant="outline"
+                    onClick={() => cloneMutation.mutate(latest.id)}
+                    loading={cloneMutation.isPending && cloneMutation.variables === latest.id}
+                  >
                     <Copy className="h-3.5 w-3.5" aria-hidden="true" /> Clone latest
                   </Button>
                   <Button type="button" size="xs" variant="outline" onClick={() => setPreviewId(latest.id)}>
@@ -552,11 +596,23 @@ export function ProfilesPanel({ institutionId }: ProfilesPanelProps) {
                   <div key={version.id} className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/40 px-2 py-1 text-xs">
                     <span className="font-medium text-foreground">v{version.version}</span>
                     {version.is_active === false ? (
-                      <Button type="button" size="xs" variant="outline" onClick={() => activeMutation.mutate({ profileId: version.id, isActive: true })}>
+                      <Button
+                        type="button"
+                        size="xs"
+                        variant="outline"
+                        loading={activeMutation.isPending && activeMutation.variables?.profileId === version.id}
+                        onClick={() => activeMutation.mutate({ profileId: version.id, isActive: true })}
+                      >
                         <Power className="h-3 w-3" aria-hidden="true" /> Activate
                       </Button>
                     ) : (
-                      <Button type="button" size="xs" variant="outline" onClick={() => activeMutation.mutate({ profileId: version.id, isActive: false })}>
+                      <Button
+                        type="button"
+                        size="xs"
+                        variant="outline"
+                        loading={activeMutation.isPending && activeMutation.variables?.profileId === version.id}
+                        onClick={() => activeMutation.mutate({ profileId: version.id, isActive: false })}
+                      >
                         <Power className="h-3 w-3" aria-hidden="true" /> Deactivate
                       </Button>
                     )}

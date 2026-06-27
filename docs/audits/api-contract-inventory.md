@@ -377,15 +377,15 @@ array / `{results}` / `{data:{results}}` shapes via `listFromResponse`.
 | `listRequiredDocuments` / `createRequiredDocument` / `updateRequiredDocument` | `…/{id}/required-documents/[/{item}]` | envelope; list | `TenantRequiredDocument[]` / one |
 | `listMemberships` / `createMembership` / `updateMembership` | `/admin/memberships/[/{id}]` | envelope; list | `TenantMembership[]` / one |
 | `listAccessGrants` / `createAccessGrant` / `updateAccessGrant` | `/admin/access-grants/[/{id}]` | envelope; list | `TenantAccessGrant[]` / one |
-| `listOfferings` / `getOffering` / `updateOfferingRules` | `/catalog/programs/[/{id}]` (filtered client-side by `institution_id`) | envelope; list | `TenantOffering[]` / one |
+| `listOfferings` / `updateOfferingRules` | `/admin/institutions/{id}/programs/[/{item}]` | envelope; list | `TenantOffering[]` / one |
 | `listSettlements` | `GET /payments/settlements/[?start_date&end_date&status]` | envelope; list | `TenantSettlementRow[]` |
 | `simulateRouting` | `POST /admin/routing/simulate/` | envelope (object) | `RoutingSimulationResult` (`assigned`, recoverable `error{code,message}`) |
 
-**Note.** `listOfferings` reads `/catalog/programs/?pageSize=200` and filters by
-`institution_id` **client-side** because that endpoint returns all schools' offerings
-to an admin — a known client-side filter over documented fields (the backend
-scope-narrowing of that list is GAP-tracked in the scope inventory, not here). The
-`TenantDocumentProfile` / `TenantOffering` TS shapes mirror the backend
+**Note.** `listOfferings` reads the tenant-scoped admin program endpoint and
+`updateOfferingRules` writes the matching tenant-scoped detail endpoint. Public
+catalog program routes remain for public catalog/student flows, not tenant-admin
+configuration writes.
+The `TenantDocumentProfile` / `TenantOffering` TS shapes mirror the backend
 `AdminDocumentProfileSerializer` / offering serializer; structural caps
 (`TENANT_PROFILE_CAPS`) mirror `validate_profile_payload`. **No undocumented-field
 dependency.**

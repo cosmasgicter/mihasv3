@@ -45,13 +45,10 @@ from apps.documents.payment_service import (
     PaymentInitiationResult,
     PaymentVerificationResult,
 )
-from apps.documents.views import (
-    FeeResolveView,
-    LencoWebhookView,
-    MobileMoneyInitiateView,
-    PaymentInitiateView,
-    PaymentVerifyView,
-)
+from apps.documents.lenco_webhook_views import LencoWebhookView
+from apps.documents.mobile_money_views import MobileMoneyInitiateView
+from apps.documents.payment_query_views import FeeResolveView, PaymentVerifyView
+from apps.documents.payment_widget_views import PaymentInitiateView
 
 
 # ---------------------------------------------------------------------------

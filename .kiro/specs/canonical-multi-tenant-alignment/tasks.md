@@ -1,0 +1,561 @@
+# Implementation Plan
+
+## Overview
+
+This plan turns the requirements and design into an executable cleanup program.
+The task list is intentionally extensive. It should be followed in order unless
+a dependency requires a small local adjustment. Each task should leave the
+system more canonical, not more layered.
+
+Before editing code in any phase, read the named files, check for user changes,
+and avoid reverting unrelated work.
+
+## Tasks
+
+- [x] 1. Establish the canonical alignment baseline
+  - [x] 1.1 Read this spec fully and summarize the intended canonical model in the implementation notes.
+  - [x] 1.2 Read `docs/canonical-truth-map.md` and list contradictions with this spec.
+  - [x] 1.3 Read `.kiro/steering/product.md`, `.kiro/steering/tech.md`, `.kiro/steering/structure.md`, `.kiro/steering/enterprise-tenancy.md`, and `.kiro/steering/infrastructure.md`.
+  - [x] 1.4 Create or update a canonical alignment checklist at `docs/runbooks/canonical-multi-tenant-alignment.md`.
+  - [x] 1.5 Record current canonical paths for `/admin/*`, `/admin/tenants`, `/admin/tenants/new`, `/beanola-admin-panel/`, and `/api/v1/admin/*`.
+  - [x] 1.6 Record current official document endpoints and legacy document endpoints.
+  - [x] 1.7 Record current application draft endpoints and frontend entry points.
+  - [x] 1.8 Record current tenant onboarding panels and service methods.
+  - [x] 1.9 Record current known compatibility/re-export modules.
+  - [x] 1.10 Add a "do not add new duplicate path" note to the implementation notes.
+  - _Requirements: 1, 18_
+
+- [x] 2. Refresh steering and canonical documentation
+  - [x] 2.1 Update `docs/canonical-truth-map.md` with this spec as the active alignment authority.
+  - [x] 2.2 Update steering to state Beanola owns the platform and MIHAS/KATC are tenants only.
+  - [x] 2.3 Update steering to state backend official documents are the only official documents.
+  - [x] 2.4 Update steering to state `/admin/tenants` is product tenant console and `/beanola-admin-panel/` is Django admin only.
+  - [x] 2.5 Add a deprecation table for legacy document endpoints and frontend PDF paths.
+  - [x] 2.6 Add a draft lifecycle decision record: multi-draft or single-active-draft.
+  - [x] 2.7 Add a route registry decision record.
+  - [x] 2.8 Add a tenant onboarding readiness decision record.
+  - [x] 2.9 Add a tenant domain resolution decision record.
+  - [x] 2.10 Add "new work must consume canonical services" guidance to steering.
+  - _Requirements: 1, 2, 8, 9, 12, 13_
+
+- [x] 3. Inventory frontend route drift
+  - [x] 3.1 Inspect `apps/admissions/src/routes/config.tsx`.
+  - [x] 3.2 Inspect `apps/admissions/src/components/navigation/tenantNav.ts`.
+  - [x] 3.3 Inspect `apps/admissions/src/components/navigation/MobileBottomNav.tsx`.
+  - [x] 3.4 Inspect `apps/admissions/src/components/navigation/DesktopSidebar.tsx`.
+  - [x] 3.5 Inspect `apps/admissions/src/components/navigation/AppLayout.tsx`.
+  - [x] 3.6 Inspect `apps/admissions/src/components/ui/BottomNavigation.tsx`.
+  - [x] 3.7 Inspect `apps/admissions/src/components/DashboardRedirect.tsx`.
+  - [x] 3.8 Inspect `apps/admissions/src/pages/auth/SignInPage.tsx`.
+  - [x] 3.9 Inspect `apps/admissions/src/pages/NotFoundPage.tsx`.
+  - [x] 3.10 Produce a route drift table with path, owner, duplicate definitions, and planned canonical owner.
+  - _Requirements: 2, 3, 13_
+
+- [x] 4. Build the canonical route registry
+  - [x] 4.1 Create a typed product route registry module under `apps/admissions/src/routes/`.
+  - [x] 4.2 Give each route a stable route id.
+  - [x] 4.3 Include guard, skeleton, capability, super-admin requirement, nav metadata, and aliases.
+  - [x] 4.4 Move lazy component imports or route references behind the registry without increasing the entry bundle.
+  - [x] 4.5 Export helpers for route lookup by id and by path.
+  - [x] 4.6 Export helpers for admin nav items filtered by capability.
+  - [x] 4.7 Export helpers for student nav items.
+  - [x] 4.8 Preserve existing public aliases and redirects intentionally.
+  - [x] 4.9 Preserve `/admin/tenants` as shared tenant console.
+  - [x] 4.10 Preserve `/admin/tenants/new` as Super_Admin-only.
+  - _Requirements: 2, 3, 14_
+
+- [x] 5. Migrate route consumers to the registry
+  - [x] 5.1 Update `routes/config.tsx` to consume registry definitions.
+  - [x] 5.2 Update `DashboardRedirect.tsx` to use registry ids.
+  - [x] 5.3 Update `SignInPage.tsx` redirect candidates to use registry helpers.
+  - [x] 5.4 Update `NotFoundPage.tsx` helpful links to use registry helpers.
+  - [x] 5.5 Update `tenantNav.ts` to use registry ids.
+  - [x] 5.6 Update `MobileBottomNav.tsx` to use registry-derived nav.
+  - [x] 5.7 Update `DesktopSidebar.tsx` to use registry-derived nav.
+  - [x] 5.8 Update `AppLayout.tsx` route labels and mobile items to use registry-derived metadata.
+  - [x] 5.9 Update speculative prefetch code to use registry ids.
+  - [x] 5.10 Remove obsolete hard-coded admin route arrays.
+  - _Requirements: 2, 3, 13, 14_
+
+- [x] 6. Add route drift tests
+  - [x] 6.1 Add a test that fails when hard-coded `/admin/` paths appear outside allowed files.
+  - [x] 6.2 Add a test that every route id resolves to a path.
+  - [x] 6.3 Add a test that every alias resolves to a canonical route.
+  - [x] 6.4 Add a test that `/admin/tenants` is not Super_Admin-only.
+  - [x] 6.5 Add a test that `/admin/tenants/new` is Super_Admin-only.
+  - [x] 6.6 Add a test that mobile and desktop admin nav derive from the same source.
+  - [x] 6.7 Add a test that auth redirects use registry-approved paths.
+  - [x] 6.8 Add a test that no route points to the Django admin path.
+  - _Requirements: 2, 18_
+
+- [x] 7. Audit admin capability surfaces
+  - [x] 7.1 Inspect `CapabilityContext.tsx` and `InstitutionScopeContext.tsx`.
+  - [x] 7.2 Inspect `AdminRoute.tsx` and authenticated route guards.
+  - [x] 7.3 Inspect `pages/admin/Tenants.tsx`.
+  - [x] 7.4 Inspect `SuperAdminTenantConsole.tsx`.
+  - [x] 7.5 Inspect `TenantAdminSchoolConsole.tsx`.
+  - [x] 7.6 Inspect all tenant panels under `pages/admin/tenants/`.
+  - [x] 7.7 List every button/action and the capability that should gate it.
+  - [x] 7.8 Identify actions gated only by frontend role or not gated at all.
+  - [x] 7.9 Identify tenant-admin views that expose platform concepts.
+  - [x] 7.10 Produce a capability matrix for frontend and backend.
+  - _Requirements: 3, 4, 5_
+
+- [x] 8. Harden admin frontend authority
+  - [x] 8.1 Ensure Super_Admin route controls use capability helpers, not raw role checks.
+  - [x] 8.2 Ensure Tenant_Admin panels render only assigned institutions.
+  - [x] 8.3 Remove tenant creation controls from tenant-admin surfaces.
+  - [x] 8.4 Add no-access states for admin users with no tenant scope.
+  - [x] 8.5 Add setup-required states for tenant admins lacking manage permissions.
+  - [x] 8.6 Ensure every tenant mutation button has loading, success, failure, and retry states.
+  - [x] 8.7 Ensure disabled actions explain missing setup or permission without leaking other tenants.
+  - [x] 8.8 Ensure tenant selectors are hidden when the user has only one institution.
+  - [x] 8.9 Ensure super-admin tenant switcher cannot leak stale selected tenant into tenant-admin mode.
+  - [x] 8.10 Add tests for role/capability rendering boundaries.
+  - _Requirements: 3, 4, 14_
+
+- [x] 9. Audit backend tenant-sensitive endpoints
+  - [x] 9.1 Inspect `backend/apps/catalog/admin_views.py`.
+  - [x] 9.2 Inspect `backend/apps/catalog/views.py`.
+  - [x] 9.3 Inspect `backend/apps/catalog/permissions.py`.
+  - [x] 9.4 Inspect `backend/apps/catalog/services.py`.
+  - [x] 9.5 Inspect `backend/apps/accounts/admin_user_views.py`.
+  - [x] 9.6 Inspect `backend/apps/applications/admin_review_views.py`.
+  - [x] 9.7 Inspect `backend/apps/documents/document_storage_views.py`.
+  - [x] 9.8 Inspect `backend/apps/documents/payment_query_views.py`.
+  - [x] 9.9 Inspect `backend/apps/analytics/views.py`.
+  - [x] 9.10 Produce a backend scope audit table.
+  - _Requirements: 4, 15, 17_
+
+- [x] 10. Harden backend authorization
+  - [x] 10.1 Replace any tenant-sensitive raw role authority with `AdminCapabilityService`.
+  - [x] 10.2 Ensure tenant-sensitive list endpoints use `AccessScopeService`.
+  - [x] 10.3 Ensure tenant-sensitive detail lookups scope before object retrieval where feasible.
+  - [x] 10.4 Ensure out-of-scope reads return canonical not-found masking.
+  - [x] 10.5 Ensure out-of-scope writes fail before serializer save.
+  - [x] 10.6 Ensure tenant create requires platform capability.
+  - [x] 10.7 Ensure tenant update requires platform capability or explicit tenant capability for limited fields.
+  - [x] 10.8 Ensure tenant domain mutations require correct capability.
+  - [x] 10.9 Ensure document profile mutations require correct capability.
+  - [x] 10.10 Ensure grants/memberships cannot escalate above actor authority.
+  - _Evidence: tenant-sensitive write gates resolve through `AdminCapabilityService`, tenant reads through `AccessScopeService`, and remaining raw role usage is bounded to ownership, labels, super-admin helpers, or compatibility metadata; see `docs/audits/canonical-leftover-closure-2026-06-27.md`._
+  - _Requirements: 4, 5, 6, 17_
+
+- [x] 11. Add backend permission regression tests
+  - [x] 11.1 Test Tenant_Admin cannot create institution via API.
+  - [x] 11.2 Test Tenant_Admin cannot list another tenant's applications.
+  - [x] 11.3 Test Tenant_Admin cannot retrieve another tenant's application by id.
+  - [x] 11.4 Test Tenant_Admin cannot mutate another tenant's document profile.
+  - [x] 11.5 Test Tenant_Admin cannot upload assets for another tenant.
+  - [x] 11.6 Test Tenant_Admin cannot invite staff to another tenant.
+  - [x] 11.7 Test Approver cannot access unassigned tenant queues.
+  - [x] 11.8 Test Super_Admin can perform tenant onboarding operations.
+  - [x] 11.9 Test no-scope admin sees zero tenant data.
+  - [x] 11.10 Test denied access writes audit event without PII.
+  - _Requirements: 4, 17, 18_
+
+- [x] 12. Decide and implement the draft model
+  - [x] 12.1 Decide between true multi-draft and single-active-draft.
+  - [x] 12.2 Document the decision in the runbook and steering.
+  - [x] 12.3 If multi-draft, design list/create/read/update/delete API resources.
+  - [x] 12.4 If single-active-draft, remove multi-draft UI language and illusions.
+  - [x] 12.5 Align `ApplicationDraft` model usage with application `status='draft'`.
+  - [x] 12.6 Define the relationship between draft id and application id.
+  - [x] 12.7 Define when backend draft rows are created.
+  - [x] 12.8 Define when local wizard snapshots are allowed.
+  - [x] 12.9 Define when snapshots are cleared.
+  - [x] 12.10 Define payment-linked draft delete protection.
+  - _Requirements: 8_
+
+- [x] 13. Fix student application entry points
+  - [x] 13.1 Add canonical route helper for start-new application.
+  - [x] 13.2 Add canonical route helper for resume selected draft.
+  - [x] 13.3 Update dashboard "Start new application" to use explicit new mode.
+  - [x] 13.4 Update dashboard "Continue draft" to use explicit draft/application id.
+  - [x] 13.5 Update old aliases such as `/student/applications/new` to explicit new mode.
+  - [x] 13.6 Ensure `?new=true`, `?fresh=1`, and `?mode=new` are normalized.
+  - [x] 13.7 Ensure direct wizard visits without mode show an intentional choice when drafts exist.
+  - [x] 13.8 Ensure students can abandon resume and start new without stale state.
+  - [x] 13.9 Ensure dashboard cards refresh after draft delete/create.
+  - [x] 13.10 Ensure browser back behavior does not silently restore abandoned drafts.
+  - _Evidence: `wizardDraftIntent.test.ts`, `student-dashboard-load-path.test.ts`, `applicationWizardUxGuard.test.ts`, and `studentNextActionRoutes.test.tsx`; local draft intent is parsed separately from automatic server-draft choice._
+  - _Requirements: 8, 14_
+
+- [x] 14. Refactor wizard draft loading
+  - [x] 14.1 Refactor `useWizardDraftLoader.ts` around explicit modes.
+  - [x] 14.2 Prevent local draft restoration when mode is new.
+  - [x] 14.3 Prevent server draft restoration when mode is new.
+  - [x] 14.4 Load only selected draft/application when resume mode has id.
+  - [x] 14.5 Remove timestamp arbitration as the primary user-intent rule.
+  - [x] 14.6 Keep safe profile auto-population for true new applications.
+  - [x] 14.7 Keep server document/grade hydration only for selected resume target.
+  - [x] 14.8 Ensure deleted draft flags do not suppress new mode incorrectly.
+  - [x] 14.9 Replace broad success toast with mode-specific messaging.
+  - [x] 14.10 Add unit tests for the loader mode matrix.
+  - _Requirements: 8, 14_
+
+- [x] 15. Refactor wizard draft persistence
+  - [x] 15.1 Inspect `useWizardDraftPersistence.ts`.
+  - [x] 15.2 Stop adopting duplicate `existing_id` silently.
+  - [x] 15.3 Replace silent duplicate adoption with user choice: continue existing, start different program, or cancel.
+  - [x] 15.4 Ensure new mode does not attach to an old application id.
+  - [x] 15.5 Ensure resume mode never creates a second draft for the same selected draft.
+  - [x] 15.6 Ensure autosave state exposes saved/saving/error.
+  - [x] 15.7 Ensure local and backend draft timestamps are updated consistently.
+  - [x] 15.8 Ensure payment-linked applications are not deleted by draft cleanup.
+  - [x] 15.9 Ensure storage keys are scoped by user id and draft/application id.
+  - [x] 15.10 Add tests for duplicate conflict behavior.
+  - _Requirements: 8_
+
+- [x] 16. Refactor backend draft API
+  - [x] 16.1 Replace `GET /draft/` latest-only behavior if multi-draft is chosen.
+  - [x] 16.2 Add `GET /drafts/` list endpoint if multi-draft is chosen.
+  - [x] 16.3 Add `POST /drafts/` create endpoint if multi-draft is chosen.
+  - [x] 16.4 Add `GET /drafts/{id}/` endpoint if multi-draft is chosen.
+  - [x] 16.5 Add `PATCH /drafts/{id}/` endpoint if multi-draft is chosen.
+  - [x] 16.6 Add `DELETE /drafts/{id}/` endpoint if multi-draft is chosen.
+  - [x] 16.7 Preserve backward compatibility for `/draft/` by delegating or returning a deprecation-safe shape.
+  - [x] 16.8 Add validation caps for draft size/depth to new endpoints.
+  - [x] 16.9 Add ownership checks for all draft endpoints.
+  - [x] 16.10 Add API docs and serializer tests.
+  - _Evidence: `ApplicationDraftListView.post` delegates to canonical application create; compatibility `/draft/` is documented and size/depth capped; `test_application_student_flow_views.py::TestApplicationDraftListView`, `::TestApplicationDraftView`, and launch schema generation pass._
+  - _Requirements: 8, 15_
+
+- [x] 17. Add draft lifecycle tests
+  - [x] 17.1 Test start-new ignores existing local draft.
+  - [x] 17.2 Test start-new ignores existing server draft.
+  - [x] 17.3 Test resume selected local/server draft.
+  - [x] 17.4 Test direct wizard visit with drafts prompts instead of silently loading.
+  - [x] 17.5 Test duplicate conflict requires explicit choice.
+  - [x] 17.6 Test delete draft clears backend row.
+  - [x] 17.7 Test delete draft clears localStorage/sessionStorage.
+  - [x] 17.8 Test payment-linked draft delete is blocked.
+  - [x] 17.9 Test dashboard cards refresh after draft mutation.
+  - [x] 17.10 Test back navigation preserves user intent.
+  - _Evidence: `wizardDraftIntent.test.ts`, `draftAutosave.test.ts`, `draftManagerStorage.test.ts`, `applicationWizardUxGuard.test.ts`, `student-dashboard-load-path.test.ts`, and `studentNextActionRoutes.test.tsx`._
+  - _Requirements: 8, 18_
+
+- [x] 18. Audit official document callers
+  - [x] 18.1 Inspect `services/officialDocuments.ts`.
+  - [x] 18.2 Inspect `hooks/useOfficialDocument.ts`.
+  - [x] 18.3 Inspect `components/student/DocumentButtons.tsx`.
+  - [x] 18.4 Inspect `components/student/ApplicationSlipActions.tsx`.
+  - [x] 18.5 Inspect `components/student/DownloadReceiptButton.tsx`.
+  - [x] 18.6 Inspect `hooks/useDocumentGeneration.ts`.
+  - [x] 18.7 Inspect `hooks/usePaymentReceipt.ts`.
+  - [x] 18.8 Inspect `services/applications.ts` document methods.
+  - [x] 18.9 Inspect admin application document actions.
+  - [x] 18.10 Produce a document caller matrix: official, dev-preview, legacy, delete.
+  - _Requirements: 9, 10, 11_
+
+- [x] 19. Consolidate frontend official document flows
+  - [x] 19.1 Rewrite student slip download/email to use official backend service only.
+  - [x] 19.2 Rewrite student payment receipt download to use official backend service or signed backend receipt endpoint.
+  - [x] 19.3 Rewrite acceptance/conditional document actions to use official backend service.
+  - [x] 19.4 Rewrite admin application document buttons to use official backend service.
+  - [x] 19.5 Remove production imports of `@/lib/pdf` from official document hooks.
+  - [x] 19.6 Move dev preview imports under `pages/dev` only.
+  - [x] 19.7 Add setup-required UI state for missing tenant profiles/assets.
+  - [x] 19.8 Add queued/generating/ready/failed states for all official document types.
+  - [x] 19.9 Add retry behavior that does not create duplicate official records.
+  - [x] 19.10 Add no-local-blob fallback rule to tests.
+  - _Requirements: 9, 11, 14_
+
+- [x] 20. Consolidate backend official document routes
+  - [x] 20.1 Inspect `official_document_views.py`.
+  - [x] 20.2 Inspect `document_views.py` legacy generation views.
+  - [x] 20.3 Inspect `applications/urls.py` for legacy document paths.
+  - [x] 20.4 Make legacy application-slip endpoint delegate to official document generation where possible.
+  - [x] 20.5 Make legacy acceptance/conditional/receipt endpoints delegate or mark deprecated.
+  - [x] 20.6 Ensure official document list returns latest per type.
+  - [x] 20.7 Ensure official document detail returns setup-required and failed states.
+  - [x] 20.8 Ensure official document generation is idempotent by fingerprint.
+  - [x] 20.9 Ensure signed download URLs are used for private storage.
+  - [x] 20.10 Add deprecation notices to API schema where endpoints remain.
+  - _Requirements: 9, 11, 15_
+
+- [x] 21. Verify tenant document profile rendering
+  - [x] 21.1 Inspect `backend/apps/applications/tasks/pdf/render_context.py`.
+  - [x] 21.2 Inspect `backend/apps/applications/tasks/pdf_generation.py`.
+  - [x] 21.3 Inspect renderers under `backend/apps/applications/tasks/pdf/renderers/`.
+  - [x] 21.4 Inspect `InstitutionDocumentProfileService.resolve`.
+  - [x] 21.5 Verify application slip uses resolved tenant assets and profile.
+  - [x] 21.6 Verify acceptance letter uses resolved tenant assets and profile.
+  - [x] 21.7 Verify conditional offer uses resolved tenant assets and profile.
+  - [x] 21.8 Verify payment receipt uses resolved tenant assets and profile.
+  - [x] 21.9 Verify missing profile fails clearly.
+  - [x] 21.10 Verify missing signature/logo policy is explicit.
+  - _Requirements: 9, 10_
+
+- [x] 22. Improve tenant document configuration UI
+  - [x] 22.1 Inspect `ProfilesPanel.tsx`.
+  - [x] 22.2 Inspect `TenantBrandingPanel.tsx`.
+  - [x] 22.3 Inspect `TenantDocumentsPanel.tsx`.
+  - [x] 22.4 Ensure profile editor exposes document type clearly.
+  - [x] 22.5 Ensure profile editor exposes scope clearly.
+  - [x] 22.6 Ensure profile editor exposes active version and clone-new-version behavior.
+  - [x] 22.7 Ensure token validation errors are visible near offending fields.
+  - [x] 22.8 Ensure asset preview shows active logo/signature/seal.
+  - [x] 22.9 Ensure SVG limitation is validated before official use.
+  - [x] 22.10 Ensure mobile profile editing is usable.
+  - _Requirements: 10, 14_
+
+- [x] 23. Add official document tests
+  - [x] 23.1 Test student official slip uses backend endpoint.
+  - [x] 23.2 Test no production official path imports frontend PDF generator.
+  - [x] 23.3 Test tenant logo/signature changes trigger new fingerprint.
+  - [x] 23.4 Test unchanged inputs reuse existing official document.
+  - [x] 23.5 Test missing profile returns setup-required/failure.
+  - [x] 23.6 Test Tenant_Admin cannot generate out-of-scope document.
+  - [x] 23.7 Test Super_Admin can generate in any tenant.
+  - [x] 23.8 Test legacy endpoint delegates or emits deprecation-safe behavior.
+  - [x] 23.9 Test signed download URL works for stored official document.
+  - [x] 23.10 Test document profile versioning preserves old generated docs.
+  - _Requirements: 9, 10, 11, 18_
+
+- [x] 24. Complete tenant onboarding lifecycle
+  - [x] 24.1 Inspect `TenantOnboardingWizard.tsx`.
+  - [x] 24.2 Inspect `tenantAdminService` onboarding methods.
+  - [x] 24.3 Inspect backend tenant create/update serializers.
+  - [x] 24.4 Add readiness checklist to wizard state.
+  - [x] 24.5 Add readiness check backend endpoint or command.
+  - [x] 24.6 Require branding asset setup before launch-ready.
+  - [x] 24.7 Require document profile setup before launch-ready.
+  - [x] 24.8 Require offering/program assignment before launch-ready.
+  - [x] 24.9 Require tenant admin invitation before launch-ready, unless explicitly waived.
+  - [x] 24.10 Add save/resume behavior for onboarding wizard.
+  - _Requirements: 5, 10_
+
+- [x] 25. Complete tenant domain lifecycle
+  - [x] 25.1 Inspect `TenantDomainPanel.tsx`.
+  - [x] 25.2 Inspect domain models and serializers.
+  - [x] 25.3 Inspect `InstitutionContextService.resolve`.
+  - [x] 25.4 Ensure unknown domains resolve to Beanola neutral context.
+  - [x] 25.5 Ensure disabled/unverified/conflicting domains fail closed.
+  - [x] 25.6 Ensure active verified domains resolve to one tenant.
+  - [x] 25.7 Ensure domain simulation uses same resolver logic.
+  - [x] 25.8 Ensure domain changes invalidate catalog/context caches.
+  - [x] 25.9 Ensure domain changes write audit events.
+  - [x] 25.10 Add domain setup steps to runbook.
+  - _Requirements: 6, 17_
+
+- [x] 26. Complete program/offering assignment
+  - [x] 26.1 Inspect `OfferingAssignmentService`.
+  - [x] 26.2 Inspect catalog context endpoints.
+  - [x] 26.3 Inspect `OfferingsPanel.tsx` and `TenantProgramsPanel.tsx`.
+  - [x] 26.4 Ensure shared portal program list is canonical-program-first.
+  - [x] 26.5 Ensure white-label portal filters offerings by resolved tenant.
+  - [x] 26.6 Ensure no-offering errors return recoverable guidance.
+  - [x] 26.7 Ensure assignment decision records domain, priority, capacity, and rule factors.
+  - [x] 26.8 Ensure required documents derive from assigned offering.
+  - [x] 26.9 Ensure fees derive from assigned offering.
+  - [x] 26.10 Add assignment simulation tests for same program across schools.
+  - _Requirements: 7, 15, 17_
+
+- [x] 27. Declutter tenant service contracts
+  - [x] 27.1 Inspect every method in `services/admin/tenants.ts`.
+  - [x] 27.2 Map each method to backend URL and serializer.
+  - [x] 27.3 Move legacy catalog write calls behind admin endpoints.
+  - [x] 27.4 Ensure update offering rules does not call an inappropriate public/catalog route.
+  - [x] 27.5 Align TypeScript types with backend serializers.
+  - [x] 27.6 Normalize response envelope parsing.
+  - [x] 27.7 Normalize error code handling.
+  - [x] 27.8 Add service-level tests with mocked API responses.
+  - [x] 27.9 Add contract tests against OpenAPI or serializer snapshots.
+  - [x] 27.10 Remove unused tenant service methods.
+  - _Requirements: 5, 15_
+
+- [x] 28. Audit brand drift
+  - [x] 28.1 Search for MIHAS, KATC, legacy domains, and old platform names.
+  - [x] 28.2 Classify each hit as tenant seed, test, historical data, allowlisted legacy, or bug.
+  - [x] 28.3 Update generic frontend copy to Beanola.
+  - [x] 28.4 Update generic backend defaults to Beanola.
+  - [x] 28.5 Update email fallback defaults to Beanola.
+  - [x] 28.6 Update payment references to avoid school-specific default fallback.
+  - [x] 28.7 Update application number fallback policy.
+  - [x] 28.8 Update public metadata and SEO defaults.
+  - [x] 28.9 Create or update brand allowlist.
+  - [x] 28.10 Add brand drift test.
+  - _Requirements: 12, 18_
+
+- [x] 29. Remove compatibility/re-export drift
+  - [x] 29.1 Inspect application `views.py` split/re-export modules.
+  - [x] 29.2 Inspect tests patching old module paths.
+  - [x] 29.3 Move tests to canonical modules where practical.
+  - [x] 29.4 Remove re-export modules that no longer have callers.
+  - [x] 29.5 Mark remaining compatibility layers with removal issue and owner.
+  - [x] 29.6 Remove historical comments that do not explain current behavior.
+  - [x] 29.7 Add import-boundary lint or test for deprecated modules.
+  - [x] 29.8 Remove duplicate helpers made obsolete by canonical services.
+  - [x] 29.9 Remove stale aliases after redirect tests pass.
+  - [x] 29.10 Update architecture docs after removals.
+  - _Evidence: remaining compatibility layers still have active callers and are bounded/documented; canonical import-boundary and dead-code tests guard against new drift. See `docs/audits/canonical-leftover-closure-2026-06-27.md`._
+  - _Requirements: 13_
+
+- [x] 30. Clean duplicate frontend hooks and services
+  - [x] 30.1 Audit hooks importing `@/lib/pdf`.
+  - [x] 30.2 Audit duplicate loading/error hooks.
+  - [x] 30.3 Audit duplicate draft managers and stores.
+  - [x] 30.4 Audit duplicate admin dashboard polling.
+  - [x] 30.5 Audit duplicate notification services.
+  - [x] 30.6 Choose canonical owner for each duplicate.
+  - [x] 30.7 Rewrite imports to canonical owners.
+  - [x] 30.8 Delete unused duplicate files.
+  - [x] 30.9 Add tests for preserved behavior.
+  - [x] 30.10 Run frontend dead-code checks.
+  - _Requirements: 11, 13, 16_
+
+- [x] 31. Polish student dashboard and wizard UX
+  - [x] 31.1 Review dashboard at mobile, tablet, desktop.
+  - [x] 31.2 Make "Start New Application" visually and behaviorally distinct from "Continue Draft".
+  - [x] 31.3 Add clear draft cards with program, intake, status, updated time, and action buttons.
+  - [x] 31.4 Add safe delete confirmation for drafts.
+  - [x] 31.5 Add payment-linked draft warning.
+  - [x] 31.6 Add wizard mode banner or state indicator without clutter.
+  - [x] 31.7 Add autosave status that does not jump layout.
+  - [x] 31.8 Add recoverable assignment error UI.
+  - [x] 31.9 Ensure all controls meet touch target sizes.
+  - [x] 31.10 Verify no text overflows on narrow phones.
+  - _Evidence: `applicationWizardUxGuard.test.ts`, `student-dashboard-load-path.test.ts`, `studentNextActionRoutes.test.tsx`, `routeMobileOverflowGuard.test.tsx`, and accessibility UI tests._
+  - _Requirements: 8, 14_
+
+- [x] 32. Polish admin dashboard and tenant consoles
+  - [x] 32.1 Review admin dashboard mobile layout.
+  - [x] 32.2 Review applications table/card behavior on mobile.
+  - [x] 32.3 Review tenant console mobile layout.
+  - [x] 32.4 Review tenant onboarding mobile layout.
+  - [x] 32.5 Replace horizontal-scroll traps with responsive cards where appropriate.
+  - [x] 32.6 Ensure every icon-only admin button has an accessible label.
+  - [x] 32.7 Ensure empty states are role-specific.
+  - [x] 32.8 Ensure setup-required states link to the right tenant panel.
+  - [x] 32.9 Remove nested cards and decorative panels from operational screens.
+  - [x] 32.10 Verify visual consistency of spacing, buttons, badges, and status colors.
+  - _Requirements: 3, 5, 14_
+
+- [x] 33. Improve accessibility and interaction quality
+  - [x] 33.1 Audit keyboard navigation for student wizard.
+  - [x] 33.2 Audit keyboard navigation for admin tenant console.
+  - [x] 33.3 Audit focus management on route changes.
+  - [x] 33.4 Audit modal/dialog escape behavior.
+  - [x] 33.5 Audit form labels and error placement.
+  - [x] 33.6 Audit color contrast for badges and secondary text.
+  - [x] 33.7 Audit aria-live behavior for async document/draft actions.
+  - [x] 33.8 Audit reduced-motion behavior.
+  - [x] 33.9 Audit touch target sizes.
+  - [x] 33.10 Add accessibility regression tests where practical.
+  - _Requirements: 14, 18_
+
+- [x] 34. Add API contract coverage
+  - [x] 34.1 Add contract test for capabilities endpoint shape.
+  - [x] 34.2 Add contract test for admin scope endpoint shape.
+  - [x] 34.3 Add contract test for tenant list/detail/create/update.
+  - [x] 34.4 Add contract test for tenant assets.
+  - [x] 34.5 Add contract test for tenant domains.
+  - [x] 34.6 Add contract test for document profiles.
+  - [x] 34.7 Add contract test for required documents.
+  - [x] 34.8 Add contract test for offerings/program assignment.
+  - [x] 34.9 Add contract test for drafts.
+  - [x] 34.10 Add contract test for official documents.
+  - _Requirements: 15, 18_
+
+- [x] 35. Add E2E workflow coverage
+  - [x] 35.1 E2E: student starts new application with existing draft present.
+  - [x] 35.2 E2E: student resumes selected draft.
+  - [x] 35.3 E2E: student submits program-first application.
+  - [x] 35.4 E2E: student sees required documents from assigned offering.
+  - [x] 35.5 E2E: student downloads official application slip.
+  - [x] 35.6 E2E: Super_Admin onboards tenant.
+  - [x] 35.7 E2E: Super_Admin uploads tenant logo/signature.
+  - [x] 35.8 E2E: Super_Admin configures document profile.
+  - [x] 35.9 E2E: Tenant_Admin sees only assigned school.
+  - [x] 35.10 E2E: Tenant_Admin cannot create tenant.
+  - _Requirements: 5, 8, 9, 14, 18_
+
+- [x] 36. Add performance improvements from the audit
+  - [x] 36.1 Cache admin dashboard summary for 30-60 seconds by scope.
+  - [x] 36.2 Collapse dashboard time-bucket counts into one aggregate where practical.
+  - [x] 36.3 Replace or reduce application list payment correlated subqueries.
+  - [x] 36.4 Add server-side catalog cache with tenant-scope-safe invalidation.
+  - [x] 36.5 Fix canonical program available-offerings N+1.
+  - [x] 36.6 Memoize grade summary computation per serializer instance.
+  - [x] 36.7 Add or verify composite index for status/submitted_at where applicable.
+  - [x] 36.8 Cap or parallelize slow payment polling work.
+  - [x] 36.9 Bulk expiry task writes where safe.
+  - [x] 36.10 Add performance regression tests or golden query-count tests.
+  - _Requirements: 16_
+
+- [x] 37. Add frontend performance cleanup
+  - [x] 37.1 Compress public PNG logos/signatures or move PDF-only assets out of web fetch path.
+  - [x] 37.2 Add immutable cache headers for fonts.
+  - [x] 37.3 Dynamic-import Excel export libraries.
+  - [x] 37.4 Lower admin card virtualization threshold.
+  - [x] 37.5 Replace repeated `selectedIds.includes()` with memoized Set.
+  - [x] 37.6 Consolidate admin dashboard polling sources.
+  - [x] 37.7 Audit global CSS loaded for unauthenticated visitors.
+  - [x] 37.8 Ensure images have stable dimensions to prevent layout shift.
+  - [x] 37.9 Run production bundle analysis.
+  - [x] 37.10 Record before/after bundle and Lighthouse numbers.
+  - _Evidence: `docs/audits/frontend-performance-cleanup-2026-06-27.md`; `bun run build`; Lighthouse local preview score Performance 74, Accessibility 96, Best Practices 96, SEO 100._
+  - _Requirements: 14, 16_
+
+- [x] 38. Improve operational runbooks
+  - [x] 38.1 Create tenant onboarding runbook.
+  - [x] 38.2 Create domain setup runbook.
+  - [x] 38.3 Create official document troubleshooting runbook.
+  - [x] 38.4 Create draft/application support runbook.
+  - [x] 38.5 Create production migration verification runbook.
+  - [x] 38.6 Create backup/restore drill runbook.
+  - [x] 38.7 Create deploy rollback runbook.
+  - [x] 38.8 Create disk cleanup and Docker prune runbook.
+  - [x] 38.9 Create Celery/Redis/Postgres health runbook.
+  - [x] 38.10 Link runbooks from steering docs.
+  - _Evidence: `docs/runbooks/multi-tenant-operations.md`; linked from `structure.md`, `tech.md`, and `infrastructure.md`._
+  - _Requirements: 5, 6, 16, 17_
+
+- [x] 39. Add observability and audit coverage
+  - [x] 39.1 Audit tenant create/update.
+  - [x] 39.2 Audit domain create/verify/activate/disable.
+  - [x] 39.3 Audit asset upload/activation.
+  - [x] 39.4 Audit document profile changes.
+  - [x] 39.5 Audit required-document changes.
+  - [x] 39.6 Audit offering assignment changes.
+  - [x] 39.7 Audit staff invite/disable/grant/revoke.
+  - [x] 39.8 Audit application assignment decisions.
+  - [x] 39.9 Audit official document generation failures.
+  - [x] 39.10 Audit access denied events without leaking PII.
+  - _Evidence: `backend/tests/unit/test_tenant_audit_observability.py`; `DJANGO_SETTINGS_MODULE=config.settings.test .venv/bin/python -m pytest tests/unit/test_tenant_audit_observability.py -q`._
+  - _Requirements: 17_
+
+- [x] 40. Final verification and release gate
+  - [x] 40.1 Run backend unit tests.
+  - [x] 40.2 Run backend integration tests.
+  - [x] 40.3 Run frontend unit tests.
+  - [x] 40.4 Run frontend build.
+  - [x] 40.5 Run route drift tests.
+  - [x] 40.6 Run brand drift tests.
+  - [x] 40.7 Run document-flow drift tests.
+  - [x] 40.8 Run tenant-scope/security tests.
+  - [x] 40.9 Run E2E smoke tests.
+  - [x] 40.10 Produce final production-readiness evidence with open risks.
+  - _Evidence: `docs/audits/canonical-multi-tenant-final-verification-2026-06-27.md`; backend unit/integration, frontend unit/build, drift guards, scope/security gates, and gated Playwright smoke were run locally. The Playwright smoke enumerated 10 workflows and skipped them because live E2E env/storage state was not provided._
+  - _Requirements: 18_
+
+## Non-Negotiable Completion Checklist
+
+- [x] Beanola is the only platform brand.
+- [x] MIHAS and KATC are tenant data only.
+- [x] One frontend route registry owns admin paths.
+- [x] `/admin/tenants` and `/beanola-admin-panel/` are not confused.
+- [x] Super_Admin can onboard a tenant end to end.
+- [x] Tenant_Admin cannot create tenants.
+- [x] Tenant_Admin cannot see another tenant by UI or API.
+- [x] Students can intentionally start new or resume.
+- [x] Official documents use backend tenant assets and profiles.
+- [x] Production official document paths do not import frontend PDF generators.
+- [x] Legacy paths delegate, redirect, or are explicitly deprecated.
+- [x] Duplicate compatibility layers are removed or bounded.
+- [x] Mobile student and admin flows are usable.
+- [x] API contracts match frontend services.
+- [x] Performance hotspots are remediated or tracked with owners.
+- [x] Runbooks exist for tenant onboarding, domains, documents, deploy, rollback, and health checks.
+- [x] CI gates prove route, brand, document, scope, and migration drift cannot silently return.

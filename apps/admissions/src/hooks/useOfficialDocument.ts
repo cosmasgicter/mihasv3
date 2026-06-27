@@ -34,8 +34,8 @@ import {
   type OfficialDocumentType,
 } from '@/services/officialDocuments'
 
-/** The four UI states the student document surface renders (R7.2). */
-export type OfficialDocumentUiState = 'idle' | 'generating' | 'queued' | 'ready' | 'failed'
+/** The UI states the student/admin document surfaces render (R7.2, R7.7). */
+export type OfficialDocumentUiState = 'idle' | 'generating' | 'queued' | 'ready' | 'failed' | 'setup_required'
 
 /** Polling cadence while the backend works through a `queued` document. */
 export const OFFICIAL_DOC_POLL_INTERVAL_MS = 3_000
@@ -54,13 +54,48 @@ export const OFFICIAL_DOC_MAX_POLLS = 20
 export function deriveOfficialDocumentUiState(
   inflight: boolean,
   backendStatus: OfficialDocumentGenerationStatus | null,
+  setupRequired = false,
 ): OfficialDocumentUiState {
+  if (setupRequired) return 'setup_required'
+  if (backendStatus === 'setup_required') return 'setup_required'
   if (backendStatus === 'ready') return 'ready'
   if (backendStatus === 'failed') return inflight ? 'generating' : 'failed'
   if (backendStatus === 'queued') return inflight ? 'queued' : 'queued'
   if (inflight) return 'generating'
   return 'idle'
 }
+
+const SETUP_REQUIRED_CODES = new Set([
+  'DOCUMENT_PROFILE_NOT_CONFIGURED',
+  'DOCUMENT_TEMPLATE_NOT_CONFIGURED',
+  'DOCUMENT_ASSET_NOT_CONFIGURED',
+  'TENANT_DOCUMENT_PROFILE_NOT_CONFIGURED',
+  'TENANT_DOCUMENT_TEMPLATE_NOT_CONFIGURED',
+  'TENANT_ASSET_NOT_CONFIGURED',
+])
+
+function errorCode(error: unknown): string | null {
+  const candidate = error as { code?: unknown; data?: { code?: unknown } } | null
+  const code = candidate?.code ?? candidate?.data?.code
+  return typeof code === 'string' ? code : null
+}
+
+export function isOfficialDocumentSetupRequiredError(error: unknown): boolean {
+  const code = errorCode(error)
+  if (code && SETUP_REQUIRED_CODES.has(code)) return true
+  const message = toError(error).message.toUpperCase()
+  return (
+    message.includes('DOCUMENT_PROFILE_NOT_CONFIGURED') ||
+    message.includes('DOCUMENT TEMPLATE') ||
+    message.includes('DOCUMENT ASSET') ||
+    message.includes('LOGO') ||
+    message.includes('SIGNATURE') ||
+    message.includes('NOT CONFIGURED')
+  )
+}
+
+export const OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE =
+  'Tenant document setup is incomplete. Configure the document profile, template, logo, and signature before generating this document.'
 
 export interface UseOfficialDocumentResult {
   /** The mapped UI state — drives button label / retry affordance. */
@@ -71,6 +106,8 @@ export interface UseOfficialDocumentResult {
   isBusy: boolean
   /** Last error message, or `null`. */
   error: string | null
+  /** True when generation failed because tenant document setup is incomplete. */
+  isSetupRequired: boolean
   /** Generate (ensure current) then download the stored backend document. */
   download: () => Promise<boolean>
   /** Email the backend-stored document to `address` (slip only — see service). */
@@ -90,6 +127,7 @@ export function useOfficialDocument(
   const [status, setStatus] = useState<OfficialDocumentGenerationStatus | null>(null)
   const [inflight, setInflight] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [setupRequired, setSetupRequired] = useState(false)
 
   const mountedRef = useRef(true)
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -109,6 +147,7 @@ export function useOfficialDocument(
     if (!mountedRef.current) return
     setStatus(null)
     setError(null)
+    setSetupRequired(false)
   }, [])
 
   /**
@@ -126,7 +165,7 @@ export function useOfficialDocument(
         const payload = await officialDocumentService.getOfficialDocument(applicationId, documentType)
         const next = payload?.status ?? 'failed'
         if (mountedRef.current) setStatus(next)
-        if (next === 'ready' || next === 'failed') return next
+        if (next === 'ready' || next === 'failed' || next === 'setup_required') return next
       }
       return 'failed'
     },
@@ -137,6 +176,7 @@ export function useOfficialDocument(
     if (inflight) return false
     setInflight(true)
     setError(null)
+    setSetupRequired(false)
     try {
       const generated = await officialDocumentService.generateOfficialDocument(applicationId, documentType)
       let current: OfficialDocumentGenerationStatus = generated?.status ?? 'failed'
@@ -148,7 +188,12 @@ export function useOfficialDocument(
 
       if (current !== 'ready') {
         if (mountedRef.current) {
-          setError('The document could not be generated. Please try again.')
+          setSetupRequired(current === 'setup_required')
+          setError(
+            current === 'setup_required'
+              ? OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE
+              : 'The document could not be generated. Please try again.',
+          )
         }
         return false
       }
@@ -159,8 +204,14 @@ export function useOfficialDocument(
       return true
     } catch (err) {
       if (mountedRef.current) {
+        const requiresSetup = isOfficialDocumentSetupRequiredError(err)
         setStatus('failed')
-        setError(toError(err).message || 'Unable to download the document')
+        setSetupRequired(requiresSetup)
+        setError(
+          requiresSetup
+            ? OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE
+            : toError(err).message || 'Unable to download the document',
+        )
       }
       return false
     } finally {
@@ -173,6 +224,7 @@ export function useOfficialDocument(
       if (inflight) return false
       setInflight(true)
       setError(null)
+      setSetupRequired(false)
       try {
         // Ensure the backend-stored document exists/current before emailing it,
         // so the email attaches the authoritative record, not a local render.
@@ -184,7 +236,12 @@ export function useOfficialDocument(
         }
         if (current !== 'ready') {
           if (mountedRef.current) {
-            setError('The document is still being prepared. Please try again in a moment.')
+            setSetupRequired(current === 'setup_required')
+            setError(
+              current === 'setup_required'
+                ? OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE
+                : 'The document is still being prepared. Please try again in a moment.',
+            )
           }
           return false
         }
@@ -193,7 +250,14 @@ export function useOfficialDocument(
         return true
       } catch (err) {
         if (mountedRef.current) {
-          setError(toError(err).message || 'Unable to email the document')
+          const requiresSetup = isOfficialDocumentSetupRequiredError(err)
+          setStatus('failed')
+          setSetupRequired(requiresSetup)
+          setError(
+            requiresSetup
+              ? OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE
+              : toError(err).message || 'Unable to email the document',
+          )
         }
         return false
       } finally {
@@ -204,10 +268,11 @@ export function useOfficialDocument(
   )
 
   return {
-    uiState: deriveOfficialDocumentUiState(inflight, status),
+    uiState: deriveOfficialDocumentUiState(inflight, status, setupRequired),
     status,
     isBusy: inflight,
     error,
+    isSetupRequired: setupRequired,
     download,
     email,
     reset,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Home, FileText, Bell, LayoutDashboard, Users, MoreHorizontal, GraduationCap, Calendar, Settings, FileSearch, CreditCard, MessageSquare, Clock } from 'lucide-react'
+import { MoreHorizontal } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
@@ -7,7 +7,15 @@ import type { LucideIcon } from 'lucide-react'
 import { useTenantNavItem } from './tenantNav'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { filterAdminNavItems } from './adminNavAccess'
+import { pathFor, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
 
+type NavLink = { to: string; icon: LucideIcon; label: string }
+
+const navLinkFromRoute = (route: ProductRouteDefinition, labelOverride?: string): NavLink => ({
+  to: route.path,
+  icon: route.nav!.icon,
+  label: labelOverride ?? route.nav!.label,
+})
 
 export const MobileBottomNav = React.memo(function MobileBottomNav() {
   const location = useLocation()
@@ -20,40 +28,40 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
   if (!user) return null
 
   const studentMainLinks = [
-    { to: '/student/dashboard', icon: Home, label: 'Home' },
-    { to: '/student/application-wizard', icon: FileText, label: 'Apply' },
-    { to: '/student/notifications', icon: Bell, label: 'Alerts' },
+    navLinkFromRoute(routeById('student.dashboard'), 'Home'),
+    navLinkFromRoute(routeById('student.applicationWizard')),
+    navLinkFromRoute(routeById('student.notifications'), 'Alerts'),
   ]
 
   const studentMoreLinks = [
-    { to: '/student/communications', icon: MessageSquare, label: 'Communications' },
-    { to: '/student/history', icon: Clock, label: 'Activity History' },
-    { to: '/student/payment', icon: CreditCard, label: 'Payments' },
-    { to: '/student/interview', icon: Calendar, label: 'Interviews' },
-    { to: '/student/settings', icon: Settings, label: 'Settings' },
+    navLinkFromRoute(routeById('student.communications')),
+    navLinkFromRoute(routeById('student.history')),
+    navLinkFromRoute(routeById('student.payment'), 'Payments'),
+    navLinkFromRoute(routeById('student.interview'), 'Interviews'),
+    navLinkFromRoute(routeById('student.settings'), 'Settings'),
   ]
 
   const adminMainLinks = [
-    { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/admin/applications', icon: FileText, label: 'Apps' },
-    { to: '/admin/users', icon: Users, label: 'Users' },
+    navLinkFromRoute(routeById('admin.dashboard')),
+    navLinkFromRoute(routeById('admin.applications'), 'Apps'),
+    navLinkFromRoute(routeById('admin.users')),
   ]
 
   const adminMoreSections = [
     {
       title: 'Management',
       links: filterAdminNavItems([
-        { to: '/admin/programs', icon: GraduationCap, label: 'Programs' },
+        navLinkFromRoute(routeById('admin.programs')),
         // Capability-gated tenant item injected from the shared helper (R13.4).
         ...(tenantNavItem ? [tenantNavItem] : []),
-        { to: '/admin/intakes', icon: Calendar, label: 'Intakes' },
+        navLinkFromRoute(routeById('admin.intakes')),
       ], caps)
     },
     {
       title: 'System',
       links: filterAdminNavItems([
-        { to: '/admin/audit', icon: FileSearch, label: 'Audit' },
-        { to: '/admin/settings', icon: Settings, label: 'Settings' },
+        navLinkFromRoute(routeById('admin.audit'), 'Audit'),
+        navLinkFromRoute(routeById('admin.settings')),
       ], caps)
     },
   ].filter((section) => section.links.length > 0)
@@ -61,14 +69,12 @@ export const MobileBottomNav = React.memo(function MobileBottomNav() {
   const links = isAdmin ? adminMainLinks : studentMainLinks
 
   const isRouteActive = (path: string) => {
-    if (path === '/student/application-wizard') {
-      return location.pathname === '/student/application-wizard' || location.pathname === '/apply'
+    if (path === pathFor('student.applicationWizard')) {
+      return location.pathname === pathFor('student.applicationWizard') || location.pathname === '/apply'
     }
 
     return location.pathname === path
   }
-
-  type NavLink = { to: string; icon: LucideIcon; label: string }
 
   const renderLink = ({ to, icon: Icon, label }: NavLink) => {
     const isActive = isRouteActive(to)

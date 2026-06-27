@@ -280,6 +280,7 @@ Each spec directory under `.kiro/specs/` has a `.config.kiro` JSON file. When a 
 | `docs/runbooks/database-backup-restore.md` | Neon database backup and restore |
 | `docs/runbooks/local-parity.md` | Local dev environment parity with production |
 | `docs/runbooks/redis-incident-response.md` | Redis incident response playbook |
+| `docs/runbooks/multi-tenant-operations.md` | Tenant onboarding, domains, documents, draft support, migrations, backup/restore, rollback, disk cleanup, and service health |
 | `docs/security-api-audit-2026-04.md` | April 2026 security and API audit report |
 | `docs/full-audit-report-2026-04-22.md` | Full codebase audit report (April 22, 2026) |
 | `AUDIT-REPORT-2026-04-24.md` | April 24 exhaustive repository audit — 335/520 items, 18 bugs, 9 zero-day risks |
@@ -449,6 +450,16 @@ rollback order live in `docs/runbooks/payment-hardening-rollout.md`.
 - Do not re-duplicate jobs-ops seeded state across multiple backend view modules.
 
 ### Files Added During PDF & Email Redesign (May 2026)
+
+Historical note: the frontend React-PDF files below remain useful for dev
+preview or explicitly non-official preview work, but they are no longer the
+authority for production official student/admin documents. Official documents
+are backend-generated through
+`backend/apps/applications/official_document_views.py` and the tenant-aware PDF
+renderers under `backend/apps/applications/tasks/pdf/`, using
+`InstitutionDocumentProfile` and `InstitutionAsset` tenant configuration.
+Student/admin official download and email flows should consume
+`apps/admissions/src/services/officialDocuments.ts`.
 
 #### Admissions PDF system (`apps/admissions/src/lib/pdf/`)
 

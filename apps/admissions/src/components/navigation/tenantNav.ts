@@ -18,9 +18,10 @@
 import { Building2, School, type LucideIcon } from 'lucide-react'
 
 import { useCapabilities, type CapabilityValue } from '@/contexts/CapabilityContext'
+import { CANONICAL_ADMIN_TENANTS_PATH } from '@/routes/routeRegistry'
 
 /** Shared destination for both the platform and the school-specific entry. */
-export const TENANT_NAV_PATH = '/admin/tenants'
+export const TENANT_NAV_PATH = CANONICAL_ADMIN_TENANTS_PATH
 
 /** Capability a tenant-admin must hold to see the "My School" entry (R13.2). */
 export const TENANT_PROFILE_READ = 'tenant.profile.read'

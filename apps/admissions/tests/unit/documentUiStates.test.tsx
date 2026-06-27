@@ -118,6 +118,11 @@ describe('deriveOfficialDocumentUiState — backend status → UI state (R17.2)'
   it('is idle before any request and with no backend status', () => {
     expect(deriveOfficialDocumentUiState(false, null)).toBe('idle')
   })
+
+  it('maps known tenant setup failures to setup_required before retry states', () => {
+    expect(deriveOfficialDocumentUiState(false, 'failed', true)).toBe('setup_required')
+    expect(deriveOfficialDocumentUiState(true, 'queued', true)).toBe('setup_required')
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -162,6 +167,19 @@ describe('DocumentButtons — status-gated action visibility (R17.1)', () => {
 // 3. email-of-stored-document (R17.2) — emails the backend record, not a blob
 // ---------------------------------------------------------------------------
 describe('ApplicationSlipActions — email of stored official document (R17.2)', () => {
+  it('downloads the backend-stored slip via the official-document service, not a local blob', async () => {
+    generateMock.mockResolvedValue({ document_type: 'application_slip', status: 'ready' })
+    downloadMock.mockResolvedValue(undefined)
+
+    render(<ApplicationSlipActions applicationId={APP_ID} />)
+    fireEvent.click(screen.getByText('Download Slip'))
+
+    await waitFor(() => {
+      expect(generateMock).toHaveBeenCalledWith(APP_ID, 'application_slip')
+      expect(downloadMock).toHaveBeenCalledWith(APP_ID, 'application_slip')
+    })
+  })
+
   it('emails the backend-stored slip via the official-document service, not a local blob', async () => {
     // generate() resolves ready so the email path proceeds straight to emailing
     // the stored backend record.
@@ -245,6 +263,27 @@ describe('DownloadReceiptButton — payment-gated visibility + stored download (
     // The button now offers a retry rather than a fresh download.
     expect(await screen.findByText('Retry')).toBeTruthy()
   })
+
+  it('retries through the same idempotent official-document service path', async () => {
+    generateMock
+      .mockResolvedValueOnce({ document_type: 'payment_receipt', status: 'failed' })
+      .mockResolvedValueOnce({ document_type: 'payment_receipt', status: 'ready' })
+    downloadMock.mockResolvedValue(undefined)
+
+    render(<DownloadReceiptButton applicationId={APP_ID} paymentStatus="verified" />)
+    fireEvent.click(screen.getByText('Download Receipt'))
+
+    const retryButton = await screen.findByText('Retry')
+    fireEvent.click(retryButton)
+
+    await waitFor(() => {
+      expect(generateMock).toHaveBeenCalledTimes(2)
+      expect(generateMock).toHaveBeenNthCalledWith(1, APP_ID, 'payment_receipt')
+      expect(generateMock).toHaveBeenNthCalledWith(2, APP_ID, 'payment_receipt')
+      expect(downloadMock).toHaveBeenCalledTimes(1)
+      expect(downloadMock).toHaveBeenCalledWith(APP_ID, 'payment_receipt')
+    })
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -264,6 +303,21 @@ describe('DocumentButtons — ready actions stream stored backend records (R17.2
       expect(generateMock).toHaveBeenCalledWith(APP_ID, 'acceptance_letter')
       expect(downloadMock).toHaveBeenCalledWith(APP_ID, 'acceptance_letter')
     })
+  })
+
+  it('surfaces setup-required when tenant document profile or assets are missing', async () => {
+    generateMock.mockRejectedValue(
+      Object.assign(new Error('DOCUMENT_PROFILE_NOT_CONFIGURED'), {
+        code: 'DOCUMENT_PROFILE_NOT_CONFIGURED',
+      }),
+    )
+
+    render(<DocumentButtons applicationId={APP_ID} status="approved" paymentStatus={null} />)
+
+    fireEvent.click(screen.getAllByText('Acceptance Letter')[0])
+
+    expect(await screen.findByText('Setup Required')).toBeTruthy()
+    expect(downloadMock).not.toHaveBeenCalled()
   })
 })
 
@@ -319,5 +373,23 @@ describe('AdminOfficialDocumentsPanel — scoped latest-per-type listing (R17.4)
 
     await waitFor(() => expect(generateMock).toHaveBeenCalledWith(APP_ID, 'application_slip'))
     // No client-side PDF generation — generation is always backend-sourced (R17.6).
+  })
+
+  it('shows setup-required instead of retry when backend reports missing tenant document setup', async () => {
+    listMock.mockResolvedValue([])
+    generateMock.mockRejectedValue(
+      Object.assign(new Error('DOCUMENT_PROFILE_NOT_CONFIGURED'), {
+        code: 'DOCUMENT_PROFILE_NOT_CONFIGURED',
+      }),
+    )
+
+    render(<AdminOfficialDocumentsPanel applicationId={APP_ID} />)
+
+    await waitFor(() => expect(listMock).toHaveBeenCalledWith(APP_ID))
+    const generateButtons = await screen.findAllByText('Generate')
+    fireEvent.click(generateButtons[0])
+
+    expect(await screen.findByText('Setup Required')).toBeTruthy()
+    expect(await screen.findByText('Setup required')).toBeTruthy()
   })
 })

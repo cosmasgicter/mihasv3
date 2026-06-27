@@ -271,9 +271,7 @@ export default function Applications() {
   const [bulkActionLoading, setBulkActionLoading] = useState(false)
   const [modalLoading, setModalLoading] = useState<{
     notification: boolean
-    acceptance: boolean
-    receipt: boolean
-  }>({ notification: false, acceptance: false, receipt: false })
+  }>({ notification: false })
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
   const isMobileViewport = useIsMobileViewport()
@@ -449,69 +447,6 @@ export default function Applications() {
       showError('Failed to load history', toError(error).message || 'Unable to load application history.')
     }
   }, [selectedApplication, showError, showInfo])
-
-  const handleGenerateAcceptanceLetter = useCallback(async () => {
-    if (!selectedApplication) return
-    
-    setModalLoading(prev => ({ ...prev, acceptance: true }))
-    try {
-      await applicationService.generateAcceptanceLetter(selectedApplication)
-      showSuccess('Acceptance letter generated', 'The acceptance letter has been generated and sent to the student.')
-    } catch (error) {
-      logApiError('admin-applications', `/applications/${selectedApplication}/acceptance-letter/`, error)
-      showError('Failed to generate letter', toError(error).message || 'Unable to generate acceptance letter.')
-    } finally {
-      setModalLoading(prev => ({ ...prev, acceptance: false }))
-    }
-  }, [selectedApplication, showSuccess, showError])
-
-  const handleGenerateApplicationSlip = useCallback(async () => {
-    if (!selectedApplication) return
-    try {
-      await applicationService.generateApplicationSlip(selectedApplication)
-      showSuccess('Application slip generated', 'The official application slip has been queued.')
-    } catch (error) {
-      logApiError('admin-applications', `/applications/${selectedApplication}/application-slip/`, error)
-      showError('Failed to generate slip', toError(error).message || 'Unable to generate application slip.')
-    }
-  }, [selectedApplication, showSuccess, showError])
-
-  const handleGenerateConditionalOffer = useCallback(async () => {
-    if (!selectedApplication) return
-    try {
-      await applicationService.generateConditionalOffer(selectedApplication)
-      showSuccess('Conditional offer generated', 'The conditional offer has been queued.')
-    } catch (error) {
-      logApiError('admin-applications', `/applications/${selectedApplication}/conditional-offer/`, error)
-      showError('Failed to generate offer', toError(error).message || 'Unable to generate conditional offer.')
-    }
-  }, [selectedApplication, showSuccess, showError])
-
-  const handleGenerateFinanceReceipt = useCallback(async () => {
-    if (!selectedApplication) return
-    
-    setModalLoading(prev => ({ ...prev, receipt: true }))
-    try {
-      await applicationService.generateFinanceReceipt(selectedApplication)
-      showSuccess('Finance receipt generated', 'The finance receipt has been generated and sent to the student.')
-    } catch (error) {
-      logApiError('admin-applications', `/applications/${selectedApplication}/finance-receipt/`, error)
-      showError('Failed to generate receipt', toError(error).message || 'Unable to generate finance receipt.')
-    } finally {
-      setModalLoading(prev => ({ ...prev, receipt: false }))
-    }
-  }, [selectedApplication, showSuccess, showError])
-
-  const handleGeneratePaymentReceipt = useCallback(async () => {
-    if (!selectedApplication) return
-    try {
-      await applicationService.generatePaymentReceipt(selectedApplication)
-      showSuccess('Payment receipt generated', 'The official payment receipt has been queued.')
-    } catch (error) {
-      logApiError('admin-applications', `/applications/${selectedApplication}/payment-receipt/`, error)
-      showError('Failed to generate receipt', toError(error).message || 'Unable to generate payment receipt.')
-    }
-  }, [selectedApplication, showSuccess, showError])
 
   const handleRefresh = useCallback(async () => {
     await refreshCurrentPage()
@@ -706,7 +641,7 @@ export default function Applications() {
         },
       ]}
       actions={
-        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+        <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-2 sm:w-auto">
           {/* View Toggle */}
           <div className="hidden sm:flex items-center bg-muted rounded-lg p-1">
             <button
@@ -948,11 +883,6 @@ export default function Applications() {
           onViewHistory={handleViewHistory}
           onUpdateStatus={handleStatusUpdate as (id: string, status: string, options?: { notes?: string; force?: boolean }) => Promise<unknown>}
           onPaymentStatusUpdate={handlePaymentStatusUpdate}
-          onGenerateAcceptanceLetter={handleGenerateAcceptanceLetter}
-          onGenerateApplicationSlip={handleGenerateApplicationSlip}
-          onGenerateConditionalOffer={handleGenerateConditionalOffer}
-          onGenerateFinanceReceipt={handleGenerateFinanceReceipt}
-          onGeneratePaymentReceipt={handleGeneratePaymentReceipt}
         />
       </div>
     </PageShell>

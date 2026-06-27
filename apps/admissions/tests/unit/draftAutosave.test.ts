@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  buildDuplicateDraftConflictDecision,
   buildServerDraftPayload,
   canCreateServerDraft,
+  shouldClearDuplicateDraftConflict,
 } from '@/pages/student/applicationWizard/lib/draftAutosave'
 import type { WizardFormData } from '@/pages/student/applicationWizard/types'
 
@@ -73,5 +75,38 @@ describe('draftAutosave', () => {
       institution: 'MIHAS',
       nationality: 'Zambian',
     })
+  })
+
+  it('builds duplicate draft conflicts without silently adopting the existing id', () => {
+    const conflict = buildDuplicateDraftConflictDecision({
+      existingId: ' existing-draft-1 ',
+      program: 'program-1',
+      intake: 'intake-2026-aug',
+    })
+
+    expect(conflict).toMatchObject({
+      existingId: 'existing-draft-1',
+      program: 'program-1',
+      intake: 'intake-2026-aug',
+    })
+    expect(conflict.message).toContain('Continue that draft')
+  })
+
+  it('keeps duplicate conflicts until the student changes program or intake', () => {
+    const conflict = buildDuplicateDraftConflictDecision({
+      existingId: 'existing-draft-1',
+      program: 'program-1',
+      intake: 'intake-2026-aug',
+    })
+
+    expect(shouldClearDuplicateDraftConflict(conflict, completeFormData)).toBe(false)
+    expect(shouldClearDuplicateDraftConflict(conflict, {
+      ...completeFormData,
+      intake: 'intake-2027-jan',
+    })).toBe(true)
+    expect(shouldClearDuplicateDraftConflict(conflict, {
+      ...completeFormData,
+      program: 'program-2',
+    })).toBe(true)
   })
 })

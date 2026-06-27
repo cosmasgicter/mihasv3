@@ -196,7 +196,13 @@ export function TemplatesPanel({ institutionId, templates, onChanged }: Template
                     <Eye className="h-3.5 w-3.5" aria-hidden="true" /> Preview
                   </Button>
                   {template.is_active !== false && (
-                    <Button type="button" size="xs" variant="outline" onClick={() => deactivateMutation.mutate(template.id)}>
+                    <Button
+                      type="button"
+                      size="xs"
+                      variant="outline"
+                      loading={deactivateMutation.isPending && deactivateMutation.variables === template.id}
+                      onClick={() => deactivateMutation.mutate(template.id)}
+                    >
                       Deactivate
                     </Button>
                   )}

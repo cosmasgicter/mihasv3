@@ -63,6 +63,7 @@ import { TenantProgramsPanel } from './TenantProgramsPanel'
 import { TenantStaffPanel } from './TenantStaffPanel'
 import { tenantErrorMessage } from './errors'
 import { ChecklistItem } from './primitives'
+import { pathFor } from '@/routes/routeRegistry'
 
 type TenantFormState = {
   name: string
@@ -250,7 +251,7 @@ export function SuperAdminTenantConsole() {
 
   return (
     <>
-      <Seo title="Tenant Onboarding | Beanola Admissions" description="Manage Beanola client schools, brands, domains, and access." path="/admin/tenants" noindex />
+      <Seo title="Tenant Onboarding | Beanola Admissions" description="Manage Beanola client schools, brands, domains, and access." path={pathFor('admin.tenants')} noindex />
       <PageShell
         title="Tenant onboarding"
         subtitle="Create and configure schools that operate on the Beanola admissions platform."
@@ -258,7 +259,7 @@ export function SuperAdminTenantConsole() {
         maxWidth="full"
       >
         <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
-          <Button type="button" onClick={() => navigate('/admin/tenants/new')}>
+          <Button type="button" onClick={() => navigate(pathFor('admin.tenantOnboarding'))}>
             <Rocket className="h-4 w-4" aria-hidden="true" /> New institution (wizard)
           </Button>
         </div>
@@ -289,7 +290,10 @@ export function SuperAdminTenantConsole() {
                     type="button"
                     size="xs"
                     variant="outline"
-                    loading={deactivateInstitutionMutation.isPending}
+                    loading={
+                      deactivateInstitutionMutation.isPending &&
+                      deactivateInstitutionMutation.variables?.id === selectedTenant.id
+                    }
                     onClick={() => deactivateInstitutionMutation.mutate({ id: selectedTenant.id, isActive: selectedTenant.is_active === false })}
                   >
                     <Power className="h-3.5 w-3.5" aria-hidden="true" />

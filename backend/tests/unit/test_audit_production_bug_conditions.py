@@ -14,7 +14,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 from apps.accounts.authentication import JWTUser
 from apps.accounts.session_views import SessionListView
 from apps.accounts.views import RefreshView
-from apps.applications.views import ApplicationTrackView
+from apps.applications.public_views import ApplicationTrackView
 
 
 # ---------------------------------------------------------------------------

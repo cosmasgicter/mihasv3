@@ -17,7 +17,7 @@
  */
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { GraduationCap, Info } from 'lucide-react'
+import { GraduationCap } from 'lucide-react'
 
 import { SectionCard, StatusBadge } from '@/components/ui'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -25,7 +25,7 @@ import { useCapabilities } from '@/contexts/CapabilityContext'
 import { tenantAdminService } from '@/services/admin/tenants'
 
 import { OfferingsPanel } from './OfferingsPanel'
-import { PanelNoAccess, PanelStateError } from './panelStates'
+import { PanelNoAccess, PanelReadOnlyNotice, PanelStateError } from './panelStates'
 
 export function TenantProgramsPanel({ institutionId }: { institutionId: string }) {
   const { isSuperAdmin, can, canForInstitution } = useCapabilities()
@@ -82,11 +82,10 @@ function ReadOnlyOfferings({ institutionId, canRequest }: { institutionId: strin
         />
       ) : (
         <div className="space-y-3">
-          {canRequest && (
-            <p className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/30 p-3 text-sm text-muted-foreground">
-              <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              Offering changes for your school are requested through your platform administrator. This view is read-only.
-            </p>
+          {canRequest ? (
+            <PanelReadOnlyNotice description="Offering changes for your school are requested through your platform administrator. This view is read-only." />
+          ) : (
+            <PanelReadOnlyNotice description="Program assignment changes are managed by your platform administrator. This view is read-only." />
           )}
           <ul className="space-y-2">
             {offerings.map((offering) => {

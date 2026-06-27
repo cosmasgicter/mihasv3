@@ -40,6 +40,9 @@ const BRAND_PATTERNS = [
   'mihas.edu.zm',
   'mihas.beanola.com',
   'mihas.local',
+  'mihas:',
+  'mihas_',
+  'mihas-',
 ] as const
 
 const SCANNED_EXTENSIONS = /\.(ts|tsx|js|jsx|css|html|md|json)$/

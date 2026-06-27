@@ -5,7 +5,7 @@ os.environ["TESTING"] = "1"
 
 from django.test import SimpleTestCase
 
-from apps.documents.views import MobileMoneyInitiateView
+from apps.documents.mobile_money_views import MobileMoneyInitiateView
 from apps.documents.payment_helpers import _normalize_phone_e164
 
 

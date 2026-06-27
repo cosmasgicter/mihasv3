@@ -17,6 +17,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { pathFor, routeById, studentNavRoutes } from '@/routes/routeRegistry'
 
 const SRC_ROOT = path.resolve(__dirname, '../../src')
 
@@ -33,39 +34,32 @@ describe('Route registration', () => {
   const routeConfigSource = readSource('routes/config.tsx')
 
   it('/student/communications route is registered', () => {
-    expect(routeConfigSource).toContain("'/student/communications'")
+    expect(pathFor('student.communications')).toBe('/student/communications')
   })
 
   it('/student/history route is registered', () => {
-    expect(routeConfigSource).toContain("'/student/history'")
+    expect(pathFor('student.history')).toBe('/student/history')
   })
 
   it('/student/communications is a student-guarded route', () => {
-    // Verify the route has guard: 'student'
-    const commRoutePattern = /path:\s*'\/student\/communications'[^}]*guard:\s*'student'/s
-    expect(commRoutePattern.test(routeConfigSource)).toBe(true)
+    expect(routeById('student.communications').guard).toBe('student')
   })
 
   it('/student/history is a student-guarded route', () => {
-    const historyRoutePattern = /path:\s*'\/student\/history'[^}]*guard:\s*'student'/s
-    expect(historyRoutePattern.test(routeConfigSource)).toBe(true)
+    expect(routeById('student.history').guard).toBe('student')
   })
 
   it('/student/communications is lazy-loaded', () => {
-    const commLazyPattern = /path:\s*'\/student\/communications'[^}]*lazy:\s*true/s
-    expect(commLazyPattern.test(routeConfigSource)).toBe(true)
+    expect(routeConfigSource).toContain("fromRegistry('student.communications', StudentCommunications, { lazy: true })")
   })
 
   it('/student/history is lazy-loaded', () => {
-    const historyLazyPattern = /path:\s*'\/student\/history'[^}]*lazy:\s*true/s
-    expect(historyLazyPattern.test(routeConfigSource)).toBe(true)
+    expect(routeConfigSource).toContain("fromRegistry('student.history', StudentHistory, { lazy: true })")
   })
 
   it('both routes use detail skeleton type', () => {
-    const commSkeletonPattern = /path:\s*'\/student\/communications'[^}]*skeletonType:\s*'detail'/s
-    const historySkeletonPattern = /path:\s*'\/student\/history'[^}]*skeletonType:\s*'detail'/s
-    expect(commSkeletonPattern.test(routeConfigSource)).toBe(true)
-    expect(historySkeletonPattern.test(routeConfigSource)).toBe(true)
+    expect(routeById('student.communications').skeletonType).toBe('detail')
+    expect(routeById('student.history').skeletonType).toBe('detail')
   })
 
   it('StudentCommunications lazy import exists', () => {
@@ -82,36 +76,32 @@ describe('Route registration', () => {
 // ===========================================================================
 
 describe('Navigation links', () => {
-  const sidebarSource = readSource('components/navigation/DesktopSidebar.tsx')
+  const studentNav = studentNavRoutes()
 
   it('DesktopSidebar includes /student/communications link', () => {
-    expect(sidebarSource).toContain("to: '/student/communications'")
+    expect(studentNav.map((route) => route.path)).toContain('/student/communications')
   })
 
   it('DesktopSidebar includes /student/history link', () => {
-    expect(sidebarSource).toContain("to: '/student/history'")
+    expect(studentNav.map((route) => route.path)).toContain('/student/history')
   })
 
   it('Communications link has a label', () => {
-    // Verify the nav item has a label property
-    const commLinkPattern = /to:\s*'\/student\/communications'[^}]*label:\s*'[^']+'/s
-    expect(commLinkPattern.test(sidebarSource)).toBe(true)
+    expect(routeById('student.communications').nav?.label).toBe('Communications')
   })
 
   it('History link has a label', () => {
-    const historyLinkPattern = /to:\s*'\/student\/history'[^}]*label:\s*'[^']+'/s
-    expect(historyLinkPattern.test(sidebarSource)).toBe(true)
+    expect(routeById('student.history').nav?.label).toBe('Activity History')
   })
 
   it('Communications link is in the studentLinks array', () => {
-    // Verify it's part of the student navigation, not admin
-    const studentLinksBlock = sidebarSource.match(/const studentLinks[^=]*=\s*\[([\s\S]*?)\]/)?.[1] ?? ''
-    expect(studentLinksBlock).toContain('/student/communications')
+    expect(routeById('student.communications').nav?.section).toBe('student')
+    expect(routeById('student.communications').nav?.desktop).toBe(true)
   })
 
   it('History link is in the studentLinks array', () => {
-    const studentLinksBlock = sidebarSource.match(/const studentLinks[^=]*=\s*\[([\s\S]*?)\]/)?.[1] ?? ''
-    expect(studentLinksBlock).toContain('/student/history')
+    expect(routeById('student.history').nav?.section).toBe('student')
+    expect(routeById('student.history').nav?.desktop).toBe(true)
   })
 })
 

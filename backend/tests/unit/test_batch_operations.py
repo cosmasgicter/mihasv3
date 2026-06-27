@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
-from apps.applications.views import ApplicationBulkStatusView
+from apps.applications.admin_bulk_views import ApplicationBulkStatusView
 
 
 def _admin(uid=None):

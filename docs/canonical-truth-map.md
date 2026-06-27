@@ -6,6 +6,16 @@ and platform identity; MIHAS, KATC, and any future school are tenants, never
 platform identity.** Every domain concept has exactly one source of truth; every
 other reference is a consumer. Drift-guard tests catch divergence at CI time.
 
+## Active Alignment Spec
+
+The active cleanup authority for completing the remaining multi-tenant
+alignment work is `.kiro/specs/canonical-multi-tenant-alignment/`. That spec
+preserves the completed foundations from the prior multi-tenant, enterprise
+tenant authority, production-readiness, single-source-of-truth, and duplicate
+consolidation specs, but it is the current implementation brief for removing
+remaining route drift, document-flow drift, draft lifecycle ambiguity, legacy
+branding, and compatibility-only duplication.
+
 **Rule:** Any new domain concept added to the platform must register in this map
 before merging. If it has a frontend mirror, a drift-guard test is required (see
 "No New Mirrors Without Guard" below).
@@ -48,6 +58,9 @@ drift guard" note must say so.
 | Concept | Source of truth | Consumers (drift-guarded) |
 |---------|-----------------|----------------------------|
 | Status enum & transitions | `backend/apps/applications/services.py:ALLOWED_TRANSITIONS` | `apps/admissions/src/types/applicationStatus.ts` |
+| Online student drafts | `backend/apps/applications/models.py:Application` rows where `status='draft'` | Student dashboard draft list (`GET /api/v1/applications/?mine=true&status=draft`), wizard resume/update/delete (`GET/PATCH/DELETE /api/v1/applications/{id}/`), uploads, grades, payment protection. `Application.id` is the canonical draft id. |
+| Compatibility draft payload | `backend/apps/applications/models.py:ApplicationDraft` + `ApplicationDraftView` (`/api/v1/applications/draft/`) | Compatibility/cache metadata only. Not the canonical online draft list and not a production wizard routing source. Removal condition: all frontend callers use explicit `Application(status='draft')` multi-draft APIs. |
+| Wizard draft intent | Frontend route registry helpers for `/student/application-wizard?mode=new` and `/student/application-wizard?mode=resume&draftId=<application_id>` | Legacy `?new=true`, `?fresh=1`, and `/student/applications/new` normalize to `mode=new`; no silent timestamp-based resume or duplicate `existing_id` adoption. |
 | Status UI labels/badges | `apps/admissions/src/lib/applicationStatusUi.ts` | (consumers via import) |
 | Terminal statuses | `apps/admissions/src/types/applicationStatus.ts:TERMINAL_STATUSES` | `backend/apps/applications/duplicate_checker.py:TERMINAL_STATUSES` |
 | Withdrawal eligibility | `apps/admissions/src/lib/withdrawalEligibility.ts:canWithdraw` | `backend/tests/unit/test_withdrawal_eligibility.py` |

@@ -66,16 +66,23 @@ import { DashboardSkeleton, SectionCard, StatusBadge } from '@/components/ui'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageShell } from '@/components/ui/PageShell'
 import { useCapabilities } from '@/contexts/CapabilityContext'
+import { pathFor } from '@/routes/routeRegistry'
 import { toast } from '@/hooks/useToast'
 import { userService } from '@/services/admin/users'
 import {
   tenantAdminService,
+  type TenantAsset,
+  type TenantDocumentProfile,
   type TenantDomain,
   type TenantInstitution,
+  type TenantMembership,
+  type TenantOffering,
+  type TenantReadinessItem,
 } from '@/services/admin/tenants'
 
 import { tenantErrorMessage } from './errors'
 import { TENANT_SELECT_CLASS } from './primitives'
+import { domainStatusLabel, domainStatusTone } from './domainStatus'
 
 // --- Step model -------------------------------------------------------------
 
@@ -113,6 +120,17 @@ const STEPS: StepDef[] = [
 // `tenant.*` mutation capabilities in `AdminCapabilityService` (the serializer
 // allowlist: view/review/manage/verify_documents/verify_payments/export).
 const TENANT_ADMIN_PERMISSIONS = ['manage', 'review', 'verify_documents', 'verify_payments', 'export']
+const ONBOARDING_DRAFT_KEY = 'beanolaTenantOnboardingDraft:v1'
+
+const READINESS_ICONS: Record<string, LucideIcon> = {
+  logo: ImageIcon,
+  signature: ImageIcon,
+  document_profile: FileStack,
+  program_offering: GraduationCap,
+  tenant_admin: UserPlus,
+  domain_configured: Globe2,
+  active_domain: ShieldCheck,
+}
 
 // --- Profile form -----------------------------------------------------------
 
@@ -257,42 +275,6 @@ function CountNote({ count, singular, plural }: { count: number; singular: strin
   )
 }
 
-function domainStatusTone(status?: string | null): 'neutral' | 'info' | 'warning' | 'success' | 'muted' {
-  switch (status) {
-    case 'active':
-      return 'success'
-    case 'verified':
-      return 'info'
-    case 'pending_review':
-      return 'info'
-    case 'failed':
-      return 'warning'
-    case 'disabled':
-      return 'muted'
-    default:
-      return 'neutral'
-  }
-}
-
-function domainStatusLabel(status?: string | null): string {
-  switch (status) {
-    case 'pending_dns':
-      return 'Pending DNS'
-    case 'pending_review':
-      return 'Pending review'
-    case 'verified':
-      return 'Verified'
-    case 'active':
-      return 'Active'
-    case 'failed':
-      return 'Failed'
-    case 'disabled':
-      return 'Disabled'
-    default:
-      return status ? String(status) : 'Unknown'
-  }
-}
-
 // --- Main wizard ------------------------------------------------------------
 
 export function TenantOnboardingWizard() {
@@ -316,7 +298,9 @@ export function TenantOnboardingWizard() {
   const [inviteDraft, setInviteDraft] = useState({ full_name: '', email: '', phone: '', password: '' })
   const [inviteCompleted, setInviteCompleted] = useState(false)
   const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [brandingAssetType, setBrandingAssetType] = useState<'logo' | 'signature'>('logo')
   const [createdDomain, setCreatedDomain] = useState<TenantDomain | null>(null)
+  const restoredDraftRef = useRef(false)
 
   const profileDirty = JSON.stringify(profile) !== savedProfile
   const draftDirty =
@@ -331,6 +315,41 @@ export function TenantOnboardingWizard() {
   const guardRef = useRef(guardActive)
   guardRef.current = guardActive
 
+  useEffect(() => {
+    if (restoredDraftRef.current || typeof window === 'undefined') return
+    restoredDraftRef.current = true
+    try {
+      const raw = window.localStorage.getItem(ONBOARDING_DRAFT_KEY)
+      if (!raw) return
+      const draft = JSON.parse(raw) as {
+        stepIndex?: number
+        reachedIndex?: number
+        institutionId?: string | null
+        profile?: ProfileForm
+        savedProfile?: string
+        hostnameDraft?: string
+        templateDraft?: typeof templateDraft
+        documentDraft?: typeof documentDraft
+        inviteDraft?: typeof inviteDraft
+        inviteCompleted?: boolean
+        createdDomain?: TenantDomain | null
+      }
+      if (typeof draft.stepIndex === 'number') setStepIndex(Math.min(Math.max(draft.stepIndex, 0), STEPS.length - 1))
+      if (typeof draft.reachedIndex === 'number') setReachedIndex(Math.min(Math.max(draft.reachedIndex, 0), STEPS.length - 1))
+      if (draft.institutionId) setInstitutionId(draft.institutionId)
+      if (draft.profile) setProfile({ ...EMPTY_PROFILE, ...draft.profile })
+      if (typeof draft.savedProfile === 'string') setSavedProfile(draft.savedProfile)
+      if (typeof draft.hostnameDraft === 'string') setHostnameDraft(draft.hostnameDraft)
+      if (draft.templateDraft) setTemplateDraft((prev) => ({ ...prev, ...draft.templateDraft }))
+      if (draft.documentDraft) setDocumentDraft((prev) => ({ ...prev, ...draft.documentDraft }))
+      if (draft.inviteDraft) setInviteDraft((prev) => ({ ...prev, ...draft.inviteDraft }))
+      if (typeof draft.inviteCompleted === 'boolean') setInviteCompleted(draft.inviteCompleted)
+      if (draft.createdDomain) setCreatedDomain(draft.createdDomain)
+    } catch {
+      window.localStorage.removeItem(ONBOARDING_DRAFT_KEY)
+    }
+  }, [])
+
   // beforeunload guard while onboarding is in progress (mirrors student forms).
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -341,6 +360,41 @@ export function TenantOnboardingWizard() {
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (completed) {
+      window.localStorage.removeItem(ONBOARDING_DRAFT_KEY)
+      return
+    }
+    const draft = {
+      stepIndex,
+      reachedIndex,
+      institutionId,
+      profile,
+      savedProfile,
+      hostnameDraft,
+      templateDraft,
+      documentDraft,
+      inviteDraft,
+      inviteCompleted,
+      createdDomain,
+    }
+    window.localStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(draft))
+  }, [
+    completed,
+    createdDomain,
+    documentDraft,
+    hostnameDraft,
+    institutionId,
+    inviteCompleted,
+    inviteDraft,
+    profile,
+    reachedIndex,
+    savedProfile,
+    stepIndex,
+    templateDraft,
+  ])
 
   const invalidateTenants = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['admin', 'tenants'] })
@@ -371,6 +425,21 @@ export function TenantOnboardingWizard() {
   const membershipsQuery = useQuery({
     queryKey: ['admin', 'tenants', 'memberships', institutionId],
     queryFn: () => tenantAdminService.listMemberships(institutionId!),
+    enabled: Boolean(institutionId),
+  })
+  const assetsQuery = useQuery({
+    queryKey: ['admin', 'tenants', 'assets', institutionId],
+    queryFn: () => tenantAdminService.listAssets(institutionId!),
+    enabled: Boolean(institutionId),
+  })
+  const profilesQuery = useQuery({
+    queryKey: ['admin', 'tenants', 'document-profiles', institutionId],
+    queryFn: () => tenantAdminService.listDocumentProfiles(institutionId!),
+    enabled: Boolean(institutionId),
+  })
+  const readinessQuery = useQuery({
+    queryKey: ['admin', 'tenants', 'readiness', institutionId],
+    queryFn: () => tenantAdminService.getReadiness(institutionId!),
     enabled: Boolean(institutionId),
   })
 
@@ -408,13 +477,14 @@ export function TenantOnboardingWizard() {
   })
 
   const uploadLogoMutation = useMutation({
-    mutationFn: (file: File) => tenantAdminService.uploadAsset(institutionId!, { asset_type: 'logo', file }),
+    mutationFn: (file: File) => tenantAdminService.uploadAsset(institutionId!, { asset_type: brandingAssetType, file }),
     onSuccess: () => {
       setLogoFile(null)
       invalidateTenants()
-      toast.success('Logo uploaded')
+      assetsQuery.refetch()
+      toast.success(`${brandingAssetType === 'logo' ? 'Logo' : 'Signature'} uploaded`)
     },
-    onError: (error) => toast.error(tenantErrorMessage(error, 'Logo was not uploaded')),
+    onError: (error) => toast.error(tenantErrorMessage(error, 'Branding asset was not uploaded')),
   })
 
   const createDomainMutation = useMutation({
@@ -522,14 +592,14 @@ export function TenantOnboardingWizard() {
       const ok = window.confirm('Onboarding is in progress. Leave the wizard? Saved steps are kept; unsaved input on this step is discarded.')
       if (!ok) return
     }
-    navigate('/admin/tenants')
+    navigate(pathFor('admin.tenants'))
   }, [navigate])
 
   const finishToConsole = useCallback(() => {
     setCompleted(true)
     // Ensure the list is fresh before the console mounts.
     invalidateTenants()
-    navigate('/admin/tenants')
+    navigate(pathFor('admin.tenants'))
   }, [invalidateTenants, navigate])
 
   const handleProfileSubmit = (event: FormEvent) => {
@@ -557,7 +627,7 @@ export function TenantOnboardingWizard() {
     // Non-super-admin: clear no-access state, no tenant data (R11.5).
     return (
       <>
-        <Seo title="Tenant onboarding | Beanola Admissions" description="Onboard a new tenant." path="/admin/tenants/new" noindex />
+        <Seo title="Tenant onboarding | Beanola Admissions" description="Onboard a new tenant." path={pathFor('admin.tenantOnboarding')} noindex />
         <PageShell title="Tenant onboarding" tone="admin" maxWidth="2xl">
           <EmptyState
             icon={<ShieldCheck />}
@@ -574,28 +644,55 @@ export function TenantOnboardingWizard() {
   const domains = domainsQuery.data || []
   const templates = templatesQuery.data || []
   const requiredDocuments = documentsQuery.data || []
-  const offerings = offeringsQuery.data || []
-  const memberships = membershipsQuery.data || []
+  const offerings = (offeringsQuery.data || []) as TenantOffering[]
+  const memberships = (membershipsQuery.data || []) as TenantMembership[]
+  const assets = (assetsQuery.data || []) as TenantAsset[]
+  const documentProfiles = (profilesQuery.data || []) as TenantDocumentProfile[]
   const savingProfile = createInstitutionMutation.isPending || updateInstitutionMutation.isPending
+  const hasActiveAsset = (assetType: string) =>
+    assets.some(asset => asset.asset_type === assetType && asset.is_active !== false)
+  const hasActiveLogo = hasActiveAsset('logo')
+  const hasActiveSignature = hasActiveAsset('signature')
+  const hasDocumentProfile = documentProfiles.some(profile => profile.is_active !== false)
+  const hasOffering = offerings.some(offering => offering.is_active !== false && (offering.offering_status ?? 'active') === 'active')
+  const hasTenantAdmin = inviteCompleted || memberships.some(member => member.role === 'admin' && member.is_active !== false)
+  const localReadiness = [
+    { icon: ImageIcon, label: 'Logo asset', value: hasActiveLogo ? 'Active logo configured' : 'Upload an active logo', ok: hasActiveLogo, required: true },
+    { icon: ImageIcon, label: 'Signature asset', value: hasActiveSignature ? 'Active signature configured' : 'Upload an active signature', ok: hasActiveSignature, required: true },
+    { icon: FileStack, label: 'Document profile', value: hasDocumentProfile ? `${documentProfiles.length} profile version${documentProfiles.length === 1 ? '' : 's'}` : 'Configure at least one document profile', ok: hasDocumentProfile, required: true },
+    { icon: GraduationCap, label: 'Program offerings', value: hasOffering ? `${offerings.length} active` : 'Assign at least one active offering', ok: hasOffering, required: true },
+    { icon: UserPlus, label: 'Tenant admin', value: hasTenantAdmin ? 'Scoped admin available' : 'Invite or scope a tenant admin', ok: hasTenantAdmin, required: true },
+  ]
+  const backendReadiness = readinessQuery.data
+  const readiness = backendReadiness?.items?.length
+    ? backendReadiness.items.map((item: TenantReadinessItem) => ({
+      icon: READINESS_ICONS[item.key] || ListChecks,
+      label: item.label,
+      value: item.message,
+      ok: item.ready,
+      required: item.blocking,
+    }))
+    : localReadiness
+  const launchReady = backendReadiness?.launch_ready ?? localReadiness.every(item => item.ok)
 
   return (
     <>
-      <Seo title="Tenant onboarding | Beanola Admissions" description="Onboard and activate a new Beanola tenant." path="/admin/tenants/new" noindex />
+      <Seo title="Tenant onboarding | Beanola Admissions" description="Onboard and activate a new Beanola tenant." path={pathFor('admin.tenantOnboarding')} noindex />
       <PageShell
         title="Tenant onboarding wizard"
         subtitle={institutionId ? `Configuring ${tenantName}` : 'Create and activate a new school on the Beanola admissions platform.'}
         tone="admin"
         maxWidth="full"
       >
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
             <StatusBadge
               tone={institutionId ? 'success' : 'neutral'}
               label={institutionId ? 'Tenant created' : 'Not yet created'}
             />
             {completed && <StatusBadge tone="success" label="Onboarding complete" />}
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={exitToConsole}>
+          <Button type="button" variant="outline" size="sm" onClick={exitToConsole} className="w-full sm:w-auto">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to console
           </Button>
         </div>
@@ -651,7 +748,7 @@ export function TenantOnboardingWizard() {
 
                   {step.key === 'branding' && (
                     <>
-                      <StepHeading title="Branding" description="Portal colours and logo. Falls back to neutral Beanola branding until set — never another school's identity." />
+                      <StepHeading title="Branding" description="Portal colours plus logo and signature assets. Official documents omit missing assets rather than borrowing another school's identity." />
                       <div className="grid gap-4 md:grid-cols-2">
                         <label className="space-y-1.5">
                           <span className="text-sm font-medium text-foreground">Primary colour</span>
@@ -667,17 +764,35 @@ export function TenantOnboardingWizard() {
                           Save colours
                         </Button>
                       </div>
-                      <div className="space-y-2 rounded-lg border border-border bg-background p-3">
-                        <p className="text-sm font-medium text-foreground">Logo</p>
+                      <div className="space-y-3 rounded-lg border border-border bg-background p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-sm font-medium text-foreground">Official document assets</p>
+                          <div className="flex flex-wrap gap-2">
+                            <StatusBadge tone={hasActiveLogo ? 'success' : 'neutral'} label={hasActiveLogo ? 'Logo ready' : 'Logo missing'} />
+                            <StatusBadge tone={hasActiveSignature ? 'success' : 'neutral'} label={hasActiveSignature ? 'Signature ready' : 'Signature missing'} />
+                          </div>
+                        </div>
+                        <label className="space-y-1.5 text-sm">
+                          <span className="font-medium text-foreground">Asset type</span>
+                          <select
+                            value={brandingAssetType}
+                            onChange={(event) => setBrandingAssetType(event.target.value as 'logo' | 'signature')}
+                            className={TENANT_SELECT_CLASS}
+                            aria-label="Branding asset type"
+                          >
+                            <option value="logo">Logo</option>
+                            <option value="signature">Signature</option>
+                          </select>
+                        </label>
                         <input
                           type="file"
                           accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                          aria-label="Logo file"
+                          aria-label="Branding asset file"
                           onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)}
                           className="block w-full text-sm text-muted-foreground file:mr-3 file:min-h-touch file:rounded-md file:border file:border-input file:bg-muted file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground"
                         />
                         <Button type="button" size="sm" loading={uploadLogoMutation.isPending} disabled={!logoFile} onClick={() => logoFile && uploadLogoMutation.mutate(logoFile)}>
-                          <ImageIcon className="h-4 w-4" aria-hidden="true" /> Upload logo
+                          <ImageIcon className="h-4 w-4" aria-hidden="true" /> Upload {brandingAssetType}
                         </Button>
                       </div>
                     </>
@@ -922,14 +1037,15 @@ export function TenantOnboardingWizard() {
 
                   {step.key === 'review' && (
                     <>
-                      <StepHeading title="Review & activate" description="Confirm the configuration, activate a verified domain, then finish. Everything is already persisted — finishing just returns you to the console." />
+                      <StepHeading title="Review & activate" description="Confirm launch-critical configuration, activate a verified domain when available, then finish. DNS activation can happen later; launch readiness cannot." />
                       <dl className="grid gap-3 sm:grid-cols-2">
                         <ReviewRow icon={Building2} label="Institution" value={tenantName} ok={Boolean(institutionId)} />
                         <ReviewRow icon={Globe2} label="Domains" value={`${domains.length} added`} ok={domains.length > 0} />
                         <ReviewRow icon={LayoutTemplate} label="Templates" value={`${templates.length} configured`} ok={templates.length > 0} />
                         <ReviewRow icon={ListChecks} label="Required documents" value={`${requiredDocuments.length} configured`} ok={requiredDocuments.length > 0} />
-                        <ReviewRow icon={GraduationCap} label="Program offerings" value={`${offerings.length} assigned`} ok={offerings.length > 0} />
-                        <ReviewRow icon={UserPlus} label="Tenant admin" value={inviteCompleted ? 'Created & scoped' : 'Not created'} ok={inviteCompleted} />
+                        {readiness.map(item => (
+                          <ReviewRow key={item.label} icon={item.icon} label={item.label} value={item.value} ok={item.ok} required={item.required} />
+                        ))}
                       </dl>
 
                       <div className="space-y-2 rounded-lg border border-border bg-background p-3">
@@ -957,7 +1073,7 @@ export function TenantOnboardingWizard() {
                                       size="sm"
                                       variant="outline"
                                       disabled={!isVerified}
-                                      loading={activateDomainMutation.isPending}
+                                      loading={activateDomainMutation.isPending && activateDomainMutation.variables === domain.id}
                                       onClick={() => activateDomainMutation.mutate(domain.id)}
                                     >
                                       <ShieldCheck className="h-4 w-4" aria-hidden="true" />
@@ -975,8 +1091,14 @@ export function TenantOnboardingWizard() {
                         )}
                       </div>
 
+                      {!launchReady && (
+                        <div className="rounded-lg border border-warning/25 bg-warning/5 p-3 text-sm text-foreground" role="alert">
+                          Complete the required readiness items before finishing onboarding. Pending DNS activation is allowed; missing branding, document profiles, offerings, or tenant-admin scope is not.
+                        </div>
+                      )}
+
                       <div className="flex justify-end">
-                        <Button type="button" onClick={finishToConsole}>
+                        <Button type="button" onClick={finishToConsole} disabled={!launchReady} className="w-full sm:w-auto">
                           <Check className="h-4 w-4" aria-hidden="true" /> Finish onboarding
                         </Button>
                       </div>
@@ -1004,7 +1126,7 @@ export function TenantOnboardingWizard() {
   )
 }
 
-function ReviewRow({ icon: Icon, label, value, ok }: { icon: LucideIcon; label: string; value: string; ok: boolean }) {
+function ReviewRow({ icon: Icon, label, value, ok, required = false }: { icon: LucideIcon; label: string; value: string; ok: boolean; required?: boolean }) {
   return (
     <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-foreground">
@@ -1014,7 +1136,7 @@ function ReviewRow({ icon: Icon, label, value, ok }: { icon: LucideIcon; label: 
         <p className="text-sm font-medium text-foreground">{label}</p>
         <p className="break-words text-xs text-muted-foreground">{value}</p>
       </div>
-      <StatusBadge tone={ok ? 'success' : 'neutral'} label={ok ? 'Ready' : 'Optional'} />
+      <StatusBadge tone={ok ? 'success' : required ? 'warning' : 'neutral'} label={ok ? 'Ready' : required ? 'Required' : 'Optional'} />
     </div>
   )
 }

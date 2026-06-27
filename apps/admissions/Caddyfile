@@ -83,8 +83,11 @@
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
 
+	@fonts path /fonts/*
+	header @fonts Cache-Control "public, max-age=31536000, immutable"
+
 	@html {
-		not path /assets/* /images/* /favicon.ico /robots.txt /sitemap.xml
+		not path /assets/* /fonts/* /images/* /favicon.ico /robots.txt /sitemap.xml
 	}
 	header @html Cache-Control "no-cache, must-revalidate"
 

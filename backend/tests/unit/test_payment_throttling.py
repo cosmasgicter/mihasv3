@@ -6,7 +6,8 @@ os.environ["TESTING"] = "1"
 from django.test import SimpleTestCase
 
 from apps.common.throttling import PaymentUserScopedRateThrottle
-from apps.documents.views import PaymentVerifyThrottle, PaymentVerifyView
+from apps.documents.payment_query_views import PaymentVerifyView
+from apps.documents.throttles import PaymentVerifyThrottle
 
 
 class TestPaymentVerifyThrottle(SimpleTestCase):

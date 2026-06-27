@@ -30,6 +30,7 @@ interface UseWizardProfileAutoPopulateParams {
   authLoading: boolean
   restoringDraft: boolean
   draftLoaded: boolean
+  allowAfterDraftLoaded?: boolean
   getValues: UseFormGetValues<WizardFormData>
   setValue: UseFormSetValue<WizardFormData>
 }
@@ -44,11 +45,12 @@ export function useWizardProfileAutoPopulate({
   authLoading,
   restoringDraft,
   draftLoaded,
+  allowAfterDraftLoaded = false,
   getValues,
   setValue,
 }: UseWizardProfileAutoPopulateParams) {
   useEffect(() => {
-    if (user && !authLoading && !restoringDraft && !draftLoaded) {
+    if (user && !authLoading && !restoringDraft && (!draftLoaded || allowAfterDraftLoaded)) {
       const metadata = getUserMetadata(user)
       const email = user.email || ''
       const setIfEmpty = (field: keyof WizardFormData, value: string) => {
@@ -108,6 +110,7 @@ export function useWizardProfileAutoPopulate({
     profile?.next_of_kin_name,
     profile?.next_of_kin_phone,
     authLoading,
+    allowAfterDraftLoaded,
     draftLoaded,
     getValues,
     restoringDraft,

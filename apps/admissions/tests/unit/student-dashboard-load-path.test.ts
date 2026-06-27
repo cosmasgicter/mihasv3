@@ -21,6 +21,15 @@ describe('student dashboard load path', () => {
     expect(dashboardContent).toContain('void catalogService.getIntakes()')
   })
 
+  it('refreshes dashboard cards after draft create, update, delete, or store revision changes', () => {
+    expect(dashboardContent).toContain("window.addEventListener('draftCleared', handleDraftCleared)")
+    expect(dashboardContent).toContain("window.addEventListener('applicationUpdated', handleReload)")
+    expect(dashboardContent).toContain("window.addEventListener('applicationCreated', handleReload)")
+    expect(dashboardContent).toContain('const draftRevision = useDraftRevision()')
+    expect(dashboardContent).toContain('scheduleDashboardReload()')
+    expect(dashboardContent).toContain('removeDraftsFromApplicationCaches(queryClient, cleanIds)')
+  })
+
   it('keeps dashboard speculative prefetch focused on the wizard route', () => {
     const onDashboardMountBlock = prefetchContent.slice(
       prefetchContent.indexOf('export function onDashboardMount'),

@@ -12,7 +12,7 @@ from apps.documents.fee_waiver_service import (
     FeeWaiverError,
     FeeWaiverService,
 )
-from apps.applications.views import ApplicationFeeWaiverView
+from apps.applications.admin_assignment_views import ApplicationFeeWaiverView
 
 
 _AO = "apps.applications.views.Application.objects"

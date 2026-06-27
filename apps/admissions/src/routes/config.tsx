@@ -4,6 +4,17 @@ import LandingPage from '@/pages/LandingPage'
 // Special components that don't need lazy loading
 import { DashboardRedirect } from '@/components/DashboardRedirect'
 import { Navigate } from 'react-router-dom'
+import {
+  CANONICAL_ADMIN_DASHBOARD_PATH,
+  CANONICAL_SIGN_IN_PATH,
+  CANONICAL_STUDENT_DASHBOARD_PATH,
+  pathFor,
+  routeById,
+  studentApplicationNewPath,
+  type ProductRouteId,
+  type RouteGuard,
+  type SkeletonType,
+} from './routeRegistry'
 
 // Lazy load secondary routes for optimal code splitting.
 // Keep the landing page in the entry build so the first visit can paint
@@ -44,11 +55,6 @@ const PublicApplicationTracker = React.lazy(() => import('@/pages/public/tracker
 const ContactPage = React.lazy(() => import('@/pages/ContactPage'))
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage'))
 
-export type RouteGuard = 'public' | 'auth' | 'student' | 'admin'
-
-/** Skeleton type used as Suspense fallback for lazy-loaded routes */
-export type SkeletonType = 'dashboard' | 'wizard' | 'admin-table' | 'auth' | 'detail' | 'none'
-
 export interface RouteConfig {
   path: string
   element: React.ComponentType | React.ReactElement
@@ -66,67 +72,82 @@ export interface RouteConfig {
   requiresSuperAdmin?: boolean
 }
 
+function fromRegistry(
+  id: ProductRouteId,
+  element: React.ComponentType | React.ReactElement,
+  options: { lazy?: boolean; path?: string } = {},
+): RouteConfig {
+  const route = routeById(id)
+  return {
+    path: options.path ?? route.path,
+    element,
+    guard: route.guard,
+    lazy: options.lazy,
+    skeletonType: route.skeletonType,
+    requiresSuperAdmin: route.requiresSuperAdmin,
+  }
+}
+
 export const routes: RouteConfig[] = [
   // Public routes
-  { path: '/', element: LandingPage, guard: 'public' },
-  { path: '/track-application', element: PublicApplicationTracker, guard: 'public', lazy: true, skeletonType: 'detail' },
-  { path: '/contact', element: ContactPage, guard: 'public', lazy: true, skeletonType: 'none' },
-  { path: '/terms', element: TermsPage, guard: 'public', lazy: true, skeletonType: 'none' },
-  { path: '/privacy', element: PrivacyPage, guard: 'public', lazy: true, skeletonType: 'none' },
-  { path: '/auth/signin', element: SignInPage, guard: 'public', lazy: true, skeletonType: 'auth' },
-  { path: '/signin', element: SignInPage, guard: 'public', lazy: true, skeletonType: 'auth' },
-  { path: '/login', element: SignInPage, guard: 'public', lazy: true, skeletonType: 'auth' },
-  { path: '/auth/signup', element: SignUpPage, guard: 'public', lazy: true, skeletonType: 'auth' },
-  { path: '/auth/forgot-password', element: ForgotPasswordPage, guard: 'public', lazy: true, skeletonType: 'auth' },
-  { path: '/auth/reset-password', element: ResetPasswordPage, guard: 'public', lazy: true, skeletonType: 'auth' },
-  { path: '/auth/callback', element: AuthCallbackPage, guard: 'public', lazy: true, skeletonType: 'auth' },
-  { path: '/payment/callback', element: PaymentCallback, guard: 'public', lazy: true, skeletonType: 'detail' },
+  fromRegistry('public.home', LandingPage),
+  fromRegistry('public.trackApplication', PublicApplicationTracker, { lazy: true }),
+  fromRegistry('public.contact', ContactPage, { lazy: true }),
+  fromRegistry('public.terms', TermsPage, { lazy: true }),
+  fromRegistry('public.privacy', PrivacyPage, { lazy: true }),
+  fromRegistry('auth.signIn', SignInPage, { lazy: true }),
+  ...(routeById('auth.signIn').aliases ?? []).map((path) => fromRegistry('auth.signIn', SignInPage, { lazy: true, path })),
+  fromRegistry('auth.signUp', SignUpPage, { lazy: true }),
+  fromRegistry('auth.forgotPassword', ForgotPasswordPage, { lazy: true }),
+  fromRegistry('auth.resetPassword', ResetPasswordPage, { lazy: true }),
+  fromRegistry('auth.callback', AuthCallbackPage, { lazy: true }),
+  fromRegistry('payment.callback', PaymentCallback, { lazy: true }),
   
   // Dashboard redirect (no lazy loading needed)
-  { path: '/dashboard', element: <DashboardRedirect />, guard: 'public' },
+  fromRegistry('dashboard.redirect', <DashboardRedirect />),
   
   // Student routes
-  { path: '/student/dashboard', element: StudentDashboard, guard: 'student', lazy: true, skeletonType: 'dashboard' },
-  { path: '/apply', element: ApplicationWizard, guard: 'student', lazy: true, skeletonType: 'wizard' },
-  { path: '/student/application-wizard', element: ApplicationWizard, guard: 'student', lazy: true, skeletonType: 'wizard' },
+  fromRegistry('student.dashboard', StudentDashboard, { lazy: true }),
+  fromRegistry('student.applicationWizard', ApplicationWizard, { lazy: true }),
+  fromRegistry('student.applicationWizard', ApplicationWizard, { lazy: true, path: '/apply' }),
   // Legacy aliases — keep old bookmarks and outbound links working.
-  { path: '/student/applications/new', element: <Navigate to="/student/application-wizard?new=true" replace />, guard: 'student' },
-  { path: '/student/applications', element: <Navigate to="/student/dashboard" replace />, guard: 'student' },
-  { path: '/student/application-status', element: <Navigate to="/student/status" replace />, guard: 'student' },
-  { path: '/student/status', element: ApplicationStatus, guard: 'student', lazy: true, skeletonType: 'detail' },
-  { path: '/application/:id', element: ApplicationStatus, guard: 'student', lazy: true, skeletonType: 'detail' },
-  { path: '/student/application/:id/status', element: ApplicationStatus, guard: 'student', lazy: true, skeletonType: 'detail' },
-  { path: '/student/application/:id', element: ApplicationDetail, guard: 'student', lazy: true, skeletonType: 'detail' },
-  { path: '/settings', element: <Navigate to="/student/settings" replace />, guard: 'student' },
-  { path: '/student/profile', element: <Navigate to="/student/settings" replace />, guard: 'student' },
-  { path: '/student/profile/edit', element: <Navigate to="/student/settings" replace />, guard: 'student' },
-  { path: '/student/settings', element: StudentSettings, guard: 'student', lazy: true, skeletonType: 'detail' },
-  { path: '/student/notifications', element: StudentNotificationSettings, guard: 'student', lazy: true, skeletonType: 'detail' },
-  { path: '/student/payment', element: StudentPayment, guard: 'student', lazy: true, skeletonType: 'detail' },
-  { path: '/student/payments', element: <Navigate to="/student/payment" replace />, guard: 'student' },
-  { path: '/student/interview', element: StudentInterview, guard: 'student', lazy: true, skeletonType: 'detail' },
-  { path: '/student/interviews', element: <Navigate to="/student/interview" replace />, guard: 'student' },
-  { path: '/student/communications', element: StudentCommunications, guard: 'student', lazy: true, skeletonType: 'detail' },
-  { path: '/student/history', element: StudentHistory, guard: 'student', lazy: true, skeletonType: 'detail' },
+  { path: '/student/applications/new', element: <Navigate to={studentApplicationNewPath()} replace />, guard: 'student' },
+  { path: '/student/applications', element: <Navigate to={CANONICAL_STUDENT_DASHBOARD_PATH} replace />, guard: 'student' },
+  { path: '/student/application-status', element: <Navigate to={pathFor('student.status')} replace />, guard: 'student' },
+  fromRegistry('student.status', ApplicationStatus, { lazy: true }),
+  fromRegistry('student.status', ApplicationStatus, { lazy: true, path: '/application/:id' }),
+  fromRegistry('student.status', ApplicationStatus, { lazy: true, path: '/student/application/:id/status' }),
+  fromRegistry('student.applicationDetail', ApplicationDetail, { lazy: true }),
+  { path: '/settings', element: <Navigate to={pathFor('student.settings')} replace />, guard: 'student' },
+  { path: '/student/profile', element: <Navigate to={pathFor('student.settings')} replace />, guard: 'student' },
+  { path: '/student/profile/edit', element: <Navigate to={pathFor('student.settings')} replace />, guard: 'student' },
+  fromRegistry('student.settings', StudentSettings, { lazy: true }),
+  fromRegistry('student.notifications', StudentNotificationSettings, { lazy: true }),
+  fromRegistry('student.payment', StudentPayment, { lazy: true }),
+  { path: '/student/payments', element: <Navigate to={pathFor('student.payment')} replace />, guard: 'student' },
+  fromRegistry('student.interview', StudentInterview, { lazy: true }),
+  { path: '/student/interviews', element: <Navigate to={pathFor('student.interview')} replace />, guard: 'student' },
+  fromRegistry('student.communications', StudentCommunications, { lazy: true }),
+  fromRegistry('student.history', StudentHistory, { lazy: true }),
   
   // Admin routes
-  { path: '/admin', element: AdminDashboard, guard: 'admin', lazy: true, skeletonType: 'dashboard' },
-  { path: '/admin/dashboard', element: AdminDashboard, guard: 'admin', lazy: true, skeletonType: 'dashboard' },
-  { path: '/admin/profile', element: AdminSettings, guard: 'admin', lazy: true, skeletonType: 'detail', requiresSuperAdmin: true },
-  { path: '/admin/applications', element: AdminApplications, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
-  { path: '/admin/programs', element: AdminPrograms, guard: 'admin', lazy: true, skeletonType: 'admin-table', requiresSuperAdmin: true },
-  { path: '/admin/tenants', element: AdminTenants, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
+  fromRegistry('admin.home', AdminDashboard, { lazy: true }),
+  fromRegistry('admin.dashboard', AdminDashboard, { lazy: true }),
+  fromRegistry('admin.profile', AdminSettings, { lazy: true }),
+  fromRegistry('admin.applications', AdminApplications, { lazy: true }),
+  fromRegistry('admin.programs', AdminPrograms, { lazy: true }),
+  fromRegistry('admin.tenants', AdminTenants, { lazy: true }),
   // Super-admin-only tenant onboarding wizard. The frontend guard blocks
   // tenant-admin deep-links as a usability layer; the backend re-enforces every
   // mutation the wizard performs (enterprise-tenant-authority R13.5, R14.1).
-  { path: '/admin/tenants/new', element: AdminTenantOnboarding, guard: 'admin', lazy: true, skeletonType: 'admin-table', requiresSuperAdmin: true },
-  { path: '/admin/intakes', element: AdminIntakes, guard: 'admin', lazy: true, skeletonType: 'admin-table', requiresSuperAdmin: true },
-  { path: '/admin/users', element: AdminUsers, guard: 'admin', lazy: true, skeletonType: 'admin-table' },
-  { path: '/admin/audit', element: AuditTrail, guard: 'admin', lazy: true, skeletonType: 'admin-table', requiresSuperAdmin: true },
-  { path: '/admin/program-fees', element: AdminProgramFees, guard: 'admin', lazy: true, skeletonType: 'admin-table', requiresSuperAdmin: true },
-  { path: '/admin/settings', element: AdminSettings, guard: 'admin', lazy: true, skeletonType: 'detail', requiresSuperAdmin: true },
+  fromRegistry('admin.tenantOnboarding', AdminTenantOnboarding, { lazy: true }),
+  fromRegistry('admin.intakes', AdminIntakes, { lazy: true }),
+  fromRegistry('admin.users', AdminUsers, { lazy: true }),
+  fromRegistry('admin.audit', AuditTrail, { lazy: true }),
+  fromRegistry('admin.programFees', AdminProgramFees, { lazy: true }),
+  fromRegistry('admin.settings', AdminSettings, { lazy: true }),
   
   // 404 routes
-  { path: '/404', element: NotFoundPage, guard: 'public', lazy: true, skeletonType: 'none' },
-  { path: '*', element: <Navigate to="/404" replace />, guard: 'public' },
+  fromRegistry('notFound', NotFoundPage, { lazy: true }),
+  { path: '*', element: <Navigate to={pathFor('notFound')} replace />, guard: 'public' },
 ]

@@ -29,7 +29,9 @@ import { toError } from '@/lib/toError'
 import {
   OFFICIAL_DOC_MAX_POLLS,
   OFFICIAL_DOC_POLL_INTERVAL_MS,
+  OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE,
   deriveOfficialDocumentUiState,
+  isOfficialDocumentSetupRequiredError,
   type OfficialDocumentUiState,
 } from '@/hooks/useOfficialDocument'
 import {
@@ -87,6 +89,7 @@ export interface UseAdminOfficialDocumentsResult {
 export function useAdminOfficialDocuments(applicationId: string): UseAdminOfficialDocumentsResult {
   const [latestByType, setLatestByType] = useState<Record<string, OfficialDocumentStatus>>({})
   const [statusByType, setStatusByType] = useState<Record<string, OfficialDocumentGenerationStatus>>({})
+  const [setupRequiredByType, setSetupRequiredByType] = useState<Record<string, boolean>>({})
   const [inflightType, setInflightType] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -143,7 +146,7 @@ export function useAdminOfficialDocuments(applicationId: string): UseAdminOffici
         if (mountedRef.current) {
           setStatusByType((prev) => ({ ...prev, [documentType]: next }))
         }
-        if (next === 'ready' || next === 'failed') return next
+        if (next === 'ready' || next === 'failed' || next === 'setup_required') return next
       }
       return 'failed'
     },
@@ -155,6 +158,7 @@ export function useAdminOfficialDocuments(applicationId: string): UseAdminOffici
       if (inflightType) return false
       setInflightType(documentType)
       setLoadError(null)
+      setSetupRequiredByType((prev) => ({ ...prev, [documentType]: false }))
       try {
         const generated = await officialDocumentService.generateOfficialDocument(applicationId, documentType)
         let current: OfficialDocumentGenerationStatus = generated?.status ?? 'failed'
@@ -165,6 +169,10 @@ export function useAdminOfficialDocuments(applicationId: string): UseAdminOffici
         if (current === 'queued') {
           current = await pollUntilSettled(documentType)
         }
+        if (mountedRef.current && current === 'setup_required') {
+          setSetupRequiredByType((prev) => ({ ...prev, [documentType]: true }))
+          setLoadError(OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE)
+        }
 
         // Always reconcile with the authoritative backend list afterwards so
         // the panel reflects the stored record (R17.4), not a transient guess.
@@ -172,8 +180,14 @@ export function useAdminOfficialDocuments(applicationId: string): UseAdminOffici
         return current === 'ready'
       } catch (err) {
         if (mountedRef.current) {
+          const requiresSetup = isOfficialDocumentSetupRequiredError(err)
           setStatusByType((prev) => ({ ...prev, [documentType]: 'failed' }))
-          setLoadError(toError(err).message || 'Unable to generate the document')
+          setSetupRequiredByType((prev) => ({ ...prev, [documentType]: requiresSetup }))
+          setLoadError(
+            requiresSetup
+              ? OFFICIAL_DOCUMENT_SETUP_REQUIRED_MESSAGE
+              : toError(err).message || 'Unable to generate the document',
+          )
         }
         return false
       } finally {
@@ -209,11 +223,15 @@ export function useAdminOfficialDocuments(applicationId: string): UseAdminOffici
         type,
         label,
         latest,
-        uiState: deriveOfficialDocumentUiState(inflight, backendStatus),
+        uiState: deriveOfficialDocumentUiState(
+          inflight,
+          backendStatus,
+          setupRequiredByType[type] ?? false,
+        ),
         isBusy: inflight,
       }
     })
-  }, [inflightType, latestByType, statusByType])
+  }, [inflightType, latestByType, setupRequiredByType, statusByType])
 
   return {
     rows,

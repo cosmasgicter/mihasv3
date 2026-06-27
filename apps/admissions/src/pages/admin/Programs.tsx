@@ -327,14 +327,14 @@ export default function AdminPrograms() {
           { label: 'Catalog state', value: loading ? 'Loading' : state.error ? 'Needs attention' : 'Healthy', helper: state.error || 'Catalog is ready for review and edits' },
         ]}
         actions={
-          <div className="flex items-center gap-2">
-            <Link to="/admin">
-              <Button variant="ghost" size="sm">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <Link to="/admin" className="w-full sm:w-auto">
+              <Button variant="ghost" size="sm" className="w-full sm:w-auto">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
             </Link>
-            <Button onClick={primaryActionHandler}>
+            <Button onClick={primaryActionHandler} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               {primaryActionLabel}
             </Button>

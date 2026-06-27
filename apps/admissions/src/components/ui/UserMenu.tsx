@@ -83,7 +83,11 @@ export function UserMenu() {
           <img
             src={profile.avatar_url}
             alt={`Profile photo for ${fullName}`}
+            width={32}
+            height={32}
             className="w-8 h-8 rounded-full border border-border"
+            loading="lazy"
+            decoding="async"
             onError={() => setAvatarError(true)}
           />
         ) : (

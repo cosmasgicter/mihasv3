@@ -16,7 +16,7 @@
 import { Building2, Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
-import { SectionCard, StatusBadge } from '@/components/ui'
+import { StatusBadge } from '@/components/ui'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import type { TenantInstitution } from '@/services/admin/tenants'
 
@@ -93,11 +93,11 @@ export function TenantListPanel({
             </button>
           ))}
           {!isLoading && institutions.length === 0 && (
-            <SectionCard padding="sm">
+            <div className="rounded-lg border border-dashed border-border bg-muted/20 p-4">
               <p className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Building2 className="h-4 w-4" aria-hidden="true" /> No schools have been onboarded yet.
               </p>
-            </SectionCard>
+            </div>
           )}
         </div>
       )}

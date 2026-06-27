@@ -174,7 +174,12 @@ class ApplicationStatusHistory(models.Model):
 
 
 class ApplicationDraft(models.Model):
-    """Maps to 'application_drafts' table. Stores wizard draft state for in-progress applications."""
+    """Deprecated compatibility cache for wizard payloads.
+
+    Canonical online drafts are ``Application`` rows with ``status='draft'``.
+    This unmanaged table may store a recoverable wizard snapshot linked to an
+    application, but it must not drive multi-draft routing or business logic.
+    """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey('accounts.Profile', on_delete=models.CASCADE)

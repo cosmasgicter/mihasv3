@@ -6,6 +6,7 @@ import { InstitutionScopeProvider } from '@/contexts/InstitutionScopeContext'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { GuardInlineSkeleton } from '@/components/ui/GuardInlineSkeleton'
 import { startLoaderTelemetry } from '@/lib/loaderTelemetry'
+import { pathFor } from '@/routes/routeRegistry'
 
 interface AdminRouteProps {
   children: React.ReactNode
@@ -33,7 +34,7 @@ function RequireSuperAdmin({ children }: { children: React.ReactNode }) {
   // Non-revealing block: redirect to the admin dashboard rather than disclosing
   // the existence or shape of the super-admin-only surface.
   if (!isSuperAdmin) {
-    return <Navigate to="/admin/dashboard" replace />
+    return <Navigate to={pathFor('admin.dashboard')} replace />
   }
 
   return <>{children}</>
@@ -66,11 +67,11 @@ export function AdminRoute({ children, requireSuperAdmin = false }: AdminRoutePr
   }
 
   if (!user) {
-    return <Navigate to="/auth/signin" state={{ from: location }} replace />
+    return <Navigate to={pathFor('auth.signIn')} state={{ from: location }} replace />
   }
 
   if (!isAdmin) {
-    return <Navigate to="/student/dashboard" replace />
+    return <Navigate to={pathFor('student.dashboard')} replace />
   }
 
   const content = requireSuperAdmin ? (

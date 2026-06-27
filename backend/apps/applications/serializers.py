@@ -9,6 +9,7 @@ from datetime import date
 
 from dateutil.relativedelta import relativedelta
 from drf_spectacular.utils import extend_schema_field
+from django.utils import timezone
 from rest_framework import serializers
 
 from apps.applications.models import (
@@ -463,6 +464,23 @@ class ApplicationSerializer(ApplicationPaymentSummaryMixin, serializers.ModelSer
 
         return fields
 
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.updated_at = timezone.now()
+        try:
+            instance.version = int(getattr(instance, "version", 0) or 0) + 1
+        except (TypeError, ValueError):
+            instance.version = 1
+
+        update_fields = list(validated_data.keys())
+        for field_name in ("updated_at", "version"):
+            if field_name not in update_fields:
+                update_fields.append(field_name)
+        instance.save(update_fields=update_fields)
+        return instance
+
     def get_payment_verified_by_name(self, obj) -> str | None:
         verifier = getattr(obj, "payment_verified_by", None)
         if verifier is None:
@@ -798,7 +816,7 @@ class ApplicationTrackingSerializer(serializers.ModelSerializer):
 
 
 class ApplicationDraftSerializer(serializers.ModelSerializer):
-    """Draft auto-save serializer."""
+    """Deprecated compatibility serializer for wizard snapshot payloads."""
 
     application_id = serializers.UUIDField(read_only=True, allow_null=True)
     user_id = serializers.UUIDField(read_only=True)

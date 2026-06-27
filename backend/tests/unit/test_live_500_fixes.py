@@ -22,7 +22,7 @@ django.setup()
 from django.test import SimpleTestCase
 from rest_framework.test import APIRequestFactory
 
-from apps.applications.views import ApplicationReviewView
+from apps.applications.admin_review_views import ApplicationReviewView
 
 
 @pytest.fixture(autouse=True)

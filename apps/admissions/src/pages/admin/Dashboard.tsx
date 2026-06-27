@@ -254,14 +254,14 @@ export default function AdminDashboard() {
           { label: 'System health', value: stats.systemHealth, helper: `${stats.activeUsers} active users online` },
         ]}
         actions={(
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
             <InstitutionSwitcher />
             <Button
               variant="outline"
               size="sm"
               onClick={handleManualRefresh}
               disabled={refreshing}
-              className="flex items-center gap-2 min-h-[44px]"
+              className="flex min-h-[44px] w-full items-center gap-2 sm:w-auto"
               loading={refreshing}
             >
               {!refreshing && <RefreshCw className="h-4 w-4" />}
@@ -382,10 +382,10 @@ export default function AdminDashboard() {
             className="mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 sm:p-5"
             role="alert"
           >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-start gap-3 sm:items-center">
                 <AlertTriangle className="h-6 w-6 text-destructive flex-shrink-0" aria-hidden="true" />
-                <div className="text-sm sm:text-base text-destructive font-medium">
+                <div className="min-w-0 break-words text-sm font-medium text-destructive sm:text-base">
                   <strong>Error:</strong> {error}
                 </div>
               </div>
@@ -400,7 +400,7 @@ export default function AdminDashboard() {
                   void loadDashboardStats('manual')
                 }}
                 disabled={refreshing}
-                className="min-h-[44px]"
+                className="min-h-[44px] w-full sm:w-auto"
               >
                 Retry now
               </Button>

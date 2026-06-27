@@ -329,13 +329,14 @@ export default function StudentDashboard() {
     return { profileCompletion: completion, profileMissingFields: missing, firstName: name?.split(' ')[0] || 'Student' }
   }, [profile, metadata, user])
 
-  const { submittedApplications, totalDraftCount, hasPendingPayment } = useMemo(() => {
+  const { submittedApplications, totalDraftCount, hasPendingPayment, latestDraftId } = useMemo(() => {
     const draftApps = applications.filter(app => app.status === 'draft')
     const submittedApps = sortApplicationsByActivity(applications.filter(app => app.status !== 'draft'))
+    const latestDraft = sortApplicationsByActivity(draftApps)[0]
     const hasLocalOnly = hasDraft && draftApps.length === 0
     const draftCount = draftApps.length + (hasLocalOnly ? 1 : 0)
     const pendingPayment = applications.some(app => requiresStudentPaymentAction(app.payment_status))
-    return { submittedApplications: submittedApps, totalDraftCount: draftCount, hasPendingPayment: pendingPayment }
+    return { submittedApplications: submittedApps, totalDraftCount: draftCount, hasPendingPayment: pendingPayment, latestDraftId: latestDraft?.id ?? null }
   }, [applications, hasDraft])
 
   const hasScheduledInterview = scheduledInterviews.length > 0
@@ -440,6 +441,7 @@ export default function StudentDashboard() {
                 hasScheduledInterview={hasScheduledInterview}
                 scheduledInterviewsCount={scheduledInterviews.length}
                 submittedCount={submittedApplications.length}
+                latestDraftId={latestDraftId}
               />
             </ErrorBoundary>
             </StaggerItem>

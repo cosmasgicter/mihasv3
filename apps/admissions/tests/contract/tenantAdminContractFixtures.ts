@@ -272,15 +272,15 @@ export const TENANT_ADMIN_ENDPOINTS: readonly TenantAdminEndpointFixture[] = [
 
   // 3. offerings and rules
   aligned(
-    '/api/v1/catalog/programs/',
-    '/api/v1/catalog/programs/',
+    '/api/v1/admin/institutions/{id}/programs/',
+    '/api/v1/admin/institutions/{}/programs/',
     'offerings-rules',
     offeringFields,
     true
   ),
   aligned(
-    '/api/v1/catalog/programs/{id}/',
-    '/api/v1/catalog/programs/{}/',
+    '/api/v1/admin/institutions/{id}/programs/{id}/',
+    '/api/v1/admin/institutions/{}/programs/{}/',
     'offerings-rules',
     offeringFields,
     false

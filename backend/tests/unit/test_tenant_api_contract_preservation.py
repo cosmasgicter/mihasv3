@@ -66,6 +66,9 @@ from apps.catalog.admin_views import (
     AdminTenantDomainDetailView,
     AdminTenantDomainListCreateView,
     AdminTenantListCreateView,
+    AdminTenantProgramDetailView,
+    AdminTenantProgramListView,
+    AdminTenantReadinessView,
     AdminTenantRequiredDocumentDetailView,
     AdminTenantRequiredDocumentListCreateView,
     AdminTenantTemplateDetailView,
@@ -115,12 +118,24 @@ from apps.documents.payment_query_views import PaymentSettlementSummaryView
             AdminTenantDetailView,
         ),
         (
+            f"/api/v1/admin/institutions/{uuid.uuid4()}/readiness/",
+            AdminTenantReadinessView,
+        ),
+        (
             f"/api/v1/admin/institutions/{uuid.uuid4()}/domains/",
             AdminTenantDomainListCreateView,
         ),
         (
             f"/api/v1/admin/institutions/{uuid.uuid4()}/domains/{uuid.uuid4()}/",
             AdminTenantDomainDetailView,
+        ),
+        (
+            f"/api/v1/admin/institutions/{uuid.uuid4()}/programs/",
+            AdminTenantProgramListView,
+        ),
+        (
+            f"/api/v1/admin/institutions/{uuid.uuid4()}/programs/{uuid.uuid4()}/",
+            AdminTenantProgramDetailView,
         ),
         (
             f"/api/v1/admin/institutions/{uuid.uuid4()}/assets/",
@@ -199,8 +214,11 @@ from apps.documents.payment_query_views import PaymentSettlementSummaryView
         "catalog-institution-detail",
         "admin-institutions",
         "admin-institution-detail",
+        "admin-institution-readiness",
         "admin-institution-domains",
         "admin-institution-domain-detail",
+        "admin-institution-programs",
+        "admin-institution-program-detail",
         "admin-institution-assets",
         "admin-institution-asset-upload",
         "admin-institution-asset-detail",

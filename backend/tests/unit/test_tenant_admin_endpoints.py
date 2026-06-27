@@ -33,10 +33,11 @@ from __future__ import annotations
 import uuid
 
 import pytest
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from apps.accounts.authentication import JWTUser
-from apps.catalog.models import InstitutionDomain, Program
+from apps.catalog.models import InstitutionAsset, InstitutionDocumentProfile, InstitutionDomain, Program
 from apps.documents.models import ProgramFee
 from apps.catalog.services import AccessScopeService
 from tests.tenant_fixtures import (
@@ -96,6 +97,83 @@ def _super_admin():
 
 
 _INSTITUTIONS = "/api/v1/admin/institutions/"
+
+
+# ---------------------------------------------------------------------------
+# Tenant readiness aggregate
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestTenantReadinessEndpoint:
+    """Canonical onboarding readiness is derived from tenant source tables."""
+
+    def test_super_admin_reads_launch_ready_tenant(self):
+        world = build_tenant_world(with_application=False)
+        now = timezone.now()
+        InstitutionAsset.objects.create(
+            institution=world.institution,
+            asset_type="logo",
+            storage_key="tenants/logo.png",
+            public_url="https://cdn.example/logo.png",
+            mime_type="image/png",
+            checksum_sha256="a" * 64,
+            is_active=True,
+            created_at=now,
+        )
+        InstitutionAsset.objects.create(
+            institution=world.institution,
+            asset_type="signature",
+            storage_key="tenants/signature.png",
+            public_url="https://cdn.example/signature.png",
+            mime_type="image/png",
+            checksum_sha256="b" * 64,
+            is_active=True,
+            created_at=now,
+        )
+        InstitutionDocumentProfile.objects.create(
+            institution=world.institution,
+            document_type="acceptance_letter",
+            layout_key="fee_chart_letter",
+            sections={"body": "Welcome {{student_name}}"},
+            fee_chart=[],
+            bank_accounts=[],
+            requirements=[],
+            signatory={"name": "Registrar"},
+            is_active=True,
+            created_at=now,
+            updated_at=now,
+        )
+        build_institution_domain(
+            institution=world.institution,
+            hostname="apply-ready.example",
+            status=InstitutionDomain.STATUS_ACTIVE,
+        )
+
+        response = _client_for(_super_admin()).get(
+            f"/api/v1/admin/institutions/{world.institution.id}/readiness/"
+        )
+
+        assert response.status_code == 200, response.content
+        body = response.json()["data"]
+        assert body["launch_ready"] is True
+        items = {item["key"]: item for item in body["items"]}
+        assert items["logo"]["ready"] is True
+        assert items["signature"]["ready"] is True
+        assert items["document_profile"]["ready"] is True
+        assert items["program_offering"]["ready"] is True
+        assert items["tenant_admin"]["ready"] is True
+        assert items["active_domain"]["ready"] is True
+
+    def test_scoped_admin_cannot_read_other_tenant_readiness(self):
+        own = build_tenant_world(with_application=False, suffix="ready-own")
+        other = build_tenant_world(with_application=False, suffix="ready-other")
+        client = _client_for(own.staff)
+
+        response = client.get(f"/api/v1/admin/institutions/{other.institution.id}/readiness/")
+
+        assert response.status_code == 404
+        assert response.json()["code"] == "NOT_FOUND"
 
 
 # ---------------------------------------------------------------------------
@@ -232,6 +310,49 @@ class TestHostnameCollisionValidation:
         # case duplicate falls through to the serializer's case-insensitive
         # ``validate_hostname`` ("...already in use."). Both are descriptive.
         assert "already" in str(body["details"]["hostname"]).lower()
+
+    def test_domain_list_exposes_lifecycle_fields(self):
+        institution = build_institution()
+        domain = build_institution_domain(
+            institution=institution,
+            hostname="pending.school.edu",
+            status=InstitutionDomain.STATUS_PENDING_DNS,
+            verification_token="verify-token",
+            dns_target="abc.verify.beanola.com",
+            last_error="DNS record has not propagated.",
+        )
+        client = _client_for(_super_admin())
+
+        response = client.get(f"{_INSTITUTIONS}{institution.id}/domains/")
+
+        assert response.status_code == 200, response.content
+        row = next(item for item in _rows(response.json()) if item["id"] == str(domain.id))
+        assert row["status"] == "pending_dns"
+        assert row["verification_token"] == "verify-token"
+        assert row["dns_target"] == "abc.verify.beanola.com"
+        assert row["last_error"] == "DNS record has not propagated."
+
+    def test_deactivate_active_domain_moves_to_disabled_status(self):
+        institution = build_institution()
+        domain = build_institution_domain(
+            institution=institution,
+            hostname="active.school.edu",
+            status=InstitutionDomain.STATUS_ACTIVE,
+            is_active=True,
+        )
+        client = _client_for(_super_admin())
+
+        response = client.patch(
+            f"{_INSTITUTIONS}{institution.id}/domains/{domain.id}/",
+            data={"is_active": False},
+            format="json",
+        )
+
+        assert response.status_code == 200, response.content
+        assert response.json()["data"]["status"] == "disabled"
+        domain.refresh_from_db()
+        assert domain.status == InstitutionDomain.STATUS_DISABLED
+        assert domain.is_active is False
 
     def test_hostname_collision_is_case_insensitive(self):
         institution = build_institution()
@@ -529,6 +650,40 @@ class TestLegacyCatalogTenantIsolation:
         assert world_b.offering_id not in _ids(own.json())
         assert other.status_code == 200, other.content
         assert _ids(other.json()) == set()
+
+    def test_super_admin_updates_offering_rules_through_tenant_admin_endpoint(self, two_tenant_worlds):
+        world_a, _world_b = two_tenant_worlds
+        client = _client_for(_super_admin())
+
+        response = client.patch(
+            f"{_INSTITUTIONS}{world_a.institution.id}/programs/{world_a.offering.id}/",
+            data={
+                "assignment_priority": 7,
+                "offering_status": "paused",
+                "assignment_rules": {"allowed_countries": ["Zambia"]},
+            },
+            format="json",
+        )
+
+        assert response.status_code == 200, response.content
+        world_a.offering.refresh_from_db()
+        assert world_a.offering.assignment_priority == 7
+        assert world_a.offering.offering_status == "paused"
+        assert world_a.offering.assignment_rules == {"allowed_countries": ["Zambia"]}
+
+    def test_tenant_admin_cannot_mutate_offering_rules_through_tenant_admin_endpoint(self, two_tenant_worlds):
+        world_a, _world_b = two_tenant_worlds
+        client = _client_for(world_a.staff)
+
+        response = client.patch(
+            f"{_INSTITUTIONS}{world_a.institution.id}/programs/{world_a.offering.id}/",
+            data={"assignment_priority": 1},
+            format="json",
+        )
+
+        assert response.status_code == 403, response.content
+        world_a.offering.refresh_from_db()
+        assert world_a.offering.assignment_priority != 1
 
     def test_request_change_capability_does_not_authorize_real_program_mutation(self, two_tenant_worlds):
         world_a, _world_b = two_tenant_worlds

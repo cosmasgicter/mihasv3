@@ -12,11 +12,8 @@ import requests
 from django.test import SimpleTestCase, override_settings
 from rest_framework.test import APIRequestFactory, force_authenticate
 
-from apps.documents.views import (
-    DeferPaymentView,
-    MobileMoneyInitiateView,
-    PaymentInitiateView,
-)
+from apps.documents.mobile_money_views import MobileMoneyInitiateView
+from apps.documents.payment_widget_views import DeferPaymentView, PaymentInitiateView
 from apps.documents.webhook_processor import WebhookProcessor
 
 

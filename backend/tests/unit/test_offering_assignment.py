@@ -212,6 +212,25 @@ class TestRuleEvaluation:
         with pytest.raises(OfferingAssignmentError):
             _assign_world(world)
 
+    def test_frontend_rule_builder_keys_are_honoured(self, tenant_world_factory):
+        """The tenant UI writes ``allowed_*`` / ``blocked_*`` keys; assignment
+        must treat them as canonical aliases for the legacy rule names."""
+        blocked = tenant_world_factory(
+            suffix="ui-blocked",
+            assignment_rules={"blocked_countries": ["Zambia"]},
+            residency_rules=None,
+        )
+        with pytest.raises(OfferingAssignmentError):
+            _assign_world(blocked)
+
+        allowed = tenant_world_factory(
+            suffix="ui-allowed",
+            assignment_rules={"allowed_countries": ["Zambia"]},
+            residency_rules=None,
+        )
+        result = _assign_world(allowed)
+        assert result.offering.id == allowed.offering.id
+
     def test_rule_matching_is_case_insensitive(self, tenant_world_factory):
         """Rule values are matched case-insensitively against the applicant."""
         world = tenant_world_factory(residency_rules={"exclude_countries": ["zambia"]})

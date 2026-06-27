@@ -241,16 +241,16 @@ export default function AdminSettings() {
           { label: 'State', value: loading ? 'Loading' : state.error ? 'Needs attention' : 'Ready', helper: state.error || state.success || 'Settings layer is healthy' },
         ]}
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Link to="/admin">
-              <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
+            <Link to="/admin" className="w-full sm:w-auto">
+              <Button variant="ghost" size="sm" className="w-full sm:w-auto"><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>
             </Link>
-            <Button onClick={() => dispatch({ type: 'TOGGLE_SHOW_ADD_FORM' })} variant="outline" size="sm">
+            <Button onClick={() => dispatch({ type: 'TOGGLE_SHOW_ADD_FORM' })} variant="outline" size="sm" className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />{state.showAddForm ? 'Hide Advanced Key' : 'New Advanced Key'}
             </Button>
-            <Button onClick={exportSettings} variant="outline" size="sm">Export</Button>
-            <label className="cursor-pointer">
-              <span className="inline-flex h-9 items-center justify-center rounded-lg border border-input bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted">Import</span>
+            <Button onClick={exportSettings} variant="outline" size="sm" className="w-full sm:w-auto">Export</Button>
+            <label className="w-full cursor-pointer sm:w-auto">
+              <span className="inline-flex min-h-touch w-full items-center justify-center rounded-lg border border-input bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted sm:w-auto">Import</span>
               <input type="file" accept=".json" onChange={handleImport} className="hidden" />
             </label>
           </div>

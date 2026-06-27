@@ -19,25 +19,14 @@ import { designTokens } from '@/design-system/tokens'
 import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils'
 import { cn } from '@/lib/utils'
 import {
-  Home,
-  FileText,
-  Bell,
-  Settings,
-  LayoutDashboard,
-  Users,
-  CreditCard,
-  Calendar,
-  GraduationCap,
-  FileSearch,
-  DollarSign,
   LogOut,
   UserCircle2,
-  BriefcaseBusiness,
 } from 'lucide-react'
 import { toError } from '@/lib/toError'
 import { useTenantNavItem } from './tenantNav'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { filterAdminNavItems } from './adminNavAccess'
+import { pathFor, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -45,66 +34,73 @@ interface AppLayoutProps {
 
 /** Map route paths to human-readable page titles for the mobile header */
 const pageTitles: Record<string, string> = {
-  '/student/dashboard': 'Dashboard',
-  '/student/application-wizard': 'Application',
+  [pathFor('student.dashboard')]: 'Dashboard',
+  [pathFor('student.applicationWizard')]: 'Application',
   '/apply': 'Application',
-  '/student/payment': 'Payment',
-  '/student/interview': 'Interview',
-  '/student/settings': 'Settings',
-  '/student/notifications': 'Notifications',
-  '/student/status': 'Application Status',
-  '/admin/dashboard': 'Admin Dashboard',
-  '/admin/applications': 'Applications',
-  '/admin/users': 'Users',
-  '/admin/tenants': 'Tenants',
-  '/admin/programs': 'Programs',
-  '/admin/intakes': 'Intakes',
-  '/admin/audit': 'Audit Trail',
-  '/admin/program-fees': 'Program Fees',
-  '/admin/settings': 'Settings',
+  [pathFor('student.payment')]: 'Payment',
+  [pathFor('student.interview')]: 'Interview',
+  [pathFor('student.settings')]: 'Settings',
+  [pathFor('student.notifications')]: 'Notifications',
+  [pathFor('student.status')]: 'Application Status',
+  [pathFor('admin.dashboard')]: 'Admin Dashboard',
+  [pathFor('admin.applications')]: 'Applications',
+  [pathFor('admin.users')]: 'Users',
+  [pathFor('admin.tenants')]: 'Tenants',
+  [pathFor('admin.programs')]: 'Programs',
+  [pathFor('admin.intakes')]: 'Intakes',
+  [pathFor('admin.audit')]: 'Audit Trail',
+  [pathFor('admin.programFees')]: 'Program Fees',
+  [pathFor('admin.settings')]: 'Settings',
 }
 
 /** Routes that should show a back button on mobile */
 const backRoutes = new Set([
-  '/student/application-wizard',
+  pathFor('student.applicationWizard'),
   '/apply',
-  '/student/payment',
-  '/student/interview',
-  '/student/status',
-  '/admin/applications',
-  '/admin/users',
-  '/admin/tenants',
-  '/admin/programs',
-  '/admin/intakes',
-  '/admin/audit',
-  '/admin/program-fees',
+  pathFor('student.payment'),
+  pathFor('student.interview'),
+  pathFor('student.status'),
+  pathFor('admin.applications'),
+  pathFor('admin.users'),
+  pathFor('admin.tenants'),
+  pathFor('admin.programs'),
+  pathFor('admin.intakes'),
+  pathFor('admin.audit'),
+  pathFor('admin.programFees'),
 ])
+
+const navItemFromRoute = (route: ProductRouteDefinition, labelOverride?: string) => ({
+  href: route.path,
+  label: labelOverride ?? route.nav!.label,
+  icon: route.nav!.icon,
+  activeMatchPaths: route.nav?.activeMatchPaths ?? [],
+})
 
 /** Admin bottom nav items. The tenant item (/admin/tenants) is injected at
  *  render time from the shared capability-gated helper (R13.4). */
 const adminNavItems = [
-  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/applications', label: 'Apps', icon: FileText },
-  { href: '/admin/programs', label: 'Programs', icon: GraduationCap },
-  { href: '/admin/intakes', label: 'Intakes', icon: Calendar },
-  { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/program-fees', label: 'Fees', icon: DollarSign },
-  { href: '/admin/audit', label: 'Audit', icon: FileSearch },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
+  navItemFromRoute(routeById('admin.dashboard')),
+  navItemFromRoute(routeById('admin.applications'), 'Apps'),
+  navItemFromRoute(routeById('admin.programs')),
+  navItemFromRoute(routeById('admin.intakes')),
+  navItemFromRoute(routeById('admin.users')),
+  navItemFromRoute(routeById('admin.programFees'), 'Fees'),
+  navItemFromRoute(routeById('admin.audit'), 'Audit'),
+  navItemFromRoute(routeById('admin.settings')),
 ]
 
 /** Student mobile navigation (4 primary + overflow in More menu) */
 const studentNavItems = [
-  { href: '/student/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/student/application-wizard', label: 'Apply', icon: FileText, activeMatchPaths: ['/student/application-wizard', '/apply'] },
-  { href: '/student/payment', label: 'Payment', icon: CreditCard },
-  { href: '/student/interview', label: 'Interview', icon: Calendar },
-  { href: '/student/notifications', label: 'Notifications', icon: Bell, activeMatchPaths: ['/student/notifications'] },
-  { href: '/student/settings', label: 'Profile & Settings', icon: Settings, activeMatchPaths: ['/student/settings', '/student/profile'] },
-  { href: '/student/status', label: 'Application Status', icon: BriefcaseBusiness, activeMatchPaths: ['/student/status'] },
+  navItemFromRoute(routeById('student.dashboard')),
+  navItemFromRoute(routeById('student.applicationWizard')),
+  navItemFromRoute(routeById('student.payment')),
+  navItemFromRoute(routeById('student.interview')),
+  navItemFromRoute(routeById('student.notifications')),
+  navItemFromRoute(routeById('student.settings')),
+  navItemFromRoute(routeById('student.status')),
 ]
 
-const studentLogoutNavItem = { href: '/auth/signin', label: 'Logout', icon: LogOut }
+const studentLogoutNavItem = { href: pathFor('auth.signIn'), label: 'Logout', icon: LogOut }
 
 const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppLayoutProps) {
   const { user, isAdmin } = useAuth()
@@ -141,7 +137,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   const showBack = backRoutes.has(location.pathname) || location.pathname.includes('/application/')
   const handleBack = () => navigate(-1)
   const isStudentRoute = location.pathname.startsWith('/student')
-  const isWizardRoute = location.pathname === '/apply' || location.pathname.startsWith('/student/application-wizard')
+  const isWizardRoute = location.pathname === '/apply' || location.pathname.startsWith(pathFor('student.applicationWizard'))
   const handleSignOut = async () => {
     try {
       await signOut()
@@ -156,7 +152,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
     <div className="flex items-center justify-end gap-1 pr-1">
       <button
         type="button"
-        onClick={() => navigate('/student/settings')}
+        onClick={() => navigate(pathFor('student.settings'))}
         className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-accent"
         aria-label="Open profile settings"
       >
@@ -193,13 +189,14 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
   const resolvedAdminNavItems = (() => {
     const visibleItems = filterAdminNavItems(adminNavItems, caps)
     if (!tenantNavItem) return visibleItems
-    const usersIndex = visibleItems.findIndex((item) => item.href === '/admin/users')
+    const usersIndex = visibleItems.findIndex((item) => item.href === pathFor('admin.users'))
     const insertAt = usersIndex >= 0 ? usersIndex + 1 : visibleItems.length
     const items = [...visibleItems]
     items.splice(insertAt, 0, {
       href: tenantNavItem.to,
       label: tenantNavItem.label,
       icon: tenantNavItem.icon,
+      activeMatchPaths: [],
     })
     return items
   })()
@@ -241,6 +238,7 @@ const AppLayoutContent = React.memo(function AppLayoutContent({ children }: AppL
 
         <main
           id={APP_MAIN_CONTENT_ID}
+          tabIndex={-1}
           className={cn(
             'flex-1 scroll-smooth overflow-x-hidden transition-all duration-300 ease-in-out',
             isWizardRoute ? 'pb-6 md:pb-6' : 'pb-20 md:pb-6'

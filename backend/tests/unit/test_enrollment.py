@@ -7,7 +7,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
 from apps.applications.enrollment_service import EnrollmentError, EnrollmentService
-from apps.applications.views import ApplicationConfirmEnrollmentView
+from apps.applications.student_withdrawal_views import ApplicationConfirmEnrollmentView
 
 
 _ES = "apps.applications.enrollment_service.EnrollmentService.confirm_enrollment"

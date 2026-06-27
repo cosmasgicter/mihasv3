@@ -83,6 +83,21 @@ export interface TenantAsset {
   is_active?: boolean
 }
 
+export interface TenantReadinessItem {
+  key: string
+  label: string
+  ready: boolean
+  count: number
+  blocking: boolean
+  message: string
+}
+
+export interface TenantReadiness {
+  institution_id: string
+  launch_ready: boolean
+  items: TenantReadinessItem[]
+}
+
 export interface TenantTemplate {
   id: string
   institution_id: string
@@ -235,6 +250,7 @@ export interface RoutingSimulationInput {
   country?: string | null
   nationality?: string | null
   institution_id?: string | null
+  host?: string | null
 }
 
 /** Routing decision factors echoed back so an operator can see why an offering won. */
@@ -389,6 +405,16 @@ export const tenantAdminService = {
     const endpoint = `/admin/institutions/${encodeURIComponent(institutionId)}/assets/`
     const response = await apiClient.request<RawList<TenantAsset>>(endpoint)
     return listResult(response).items
+  },
+
+  getReadiness: async (institutionId: string) => {
+    const endpoint = `/admin/institutions/${encodeURIComponent(institutionId)}/readiness/`
+    try {
+      return await apiClient.request<TenantReadiness>(endpoint)
+    } catch (error) {
+      logApiError('admin-tenants', endpoint, error)
+      throw error
+    }
   },
 
   createAsset: async (institutionId: string, data: TenantAssetPayload) =>
@@ -548,19 +574,18 @@ export const tenantAdminService = {
     }
   },
 
-  getOffering: async (offeringId: string) =>
-    apiClient.request<TenantOffering>(`/catalog/programs/${encodeURIComponent(offeringId)}/`),
-
   /**
    * Persist structured routing config (priority, status, country rules) on an
-   * offering. Reuses the existing admin program PATCH endpoint; the structured
-   * builders serialise into `assignment_rules`.
+   * offering through the tenant-scoped admin endpoint. The structured builders
+   * serialise into `assignment_rules`; the backend re-validates that the
+   * offering belongs to the institution in the path.
    */
   updateOfferingRules: async (
+    institutionId: string,
     offeringId: string,
     data: { assignment_priority?: number; offering_status?: string; assignment_rules?: TenantOfferingRules; is_active?: boolean }
   ) =>
-    apiClient.request<TenantOffering>(`/catalog/programs/${encodeURIComponent(offeringId)}/`, {
+    apiClient.request<TenantOffering>(`/admin/institutions/${encodeURIComponent(institutionId)}/programs/${encodeURIComponent(offeringId)}/`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
@@ -603,6 +628,7 @@ export const tenantAdminService = {
           country: optionalString(input.country),
           nationality: optionalString(input.nationality),
           institution_id: optionalString(input.institution_id),
+          host: optionalString(input.host),
         }),
       })
     } catch (error) {

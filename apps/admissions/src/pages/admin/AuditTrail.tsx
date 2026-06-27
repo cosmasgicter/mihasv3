@@ -432,8 +432,8 @@ export default function AuditTrailPage() {
         { label: 'Page', value: `${response?.page || 1}/${response?.totalPages || 1}`, helper: 'Current export and review window' },
       ]}
       actions={
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" size="sm">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
+          <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
             <Link to="/admin">
               <ArrowLeft className="h-4 w-4" />
               Back
@@ -444,6 +444,7 @@ export default function AuditTrailPage() {
             variant="outline"
             size="sm"
             onClick={() => setShowFilters((current) => !current)}
+            className="w-full sm:w-auto"
           >
             <Filter className="h-4 w-4" />
             {showFilters ? 'Hide filters' : 'Show filters'}
@@ -454,6 +455,7 @@ export default function AuditTrailPage() {
             size="sm"
             onClick={() => void loadAuditEntries()}
             loading={loading}
+            className="w-full sm:w-auto"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh
@@ -466,6 +468,7 @@ export default function AuditTrailPage() {
                 size="sm"
                 disabled={!response?.entries.length || Boolean(exportingFormat)}
                 loading={Boolean(exportingFormat)}
+                className="w-full sm:w-auto"
               >
                 <Download className="h-4 w-4" />
                 {exportingFormat ? `Exporting ${exportingFormat.toUpperCase()}` : 'Export'}

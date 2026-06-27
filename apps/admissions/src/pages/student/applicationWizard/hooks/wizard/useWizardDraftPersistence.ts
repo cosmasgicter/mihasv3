@@ -7,7 +7,8 @@ import { logger } from '@/lib/logger'
 import { sanitizeForLog } from '@/lib/security'
 import { applicationService } from '@/services/applications'
 import { isApplicationMissingError } from '@/lib/applicationSession'
-import { cachedSetItem } from '@/lib/localStorageCache'
+import { cachedRemoveItem, cachedSetItem } from '@/lib/localStorageCache'
+import { getLegacyWizardDraftStorageKey, getWizardDraftStorageKey } from '@/lib/draftStorageKeys'
 import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
 import { normalizeResidenceTown } from '@/lib/residenceTown'
 import {
@@ -23,8 +24,10 @@ import {
   resolveDraftResumeStepId,
 } from '../../lib/draftResume'
 import {
+  buildDuplicateDraftConflictDecision,
   buildServerDraftPayload,
   canCreateServerDraft,
+  shouldClearDuplicateDraftConflict,
 } from '../../lib/draftAutosave'
 import type { SubjectGrade, WizardFormData, WizardProgram } from '../../types'
 import type { ApplicationFileType } from '../useApplicationFileUploads'
@@ -38,6 +41,13 @@ import {
 } from './wizardControllerUtils'
 
 import type { SubmittedApplicationSummary } from '../useApplicationSlip'
+
+export interface DuplicateDraftConflict {
+  existingId: string | null
+  program: string
+  intake: string
+  message: string
+}
 
 export interface UseWizardDraftPersistenceParams {
   user: User | null | undefined
@@ -59,6 +69,7 @@ export interface UseWizardDraftPersistenceParams {
   setApplicationId: React.Dispatch<React.SetStateAction<string | null>>
   setRestoringDraft: (value: boolean) => void
   setDraftLoaded: (value: boolean) => void
+  setDuplicateDraftConflict: (value: DuplicateDraftConflict | null) => void
   setGradesHydrating: (value: boolean) => void
   setError: (message: string) => void
   setIsDraftSaving: (value: boolean) => void
@@ -79,6 +90,15 @@ export interface UseWizardDraftPersistenceParams {
   hydrateServerDocuments: (draftApplicationId: string) => Promise<Record<string, boolean>>
 }
 
+function persistWizardDraftSnapshot(snapshot: Record<string, unknown>, userId?: string | null, applicationId?: string | null) {
+  cachedSetItem(getWizardDraftStorageKey(userId, applicationId), JSON.stringify(snapshot))
+  if (applicationId) {
+    cachedRemoveItem(getWizardDraftStorageKey(userId, null))
+  }
+  cachedRemoveItem(getLegacyWizardDraftStorageKey())
+  sessionStorage.removeItem(getLegacyWizardDraftStorageKey())
+}
+
 export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParams) {
   const {
     user,
@@ -97,6 +117,7 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
     setApplicationId,
     setRestoringDraft,
     setDraftLoaded,
+    setDuplicateDraftConflict,
     setGradesHydrating,
     setError,
     setIsDraftSaving,
@@ -122,6 +143,7 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
   const isSavingRef = useRef(false)
   const pendingSaveRef = useRef(false)
   const createBlockedRef = useRef(false)
+  const duplicateConflictRef = useRef<DuplicateDraftConflict | null>(null)
 
   const persistLocalDraftSnapshot = useCallback(() => {
     const draftSnapshot = {
@@ -138,7 +160,7 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
     }
 
     try {
-      cachedSetItem('applicationWizardDraft', JSON.stringify(draftSnapshot))
+      persistWizardDraftSnapshot(draftSnapshot, user?.id, applicationId)
       useDraftStore.getState().markSaved(draftSnapshot)
       window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draftSnapshot }))
     } catch {
@@ -231,7 +253,7 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
       }
 
       try {
-        cachedSetItem('applicationWizardDraft', JSON.stringify(syncDraft))
+        persistWizardDraftSnapshot(syncDraft, user?.id, resolvedDraftId)
         useDraftStore.getState().markSaved(syncDraft)
         window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: syncDraft }))
       } catch {
@@ -283,6 +305,14 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
       setIsDraftSaving(true)
       
       const formData = getValues()
+      const activeConflict = duplicateConflictRef.current
+      if (shouldClearDuplicateDraftConflict(activeConflict, formData)) {
+        duplicateConflictRef.current = null
+        createBlockedRef.current = false
+        setDuplicateDraftConflict(null)
+        setError('')
+      }
+
       const now = new Date().toISOString()
       const draft = {
         formData,
@@ -299,8 +329,7 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
 
       // Always save to localStorage first for reliability (works offline)
       try {
-        cachedSetItem('applicationWizardDraft', JSON.stringify(draft))
-        sessionStorage.removeItem('applicationWizardDraft')
+        persistWizardDraftSnapshot(draft, user.id, applicationId)
         useDraftStore.getState().markSaved(draft)
         window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draft }))
       } catch (error) {
@@ -337,6 +366,9 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
           )
 
           if (app?.id) {
+            duplicateConflictRef.current = null
+            createBlockedRef.current = false
+            setDuplicateDraftConflict(null)
             setApplicationId(app.id)
             const draftWithId = {
               ...draft,
@@ -344,7 +376,7 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
             }
 
             try {
-              cachedSetItem('applicationWizardDraft', JSON.stringify(draftWithId))
+              persistWizardDraftSnapshot(draftWithId, user.id, app.id)
               useDraftStore.getState().markSaved(draftWithId)
               window.dispatchEvent(new CustomEvent('applicationDraftSaved', { detail: draftWithId }))
             } catch {
@@ -371,20 +403,24 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
           if (isAuthSaveError(serverError)) {
             throw serverError
           }
-          // 409 = duplicate application exists for this program+intake.
-          // Adopt the existing ID so auto-save stops retrying create.
+          // 409 = duplicate application exists for this program+intake. Do not
+          // silently adopt the existing id: that converts a new-application
+          // intent into a resume operation without the student's consent.
           const errStatus = (serverError as { status?: number })?.status
           if (errStatus === 409) {
-            // Duplicate application exists -- adopt the existing draft ID
             const errBody = (serverError as { data?: { existing_id?: string } })?.data
             const existingId = errBody?.existing_id
-            if (existingId) {
-              setApplicationId(existingId)
-              logger.info('[saveDraft] Adopted existing application %s from 409', existingId)
-            } else {
-              createBlockedRef.current = true
-              logger.info('[saveDraft] Duplicate application exists, skipping server create')
-            }
+            createBlockedRef.current = true
+            const conflict = buildDuplicateDraftConflictDecision({
+              existingId: typeof existingId === 'string' ? existingId : null,
+              program: String(formData.program || ''),
+              intake: String(formData.intake || ''),
+            })
+            duplicateConflictRef.current = conflict
+            setError(conflict.message)
+            setDuplicateDraftConflict(conflict)
+            showWarning(conflict.message)
+            logger.info('[saveDraft] Duplicate application exists; explicit student choice required before reusing it')
           } else {
             logApiError('application-wizard', 'POST /applications/', serverError)
             logger.warn('Server draft create failed, local draft retained:', sanitizeForLog(toError(serverError).message))
@@ -453,10 +489,13 @@ export function useWizardDraftPersistence(params: UseWizardDraftPersistenceParam
     createApplication,
     queryClient,
     clearStaleApplicationReference,
+    setError,
     setApplicationId,
     setIsDraftSaving,
     setDraftSaved,
+    setDuplicateDraftConflict,
     setSubmittedApplication,
+    showWarning,
   ])
 
   return {

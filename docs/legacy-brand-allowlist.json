@@ -14,7 +14,10 @@
     "apply.mihas.edu.zm",
     "mihas.edu.zm",
     "mihas.beanola.com",
-    "mihas.local"
+    "mihas.local",
+    "mihas:",
+    "mihas_",
+    "mihas-"
   ],
   "allowlist": [
     {
@@ -103,9 +106,9 @@
       "reason": "Active code: 'Kalulushi' is a real Zambian town in the location dropdown option list — a brand-pattern false-positive (the word collides with the Kalulushi brand pattern), not a brand reference. Covered by the brand drift guard via this single-file entry. Cannot be removed: dropping the town would break the Zambian location picker."
     },
     {
-      "path": "apps/admissions/src/lib/env.ts",
+      "path": "apps/admissions/src/lib/browserNamespace.ts",
       "classification": "named legacy-compatibility code with a guard",
-      "reason": "Active code: test-only env override global key (__MIHAS_IMPORT_META_ENV__) — a legacy internal identifier and brand-pattern false-positive, not user-facing brand. Covered by the brand drift guard via this single-file entry. Cannot be removed: tests rely on this override key name."
+      "reason": "Active code: compatibility aliases for historical localStorage/sessionStorage keys, BroadcastChannel names, and CustomEvent names. New writes use Beanola namespaces via BROWSER_KEYS/BROWSER_EVENTS; LEGACY_BROWSER_KEYS/LEGACY_BROWSER_EVENTS exist only to migrate or clean old browser state without breaking in-flight drafts, auth redirects, payment recovery, and chunk-reload recovery after deployment."
     }
   ]
 }

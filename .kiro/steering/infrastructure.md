@@ -175,5 +175,6 @@ flags, and cleanup stay consistent.
 - `deploy/docker-compose.prod.yml` — the production stack definition.
 - `deploy/backup-db.sh` — production DB backup (pg_dump from the container).
 - `docs/runbooks/multi-tenant-beanola-rollout.md` — Neon-branch-first migration proof.
+- `docs/runbooks/multi-tenant-operations.md` — tenant/domain/document operations plus deploy rollback, disk cleanup, and service health.
 - `docs/runbooks/database-backup-restore.md` — backup/restore procedures.
 - `docs/schema-ownership.md` — table-level ownership map.

@@ -25,6 +25,7 @@ import { CapabilityProvider } from '@/contexts/CapabilityContext'
 import { useDeferredHydration } from '@/hooks/useDeferredHydration'
 import { SafeAreaProvider } from '@/components/ui/SafeAreaProvider'
 import { queryClient } from '@/lib/queryClient'
+import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils'
 
 const AppLayout = lazy(() => import('@/components/navigation/AppLayout').then((mod) => ({ default: mod.AppLayout })))
 const SessionMonitor = lazy(() => import('@/components/auth/SessionMonitor').then((mod) => ({ default: mod.SessionMonitor })))
@@ -119,7 +120,7 @@ function RoutedAuthenticatedApp() {
   useEffect(() => {
     if (prevPathRef.current !== location.pathname) {
       prevPathRef.current = location.pathname
-      const mainContent = document.getElementById('main-content') || document.querySelector('main') || document.querySelector('h1')
+      const mainContent = document.getElementById(APP_MAIN_CONTENT_ID) || document.querySelector('main') || document.querySelector('h1')
       if (mainContent && mainContent instanceof HTMLElement) {
         mainContent.focus({ preventScroll: false })
       }

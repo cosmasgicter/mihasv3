@@ -8,7 +8,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 from apps.accounts.authentication import JWTUser
 from apps.applications.services import SYSTEM_ACTOR_ID
 from apps.applications.waitlist_manager import WaitlistError, WaitlistManager
-from apps.applications.views import ApplicationWaitlistPositionView
+from apps.applications.student_withdrawal_views import ApplicationWaitlistPositionView
 
 
 @pytest.fixture(autouse=True)

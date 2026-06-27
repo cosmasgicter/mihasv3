@@ -10,6 +10,7 @@ import { Suspense, lazy } from 'react';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils';
+import { SkipLink } from '@/components/ui/SkipLink';
 import { PublicSiteHeader } from '@/components/layout/PublicSiteHeader';
 import { useDeferredHydration } from '@/hooks/useDeferredHydration';
 
@@ -28,8 +29,9 @@ export function PublicLayout({ children, showFooter = true, className }: PublicL
 
   return (
     <div className={cn('relative min-h-screen overflow-x-hidden bg-background', className)}>
+      <SkipLink href={`#${APP_MAIN_CONTENT_ID}`}>Skip to main content</SkipLink>
       <PublicSiteHeader />
-      <main id={APP_MAIN_CONTENT_ID}>{children}</main>
+      <main id={APP_MAIN_CONTENT_ID} tabIndex={-1}>{children}</main>
       {showFooter && footerHydrated && (
         <Suspense fallback={null}>
           <SharedFooter />

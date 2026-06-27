@@ -27,7 +27,7 @@ import { toast } from '@/hooks/useToast'
 import { tenantAdminService, type TenantAsset } from '@/services/admin/tenants'
 
 import { tenantErrorMessage } from './errors'
-import { PanelNoAccess, PanelStateError } from './panelStates'
+import { PanelNoAccess, PanelReadOnlyNotice, PanelStateError } from './panelStates'
 import { ResourceList, TENANT_SELECT_CLASS } from './primitives'
 
 interface AssetFormState {
@@ -178,34 +178,42 @@ export function TenantBrandingPanel({ institutionId }: { institutionId: string }
                 </div>
               )}
               <form className="grid gap-3 sm:grid-cols-2" onSubmit={handleSubmit}>
-                <select
-                  value={assetForm.asset_type}
-                  onChange={(event) => setAssetForm((prev) => ({ ...prev, asset_type: event.target.value }))}
-                  className={TENANT_SELECT_CLASS}
-                  aria-label="Asset type"
-                >
-                  <option value="logo">Logo</option>
-                  <option value="signature">Signature</option>
-                  <option value="seal">Seal</option>
-                </select>
-                <select
-                  value={assetForm.mime_type}
-                  onChange={(event) => setAssetForm((prev) => ({ ...prev, mime_type: event.target.value }))}
-                  className={TENANT_SELECT_CLASS}
-                  aria-label="Asset MIME type"
-                >
-                  <option value="image/png">PNG</option>
-                  <option value="image/jpeg">JPEG</option>
-                  <option value="image/webp">WebP</option>
-                  <option value="image/svg+xml">SVG</option>
-                </select>
-                <Input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                  onChange={(event) => setAssetForm((prev) => ({ ...prev, file: event.target.files?.[0] ?? null }))}
-                  aria-label="Asset file"
-                  className="sm:col-span-2"
-                />
+                <label className="space-y-1.5 text-sm">
+                  <span className="font-medium text-foreground">Asset type</span>
+                  <select
+                    value={assetForm.asset_type}
+                    onChange={(event) => setAssetForm((prev) => ({ ...prev, asset_type: event.target.value }))}
+                    className={TENANT_SELECT_CLASS}
+                    aria-label="Asset type"
+                  >
+                    <option value="logo">Logo</option>
+                    <option value="signature">Signature</option>
+                    <option value="seal">Seal</option>
+                  </select>
+                </label>
+                <label className="space-y-1.5 text-sm">
+                  <span className="font-medium text-foreground">MIME type</span>
+                  <select
+                    value={assetForm.mime_type}
+                    onChange={(event) => setAssetForm((prev) => ({ ...prev, mime_type: event.target.value }))}
+                    className={TENANT_SELECT_CLASS}
+                    aria-label="Asset MIME type"
+                  >
+                    <option value="image/png">PNG</option>
+                    <option value="image/jpeg">JPEG</option>
+                    <option value="image/webp">WebP</option>
+                    <option value="image/svg+xml">SVG</option>
+                  </select>
+                </label>
+                <label className="space-y-1.5 text-sm sm:col-span-2">
+                  <span className="font-medium text-foreground">Upload file</span>
+                  <Input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    onChange={(event) => setAssetForm((prev) => ({ ...prev, file: event.target.files?.[0] ?? null }))}
+                    aria-label="Asset file"
+                  />
+                </label>
                 {assetIsSvg && (
                   <div
                     role="alert"
@@ -224,25 +232,33 @@ export function TenantBrandingPanel({ institutionId }: { institutionId: string }
                     </div>
                   </div>
                 )}
-                <Input
-                  value={assetForm.storage_key}
-                  onChange={(event) => setAssetForm((prev) => ({ ...prev, storage_key: event.target.value }))}
-                  placeholder="R2/storage key (manual registration)"
-                  aria-label="Asset storage key"
-                />
-                <Input
-                  value={assetForm.public_url}
-                  onChange={(event) => setAssetForm((prev) => ({ ...prev, public_url: event.target.value }))}
-                  placeholder="Public URL, optional"
-                  aria-label="Asset public URL"
-                />
-                <Input
-                  value={assetForm.checksum_sha256}
-                  onChange={(event) => setAssetForm((prev) => ({ ...prev, checksum_sha256: event.target.value }))}
-                  placeholder="SHA-256 checksum (manual registration)"
-                  aria-label="Asset checksum"
-                  className="sm:col-span-2"
-                />
+                <label className="space-y-1.5 text-sm">
+                  <span className="font-medium text-foreground">Storage key</span>
+                  <Input
+                    value={assetForm.storage_key}
+                    onChange={(event) => setAssetForm((prev) => ({ ...prev, storage_key: event.target.value }))}
+                    placeholder="Manual registration only"
+                    aria-label="Asset storage key"
+                  />
+                </label>
+                <label className="space-y-1.5 text-sm">
+                  <span className="font-medium text-foreground">Public URL</span>
+                  <Input
+                    value={assetForm.public_url}
+                    onChange={(event) => setAssetForm((prev) => ({ ...prev, public_url: event.target.value }))}
+                    placeholder="Optional preview URL"
+                    aria-label="Asset public URL"
+                  />
+                </label>
+                <label className="space-y-1.5 text-sm sm:col-span-2">
+                  <span className="font-medium text-foreground">SHA-256 checksum</span>
+                  <Input
+                    value={assetForm.checksum_sha256}
+                    onChange={(event) => setAssetForm((prev) => ({ ...prev, checksum_sha256: event.target.value }))}
+                    placeholder="Manual registration only"
+                    aria-label="Asset checksum"
+                  />
+                </label>
                 <div className="sm:col-span-2 flex justify-end">
                   <Button type="submit" loading={assetMutation.isPending}>
                     <UploadCloud className="h-4 w-4" aria-hidden="true" /> {assetForm.file ? 'Upload asset' : 'Register asset'}
@@ -252,14 +268,21 @@ export function TenantBrandingPanel({ institutionId }: { institutionId: string }
             </>
           )}
 
+          {!canManage && (
+            <PanelReadOnlyNotice description="Branding assets are managed by your platform administrator because they affect official documents. This view is read-only." />
+          )}
+
           <ResourceList
             empty="No branding assets registered."
+            deactivatingId={deactivateMutation.isPending ? deactivateMutation.variables ?? null : null}
             onDeactivate={canManage ? (id) => deactivateMutation.mutate(id) : undefined}
             items={(assets as TenantAsset[]).map((item) => ({
               id: item.id,
               title: `${item.asset_type} v${item.version ?? 1}`,
               meta: `${item.mime_type} · ${item.storage_key}`,
               active: item.is_active !== false,
+              previewUrl: item.public_url,
+              previewAlt: `${item.asset_type} preview`,
             }))}
           />
         </>

@@ -1,4 +1,4 @@
-import { Award, ChevronDown, Download, FileCheck, FileText, RotateCcw } from 'lucide-react'
+import { AlertTriangle, Award, ChevronDown, Download, FileCheck, FileText, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useToastStore } from '@/hooks/useToast'
 import {
@@ -25,6 +25,8 @@ function actionLabel(uiState: OfficialDocumentUiState, restingLabel: string): st
       return 'Queued…'
     case 'failed':
       return 'Retry'
+    case 'setup_required':
+      return 'Setup Required'
     default:
       return restingLabel
   }
@@ -63,6 +65,8 @@ function OfficialDocAction({ applicationId, documentType, restingLabel, icon, cl
   const showSpinnerIcon = uiState === 'generating' || uiState === 'queued'
   const leadingIcon = uiState === 'failed'
     ? <RotateCcw className="h-4 w-4" aria-hidden="true" />
+    : uiState === 'setup_required'
+      ? <AlertTriangle className="h-4 w-4" aria-hidden="true" />
     : !showSpinnerIcon
       ? icon
       : null
@@ -70,7 +74,7 @@ function OfficialDocAction({ applicationId, documentType, restingLabel, icon, cl
   return (
     <Button
       onClick={handleClick}
-      disabled={isBusy}
+      disabled={isBusy || uiState === 'setup_required'}
       loading={showSpinnerIcon}
       variant="outline"
       size="sm"

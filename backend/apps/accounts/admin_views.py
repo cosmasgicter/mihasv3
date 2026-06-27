@@ -4,6 +4,11 @@ Decomposed during Stream 9 backend module decomposition.
 All view classes AND their supporting serializers/helpers are re-exported here
 so that existing imports continue to work.
 
+Compatibility owner: Beanola platform engineering.
+Removal condition: no production module imports this shim, and all tests that
+patch ``apps.accounts.admin_views.*`` have moved to the canonical split modules
+named below. Tracked by canonical-multi-tenant-alignment task 29.
+
 Split files:
   - admin_user_views.py      - AdminDashboardView, AdminUserListView, AdminUserDetailView, AdminUserExportView
   - admin_settings_views.py  - AdminSettingsListView, AdminSettingDetailView, AdminSettingsImportView, AdminSettingsResetView
@@ -70,6 +75,11 @@ from apps.accounts.admin_serializers import (  # noqa: F401
     _validate_setting_json_value,
 )
 
+COMPATIBILITY_OWNER = "Beanola platform engineering"
+REMOVAL_CONDITION = (
+    "Remove after tests stop importing or patching apps.accounts.admin_views."
+)
+
 __all__ = [
     # View classes
     "AdminAuditLogView",
@@ -107,6 +117,8 @@ __all__ = [
     "KNOWN_SETTING_KEYS",
     "SETTING_CATEGORY_RE",
     "SETTING_KEY_RE",
+    "COMPATIBILITY_OWNER",
+    "REMOVAL_CONDITION",
     "_is_super_admin",
     "_redact_email",
     "_redact_name",

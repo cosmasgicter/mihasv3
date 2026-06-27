@@ -7,44 +7,62 @@ Requirements: 10.1
 from django.urls import path
 
 from apps.applications.history_views import TimelineHistoryView
+from apps.applications.admin_amendment_views import (
+    ApplicationAdminSummaryView,
+    ApplicationAmendmentReviewView,
+    ApplicationConditionVerifyView,
+)
+from apps.applications.admin_assignment_views import (
+    ApplicationAssignView,
+    ApplicationAutoAssignView,
+    ApplicationFeeWaiverView,
+)
+from apps.applications.admin_bulk_views import ApplicationBulkStatusView
+from apps.applications.admin_export_views import ApplicationExportView
+from apps.applications.admin_review_views import (
+    ApplicationListCreateView,
+    ApplicationReviewView,
+)
+from apps.applications.document_views import (
+    AcceptanceLetterView,
+    ApplicationSlipView,
+    ApplicationVerifyDocumentView,
+    ConditionalOfferView,
+    FinanceReceiptView,
+    PaymentReceiptView,
+)
+from apps.applications.interview_views import (
+    ApplicationInterviewListView,
+    ApplicationInterviewView,
+)
 from apps.applications.official_document_views import (
     OfficialDocumentDetailView,
     OfficialDocumentListView,
 )
-from apps.applications.views import (
-    AcceptanceLetterView,
-    ApplicationSlipView,
-    ApplicationAmendmentReviewView,
-    ApplicationAmendmentView,
-    ApplicationAssignView,
-    ApplicationAutoAssignView,
-    ApplicationBulkStatusView,
-    ApplicationConditionsView,
-    ApplicationConditionVerifyView,
-    ApplicationConfirmEnrollmentView,
-    ConditionalOfferView,
+from apps.applications.public_views import ApplicationTrackView
+from apps.applications.student_amendment_views import ApplicationAmendmentView
+from apps.applications.student_document_views import (
+    ApplicationDocumentsView,
+    EmailSlipView,
+)
+from apps.applications.student_draft_views import (
     ApplicationDetailView,
     ApplicationDetailsView,
-    ApplicationDocumentsView,
+    ApplicationDraftDetailView,
+    ApplicationDraftListView,
     ApplicationDraftView,
-    ApplicationExportView,
-    ApplicationFeeWaiverView,
+)
+from apps.applications.student_submission_views import (
     ApplicationGradesView,
-    ApplicationInterviewListView,
-    ApplicationInterviewView,
-    ApplicationListCreateView,
-    ApplicationReviewView,
-    ApplicationSubmitView,
     ApplicationPreviewSummaryView,
-    ApplicationAdminSummaryView,
+    ApplicationSubmitView,
     ApplicationSummaryView,
-    ApplicationTrackView,
-    ApplicationVerifyDocumentView,
+)
+from apps.applications.student_withdrawal_views import (
+    ApplicationConditionsView,
+    ApplicationConfirmEnrollmentView,
     ApplicationWaitlistPositionView,
     ApplicationWithdrawView,
-    EmailSlipView,
-    FinanceReceiptView,
-    PaymentReceiptView,
 )
 
 app_name = "applications"
@@ -55,9 +73,11 @@ urlpatterns = [
     path("track/", ApplicationTrackView.as_view(), name="application-track"),
     path("bulk-status/", ApplicationBulkStatusView.as_view(), name="application-bulk-status"),
     path("draft/", ApplicationDraftView.as_view(), name="application-draft"),
+    path("drafts/", ApplicationDraftListView.as_view(), name="application-draft-list"),
     path("interviews/", ApplicationInterviewListView.as_view(), name="application-interview-list"),
     path("history/", TimelineHistoryView.as_view(), name="application-history"),
     path("<uuid:application_id>/", ApplicationDetailView.as_view(), name="application-detail"),
+    path("drafts/<uuid:application_id>/", ApplicationDraftDetailView.as_view(), name="application-draft-detail"),
     path("<uuid:application_id>/details/", ApplicationDetailsView.as_view(), name="application-details"),
     path("<uuid:application_id>/documents/", ApplicationDocumentsView.as_view(), name="application-documents"),
     path("<uuid:application_id>/grades/", ApplicationGradesView.as_view(), name="application-grades"),

@@ -1,4 +1,4 @@
-import { Download, FileText, RotateCcw } from 'lucide-react'
+import { AlertTriangle, Download, FileText, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Skeleton, StatusBadge } from '@/components/ui'
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay'
@@ -26,6 +26,8 @@ function statusBadge(uiState: OfficialDocumentUiState): { tone: StatusBadgeTone;
       return { tone: 'info', label: 'Generating' }
     case 'failed':
       return { tone: 'destructive', label: 'Failed' }
+    case 'setup_required':
+      return { tone: 'warning', label: 'Setup required' }
     default:
       return { tone: 'muted', label: 'Not generated' }
   }
@@ -40,6 +42,8 @@ function generateLabel(uiState: OfficialDocumentUiState, hasLatest: boolean): st
       return 'Queued…'
     case 'failed':
       return 'Retry'
+    case 'setup_required':
+      return 'Setup Required'
     case 'ready':
       return 'Regenerate'
     default:
@@ -60,6 +64,7 @@ function DocumentRow({
   const generatedAt = row.latest?.generated_at
   const isReady = row.uiState === 'ready' && Boolean(row.latest?.download_url || row.latest?.document_id)
   const showSpinner = row.uiState === 'generating' || row.uiState === 'queued'
+  const isSetupRequired = row.uiState === 'setup_required'
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
@@ -94,13 +99,15 @@ function DocumentRow({
           variant="outline"
           size="sm"
           loading={showSpinner}
-          disabled={row.isBusy}
+          disabled={row.isBusy || isSetupRequired}
           onClick={() => onGenerate(row)}
           aria-live="polite"
           className="min-h-touch gap-1.5"
         >
           {!showSpinner &&
-            (row.uiState === 'failed' ? (
+            (isSetupRequired ? (
+              <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+            ) : row.uiState === 'failed' ? (
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
             ) : (
               <FileText className="h-3.5 w-3.5" aria-hidden="true" />

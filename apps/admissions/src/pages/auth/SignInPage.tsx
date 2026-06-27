@@ -27,31 +27,25 @@ import {
   getStorageItemWithLegacyFallback,
   removeStorageItemAndLegacy,
 } from '@/lib/browserNamespace';
+import {
+  CANONICAL_ADMIN_DASHBOARD_PATH,
+  CANONICAL_SIGN_IN_PATH,
+  CANONICAL_STUDENT_DASHBOARD_PATH,
+  routesByGuard,
+} from '@/routes/routeRegistry';
 
-const ADMIN_REDIRECT_ALLOWLIST = [
-  '/admin/dashboard',
-  '/admin/applications',
-  '/admin/programs',
-  '/admin/intakes',
-  '/admin/users',
-  '/admin/audit',
-  '/admin/settings',
-] as const;
+const routeAllowlist = (guard: 'admin' | 'student') =>
+  routesByGuard(guard).flatMap((route) => {
+    const paths = [route.path, ...(route.aliases ?? [])]
+    return paths.flatMap((path) => {
+      const dynamicStart = path.indexOf('/:')
+      return dynamicStart > 0 ? [path, path.slice(0, dynamicStart)] : [path]
+    })
+  });
 
-const STUDENT_REDIRECT_ALLOWLIST = [
-  '/apply',
-  '/application',
-  '/student/dashboard',
-  '/student/application-wizard',
-  '/student/application',
-  '/student/status',
-  '/student/payment',
-  '/student/interview',
-  '/student/settings',
-  '/student/notifications',
-  '/student/communications',
-  '/student/history',
-] as const;
+const ADMIN_REDIRECT_ALLOWLIST = routeAllowlist('admin');
+
+const STUDENT_REDIRECT_ALLOWLIST = routeAllowlist('student');
 
 function matchesAllowlistPath(pathname: string, allowlist: readonly string[]): boolean {
   return allowlist.some((allowedPath) => pathname === allowedPath || pathname.startsWith(`${allowedPath}/`));
@@ -65,9 +59,9 @@ export function getRoleSafeRedirectPath({
   role: string | null | undefined
 }): string {
   const admin = isAdminRole(role)
-  const defaultRedirect = admin ? '/admin/dashboard' : '/student/dashboard'
+  const defaultRedirect = admin ? CANONICAL_ADMIN_DASHBOARD_PATH : CANONICAL_STUDENT_DASHBOARD_PATH
 
-  if (!requestedRedirect || requestedRedirect === '/auth/signin') {
+  if (!requestedRedirect || requestedRedirect === CANONICAL_SIGN_IN_PATH) {
     return defaultRedirect
   }
 

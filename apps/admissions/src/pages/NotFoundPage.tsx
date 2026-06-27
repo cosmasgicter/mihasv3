@@ -4,6 +4,12 @@ import { Button } from '@/components/ui/Button'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { Home, ArrowLeft, Search, FileText, User, Settings } from 'lucide-react'
 import { Seo } from '@/components/seo/Seo'
+import {
+  CANONICAL_ADMIN_DASHBOARD_PATH,
+  CANONICAL_SIGN_IN_PATH,
+  CANONICAL_STUDENT_DASHBOARD_PATH,
+  pathFor,
+} from '@/routes/routeRegistry'
 
 interface SuggestedPage {
   path: string
@@ -25,7 +31,7 @@ export default function NotFoundPage() {
 
     // Common suggestions for all users
     suggestions.push({
-      path: '/',
+      path: pathFor('public.home'),
       label: 'Home',
       icon: <Home className="h-4 w-4" />,
       description: 'Return to the homepage'
@@ -33,7 +39,7 @@ export default function NotFoundPage() {
 
     if (attemptedPath.includes('track') || attemptedPath.includes('application') || attemptedPath === '/404') {
       suggestions.push({
-        path: '/track-application',
+        path: pathFor('public.trackApplication'),
         label: 'Track Application',
         icon: <Search className="h-4 w-4" />,
         description: 'Check your application status'
@@ -42,7 +48,7 @@ export default function NotFoundPage() {
 
     if (looksLikeAdminPath) {
       suggestions.push({
-        path: '/admin/dashboard',
+        path: CANONICAL_ADMIN_DASHBOARD_PATH,
         label: 'Admin Dashboard',
         icon: <FileText className="h-4 w-4" />,
         description: 'Return to the admin dashboard'
@@ -51,7 +57,7 @@ export default function NotFoundPage() {
 
     if (looksLikeStudentPath) {
       suggestions.push({
-        path: '/student/dashboard',
+        path: CANONICAL_STUDENT_DASHBOARD_PATH,
         label: 'My Dashboard',
         icon: <FileText className="h-4 w-4" />,
         description: 'Return to your student dashboard'
@@ -60,7 +66,7 @@ export default function NotFoundPage() {
 
     if (attemptedPath.includes('signin') || attemptedPath.includes('login') || attemptedPath.includes('auth')) {
       suggestions.push({
-        path: '/auth/signin',
+        path: CANONICAL_SIGN_IN_PATH,
         label: 'Sign In',
         icon: <User className="h-4 w-4" />,
         description: 'Sign in to your account'
@@ -69,7 +75,7 @@ export default function NotFoundPage() {
 
     if (attemptedPath.includes('signup') || attemptedPath.includes('register')) {
       suggestions.push({
-        path: '/auth/signup',
+        path: pathFor('auth.signUp'),
         label: 'Sign Up',
         icon: <User className="h-4 w-4" />,
         description: 'Create a new account'
@@ -78,7 +84,7 @@ export default function NotFoundPage() {
 
     if (attemptedPath.includes('apply')) {
       suggestions.push({
-        path: '/auth/signup',
+        path: pathFor('auth.signUp'),
         label: 'Apply Now',
         icon: <FileText className="h-4 w-4" />,
         description: 'Start your application'
@@ -87,7 +93,7 @@ export default function NotFoundPage() {
 
     if (attemptedPath.includes('setting') || attemptedPath.includes('profile')) {
       suggestions.push({
-        path: looksLikeAdminPath ? '/admin/settings' : looksLikeStudentPath ? '/student/settings' : '/contact',
+        path: looksLikeAdminPath ? pathFor('admin.settings') : looksLikeStudentPath ? pathFor('student.settings') : pathFor('public.contact'),
         label: looksLikeAdminPath || looksLikeStudentPath ? 'Settings' : 'Contact',
         icon: <Settings className="h-4 w-4" />,
         description: looksLikeAdminPath || looksLikeStudentPath ? 'Open the settings page' : 'Contact the admissions team for help'

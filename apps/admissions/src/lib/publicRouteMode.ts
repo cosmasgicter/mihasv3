@@ -1,10 +1,12 @@
+import { pathFor } from '@/routes/routeRegistry'
+
 const MARKETING_PUBLIC_ROUTES = new Set([
-  '/',
-  '/404',
-  '/contact',
-  '/privacy',
-  '/terms',
-  '/track-application',
+  pathFor('public.home'),
+  pathFor('notFound'),
+  pathFor('public.contact'),
+  pathFor('public.privacy'),
+  pathFor('public.terms'),
+  pathFor('public.trackApplication'),
 ])
 
 const NON_MARKETING_EXACT_ROUTES = new Set([
@@ -16,7 +18,7 @@ const NON_MARKETING_EXACT_ROUTES = new Set([
 ])
 
 const NON_MARKETING_PREFIXES = [
-  '/admin',
+  pathFor('admin.home'),
   '/auth',
   '/student',
 ]

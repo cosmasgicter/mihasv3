@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { FileText, Clock, AlertCircle, Calendar, CheckCircle } from 'lucide-react'
+import { studentApplicationLocalResumePath, studentApplicationNewPath, studentApplicationResumePath } from '@/routes/routeRegistry'
 
 interface NextActionCardProps {
   totalDraftCount: number
@@ -8,6 +9,7 @@ interface NextActionCardProps {
   hasScheduledInterview: boolean
   scheduledInterviewsCount: number
   submittedCount: number
+  latestDraftId?: string | null
 }
 
 export function NextActionCard({
@@ -16,6 +18,7 @@ export function NextActionCard({
   hasScheduledInterview,
   scheduledInterviewsCount,
   submittedCount,
+  latestDraftId,
 }: NextActionCardProps) {
   return (
     <div className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
@@ -69,14 +72,16 @@ export function NextActionCard({
         <Button variant="primary" size="lg" className="min-h-[48px] px-6 text-base font-semibold shadow-sm" asChild>
           <Link to={
             totalDraftCount > 0
-              ? '/student/application-wizard'
+              ? latestDraftId
+                ? studentApplicationResumePath(latestDraftId)
+                : studentApplicationLocalResumePath()
               : hasPendingPayment
                 ? '/student/payment'
                 : hasScheduledInterview
                   ? '/student/interview'
                   : submittedCount > 0
                     ? '/student/status'
-                    : '/student/application-wizard?new=true'
+                    : studentApplicationNewPath()
           }>
             {totalDraftCount > 0
               ? 'Continue draft'

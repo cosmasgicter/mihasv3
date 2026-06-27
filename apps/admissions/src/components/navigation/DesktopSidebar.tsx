@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react'
-import { Home, FileText, Bell, LayoutDashboard, Users, ChevronLeft, ChevronRight, ChevronDown, GraduationCap, Calendar, Settings, FileSearch, CreditCard, DollarSign, MessageSquare, Clock, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, Sparkles } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { useTenantNavItem } from './tenantNav'
 import { useCapabilities } from '@/contexts/CapabilityContext'
 import { filterAdminNavItems } from './adminNavAccess'
+import { adminNavRoutes, pathFor, studentNavRoutes } from '@/routes/routeRegistry'
 
 interface NavItem {
   to: string
@@ -22,51 +23,37 @@ interface NavSection {
 }
 
 // Grouped navigation sections for admin
-const adminSections: NavSection[] = [
-  {
-    id: 'main',
-    title: 'Main',
-    items: [
-      { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-      { to: '/admin/applications', icon: FileText, label: 'Applications' },
-    ],
-  },
-  {
-    id: 'management',
-    title: 'Management',
-    items: [
-      { to: '/admin/users', icon: Users, label: 'Users' },
-      // The tenant item (/admin/tenants) is injected by the component from the
-      // shared capability-gated helper so all nav surfaces stay in parity.
-      { to: '/admin/programs', icon: GraduationCap, label: 'Programs' },
-      { to: '/admin/intakes', icon: Calendar, label: 'Intakes' },
-      { to: '/admin/program-fees', icon: DollarSign, label: 'Program Fees' },
-    ],
-  },
-  {
-    id: 'system',
-    title: 'System',
-    items: [
-      { to: '/admin/audit', icon: FileSearch, label: 'Audit Trail' },
-      { to: '/admin/settings', icon: Settings, label: 'Settings' },
-    ],
-  },
-]
+const adminSectionTitles: Record<string, string> = {
+  main: 'Main',
+  management: 'Management',
+  system: 'System',
+}
 
-const studentLinks: NavItem[] = [
-  { to: '/student/dashboard', icon: Home, label: 'Dashboard' },
-  { to: '/student/application-wizard', icon: FileText, label: 'Applications' },
-  { to: '/student/communications', icon: MessageSquare, label: 'Communications' },
-  { to: '/student/history', icon: Clock, label: 'Activity History' },
-  { to: '/student/payment', icon: CreditCard, label: 'Payment' },
-  { to: '/student/interview', icon: Calendar, label: 'Interview' },
-  { to: '/student/notifications', icon: Bell, label: 'Notifications' },
-  { to: '/student/settings', icon: Settings, label: 'Profile & Settings' },
-]
+const adminSections: NavSection[] = (['main', 'management', 'system'] as const)
+  .map((section) => ({
+    id: section,
+    title: adminSectionTitles[section] ?? section,
+    items: adminNavRoutes()
+      .filter((route) => route.id !== 'admin.tenants' && route.nav?.section === section && route.nav.desktop)
+      .map((route) => ({
+        to: route.path,
+        icon: route.nav!.icon,
+        label: route.nav!.label,
+      })),
+  }))
+  .filter((section) => section.items.length > 0)
+
+const studentLinks: NavItem[] = studentNavRoutes()
+  .filter((route) => route.nav?.desktop)
+  .map((route) => ({
+    to: route.path,
+    icon: route.nav!.icon,
+    label: route.nav!.label,
+  }))
 
 const isRouteActive = (currentPath: string, itemPath: string) => {
-  if (itemPath === '/student/application-wizard') {
-    return currentPath === '/student/application-wizard' || currentPath === '/apply'
+  if (itemPath === pathFor('student.applicationWizard')) {
+    return currentPath === pathFor('student.applicationWizard') || currentPath === '/apply'
   }
 
   return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`)
@@ -89,7 +76,7 @@ export const DesktopSidebar = React.memo(function DesktopSidebar() {
 
     const sectionsWithTenantItem = !tenantNavItem ? filteredSections : filteredSections.map((section) => {
       if (section.id !== 'management') return section
-      const usersIndex = section.items.findIndex((item) => item.to === '/admin/users')
+      const usersIndex = section.items.findIndex((item) => item.to === pathFor('admin.users'))
       const items = [...section.items]
       const insertAt = usersIndex >= 0 ? usersIndex + 1 : items.length
       items.splice(insertAt, 0, tenantNavItem)

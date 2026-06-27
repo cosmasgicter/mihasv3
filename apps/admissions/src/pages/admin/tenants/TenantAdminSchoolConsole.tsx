@@ -183,8 +183,16 @@ export function TenantAdminSchoolConsole() {
             ) : (
               <EmptyState
                 icon={<ShieldCheck />}
-                heading="No additional sections"
-                description="Your account can view this school's profile. Contact your platform administrator for access to domains, programs, documents, staff, or audit."
+                heading="Setup or permission required"
+                description="Your account can view this school's profile, but no management sections are enabled for your role yet. Contact your platform administrator for domains, programs, documents, staff, or audit access."
+                action={{
+                  label: 'Contact platform admin',
+                  onClick: () => {
+                    const subject = encodeURIComponent(`Request management access for ${activeInstitution.brand_name || activeInstitution.name}`)
+                    window.location.href = `mailto:support@beanola.com?subject=${subject}`
+                  },
+                  variant: 'primary',
+                }}
               />
             )}
           </div>

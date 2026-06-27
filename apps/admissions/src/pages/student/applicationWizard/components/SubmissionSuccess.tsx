@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { animateClasses } from '@/lib/animations'
 
 import type { SubmittedApplicationSummary } from '../hooks/useApplicationSlip'
@@ -76,16 +77,21 @@ const SubmissionSuccess = ({
   onDownload,
   onEmail,
   onDismissSlipProgress
-}: SubmissionSuccessProps) => (
-  <div className="min-h-screen bg-muted flex items-center justify-center py-6 sm:py-12 px-4">
+}: SubmissionSuccessProps) => {
+  const slipProgressOpen = persistingSlip || slipLoading
+  useEscapeKey(Boolean(slipProgressOpen && onDismissSlipProgress), () => onDismissSlipProgress?.())
+
+  return (
+    <div className="min-h-screen bg-muted flex items-center justify-center py-6 sm:py-12 px-4">
     <div className="max-w-lg w-full">
       {/* Dismissible slip generation overlay */}
-      {(persistingSlip || slipLoading) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/40 " role="dialog" aria-modal="true" onKeyDown={(e) => { if (e.key === 'Escape') onDismissSlipProgress?.() }}>
+      {slipProgressOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/40 " role="dialog" aria-modal="true" aria-label="Application slip progress">
           <div className="relative bg-card rounded-lg shadow-md p-6 max-w-sm w-full mx-4 text-center">
             <button
               type="button"
               onClick={onDismissSlipProgress}
+              autoFocus
               className="absolute top-3 right-3 p-1 rounded-sm hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Close slip progress"
             >
@@ -108,6 +114,10 @@ const SubmissionSuccess = ({
         <img
           src="/images/logos/beanolalogo.webp"
           alt="Beanola Admissions"
+          width={192}
+          height={64}
+          loading="eager"
+          decoding="async"
           className="mx-auto mb-6 h-16 w-auto object-contain"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
         />
@@ -213,6 +223,7 @@ const SubmissionSuccess = ({
       </div>
     </div>
   </div>
-)
+  )
+}
 
 export default SubmissionSuccess

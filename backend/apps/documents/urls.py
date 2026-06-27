@@ -6,27 +6,31 @@ Requirements: 2.1, 4.1, 6.1, 10.1, 13.1
 
 from django.urls import path
 
-from apps.documents.risk_views import RiskFlagsListView
-from apps.documents.views import (
-    DeferPaymentView,
+from apps.documents.document_storage_views import (
     DocumentDeleteView,
     DocumentDownloadView,
     DocumentExtractView,
     DocumentInfoView,
     DocumentSignedUrlView,
     DocumentUploadView,
+)
+from apps.documents.lenco_webhook_views import LencoWebhookView
+from apps.documents.mobile_money_views import MobileMoneyInitiateView
+from apps.documents.payment_admin_views import SuperAdminPaymentCorrectionView
+from apps.documents.payment_query_views import (
     FeeResolveView,
-    LencoWebhookView,
-    MobileMoneyInitiateView,
-    PaymentDevBypassView,
-    PaymentInitiateView,
     PaymentListView,
     PaymentReceiptView,
     PaymentSettlementSummaryView,
     PaymentVerifyView,
     ProgramFeeViewSet,
-    SuperAdminPaymentCorrectionView,
 )
+from apps.documents.payment_widget_views import (
+    DeferPaymentView,
+    PaymentDevBypassView,
+    PaymentInitiateView,
+)
+from apps.documents.risk_views import RiskFlagsListView
 from apps.documents.job_views import (
     CoverLetterGenerateView,
     DocumentVersionListView,

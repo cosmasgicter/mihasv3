@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCircle2, Download, Mail, RotateCcw, X } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Download, Mail, RotateCcw, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
@@ -31,7 +31,7 @@ interface ApplicationSlipActionsProps {
  */
 export function ApplicationSlipActions({ applicationId, compact = false }: ApplicationSlipActionsProps) {
   const { user } = useAuth()
-  const { uiState, isBusy, download, email } = useOfficialDocument(applicationId, 'application_slip')
+  const { uiState, isBusy, error, download, email } = useOfficialDocument(applicationId, 'application_slip')
 
   const [showEmailInput, setShowEmailInput] = useState(false)
   const [emailAddress, setEmailAddress] = useState('')
@@ -39,12 +39,16 @@ export function ApplicationSlipActions({ applicationId, compact = false }: Appli
   const [emailError, setEmailError] = useState<string | null>(null)
 
   const isWorking = uiState === 'generating' || uiState === 'queued'
+  const isSetupRequired = uiState === 'setup_required'
   const workingLabel = uiState === 'queued' ? 'Queued…' : 'Generating...'
 
   const handleDownload = async () => {
     const ok = await download()
     if (!ok) {
-      toast.error('Download Failed', 'Unable to download the slip. Please try again.')
+      toast.error(
+        isSetupRequired ? 'Setup Required' : 'Download Failed',
+        error || 'Unable to download the slip. Please try again.',
+      )
     }
   }
 
@@ -81,7 +85,7 @@ export function ApplicationSlipActions({ applicationId, compact = false }: Appli
       <div className={compact ? 'flex w-full flex-col gap-2' : 'flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:w-auto'}>
         <Button
           onClick={handleDownload}
-          disabled={isBusy}
+          disabled={isBusy || isSetupRequired}
           variant="secondary"
           aria-live="polite"
           className={compact
@@ -91,18 +95,28 @@ export function ApplicationSlipActions({ applicationId, compact = false }: Appli
           loading={isWorking}
         >
           {!isWorking && (
-            uiState === 'failed'
+            isSetupRequired
+              ? <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+              : uiState === 'failed'
               ? <RotateCcw className="h-4 w-4" aria-hidden="true" />
               : <Download className="h-4 w-4" aria-hidden="true" />
           )}
-          <span>{isWorking ? workingLabel : uiState === 'failed' ? 'Retry Download' : 'Download Slip'}</span>
+          <span>
+            {isWorking
+              ? workingLabel
+              : isSetupRequired
+                ? 'Setup Required'
+                : uiState === 'failed'
+                  ? 'Retry Download'
+                  : 'Download Slip'}
+          </span>
         </Button>
 
         {!showEmailInput && (
           <Button
             onClick={handleEmailOpen}
             variant="primary"
-            disabled={isBusy}
+            disabled={isBusy || isSetupRequired}
             className={compact
               ? 'min-h-touch w-full justify-center gap-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90'
               : 'min-h-touch w-full justify-center gap-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto'
@@ -113,6 +127,12 @@ export function ApplicationSlipActions({ applicationId, compact = false }: Appli
           </Button>
         )}
       </div>
+
+      {isSetupRequired && (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      )}
 
       {showEmailInput && (
         <div className="flex w-full flex-col gap-2 animate-fade-in">

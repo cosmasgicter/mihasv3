@@ -4,7 +4,7 @@ Decomposed during Stream 9 backend module decomposition.
 All view classes are re-exported here so that existing imports continue to work.
 
 Split files:
-  - student_draft_views.py       - ApplicationDetailView, ApplicationDetailsView, ApplicationDraftView
+  - student_draft_views.py       - ApplicationDetailView, ApplicationDetailsView, ApplicationDraftView, ApplicationDraftListView, ApplicationDraftDetailView
   - student_submission_views.py  - ApplicationSubmitView, ApplicationPreviewSummaryView, ApplicationSummaryView, ApplicationGradesView
   - student_amendment_views.py   - ApplicationAmendmentView
   - student_withdrawal_views.py  - ApplicationWithdrawView, ApplicationWaitlistPositionView, ApplicationConditionsView, ApplicationConfirmEnrollmentView
@@ -14,6 +14,8 @@ Split files:
 from apps.applications.student_draft_views import (  # noqa: F401
     ApplicationDetailView,
     ApplicationDetailsView,
+    ApplicationDraftDetailView,
+    ApplicationDraftListView,
     ApplicationDraftView,
 )
 from apps.applications.student_submission_views import (  # noqa: F401
@@ -56,6 +58,8 @@ __all__ = [
     "ApplicationDetailView",
     "ApplicationDetailsView",
     "ApplicationDocumentsView",
+    "ApplicationDraftDetailView",
+    "ApplicationDraftListView",
     "ApplicationDraftView",
     "ApplicationGradesView",
     "ApplicationPreviewSummaryView",

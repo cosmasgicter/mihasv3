@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   extractApplicationFromEnvelope,
   useDocumentGeneration,
-} from '@/hooks/useDocumentGeneration';
+} from '@/pages/dev/hooks/useDocumentGeneration';
 import { useOfficialDocument } from '@/hooks/useOfficialDocument';
 import { generateApplicationSlip } from '@/lib/pdf';
 import { generateAcceptanceLetter } from '@/lib/pdf';

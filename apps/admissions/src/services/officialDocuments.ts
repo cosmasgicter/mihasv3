@@ -32,7 +32,7 @@ export type OfficialDocumentType =
   | 'finance_receipt'
 
 /** Backend generation status for an official document. */
-export type OfficialDocumentGenerationStatus = 'ready' | 'queued' | 'failed'
+export type OfficialDocumentGenerationStatus = 'ready' | 'queued' | 'failed' | 'setup_required'
 
 /**
  * The official-document status envelope returned by the backend (R5.1, R5.9).
@@ -52,6 +52,10 @@ export interface OfficialDocumentStatus {
   institution_id: string | null
   /** Async poll reference — present only on the queued generate path. */
   task_id?: string
+  /** Stable backend setup/failure code, present for failed/setup-required states. */
+  error_code?: string
+  /** True when the tenant profile/template/assets must be configured first. */
+  setup_required?: boolean
 }
 
 const SERVICE = 'official-documents'

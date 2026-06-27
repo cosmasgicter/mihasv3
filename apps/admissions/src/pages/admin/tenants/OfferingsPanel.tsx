@@ -40,7 +40,7 @@ function offeringToDraft(offering: TenantOffering): RuleDraft {
  *
  * Replaces raw JSON entry with: a priority number field, an offering-status
  * selector, and allowlist/denylist country chip builders. Persists to the
- * existing admin program PATCH endpoint via `updateOfferingRules`.
+ * tenant-scoped admin offering endpoint via `updateOfferingRules`.
  */
 export function OfferingsPanel({ institutionId }: { institutionId: string }) {
   const queryClient = useQueryClient()
@@ -74,8 +74,8 @@ export function OfferingsPanel({ institutionId }: { institutionId: string }) {
   }, [selectedOffering])
 
   const saveMutation = useMutation({
-    mutationFn: ({ offeringId, payload }: { offeringId: string; payload: Parameters<typeof tenantAdminService.updateOfferingRules>[1] }) =>
-      tenantAdminService.updateOfferingRules(offeringId, payload),
+    mutationFn: ({ offeringId, payload }: { offeringId: string; payload: Parameters<typeof tenantAdminService.updateOfferingRules>[2] }) =>
+      tenantAdminService.updateOfferingRules(institutionId, offeringId, payload),
     onSuccess: () => {
       toast.success('Routing rules saved')
       queryClient.invalidateQueries({ queryKey: ['admin', 'tenants', 'offerings', institutionId] })

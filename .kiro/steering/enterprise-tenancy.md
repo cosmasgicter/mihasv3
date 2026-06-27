@@ -131,6 +131,8 @@ disabled → active
   chars). Never propagate exceptions.
 - **Activate** (Super_Admin only): `verified → active`, record `approved_by`.
   Activating a non-`verified` domain is rejected (`DOMAIN_NOT_VERIFIED`).
+- **Disable** (Super_Admin only): active domains move `active → disabled` and
+  set `is_active=false`; disabled domains do not resolve tenant context.
 - **Duplicate active hostname** for another tenant → `HOSTNAME_CONFLICT` (409).
 
 **Fail-closed `Domain_Resolver`** (`InstitutionContextService.resolve`): resolve
@@ -160,16 +162,47 @@ operations review. Domain context endpoint: `GET /api/v1/catalog/context/`.
   context, reject with `INSTITUTION_OVERRIDE_NOT_PERMITTED` and retain the
   resolved binding.
 
+## Student Draft Lifecycle
+
+The canonical online draft model is **true multi-draft**:
+`Application(status='draft')` is the draft record. The `Application.id` is the
+draft id used for resume, uploads, grades, payment protection, and deletion.
+`ApplicationDraft` / `/api/v1/applications/draft/` is compatibility/cache
+metadata only and must not become a parallel lifecycle.
+
+- Start-new intent is explicit: `/student/application-wizard?mode=new`
+  (legacy aliases `?new=true` and `?fresh=1` normalize to this). New mode never
+  restores local or server draft data and never attaches to an old application id.
+- Resume intent is explicit:
+  `/student/application-wizard?mode=resume&draftId=<application_id>`. Resume
+  mode loads only that authenticated user's selected `Application(status='draft')`.
+- Direct wizard visits with existing drafts must show a choice or follow a
+  documented deterministic contract; they must not silently pick an old draft by
+  timestamp.
+- Duplicate create conflicts must not silently adopt `existing_id`; the student
+  chooses to continue the existing draft, pick a different program/intake, or
+  cancel.
+- Local wizard snapshots are recovery caches keyed by user id plus application
+  id once attached to an online draft. They are never authoritative over the
+  selected online draft.
+- Payment-linked drafts cannot be deleted by cleanup or bulk local-clear flows.
+
 ## Tenant Documents, Templates & Branding
 
 - Document requirements resolve by tenant + program + intake context.
-- PDFs use the tenant's logo/signature/template when configured.
+- Official PDFs use the backend official-document pipeline and the tenant's
+  logo/signature/template/profile when configured. Frontend `@/lib/pdf` renderers
+  are legacy/dev-preview only for official-record purposes.
 - **Neutral fallback only.** A missing tenant branding asset falls back to the
   neutral Beanola asset (`InstitutionContextService.BEANOLA_BRAND`) — **never**
   to MIHAS or KATC assets.
 
 ## Admin Navigation Rules
 
+- Product admin routes live under `/admin/*`. The tenant console is
+  `/admin/tenants`; the Super_Admin onboarding wizard is `/admin/tenants/new`.
+  The Django operational admin is separate at `/beanola-admin-panel/` and must
+  not be treated as a product tenant-management route.
 - Navigation and route guards are driven by `can(capability)` (frontend
   `CapabilityContext`), with **identical rules on desktop and mobile**.
 - Super_Admins see the platform **"Tenants"** management item and the "New

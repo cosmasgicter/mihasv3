@@ -6,7 +6,7 @@ import pytest
 from rest_framework.test import APIClient, APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
-from apps.applications.views import EmailSlipView
+from apps.applications.student_document_views import EmailSlipView
 from tests.tenant_fixtures import build_tenant_world, build_two_tenant_worlds
 
 

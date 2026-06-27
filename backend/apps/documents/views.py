@@ -4,6 +4,11 @@ This module was decomposed during Stream 9 backend module decomposition.
 All view classes are re-exported here so that existing URL configurations
 and test imports continue to work unchanged.
 
+Compatibility owner: Beanola platform engineering.
+Removal condition: no production module imports this shim, and all tests that
+patch ``apps.documents.views.*`` have moved to the canonical split modules
+named below. Tracked by canonical-multi-tenant-alignment task 29.
+
 Split files:
   - mobile_money_views.py      - MobileMoneyInitiateView
   - payment_widget_views.py    - PaymentInitiateView, DeferPaymentView, PaymentDevBypassView
@@ -54,6 +59,12 @@ from apps.documents.models import (  # noqa: F401
 )
 from apps.common.pagination import StandardPagination  # noqa: F401
 
+COMPATIBILITY_OWNER = "Beanola platform engineering"
+REMOVAL_CONDITION = (
+    "Remove after tests stop importing or patching apps.documents.views; "
+    "runtime URL routing already imports canonical split modules directly."
+)
+
 __all__ = [
     "DeferPaymentView",
     "DocumentDeleteView",
@@ -76,6 +87,8 @@ __all__ = [
     "SuperAdminPaymentCorrectionRequestSerializer",
     "SuperAdminPaymentCorrectionView",
     "StandardPagination",
+    "COMPATIBILITY_OWNER",
+    "REMOVAL_CONDITION",
     "_get_document_storage_key",
     "_ip_allowed",
 ]

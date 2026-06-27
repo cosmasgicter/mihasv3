@@ -182,6 +182,7 @@ export function TenantAccessGrantsPanel({ institutionId }: { institutionId: stri
           </form>
           <ResourceList
             empty="No scoped grants configured."
+            deactivatingId={deactivateMutation.isPending ? deactivateMutation.variables ?? null : null}
             onDeactivate={(id) => deactivateMutation.mutate(id)}
             items={grants.map((item) => ({
               id: item.id,

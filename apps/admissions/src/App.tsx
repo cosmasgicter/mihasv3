@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect } from 'react'
+import React, { Suspense, lazy, useEffect, useRef } from 'react'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom'
 import {
   DashboardSkeleton,
@@ -12,6 +12,7 @@ import { LazyLoadErrorBoundary } from '@/components/LazyLoadErrorBoundary'
 import { isMarketingPublicRoute } from '@/lib/publicRouteMode'
 import { useDeferredHydration } from '@/hooks/useDeferredHydration'
 import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
+import { APP_MAIN_CONTENT_ID } from '@/lib/accessibility-utils'
 const LandingPage = lazy(() => import('@/pages/LandingPage'))
 const MaintenancePage = lazy(() => import('@/pages/MaintenancePage'))
 
@@ -133,6 +134,7 @@ function RoutePrefetcher({ isMarketingRoute }: { isMarketingRoute: boolean }) {
 
 function RouteAwareApp() {
   const location = useLocation()
+  const previousPathRef = useRef(location.pathname)
   const marketingRoute = isMarketingPublicRoute(location.pathname)
   const isLandingRoute = location.pathname === '/'
   const globalUiDelayMs = isLandingRoute ? 2800 : marketingRoute ? 900 : 350
@@ -141,6 +143,32 @@ function RouteAwareApp() {
   useEffect(() => {
     window.__dismissPreloader?.()
   }, [])
+
+  useEffect(() => {
+    if (previousPathRef.current === location.pathname) return
+    previousPathRef.current = location.pathname
+
+    const focusMainContent = () => {
+      const target =
+        document.getElementById(APP_MAIN_CONTENT_ID) ||
+        document.querySelector('main') ||
+        document.querySelector('h1')
+
+      if (target instanceof HTMLElement) {
+        if (!target.hasAttribute('tabindex')) {
+          target.setAttribute('tabindex', '-1')
+        }
+        target.focus({ preventScroll: false })
+      }
+    }
+
+    const frame = window.requestAnimationFrame(focusMainContent)
+    const retry = window.setTimeout(focusMainContent, 150)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.clearTimeout(retry)
+    }
+  }, [location.pathname])
 
   return (
     <>

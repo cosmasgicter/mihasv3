@@ -90,6 +90,7 @@ const ROUTE_SURFACES: RouteSurface[] = [
   { path: '/admin/applications', file: 'pages/admin/Applications.tsx' },
   { path: '/admin/programs', file: 'pages/admin/Programs.tsx' },
   { path: '/admin/tenants', file: 'pages/admin/Tenants.tsx' },
+  { path: '/admin/tenants/new', file: 'pages/admin/tenants/TenantOnboardingWizard.tsx' },
   { path: '/admin/intakes', file: 'pages/admin/Intakes.tsx' },
   { path: '/admin/users', file: 'pages/admin/Users.tsx' },
   { path: '/admin/audit', file: 'pages/admin/AuditTrail.tsx' },

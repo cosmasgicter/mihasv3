@@ -8,12 +8,13 @@ import { useProfileQuery } from '@/hooks/auth/useProfileQuery'
 import { applicationSessionManager } from '@/lib/applicationSession'
 import { draftManager } from '@/lib/draftManager'
 import { cn, formatDate } from '@/lib/utils'
-import { FileText, AlertTriangle, Trash2, RefreshCw } from 'lucide-react'
+import { FilePlus2, FileText, AlertTriangle, Trash2, RefreshCw } from 'lucide-react'
 import { ConfirmAlertDialog } from '@/components/ui/alert-dialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { toast } from '@/hooks/useToast'
 import { useApplicationDrafts } from '@/hooks/queries/useApplicationQueries'
 import { useDraftRevision } from '@/stores/draftStore'
+import { studentApplicationLocalResumePath, studentApplicationNewPath, studentApplicationResumePath } from '@/routes/routeRegistry'
 
 interface DraftInfo {
   exists: boolean
@@ -112,11 +113,11 @@ export function ContinueApplication() {
       return
     }
 
-    // Optimistic UI: hide draft immediately before server responds
+    // Optimistically hide this card while deletion runs. The session
+    // manager dispatches the canonical draft-cleared event with deleted
+    // and blocked ids after the backend responds.
     setDraftInfo({ exists: false })
     setDeleting(true)
-    toast.success('Draft Deleted', 'Your saved draft was removed.')
-    window.dispatchEvent(new CustomEvent('draftCleared'))
 
     try {
       const result = await draftManager.clearAllDrafts(ownerId)
@@ -124,6 +125,8 @@ export function ContinueApplication() {
         // Rollback: restore draft visibility on failure
         setDraftInfo({ exists: true })
         toast.error('Delete Failed', result.error || 'We could not remove your saved draft. Please try again.')
+      } else {
+        toast.success('Draft Deleted', 'Your saved draft was removed.')
       }
       await refetchServerDrafts()
     } catch {
@@ -184,6 +187,9 @@ export function ContinueApplication() {
   const displayLastSaved = draftInfo.exists
     ? draftInfo.lastSaved
     : latestServerDraft?.updated_at || latestServerDraft?.created_at
+  const resumePath = latestServerDraft?.id
+    ? studentApplicationResumePath(latestServerDraft.id)
+    : studentApplicationLocalResumePath()
 
   return (
     <SectionCard
@@ -218,28 +224,34 @@ export function ContinueApplication() {
           )}
 
           <dl className="mt-4 grid gap-3 text-sm text-foreground sm:max-w-md">
-            <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
+            <div className="grid gap-1 rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm sm:grid-cols-[auto_1fr] sm:items-center sm:gap-3">
               <dt className="text-foreground">Progress</dt>
-              <dd>{displayProgress}</dd>
+              <dd className="break-words text-left sm:text-right">{displayProgress}</dd>
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
+            <div className="grid gap-1 rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm sm:grid-cols-[auto_1fr] sm:items-center sm:gap-3">
               <dt className="text-foreground">Last saved</dt>
-              <dd>{displayLastSaved ? formatDate(displayLastSaved) : 'Unknown'}</dd>
+              <dd className="break-words text-left sm:text-right">{displayLastSaved ? formatDate(displayLastSaved) : 'Unknown'}</dd>
             </div>
             {draftInfo.expiresAt && (
-              <div className="flex items-center justify-between rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm">
+              <div className="grid gap-1 rounded-xl bg-card/70 px-4 py-2 font-medium text-foreground shadow-sm sm:grid-cols-[auto_1fr] sm:items-center sm:gap-3">
                 <dt className="text-foreground">Expires in</dt>
-                <dd className={cn(isExpiringSoon() ? 'text-accent' : 'text-foreground')}>{getTimeUntilExpiry()}</dd>
+                <dd className={cn('break-words text-left sm:text-right', isExpiringSoon() ? 'text-accent' : 'text-foreground')}>{getTimeUntilExpiry()}</dd>
               </div>
             )}
           </dl>
         </div>
 
         <div className="flex flex-col gap-3 sm:w-60">
-          <Link to="/student/application-wizard" className="w-full">
+          <Link to={resumePath} className="w-full">
             <Button variant="primary" className="w-full">
               <FileText className="mr-2 h-4 w-4" />
               Continue application
+            </Button>
+          </Link>
+          <Link to={studentApplicationNewPath()} className="w-full">
+            <Button variant="outline" className="w-full">
+              <FilePlus2 className="mr-2 h-4 w-4" />
+              Start new application
             </Button>
           </Link>
           <div className="flex gap-2">
@@ -248,6 +260,7 @@ export function ContinueApplication() {
               size="sm"
               onClick={handleDeleteDraft}
               disabled={deleting}
+              aria-label={serverDraftCount > 1 ? 'Delete all saved drafts' : 'Delete saved draft'}
               className="flex-1 text-destructive hover:bg-destructive/5"
               loading={deleting}
             >
@@ -261,6 +274,7 @@ export function ContinueApplication() {
                 void loadDraftInfo()
                 void refetchServerDrafts()
               }}
+              aria-label="Refresh saved draft status"
               className="flex-1 text-primary hover:bg-primary/10"
             >
               <RefreshCw className="mr-2 h-4 w-4" />

@@ -35,6 +35,7 @@ from apps.applications.models import (
 from apps.documents.models import ApplicationDocument, ApplicationGrade
 from apps.applications.serializers import (
     ApplicationCreateSerializer,
+    ApplicationListSerializer,
     ApplicationGradeSerializer,
     ApplicationSerializer,
     build_grades_payload,
@@ -52,6 +53,7 @@ from apps.applications.services import (
 )
 from apps.common.idempotency import idempotent
 from apps.common.openapi_helpers import ErrorResponseSerializer
+from apps.common.pagination import StandardPagination
 from apps.documents.models import Payment
 from apps.documents.payment_constants import RESOLVED_PAYMENT_STATUSES
 from rest_framework.throttling import UserRateThrottle
@@ -62,6 +64,7 @@ from ._view_helpers import (
     ApplicationConditionSerializer,
     ApplicationDraftResponseSerializer,
     ApplicationDraftWriteSerializer,
+    ApplicationListResponseSerializer,
     ApplicationDocumentsResponseSerializer,
     ApplicationGradeMutationResponseSerializer,
     ApplicationGradeReadSerializer,
@@ -82,6 +85,18 @@ from ._view_helpers import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _get_owned_draft_application(request, application_id):
+    try:
+        application = Application.objects.get(
+            id=application_id,
+            user_id=str(request.user.id),
+            status="draft",
+        )
+    except (Application.DoesNotExist, DjangoValidationError):
+        return None
+    return application
 
 
 def _json_depth(obj, current=0, max_depth=11):
@@ -307,6 +322,154 @@ class ApplicationDetailsView(ApplicationDetailView):
 
 @extend_schema_view(
     get=extend_schema(
+        operation_id="applications_drafts_list",
+        tags=["applications"],
+        responses={200: OpenApiResponse(response=ApplicationListResponseSerializer)},
+    ),
+    post=extend_schema(
+        operation_id="applications_drafts_create",
+        tags=["applications"],
+        request=ApplicationCreateSerializer,
+        responses={
+            201: OpenApiResponse(response=ApplicationResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            403: OpenApiResponse(response=ErrorResponseSerializer),
+            409: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
+class ApplicationDraftListView(APIView):
+    """Canonical student draft collection.
+
+    Online drafts are real ``Application`` rows with ``status='draft'``. The
+    historical ``/applications/draft/`` endpoint remains as a compatibility
+    cache for wizard snapshots; this collection exposes the canonical resource
+    the frontend already uses for multi-draft lists.
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = ApplicationListSerializer
+
+    def get(self, request):
+        queryset = (
+            Application.objects.select_related("payment_verified_by")
+            .prefetch_related("applicationgrade_set", "payment_set")
+            .filter(user_id=str(request.user.id), status="draft")
+        )
+        queryset = queryset.order_by("-updated_at", "-created_at", "-id")
+
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            return paginator.get_paginated_response(ApplicationListSerializer(page, many=True).data)
+
+        return Response(ApplicationListSerializer(queryset, many=True).data)
+
+    def post(self, request):
+        """Create a canonical online draft application.
+
+        Draft creation must follow the same tenant-domain binding, offering
+        assignment, duplicate protection, and fee resolution rules as the
+        canonical application create endpoint. Keep the implementation delegated
+        so `/applications/` and `/applications/drafts/` cannot drift.
+        """
+
+        from apps.applications.admin_review_views import ApplicationListCreateView
+
+        return ApplicationListCreateView().post(request)
+
+
+@extend_schema_view(
+    get=extend_schema(
+        operation_id="applications_drafts_retrieve",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Draft application UUID."),
+        ],
+        responses={
+            200: OpenApiResponse(response=ApplicationResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    patch=extend_schema(
+        operation_id="applications_drafts_update",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Draft application UUID."),
+        ],
+        request=ApplicationSerializer,
+        responses={
+            200: OpenApiResponse(response=ApplicationResponseSerializer),
+            400: OpenApiResponse(response=ErrorResponseSerializer),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+    delete=extend_schema(
+        operation_id="applications_drafts_delete",
+        tags=["applications"],
+        parameters=[
+            OpenApiParameter("application_id", OpenApiTypes.UUID, OpenApiParameter.PATH, description="Draft application UUID."),
+        ],
+        request=None,
+        responses={
+            204: OpenApiResponse(description="Draft application deleted."),
+            404: OpenApiResponse(response=ErrorResponseSerializer),
+            409: OpenApiResponse(response=ErrorResponseSerializer),
+        },
+    ),
+)
+class ApplicationDraftDetailView(APIView):
+    """Canonical student draft detail/update/delete for real draft applications."""
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = ApplicationSerializer
+
+    def get(self, request, application_id):
+        application = _get_owned_draft_application(request, application_id)
+        if application is None:
+            return Response({"success": False, "error": "Draft not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"success": True, "data": ApplicationSerializer(application).data})
+
+    def patch(self, request, application_id):
+        application = _get_owned_draft_application(request, application_id)
+        if application is None:
+            return Response({"success": False, "error": "Draft not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ApplicationSerializer(application, data=request.data, partial=True, context={"request": request})
+        if not serializer.is_valid():
+            return Response({"success": False, "error": "Validation failed", "code": "VALIDATION_ERROR", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated = serializer.save()
+        return Response({"success": True, "data": ApplicationSerializer(updated).data})
+
+    def delete(self, request, application_id):
+        application = _get_owned_draft_application(request, application_id)
+        if application is None:
+            return Response({"success": False, "error": "Draft not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        has_payment_activity = Payment.objects.filter(
+            application_id=application.id,
+            status__in=RESOLVED_PAYMENT_STATUSES,
+        ).exists()
+        if has_payment_activity:
+            return Response(
+                {
+                    "success": False,
+                    "error": (
+                        "This draft has payment activity and cannot be deleted. "
+                        "Continue the application or contact admissions for help."
+                    ),
+                    "code": "DRAFT_HAS_PAYMENT_ACTIVITY",
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        application.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@extend_schema_view(
+    get=extend_schema(
         operation_id="applications_draft_retrieve",
         tags=["applications"],
         responses={
@@ -325,6 +488,13 @@ class ApplicationDetailsView(ApplicationDetailView):
     ),
 )
 class ApplicationDraftView(APIView):
+    """Deprecated compatibility endpoint for latest wizard snapshot payloads.
+
+    Do not use this endpoint for production multi-draft routing. Canonical
+    online drafts are ``Application(status='draft')`` rows exposed through
+    ``/applications/drafts/`` and ``/applications/drafts/{id}/``.
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = ApplicationDraftWriteSerializer
 

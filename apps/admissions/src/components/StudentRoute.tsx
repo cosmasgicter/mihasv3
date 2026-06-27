@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { StudentErrorBoundary } from '@/components/student/StudentErrorBoundary'
 import { GuardInlineSkeleton } from '@/components/ui/GuardInlineSkeleton'
 import { startLoaderTelemetry } from '@/lib/loaderTelemetry'
+import { pathFor } from '@/routes/routeRegistry'
 
 interface StudentRouteProps {
   children: React.ReactNode
@@ -36,11 +37,11 @@ export function StudentRoute({ children }: StudentRouteProps) {
   }
 
   if (!user) {
-    return <Navigate to="/auth/signin" state={{ from: location }} replace />
+    return <Navigate to={pathFor('auth.signIn')} state={{ from: location }} replace />
   }
 
   if (isAdmin) {
-    return <Navigate to="/admin/dashboard" replace />
+    return <Navigate to={pathFor('admin.dashboard')} replace />
   }
 
   return <StudentErrorBoundary>{children}</StudentErrorBoundary>

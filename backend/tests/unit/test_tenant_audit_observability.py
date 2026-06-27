@@ -28,6 +28,7 @@ redactor (R13.4 is proven exhaustively in task 26.2).
 from __future__ import annotations
 
 import uuid
+from types import SimpleNamespace
 
 import pytest
 from rest_framework.test import APIClient
@@ -37,6 +38,13 @@ from apps.catalog.services import AccessScopeService, OfferingAssignmentError, O
 from apps.catalog.tenant_audit_service import (
     ACTION_ASSIGNMENT_DECIDED,
     ACTION_ASSIGNMENT_FAILED,
+    ACTION_DOCUMENT_VERIFICATION_DECIDED,
+    ACTION_OFFICIAL_DOCUMENT_DOWNLOADED,
+    ACTION_OFFICIAL_DOCUMENT_EMAILED,
+    ACTION_OFFICIAL_DOCUMENT_GENERATED,
+    ACTION_OFFICIAL_DOCUMENT_QUEUED,
+    ACTION_PAYMENT_VERIFICATION_DECIDED,
+    ACTION_REVIEW_DECIDED,
     ACTION_SCOPE_DENIED,
     TenantAuditService,
 )
@@ -110,6 +118,9 @@ class TestAssignmentAuditEvents:
         assert row.changes["intake_id"] == world.intake_id
         assert row.changes["program_offering_id"] == world.offering_id
         assert row.changes["institution_id"] == world.institution_id
+        assert row.changes["decision"]["offering_priority"] == world.offering.assignment_priority
+        assert "program_intake_priority" in row.changes["decision"]
+        assert "offering_rule_keys" in row.changes["decision"]
 
     def test_routing_failure_records_coverage_gap_inputs(self):
         """A NO_ELIGIBLE_OFFERING failure records canonical program + intake +
@@ -242,6 +253,207 @@ class TestTenantConfigAuditEvents:
         )
         assert resp.status_code == 201, resp.json()
         assert AuditLog.objects.filter(action="tenant.membership.created").exists()
+
+
+@pytest.mark.django_db
+class TestTask39AuditCoverageMatrix:
+    """Every canonical Task 39 audit family writes a non-PII AuditLog row.
+
+    **Validates: canonical-multi-tenant-alignment Task 39.1-39.10**
+    """
+
+    def test_tenant_config_action_matrix_is_complete(self):
+        institution_id = uuid.uuid4()
+        matrix = [
+            ("institution", "created"),
+            ("institution", "updated"),
+            ("institution", "deactivated"),
+            ("domain", "created"),
+            ("domain", "activated"),
+            ("domain", "updated"),
+            ("domain", "deactivated"),
+            ("asset", "created"),
+            ("asset", "updated"),
+            ("asset", "deactivated"),
+            ("document_profile", "created"),
+            ("document_profile", "updated"),
+            ("document_profile", "deactivated"),
+            ("required_document", "created"),
+            ("required_document", "updated"),
+            ("required_document", "deactivated"),
+            ("program", "updated"),
+            ("membership", "created"),
+            ("membership", "updated"),
+            ("membership", "deactivated"),
+            ("grant", "created"),
+            ("grant", "updated"),
+            ("grant", "deactivated"),
+        ]
+
+        for resource, verb in matrix:
+            TenantAuditService.record_config_change(
+                resource=resource,
+                verb=verb,
+                entity_id=uuid.uuid4(),
+                institution_id=institution_id,
+                actor_id=uuid.uuid4(),
+                actor_role="super_admin",
+                metadata={
+                    "phone": "+260971234567",
+                    "safe_change": "enabled",
+                },
+            )
+
+        actions = set(AuditLog.objects.values_list("action", flat=True))
+        for resource, verb in matrix:
+            assert f"tenant.{resource}.{verb}" in actions
+
+        for row in AuditLog.objects.filter(action__startswith="tenant."):
+            serialized = str(row.changes)
+            assert "+260971234567" not in serialized
+            assert row.changes["safe_change"] == "enabled"
+            assert row.changes["institution_id"] == str(institution_id)
+
+    def test_asset_upload_and_official_document_lifecycle_actions_are_complete(self):
+        institution_id = uuid.uuid4()
+        application_id = uuid.uuid4()
+        document_id = uuid.uuid4()
+
+        TenantAuditService.record_asset_upload(
+            asset_id=uuid.uuid4(),
+            institution_id=institution_id,
+            asset_type="signature",
+            version=3,
+            mime_type="image/png",
+            checksum_sha256="a" * 64,
+            actor_id=uuid.uuid4(),
+            actor_role="super_admin",
+        )
+        TenantAuditService.record_official_document_queued(
+            application_id=application_id,
+            institution_id=institution_id,
+            document_type="application_slip",
+            task_id="celery-task-1",
+            actor_id=uuid.uuid4(),
+            actor_role="student",
+        )
+        TenantAuditService.record_official_document_generated(
+            application_id=application_id,
+            institution_id=institution_id,
+            document_type="application_slip",
+            template_id=uuid.uuid4(),
+            template_version=2,
+        )
+        TenantAuditService.record_official_document_downloaded(
+            document_id=document_id,
+            application_id=application_id,
+            institution_id=institution_id,
+            document_type="application_slip",
+            actor_id=uuid.uuid4(),
+            actor_role="student",
+        )
+        TenantAuditService.record_official_document_emailed(
+            application_id=application_id,
+            institution_id=institution_id,
+            document_type="application_slip",
+            actor_id=uuid.uuid4(),
+            actor_role="student",
+        )
+
+        actions = set(AuditLog.objects.values_list("action", flat=True))
+        assert "tenant.asset.uploaded" in actions
+        assert ACTION_OFFICIAL_DOCUMENT_QUEUED in actions
+        assert ACTION_OFFICIAL_DOCUMENT_GENERATED in actions
+        assert ACTION_OFFICIAL_DOCUMENT_DOWNLOADED in actions
+        assert ACTION_OFFICIAL_DOCUMENT_EMAILED in actions
+
+        for row in AuditLog.objects.filter(action__startswith="official_document."):
+            serialized = str(row.changes).lower()
+            assert "student@example.com" not in serialized
+            assert "storage_key" not in serialized
+            assert "file_url" not in serialized
+            assert row.changes["institution_id"] == str(institution_id)
+
+    def test_application_decision_and_denial_actions_are_complete(self):
+        institution_id = uuid.uuid4()
+        application_id = uuid.uuid4()
+        actor_id = uuid.uuid4()
+
+        TenantAuditService.record_review_decision(
+            application_id=application_id,
+            institution_id=institution_id,
+            old_status="submitted",
+            new_status="approved",
+            actor_id=actor_id,
+            actor_role="super_admin",
+            reason="Approved after review",
+        )
+        TenantAuditService.record_document_verification(
+            document_id=uuid.uuid4(),
+            application_id=application_id,
+            institution_id=institution_id,
+            document_type="nrc",
+            new_status="verified",
+            actor_id=actor_id,
+            actor_role="super_admin",
+            reason="Readable",
+        )
+        TenantAuditService.record_payment_verification(
+            payment_id=uuid.uuid4(),
+            application_id=application_id,
+            institution_id=institution_id,
+            outcome_status="verified",
+            outcome_code="PROVIDER_VERIFIED",
+            actor_id=actor_id,
+            actor_role="super_admin",
+            reason="Provider matched",
+        )
+        TenantAuditService.record_scope_denied(
+            resource_type="application",
+            resource_id=application_id,
+            actor_id=actor_id,
+            actor_role="admin",
+        )
+
+        actions = set(AuditLog.objects.values_list("action", flat=True))
+        assert ACTION_REVIEW_DECIDED in actions
+        assert ACTION_DOCUMENT_VERIFICATION_DECIDED in actions
+        assert ACTION_PAYMENT_VERIFICATION_DECIDED in actions
+        assert ACTION_SCOPE_DENIED in actions
+
+        denied = AuditLog.objects.get(action=ACTION_SCOPE_DENIED)
+        assert denied.retention_category == "security"
+        assert denied.changes["resource_type"] == "application"
+        assert denied.changes["actor_role"] == "admin"
+        assert "institution_id" not in denied.changes
+
+    def test_official_document_failure_helpers_write_non_pii_failure_events(self):
+        from apps.applications.tasks.pdf_generation import (
+            _audit_profile_not_configured,
+            _audit_render_failure,
+        )
+
+        application = SimpleNamespace(id=uuid.uuid4(), institution_ref_id=uuid.uuid4())
+        _audit_render_failure(
+            application,
+            "acceptance_letter",
+            RuntimeError("contains applicant name and phone +260971234567"),
+            attempts=3,
+        )
+        _audit_profile_not_configured(
+            application,
+            "conditional_offer",
+            SimpleNamespace(code="DOCUMENT_PROFILE_NOT_CONFIGURED"),
+        )
+
+        rows = list(AuditLog.objects.filter(action="official_document_render_failed"))
+        assert len(rows) == 2
+        for row in rows:
+            serialized = str(row.changes)
+            assert "+260971234567" not in serialized
+            assert "applicant name" not in serialized.lower()
+            assert row.changes["institution_id"] == str(application.institution_ref_id)
+            assert row.changes["recoverable"] is True
 
 
 # ---------------------------------------------------------------------------

@@ -51,6 +51,9 @@ const listTemplates = vi.fn()
 const listRequiredDocuments = vi.fn()
 const listOfferings = vi.fn()
 const listMemberships = vi.fn()
+const listAssets = vi.fn()
+const listDocumentProfiles = vi.fn()
+const getReadiness = vi.fn()
 
 vi.mock('@/services/admin/tenants', () => ({
   tenantAdminService: {
@@ -67,6 +70,9 @@ vi.mock('@/services/admin/tenants', () => ({
     listRequiredDocuments: (...a: unknown[]) => listRequiredDocuments(...a),
     listOfferings: (...a: unknown[]) => listOfferings(...a),
     listMemberships: (...a: unknown[]) => listMemberships(...a),
+    listAssets: (...a: unknown[]) => listAssets(...a),
+    listDocumentProfiles: (...a: unknown[]) => listDocumentProfiles(...a),
+    getReadiness: (...a: unknown[]) => getReadiness(...a),
   },
 }))
 
@@ -122,12 +128,31 @@ function renderWizard() {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  window.localStorage.clear()
   // Reads enabled once the institution exists — keep them deterministic/empty.
   listDomains.mockResolvedValue([])
   listTemplates.mockResolvedValue([])
   listRequiredDocuments.mockResolvedValue([])
-  listOfferings.mockResolvedValue([])
+  listOfferings.mockResolvedValue([{ id: 'off-1', name: 'Clinical Medicine', code: 'CM', is_active: true }])
   listMemberships.mockResolvedValue([])
+  listAssets.mockResolvedValue([
+    { id: 'asset-logo', asset_type: 'logo', storage_key: 'logo.png', mime_type: 'image/png', is_active: true },
+    { id: 'asset-signature', asset_type: 'signature', storage_key: 'signature.png', mime_type: 'image/png', is_active: true },
+  ])
+  listDocumentProfiles.mockResolvedValue([
+    { id: 'profile-1', document_type: 'acceptance_letter', layout_key: 'fee_chart_letter', version: 1, is_active: true },
+  ])
+  getReadiness.mockResolvedValue({
+    institution_id: NEW_ID,
+    launch_ready: true,
+    items: [
+      { key: 'logo', label: 'Logo asset', ready: true, count: 1, blocking: true, message: 'Active logo configured' },
+      { key: 'signature', label: 'Signature asset', ready: true, count: 1, blocking: true, message: 'Active signature configured' },
+      { key: 'document_profile', label: 'Document profile', ready: true, count: 1, blocking: true, message: 'Active official-document profile configured' },
+      { key: 'program_offering', label: 'Program offerings', ready: true, count: 1, blocking: true, message: 'At least one active offering is assigned' },
+      { key: 'tenant_admin', label: 'Tenant admin', ready: true, count: 1, blocking: true, message: 'Scoped tenant admin is available' },
+    ],
+  })
   // Writes resolve to realistic shapes the wizard consumes.
   createInstitution.mockResolvedValue({ id: NEW_ID, name: 'New School', code: 'NEW' })
   createDomain.mockResolvedValue({

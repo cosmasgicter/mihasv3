@@ -13,12 +13,12 @@ from django.db.models import Q
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsAdmin, IsSuperAdmin, is_super_admin
+from apps.accounts.permissions import IsAdmin, is_super_admin
 from apps.catalog.admin_serializers import (
     AdminAccessGrantSerializer,
     AdminDocumentProfileSerializer,
@@ -45,12 +45,13 @@ from apps.catalog.models import (
     ProgramIntake,
     UserInstitutionMembership,
 )
-from apps.catalog.serializers import ProgramSerializer
+from apps.catalog.serializers import ProgramCreateUpdateSerializer, ProgramSerializer
 from apps.catalog.services import AccessScopeService
 from apps.catalog.services import (
     AdminCapabilityService,
     DomainStatusMachine,
     DomainTransitionError,
+    InstitutionContextService,
     InstitutionDocumentProfileService,
     OfferingAssignmentError,
     OfferingAssignmentService,
@@ -139,8 +140,28 @@ def _hostname_conflict_response():
     )
 
 
-def _write_allowed(user) -> bool:
-    return is_super_admin(user)
+_WRITE_CAPABILITY_BY_RESOURCE = {
+    "domain": "platform.domain.manage",
+    "asset": "platform.asset.manage",
+    "template": "platform.template.manage",
+    "document_profile": "platform.document.manage",
+    "required_document": "platform.document.manage",
+    "membership": "platform.user.manage_all",
+    "grant": "platform.access_grant.manage",
+}
+
+
+def _write_allowed(user, capability: str) -> bool:
+    """Resolve platform write authority through the canonical capability service."""
+    try:
+        AdminCapabilityService().require_capability(user, capability)
+    except PermissionDenied:
+        return False
+    return True
+
+
+def _write_capability_for_resource(resource: str | None) -> str:
+    return _WRITE_CAPABILITY_BY_RESOURCE.get(resource or "", "platform.tenant.update")
 
 
 def _forbidden_write_response():
@@ -230,6 +251,147 @@ def _paginate(request, queryset, serializer_class):
     return Response({"success": True, "data": serializer.data})
 
 
+def _readable_institution_queryset(user):
+    queryset = Institution.objects.all()
+    if is_super_admin(user):
+        return queryset
+    institution_ids = _scope_institution_ids(user)
+    return queryset.filter(id__in=institution_ids) if institution_ids else queryset.none()
+
+
+def _readiness_item(
+    *,
+    key: str,
+    label: str,
+    ready: bool,
+    count: int,
+    blocking: bool,
+    ready_message: str,
+    missing_message: str,
+) -> dict:
+    return {
+        "key": key,
+        "label": label,
+        "ready": bool(ready),
+        "count": int(count),
+        "blocking": bool(blocking),
+        "message": ready_message if ready else missing_message,
+    }
+
+
+def build_tenant_readiness(institution_id) -> dict:
+    """Return the canonical launch-readiness aggregate for one tenant.
+
+    The result is derived from the source tables used by tenant onboarding.
+    It is intentionally not persisted, so it cannot drift from the objects that
+    actually power routing, official documents, and staff scope.
+    """
+    logo_count = InstitutionAsset.objects.filter(
+        institution_id=institution_id,
+        asset_type="logo",
+        is_active=True,
+    ).count()
+    signature_count = InstitutionAsset.objects.filter(
+        institution_id=institution_id,
+        asset_type="signature",
+        is_active=True,
+    ).count()
+    profile_count = InstitutionDocumentProfile.objects.filter(
+        institution_id=institution_id,
+        is_active=True,
+    ).count()
+    offering_count = Program.objects.filter(
+        institution_id=institution_id,
+        is_active=True,
+        offering_status="active",
+    ).count()
+    admin_count = UserInstitutionMembership.objects.filter(
+        institution_id=institution_id,
+        is_active=True,
+        role__in=["admin", "tenant_admin"],
+    ).count()
+    domain_count = InstitutionDomain.objects.filter(
+        institution_id=institution_id,
+        is_active=True,
+    ).count()
+    active_domain_count = InstitutionDomain.objects.filter(
+        institution_id=institution_id,
+        is_active=True,
+        status=InstitutionDomain.STATUS_ACTIVE,
+    ).count()
+
+    items = [
+        _readiness_item(
+            key="logo",
+            label="Logo asset",
+            ready=logo_count > 0,
+            count=logo_count,
+            blocking=True,
+            ready_message="Active logo configured",
+            missing_message="Upload an active tenant logo",
+        ),
+        _readiness_item(
+            key="signature",
+            label="Signature asset",
+            ready=signature_count > 0,
+            count=signature_count,
+            blocking=True,
+            ready_message="Active signature configured",
+            missing_message="Upload an active signatory signature",
+        ),
+        _readiness_item(
+            key="document_profile",
+            label="Document profile",
+            ready=profile_count > 0,
+            count=profile_count,
+            blocking=True,
+            ready_message="Active official-document profile configured",
+            missing_message="Create at least one active official-document profile",
+        ),
+        _readiness_item(
+            key="program_offering",
+            label="Program offerings",
+            ready=offering_count > 0,
+            count=offering_count,
+            blocking=True,
+            ready_message="At least one active offering is assigned",
+            missing_message="Assign at least one active program offering",
+        ),
+        _readiness_item(
+            key="tenant_admin",
+            label="Tenant admin",
+            ready=admin_count > 0,
+            count=admin_count,
+            blocking=True,
+            ready_message="Scoped tenant admin is available",
+            missing_message="Invite or scope a tenant admin",
+        ),
+        _readiness_item(
+            key="domain_configured",
+            label="Domain",
+            ready=domain_count > 0,
+            count=domain_count,
+            blocking=False,
+            ready_message="Tenant domain exists",
+            missing_message="Add a tenant domain when the school is ready for a custom portal host",
+        ),
+        _readiness_item(
+            key="active_domain",
+            label="Active domain",
+            ready=active_domain_count > 0,
+            count=active_domain_count,
+            blocking=False,
+            ready_message="At least one domain is active",
+            missing_message="Verify and activate the domain after DNS propagates",
+        ),
+    ]
+    return {
+        "institution_id": str(institution_id),
+        "launch_ready": all(item["ready"] for item in items if item["blocking"]),
+        "items": items,
+    }
+
+
 class AdminTenantListCreateView(APIView):
     permission_classes = [IsAdmin]
     serializer_class = AdminInstitutionSerializer
@@ -263,7 +425,7 @@ class AdminTenantListCreateView(APIView):
         responses={201: OpenApiResponse(response=AdminInstitutionSerializer)},
     )
     def post(self, request):
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, "platform.tenant.create"):
             return _forbidden_write_response()
         serializer = AdminInstitutionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -285,11 +447,7 @@ class AdminTenantDetailView(APIView):
     serializer_class = AdminInstitutionSerializer
 
     def _get_queryset(self, request):
-        queryset = Institution.objects.all()
-        if not is_super_admin(request.user):
-            institution_ids = _scope_institution_ids(request.user)
-            queryset = queryset.filter(id__in=institution_ids) if institution_ids else queryset.none()
-        return queryset
+        return _readable_institution_queryset(request.user)
 
     def get(self, request, institution_id):
         try:
@@ -299,7 +457,13 @@ class AdminTenantDetailView(APIView):
         return Response({"success": True, "data": AdminInstitutionSerializer(institution).data})
 
     def patch(self, request, institution_id):
-        if not _write_allowed(request.user):
+        verb = _verb_for_payload(request.data, created=False)
+        required_capability = (
+            "platform.tenant.deactivate"
+            if verb == "deactivated"
+            else "platform.tenant.update"
+        )
+        if not _write_allowed(request.user, required_capability):
             return _forbidden_write_response()
         try:
             institution = Institution.objects.get(id=institution_id)
@@ -307,7 +471,6 @@ class AdminTenantDetailView(APIView):
             return Response({"success": False, "error": "Institution not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
         serializer = AdminInstitutionSerializer(institution, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        verb = _verb_for_payload(request.data, created=False)
         # R6.9: deactivating a tenant predictably suspends that tenant's staff
         # memberships in the same transaction, so a deactivated tenant can never
         # leave behind live memberships that would still resolve scope/capabilities.
@@ -330,12 +493,34 @@ class AdminTenantDetailView(APIView):
         return Response({"success": True, "data": AdminInstitutionSerializer(institution).data})
 
 
+class AdminTenantReadinessView(APIView):
+    """GET canonical tenant launch readiness for the onboarding wizard."""
+
+    permission_classes = [IsAdmin]
+
+    @extend_schema(
+        operation_id="admin_tenant_readiness",
+        tags=["admin"],
+        responses={200: OpenApiResponse(description="Tenant launch readiness aggregate.")},
+    )
+    def get(self, request, institution_id):
+        if not _readable_institution_queryset(request.user).filter(id=institution_id).exists():
+            return Response(
+                {"success": False, "error": "Institution not found", "code": "NOT_FOUND"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response({"success": True, "data": build_tenant_readiness(institution_id)})
+
+
 class _InstitutionChildListCreateView(APIView):
     permission_classes = [IsAdmin]
     model = None
     serializer_class = None
     order_by = ("-created_at",)
     audit_resource = None
+
+    def get_write_capability(self) -> str:
+        return _write_capability_for_resource(self.audit_resource)
 
     def get_queryset(self, request, institution_id):
         institution_ids = _scope_institution_ids(request.user)
@@ -354,7 +539,7 @@ class _InstitutionChildListCreateView(APIView):
         return _paginate(request, self.get_queryset(request, institution_id), self.serializer_class)
 
     def post(self, request, institution_id):
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, self.get_write_capability()):
             return _forbidden_write_response()
         payload = request.data.copy()
         payload["institution_id"] = str(institution_id)
@@ -381,6 +566,9 @@ class _InstitutionChildDetailView(APIView):
     serializer_class = None
     audit_resource = None
 
+    def get_write_capability(self) -> str:
+        return _write_capability_for_resource(self.audit_resource)
+
     def get_queryset(self, request, institution_id):
         queryset = self.model.objects.filter(institution_id=institution_id)
         institution_ids = _scope_institution_ids(request.user)
@@ -391,7 +579,7 @@ class _InstitutionChildDetailView(APIView):
         return queryset
 
     def patch(self, request, institution_id, item_id):
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, self.get_write_capability()):
             return _forbidden_write_response()
         try:
             instance = self.get_queryset(request, institution_id).get(id=item_id)
@@ -435,7 +623,7 @@ class AdminTenantDomainListCreateView(_InstitutionChildListCreateView):
         routable after the verification job (Task 7.3) advances it to
         ``verified`` and a super-admin activates it (``verified → active``).
         """
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, self.get_write_capability()):
             return _forbidden_write_response()
 
         payload = request.data.copy()
@@ -469,6 +657,7 @@ class AdminTenantDomainListCreateView(_InstitutionChildListCreateView):
             entity_id=getattr(instance, "id", None),
             institution_id=institution_id,
         )
+        invalidate_catalog_scopes(institution_id, user=request.user)
 
         data = self.serializer_class(instance).data
         data["status"] = instance.status
@@ -482,6 +671,49 @@ class AdminTenantDomainDetailView(_InstitutionChildDetailView):
     model = InstitutionDomain
     serializer_class = AdminInstitutionDomainSerializer
     audit_resource = "domain"
+
+    def patch(self, request, institution_id, item_id):
+        if not _write_allowed(request.user, self.get_write_capability()):
+            return _forbidden_write_response()
+        try:
+            domain = self.get_queryset(request, institution_id).get(id=item_id)
+        except InstitutionDomain.DoesNotExist:
+            return Response({"success": False, "error": "Tenant resource not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        payload = request.data.copy()
+        payload["institution_id"] = str(institution_id)
+        serializer = self.serializer_class(domain, data=payload, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        deactivate_requested = payload.get("is_active") in (False, "false", "False", 0, "0")
+        if deactivate_requested and domain.status == InstitutionDomain.STATUS_ACTIVE:
+            try:
+                DomainStatusMachine.assert_transition(
+                    domain.status,
+                    InstitutionDomain.STATUS_DISABLED,
+                )
+            except DomainTransitionError:
+                return Response(
+                    {
+                        "success": False,
+                        "error": "Domain cannot be disabled from its current status.",
+                        "code": "DOMAIN_TRANSITION_REJECTED",
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+            domain = serializer.save(status=InstitutionDomain.STATUS_DISABLED)
+        else:
+            domain = serializer.save()
+
+        _audit_config_change(
+            request,
+            resource=self.audit_resource,
+            verb=_verb_for_payload(request.data, created=False),
+            entity_id=domain.id,
+            institution_id=institution_id,
+        )
+        invalidate_catalog_scopes(institution_id, user=request.user)
+        return Response({"success": True, "data": self.serializer_class(domain).data})
 
 
 class AdminTenantProgramListView(_InstitutionChildListCreateView):
@@ -497,6 +729,14 @@ class AdminTenantProgramListView(_InstitutionChildListCreateView):
     serializer_class = ProgramSerializer
     order_by = ("name",)
 
+    @extend_schema(
+        operation_id="admin_tenant_programs_list",
+        tags=["admin"],
+        responses={200: OpenApiResponse(response=ProgramSerializer)},
+    )
+    def get(self, request, institution_id):
+        return super().get(request, institution_id)
+
     def get_queryset(self, request, institution_id):
         return (
             super()
@@ -508,20 +748,67 @@ class AdminTenantProgramListView(_InstitutionChildListCreateView):
         return _forbidden_write_response()
 
 
+class AdminTenantProgramDetailView(_InstitutionChildDetailView):
+    """GET/PATCH tenant program offering through the canonical admin tenant path."""
+
+    model = Program
+    serializer_class = ProgramSerializer
+    audit_resource = "program"
+
+    @extend_schema(
+        operation_id="admin_tenant_programs_retrieve",
+        tags=["admin"],
+        responses={200: OpenApiResponse(response=ProgramSerializer)},
+    )
+    def get(self, request, institution_id, item_id):
+        try:
+            program = self.get_queryset(request, institution_id).select_related(
+                "institution", "canonical_program"
+            ).get(id=item_id)
+        except Program.DoesNotExist:
+            return Response({"success": False, "error": "Program not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"success": True, "data": self.serializer_class(program).data})
+
+    def patch(self, request, institution_id, item_id):
+        if not _write_allowed(request.user, "platform.program_assignment.manage"):
+            return _forbidden_write_response()
+        try:
+            program = self.get_queryset(request, institution_id).get(id=item_id)
+        except Program.DoesNotExist:
+            return Response({"success": False, "error": "Program not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        payload = request.data.copy()
+        payload["institution_id"] = str(institution_id)
+        serializer = ProgramCreateUpdateSerializer(program, data=payload, partial=True)
+        serializer.is_valid(raise_exception=True)
+        for attr, value in serializer.validated_data.items():
+            setattr(program, attr, value)
+        program.save()
+        _audit_config_change(
+            request,
+            resource="program",
+            verb=_verb_for_payload(request.data, created=False),
+            entity_id=program.id,
+            institution_id=institution_id,
+        )
+        invalidate_catalog_scopes(institution_id, user=request.user)
+        return Response({"success": True, "data": self.serializer_class(program).data})
+
+
 class AdminTenantDomainActivateView(APIView):
     """POST .../domains/<id>/activate/ — activate a verified domain (R7.6, R7.7, R7.14).
 
-    Activation is restricted to Super_Admins (``IsSuperAdmin``, R7.14). A domain
+    Activation is restricted to ``platform.domain.manage`` actors (R7.14). A domain
     may be activated only from ``verified`` (R7.6); any other status is rejected
     with the stable ``DOMAIN_NOT_VERIFIED`` code and the status is left unchanged
     (R7.7). On success the status moves ``verified → active`` (validated through
     the :class:`DomainStatusMachine`) and ``approved_by`` records the activating
-    Super_Admin. A duplicate active hostname (the partial unique index
+    platform actor. A duplicate active hostname (the partial unique index
     ``uq_institution_domains_active_hostname``) is mapped to ``HOSTNAME_CONFLICT``
     with HTTP 409 (R7.10).
     """
 
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsAdmin]
     serializer_class = AdminInstitutionDomainSerializer
 
     @extend_schema(
@@ -531,6 +818,8 @@ class AdminTenantDomainActivateView(APIView):
         responses={200: OpenApiResponse(response=AdminInstitutionDomainSerializer)},
     )
     def post(self, request, institution_id, item_id):
+        if not _write_allowed(request.user, "platform.domain.manage"):
+            return _forbidden_write_response()
         try:
             domain = InstitutionDomain.objects.get(id=item_id, institution_id=institution_id)
         except InstitutionDomain.DoesNotExist:
@@ -570,6 +859,7 @@ class AdminTenantDomainActivateView(APIView):
             entity_id=domain.id,
             institution_id=institution_id,
         )
+        invalidate_catalog_scopes(institution_id, user=request.user)
 
         data = self.serializer_class(domain).data
         data["status"] = domain.status
@@ -657,8 +947,8 @@ class AdminTenantAssetListCreateView(_InstitutionChildListCreateView):
         multipart :class:`AdminTenantAssetUploadView` stays the primary
         creation path (R13.3).
         """
-        # R13.1: only Super_Admins may register assets via this path.
-        if not _write_allowed(request.user):
+        # R13.1: only platform asset managers may register assets via this path.
+        if not _write_allowed(request.user, "platform.asset.manage"):
             return _forbidden_write_response()
 
         try:
@@ -767,7 +1057,7 @@ class AdminTenantAssetUploadView(APIView):
         responses={201: OpenApiResponse(description="Asset uploaded and stored.")},
     )
     def post(self, request, institution_id):
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, "platform.asset.manage"):
             return _forbidden_write_response()
         try:
             Institution.objects.get(id=institution_id)
@@ -931,7 +1221,7 @@ class AdminTenantTemplateListCreateView(_InstitutionChildListCreateView):
     def post(self, request, institution_id):
         # Permission first (mirrors the parent's super-admin write gate), so a
         # non-super-admin gets FORBIDDEN rather than a payload-inspection 400.
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, self.get_write_capability()):
             return _forbidden_write_response()
         # Reject arbitrary merge documents / disallowed sections + tokens
         # before the generic create runs (R5.7 / R6.4).
@@ -956,7 +1246,7 @@ class AdminTenantTemplateDetailView(_InstitutionChildDetailView):
     audit_resource = "template"
 
     def patch(self, request, institution_id, item_id):
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, self.get_write_capability()):
             return _forbidden_write_response()
         rejected = _guard_template_payload(request)
         if rejected is not None:
@@ -1009,7 +1299,7 @@ class AdminTenantProfileListCreateView(_InstitutionChildListCreateView):
     def post(self, request, institution_id):
         # Permission first (mirrors the template path), so a non-super-admin
         # gets FORBIDDEN rather than a payload-inspection 400.
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, self.get_write_capability()):
             return _forbidden_write_response()
         rejected = _guard_profile_payload(request)
         if rejected is not None:
@@ -1032,7 +1322,7 @@ class AdminTenantProfileDetailView(_InstitutionChildDetailView):
     audit_resource = "document_profile"
 
     def patch(self, request, institution_id, item_id):
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, self.get_write_capability()):
             return _forbidden_write_response()
         rejected = _guard_profile_payload(request)
         if rejected is not None:
@@ -1077,7 +1367,7 @@ class AdminTenantProfileCloneView(APIView):
         return queryset
 
     def post(self, request, institution_id, item_id):
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, "platform.document.manage"):
             return _forbidden_write_response()
         try:
             profile = self._get_queryset(request, institution_id).get(id=item_id)
@@ -1187,7 +1477,7 @@ class AdminMembershipDetailView(APIView):
         return queryset
 
     def patch(self, request, membership_id):
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, "platform.user.manage_all"):
             return _forbidden_write_response()
         try:
             membership = self.get_queryset(request).get(id=membership_id)
@@ -1227,7 +1517,7 @@ class AdminAccessGrantListCreateView(APIView):
         return _paginate(request, queryset, AdminAccessGrantSerializer)
 
     def post(self, request):
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, "platform.access_grant.manage"):
             return _forbidden_write_response()
         serializer = AdminAccessGrantSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -1256,7 +1546,7 @@ class AdminAccessGrantDetailView(APIView):
         return queryset
 
     def patch(self, request, grant_id):
-        if not _write_allowed(request.user):
+        if not _write_allowed(request.user, "platform.access_grant.manage"):
             return _forbidden_write_response()
         try:
             grant = self.get_queryset(request).get(id=grant_id)
@@ -1287,13 +1577,12 @@ class AdminRoutingSimulateView(APIView):
     detail for an operator to understand *why* an offering was (or was not)
     chosen.
 
-    Super-admin gated: routing config spans every school, so only a global
-    actor may probe arbitrary canonical-program/intake/institution combinations.
-    Non-super-admins receive the same FORBIDDEN response used by every other
-    tenant write surface.
+    Gated by ``platform.routing.simulate_all`` because routing config spans
+    every school; unauthorized actors receive the same FORBIDDEN response used
+    by every other tenant write surface.
     """
 
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsAdmin]
     serializer_class = AdminRoutingSimulationSerializer
 
     @extend_schema(
@@ -1303,6 +1592,8 @@ class AdminRoutingSimulateView(APIView):
         responses={200: OpenApiResponse(description="Assignment result or NO_ELIGIBLE_OFFERING failure detail.")},
     )
     def post(self, request):
+        if not _write_allowed(request.user, "platform.routing.simulate_all"):
+            return _forbidden_write_response()
         serializer = AdminRoutingSimulationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         payload = serializer.validated_data
@@ -1311,7 +1602,15 @@ class AdminRoutingSimulateView(APIView):
         intake_id = str(payload["intake_id"])
         country = payload.get("country") or None
         nationality = payload.get("nationality") or None
+        host = payload.get("host") or None
         institution_id = str(payload["institution_id"]) if payload.get("institution_id") else None
+        resolved_institution_id = None
+        if host:
+            context = InstitutionContextService().resolve(host)
+            if context.portal_type == "white_label" and context.institution is not None:
+                resolved_institution_id = str(context.institution.id)
+                if institution_id is None:
+                    institution_id = resolved_institution_id
 
         inputs = {
             "program_id": program_id,
@@ -1319,6 +1618,8 @@ class AdminRoutingSimulateView(APIView):
             "country": country,
             "nationality": nationality,
             "institution_id": institution_id,
+            "host": host,
+            "resolved_institution_id": resolved_institution_id,
         }
 
         try:
@@ -1411,19 +1712,19 @@ from apps.common.models import AuditLog  # noqa: E402
 
 
 class AdminTenantAuditView(APIView):
-    """GET /api/v1/admin/tenant-audit/ — Super_Admin operational-review feed (R13.2).
+    """GET /api/v1/admin/tenant-audit/ — platform operational-review feed (R13.2).
 
     Returns recent **tenant configuration changes** (``tenant.*`` actions) and
-    **routing failures** (``assignment.failed``) so a Super_Admin can review
-    coverage gaps and config drift in one place. Super-admin only: it spans
-    every school, so it is never exposed to school staff (who use the scoped
-    per-institution view below).
+    **routing failures** (``assignment.failed``) so a platform operator can
+    review coverage gaps and config drift in one place. It is gated by
+    ``platform.audit.read_all`` because it spans every school, so it is never
+    exposed to school staff (who use the scoped per-institution view below).
 
     Optional ``action`` query param filters to an exact action; ``category``
     (``config`` | ``routing_failure``) narrows to one of the two feeds.
     """
 
-    permission_classes = [IsSuperAdmin]
+    permission_classes = [IsAdmin]
     serializer_class = TenantAuditLogSerializer
 
     @extend_schema(
@@ -1436,6 +1737,8 @@ class AdminTenantAuditView(APIView):
         responses={200: OpenApiResponse(response=TenantAuditLogSerializer(many=True))},
     )
     def get(self, request):
+        if not _write_allowed(request.user, "platform.audit.read_all"):
+            return _forbidden_write_response()
         config_q = Q(action__startswith=OBSERVABILITY_CONFIG_PREFIX)
         routing_q = Q(action=OBSERVABILITY_ROUTING_FAILURE_ACTION)
 

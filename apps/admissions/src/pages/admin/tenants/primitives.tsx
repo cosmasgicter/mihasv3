@@ -19,17 +19,21 @@ export interface ResourceListItem {
   title: string
   meta: string
   active?: boolean
+  previewUrl?: string | null
+  previewAlt?: string
 }
 
 export function ResourceList({
   items,
   empty,
   onDeactivate,
+  deactivatingId,
   limit = 6,
 }: {
   items: ResourceListItem[]
   empty: string
   onDeactivate?: (id: string) => void
+  deactivatingId?: string | null
   limit?: number
 }) {
   if (items.length === 0) {
@@ -41,7 +45,21 @@ export function ResourceList({
       {items.slice(0, limit).map(item => (
         <div key={item.id} className="rounded-lg border border-border bg-background p-3">
           <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
+            <div className="flex min-w-0 items-start gap-3">
+              {item.previewUrl && (
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
+                  <img
+                    src={item.previewUrl}
+                    alt={item.previewAlt || item.title}
+                    width={48}
+                    height={48}
+                    className="max-h-full max-w-full object-contain"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              )}
+              <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="break-words text-sm font-medium text-foreground">{item.title}</p>
                 {item.active === false && (
@@ -49,9 +67,16 @@ export function ResourceList({
                 )}
               </div>
               <p className="mt-1 break-words text-xs text-muted-foreground">{item.meta}</p>
+              </div>
             </div>
             {onDeactivate && item.active !== false && (
-              <Button type="button" size="xs" variant="outline" onClick={() => onDeactivate(item.id)}>
+              <Button
+                type="button"
+                size="xs"
+                variant="outline"
+                loading={deactivatingId === item.id}
+                onClick={() => onDeactivate(item.id)}
+              >
                 Deactivate
               </Button>
             )}

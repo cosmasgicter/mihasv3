@@ -11,17 +11,11 @@ import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import {
-  Home,
-  Search,
-  FileText,
-  User,
-  Settings,
-  CreditCard,
-  Calendar,
   MoreHorizontal,
 } from 'lucide-react'
 import { useSafeArea } from './SafeAreaProvider'
 import { usePrefetch } from '@/hooks/usePrefetch'
+import { pathFor, routeById, type ProductRouteDefinition } from '@/routes/routeRegistry'
 
 export interface BottomNavItem {
   /** Route path */
@@ -57,35 +51,46 @@ interface BottomNavigationProps {
 
 /** Route-to-import map for prefetching route chunks on hover/focus */
 const routeImports: Record<string, () => Promise<unknown>> = {
-  '/student/dashboard': () => import('@/pages/student/Dashboard'),
-  '/student/application-wizard': () => import('@/pages/student/applicationWizard/index'),
-  '/student/payment': () => import('@/pages/student/Payment'),
-  '/student/interview': () => import('@/pages/student/Interview'),
-  '/student/notifications': () => import('@/pages/student/NotificationSettings'),
-  '/student/settings': () => import('@/pages/student/Settings'),
-  '/admin/dashboard': () => import('@/pages/admin/Dashboard'),
-  '/admin/applications': () => import('@/pages/admin/Applications'),
-  '/admin/programs': () => import('@/pages/admin/Programs'),
-  '/admin/intakes': () => import('@/pages/admin/Intakes'),
-  '/admin/users': () => import('@/pages/admin/Users'),
-  '/admin/audit': () => import('@/pages/admin/AuditTrail'),
-  '/admin/settings': () => import('@/pages/admin/Settings'),
+  [pathFor('student.dashboard')]: () => import('@/pages/student/Dashboard'),
+  [pathFor('student.applicationWizard')]: () => import('@/pages/student/applicationWizard/index'),
+  [pathFor('student.payment')]: () => import('@/pages/student/Payment'),
+  [pathFor('student.interview')]: () => import('@/pages/student/Interview'),
+  [pathFor('student.notifications')]: () => import('@/pages/student/NotificationSettings'),
+  [pathFor('student.settings')]: () => import('@/pages/student/Settings'),
+  [pathFor('admin.dashboard')]: () => import('@/pages/admin/Dashboard'),
+  [pathFor('admin.applications')]: () => import('@/pages/admin/Applications'),
+  [pathFor('admin.programs')]: () => import('@/pages/admin/Programs'),
+  [pathFor('admin.intakes')]: () => import('@/pages/admin/Intakes'),
+  [pathFor('admin.users')]: () => import('@/pages/admin/Users'),
+  [pathFor('admin.audit')]: () => import('@/pages/admin/AuditTrail'),
+  [pathFor('admin.settings')]: () => import('@/pages/admin/Settings'),
 }
 
 /** Stable no-op import for routes without a prefetch target */
 const noopImport = () => Promise.resolve()
 
+const bottomNavItemFromRoute = (
+  route: ProductRouteDefinition,
+  options: { label?: string; requiresAuth?: boolean } = {},
+): BottomNavItem => ({
+  href: route.path,
+  label: options.label ?? route.nav!.label,
+  icon: route.nav!.icon,
+  requiresAuth: options.requiresAuth,
+  activeMatchPaths: route.nav?.activeMatchPaths,
+})
+
 export const defaultStudentNavItems: BottomNavItem[] = [
-  { href: '/student/dashboard', label: 'Dashboard', icon: Home, requiresAuth: true },
-  { href: '/student/payment', label: 'Payment', icon: CreditCard, requiresAuth: true },
-  { href: '/student/interview', label: 'Interview', icon: Calendar, requiresAuth: true },
-  { href: '/student/settings', label: 'Settings', icon: Settings, requiresAuth: true },
+  bottomNavItemFromRoute(routeById('student.dashboard'), { requiresAuth: true }),
+  bottomNavItemFromRoute(routeById('student.payment'), { requiresAuth: true }),
+  bottomNavItemFromRoute(routeById('student.interview'), { requiresAuth: true }),
+  bottomNavItemFromRoute(routeById('student.settings'), { label: 'Settings', requiresAuth: true }),
 ]
 
 export const defaultPublicNavItems: BottomNavItem[] = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/track-application', label: 'Track', icon: Search },
-  { href: '/auth/signin', label: 'Sign In', icon: User },
+  bottomNavItemFromRoute(routeById('public.home')),
+  bottomNavItemFromRoute(routeById('public.trackApplication')),
+  bottomNavItemFromRoute(routeById('auth.signIn')),
 ]
 
 /** Individual bottom nav link with prefetch support */

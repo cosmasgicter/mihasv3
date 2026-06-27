@@ -6,7 +6,8 @@ import { toError } from '@/lib/toError'
 import { logger } from '@/lib/logger'
 import { clearAllDraftData, isDraftDeleted, clearDraftDeletedFlag } from '@/lib/draftManager'
 import { applicationSessionManager } from '@/lib/applicationSession'
-import { cachedGetItem, cachedSetItem, cachedRemoveItem } from '@/lib/localStorageCache'
+import { cachedGetItem, cachedRemoveItem, cachedSetItem } from '@/lib/localStorageCache'
+import { getLegacyWizardDraftStorageKey, getWizardDraftStorageKey } from '@/lib/draftStorageKeys'
 import { DEFAULT_RESIDENCE_COUNTRY } from '@/lib/locationOptions'
 import { normalizeResidenceTown } from '@/lib/residenceTown'
 import { normalizeDateInputValue } from '@/lib/profileFieldMapping'
@@ -45,9 +46,46 @@ interface UseWizardDraftLoaderParams {
   hydrateServerDocuments: (applicationId: string) => Promise<Record<string, boolean>>
 }
 
+function persistWizardDraftSnapshot(snapshot: Record<string, unknown>, userId?: string | null, applicationId?: string | null) {
+  cachedSetItem(getWizardDraftStorageKey(userId, applicationId), JSON.stringify(snapshot))
+  if (applicationId) {
+    cachedRemoveItem(getWizardDraftStorageKey(userId, null))
+  }
+  cachedRemoveItem(getLegacyWizardDraftStorageKey())
+  sessionStorage.removeItem(getLegacyWizardDraftStorageKey())
+}
+
+export type WizardDraftIntent =
+  | { mode: 'new'; draftId: null }
+  | { mode: 'resume'; draftId: string }
+  | { mode: 'local'; draftId: null }
+  | { mode: 'auto'; draftId: null }
+
+export function parseWizardDraftIntent(locationSearch: string): WizardDraftIntent {
+  const params = new URLSearchParams(locationSearch)
+  const wizardMode = (params.get('mode') || '').toLowerCase()
+  const selectedDraftId = (params.get('draftId') || params.get('applicationId') || '').trim()
+
+  if (wizardMode === 'new' || params.get('new') === 'true' || params.get('fresh') === '1') {
+    return { mode: 'new', draftId: null }
+  }
+
+  if (params.get('localDraft') === 'true') {
+    return { mode: 'local', draftId: null }
+  }
+
+  if (wizardMode === 'resume' && selectedDraftId) {
+    return { mode: 'resume', draftId: selectedDraftId }
+  }
+
+  return { mode: 'auto', draftId: null }
+}
+
 /**
- * Handles initial draft loading on wizard mount. Reconciles local (localStorage)
- * and server drafts by timestamp, restoring the most recent one.
+ * Handles initial draft loading on wizard mount. Explicit `mode=new` never
+ * restores a draft, and `mode=resume&draftId=...` restores only that selected
+ * server draft. Bare visits with server drafts stop at the draft-choice screen
+ * instead of silently resuming the latest record.
  */
 export function useWizardDraftLoader({
   user,
@@ -79,9 +117,8 @@ export function useWizardDraftLoader({
       setRestoringDraft(true)
       let draftRestored = false
 
-      const params = new URLSearchParams(locationSearch)
-      const wantsFreshApplication = params.get('new') === 'true' || params.get('fresh') === '1'
-      if (wantsFreshApplication) {
+      const draftIntent = parseWizardDraftIntent(locationSearch)
+      if (draftIntent.mode === 'new') {
         try {
           clearAllDraftData()
         } catch {
@@ -145,19 +182,45 @@ export function useWizardDraftLoader({
         if (draft && draft.formData && draft.version === 2) {
           localDraft = draft as unknown as LocalDraftShape
           localTimestamp = draft.savedAt ? new Date(draft.savedAt) : null
-        } else if (cachedGetItem('applicationWizardDraft')) {
-          cachedRemoveItem('applicationWizardDraft')
+        } else if (cachedGetItem(getLegacyWizardDraftStorageKey())) {
+          cachedRemoveItem(getLegacyWizardDraftStorageKey())
         }
 
-        sessionStorage.removeItem('applicationWizardDraft')
+        sessionStorage.removeItem(getLegacyWizardDraftStorageKey())
 
-        if (draftApplications?.applications && draftApplications.applications.length > 0) {
-          serverApp = draftApplications.applications[0] as unknown as ServerDraftShape
-          serverTimestamp = serverApp.updated_at ? new Date(serverApp.updated_at) :
-                          (serverApp.created_at ? new Date(serverApp.created_at) : null)
+        if (draftIntent.mode !== 'local' && draftApplications?.applications && draftApplications.applications.length > 0) {
+          const serverDrafts = draftApplications.applications as ServerDraftShape[]
+          if (draftIntent.mode === 'auto') {
+            setRestoringDraft(false)
+            setDraftLoaded(true)
+            return
+          }
+          serverApp = draftIntent.mode === 'resume'
+            ? serverDrafts.find(candidate => String(candidate.id) === draftIntent.draftId) ?? null
+            : serverDrafts[0] ?? null
+          serverTimestamp = serverApp
+            ? serverApp.updated_at
+              ? new Date(serverApp.updated_at)
+              : (serverApp.created_at ? new Date(serverApp.created_at) : null)
+            : null
+        }
+
+        if (draftIntent.mode === 'resume' && !serverApp) {
+          setRestoringDraft(false)
+          setDraftLoaded(true)
+          return
+        }
+
+        if (draftIntent.mode === 'resume' && localDraft) {
+          const localApplicationId = typeof localDraft.applicationId === 'string' ? localDraft.applicationId : ''
+          if (localApplicationId !== draftIntent.draftId) {
+            localDraft = null
+            localTimestamp = null
+          }
         }
 
         const useLocalDraft = (() => {
+          if (draftIntent.mode === 'resume') return Boolean(localDraft && !serverApp)
           if (localDraft && !serverApp) return true
           if (!localDraft && serverApp) return false
           if (!localDraft && !serverApp) return false
@@ -363,7 +426,7 @@ export function useWizardDraftLoader({
             paymentStatus: app.payment_status ?? null,
           }
           try {
-            cachedSetItem('applicationWizardDraft', JSON.stringify(syncDraft))
+            persistWizardDraftSnapshot(syncDraft, user.id, app.id)
           } catch { /* non-critical */ }
 
           showSuccess('Draft restored successfully')

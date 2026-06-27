@@ -65,8 +65,35 @@ export function SettlementPanel({ institutionId }: { institutionId: string }) {
               />
             ))}
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[32rem] border-collapse text-sm">
+          <div className="grid gap-3 md:hidden" role="list" aria-label="Settlement totals grouped by offering and currency">
+            {rows.map(row => (
+              <article
+                key={`${row.program_offering_id ?? 'na'}-${row.currency}-card`}
+                className="rounded-lg border border-border/60 bg-muted/20 p-3"
+                role="listitem"
+              >
+                <h3 className="break-words text-sm font-semibold text-foreground">{row.program_name}</h3>
+                <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">Currency</dt>
+                    <dd className="mt-1 font-medium text-foreground">{row.currency}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">Payments</dt>
+                    <dd className="mt-1 font-medium tabular-nums text-foreground">{row.payment_count}</dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">Gross</dt>
+                    <dd className="mt-1 font-semibold tabular-nums text-foreground">
+                      {row.currency} {Number(row.gross_amount).toFixed(2)}
+                    </dd>
+                  </div>
+                </dl>
+              </article>
+            ))}
+          </div>
+          <div className="hidden md:block">
+            <table className="w-full border-collapse text-sm">
               <caption className="sr-only">Settlement totals grouped by offering and currency</caption>
               <thead>
                 <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">

@@ -144,6 +144,7 @@ export function TenantStaffPanel({ institutionId }: { institutionId: string }) {
           )}
           <ResourceList
             empty="No staff memberships configured."
+            deactivatingId={disableMutation.isPending ? disableMutation.variables ?? null : null}
             onDeactivate={canDisable ? (id) => disableMutation.mutate(id) : undefined}
             items={memberships.map((item) => ({
               id: item.id,

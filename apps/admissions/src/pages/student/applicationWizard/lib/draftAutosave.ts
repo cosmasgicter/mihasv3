@@ -21,6 +21,13 @@ type DraftApplicationPayload = {
   nationality: string
 }
 
+export type DuplicateDraftConflictDecision = {
+  existingId: string | null
+  program: string
+  intake: string
+  message: string
+}
+
 const hasText = (value?: string | null) => Boolean(value?.trim())
 
 export function canCreateServerDraft(formData: WizardFormData): boolean {
@@ -72,4 +79,32 @@ export function buildServerDraftPayload({
     institution: institutionCode,
     nationality: nationality.trim() || 'Zambian',
   }
+}
+
+export function buildDuplicateDraftConflictDecision({
+  existingId,
+  program,
+  intake,
+}: {
+  existingId?: string | null
+  program: string
+  intake: string
+}): DuplicateDraftConflictDecision {
+  const normalizedExistingId = existingId?.trim() || null
+  return {
+    existingId: normalizedExistingId,
+    program,
+    intake,
+    message: normalizedExistingId
+      ? 'You already have a draft for this program and intake. Continue that draft, choose a different intake, or cancel this new application.'
+      : 'You already have a draft for this program and intake. Continue the existing draft, choose a different intake, or cancel this new application.',
+  }
+}
+
+export function shouldClearDuplicateDraftConflict(
+  conflict: DuplicateDraftConflictDecision | null,
+  formData: Pick<WizardFormData, 'program' | 'intake'>
+): boolean {
+  if (!conflict) return false
+  return conflict.program !== String(formData.program || '') || conflict.intake !== String(formData.intake || '')
 }

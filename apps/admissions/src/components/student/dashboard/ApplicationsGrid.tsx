@@ -12,6 +12,7 @@ import { staggerChild, animateClasses } from '@/lib/animations'
 import { sanitizeForDisplay } from '@/lib/sanitize'
 import { getBestValue } from '@/hooks/useProfileAutoPopulation'
 import { User, FileText, Clock, Calendar } from 'lucide-react'
+import { studentApplicationNewPath } from '@/routes/routeRegistry'
 
 interface ProfileData {
   full_name?: string | null
@@ -102,7 +103,7 @@ export function ApplicationsGrid({
                 description="Start your journey by submitting your first application. We'll guide you every step of the way."
                 action={{
                   label: 'New Application',
-                  onClick: () => navigate('/student/application-wizard?new=true'),
+                  onClick: () => navigate(studentApplicationNewPath()),
                   variant: 'primary',
                 }}
               />

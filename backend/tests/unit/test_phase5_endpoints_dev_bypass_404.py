@@ -69,7 +69,7 @@ from apps.common.dev_bypass import (
     DEV_BYPASS_PARAM_NAMES,
 )
 from apps.documents.risk_views import RiskFlagsListView
-from apps.documents.views import SuperAdminPaymentCorrectionView
+from apps.documents.payment_admin_views import SuperAdminPaymentCorrectionView
 
 
 def _header_to_meta(name: str) -> str:

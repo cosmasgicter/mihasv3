@@ -1,15 +1,14 @@
 import type { CapabilityValue } from '@/contexts/CapabilityContext'
+import { adminNavRoutes } from '@/routes/routeRegistry'
 
 type AdminNavCapabilities = Pick<CapabilityValue, 'isSuperAdmin'>
 type AdminNavItem = { href?: string; to?: string }
 
-const SUPER_ADMIN_ONLY_ADMIN_PATHS = new Set([
-  '/admin/programs',
-  '/admin/intakes',
-  '/admin/program-fees',
-  '/admin/audit',
-  '/admin/settings',
-])
+const SUPER_ADMIN_ONLY_ADMIN_PATHS = new Set(
+  adminNavRoutes()
+    .filter((route) => route.requiresSuperAdmin)
+    .map((route) => route.path),
+)
 
 function normalizePath(path: string): string {
   const [withoutHash] = path.split('#')

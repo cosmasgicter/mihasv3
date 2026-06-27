@@ -4,9 +4,8 @@ Builds letterhead, body, commitment-fee block, bank-account block, fee chart,
 requirements list, and signatory/signature **solely** from the resolved
 ``InstitutionDocumentProfile`` + tenant assets — never frontend constants. When
 no profile resolved, ``context.has_profile`` is ``False``; task 15.2 turns that
-into a ``failed`` generation status (``DOCUMENT_PROFILE_NOT_CONFIGURED``). Until
-15.2 lands this renderer still emits a minimal profile-or-template letter so the
-existing lifecycle tests keep working.
+into a ``failed`` generation status (``DOCUMENT_PROFILE_NOT_CONFIGURED``) before
+this renderer is called.
 """
 
 from __future__ import annotations
@@ -21,9 +20,9 @@ from . import _common
 def render(context: RenderContext, *, template: dict[str, Any]):
     from apps.applications.tasks.pdf_generation import DOCUMENT_CONFIG, _default_body
 
-    # R8.3: content comes from the resolved profile. The body and signatory fall
-    # back to the template only as a transitional measure until 15.2 enforces
-    # no-profile → failed; the fee chart / banks / requirements are profile-only.
+    # R8.3: content comes from the resolved profile. Template/default fallback
+    # only applies when a profile exists but omits optional body/signatory text;
+    # the dispatcher fails before this renderer for a missing profile.
     body = (
         _common.profile_section(context, "body")
         or _common.template_body(template)

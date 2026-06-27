@@ -25,7 +25,7 @@ import { toast } from '@/hooks/useToast'
 import { tenantAdminService } from '@/services/admin/tenants'
 
 import { tenantErrorMessage } from './errors'
-import { PanelNoAccess, PanelStateError } from './panelStates'
+import { PanelNoAccess, PanelReadOnlyNotice, PanelStateError } from './panelStates'
 import { ResourceList, TENANT_SELECT_CLASS } from './primitives'
 
 interface RequiredDocumentFormState {
@@ -129,44 +129,57 @@ export function TenantDocumentsPanel({ institutionId }: { institutionId: string 
               createMutation.mutate()
             }}
           >
-            <select
-              value={form.document_type}
-              onChange={(event) => setForm((prev) => ({ ...prev, document_type: event.target.value }))}
-              className={TENANT_SELECT_CLASS}
-              aria-label="Required document type"
-            >
-              <option value="identity_document">Identity document</option>
-              <option value="academic_transcript">Academic transcript</option>
-              <option value="passport_photo">Passport photo</option>
-              <option value="proof_of_payment">Proof of payment</option>
-              <option value="other">Other</option>
-            </select>
-            <Input
-              value={form.label}
-              onChange={(event) => setForm((prev) => ({ ...prev, label: event.target.value }))}
-              placeholder="Displayed label"
-              aria-label="Required document label"
-            />
-            <Input
-              value={form.program_id}
-              onChange={(event) => setForm((prev) => ({ ...prev, program_id: event.target.value }))}
-              placeholder="Offering ID, optional"
-              aria-label="Program offering ID"
-            />
-            <Input
-              value={form.canonical_program_id}
-              onChange={(event) => setForm((prev) => ({ ...prev, canonical_program_id: event.target.value }))}
-              placeholder="Canonical program ID, optional"
-              aria-label="Canonical program ID"
-            />
-            <div className="sm:col-span-2 flex justify-end">
-              <Button type="submit" loading={createMutation.isPending}>
+            <label className="space-y-1.5 text-sm">
+              <span className="font-medium text-foreground">Document type</span>
+              <select
+                value={form.document_type}
+                onChange={(event) => setForm((prev) => ({ ...prev, document_type: event.target.value }))}
+                className={TENANT_SELECT_CLASS}
+                aria-label="Required document type"
+              >
+                <option value="identity_document">Identity document</option>
+                <option value="academic_transcript">Academic transcript</option>
+                <option value="passport_photo">Passport photo</option>
+                <option value="proof_of_payment">Proof of payment</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label className="space-y-1.5 text-sm">
+              <span className="font-medium text-foreground">Displayed label</span>
+              <Input
+                value={form.label}
+                onChange={(event) => setForm((prev) => ({ ...prev, label: event.target.value }))}
+                placeholder="e.g. Grade 12 certificate"
+                aria-label="Required document label"
+              />
+            </label>
+            <label className="space-y-1.5 text-sm">
+              <span className="font-medium text-foreground">Offering ID</span>
+              <Input
+                value={form.program_id}
+                onChange={(event) => setForm((prev) => ({ ...prev, program_id: event.target.value }))}
+                placeholder="Optional UUID"
+                aria-label="Program offering ID"
+              />
+            </label>
+            <label className="space-y-1.5 text-sm">
+              <span className="font-medium text-foreground">Canonical program ID</span>
+              <Input
+                value={form.canonical_program_id}
+                onChange={(event) => setForm((prev) => ({ ...prev, canonical_program_id: event.target.value }))}
+                placeholder="Optional UUID"
+                aria-label="Canonical program ID"
+              />
+            </label>
+            <div className="flex justify-end sm:col-span-2">
+              <Button type="submit" loading={createMutation.isPending} className="w-full sm:w-auto">
                 <FilePlus2 className="h-4 w-4" aria-hidden="true" /> Add document
               </Button>
             </div>
           </form>
           <ResourceList
             empty="No required documents configured."
+            deactivatingId={deactivateMutation.isPending ? deactivateMutation.variables ?? null : null}
             onDeactivate={(id) => deactivateMutation.mutate(id)}
             items={documents.map((item) => ({
               id: item.id,
@@ -177,23 +190,29 @@ export function TenantDocumentsPanel({ institutionId }: { institutionId: string 
           />
         </>
       ) : documents.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No required documents configured.</p>
+        <div className="space-y-3">
+          <PanelReadOnlyNotice description="Required document changes are managed by your platform administrator. This view is read-only." />
+          <p className="text-sm text-muted-foreground">No required documents configured.</p>
+        </div>
       ) : (
         // Read-only view for a tenant-admin without manage capability.
-        <ul className="space-y-2">
-          {documents.map((doc) => (
-            <li key={doc.id} className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
-              <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              <div className="min-w-0">
-                <p className="break-words text-sm font-medium text-foreground">{doc.label}</p>
-                <p className="text-xs text-muted-foreground">
-                  {doc.document_type} · {doc.is_required === false ? 'Optional' : 'Required'}
-                  {doc.is_active === false ? ' · inactive' : ''}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div className="space-y-3">
+          <PanelReadOnlyNotice description="Required document changes are managed by your platform administrator. This view is read-only." />
+          <ul className="space-y-2">
+            {documents.map((doc) => (
+              <li key={doc.id} className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
+                <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="break-words text-sm font-medium text-foreground">{doc.label}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {doc.document_type} · {doc.is_required === false ? 'Optional' : 'Required'}
+                    {doc.is_active === false ? ' · inactive' : ''}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </SectionCard>
   )

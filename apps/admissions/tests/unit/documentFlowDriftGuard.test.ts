@@ -103,14 +103,14 @@ const PREVIEW_ALLOWLIST: readonly AllowlistEntry[] = [
       'Legacy/manual slip preview helper (non-official draft preview, R7.6). Not wired into production student or public document actions.',
   },
   {
-    path: 'apps/admissions/src/hooks/useDocumentGeneration.ts',
+    path: 'apps/admissions/src/pages/dev/hooks/useDocumentGeneration.ts',
     reason:
-      'Legacy/orphaned client-generation hook retained for dev/draft preview only. Not wired into the student official-download components (those use useOfficialDocument).',
+      'Dev-only client-generation hook retained for local PDF preview tests. Not wired into the student official-download components (those use useOfficialDocument).',
   },
   {
-    path: 'apps/admissions/src/hooks/usePaymentReceipt.ts',
+    path: 'apps/admissions/src/pages/dev/hooks/usePaymentReceipt.ts',
     reason:
-      'Legacy/orphaned client receipt-preview hook. Not wired into the student official-download path (DownloadReceiptButton uses useOfficialDocument).',
+      'Dev-only client receipt-preview hook. Not wired into the student official-download path (DownloadReceiptButton uses useOfficialDocument).',
   },
 ] as const
 

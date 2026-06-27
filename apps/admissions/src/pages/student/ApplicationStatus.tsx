@@ -44,6 +44,7 @@ import { PaymentStatusBlock } from '@/components/student/applicationStatus/Payme
 import { ConditionsTimeline } from '@/components/student/applicationStatus/ConditionsTimeline'
 import { AmendmentForm } from '@/components/student/applicationStatus/AmendmentForm'
 import { WithdrawDialog, EnrollDialog } from '@/components/student/applicationStatus/WithdrawEnrollDialogs'
+import { studentApplicationResumePath } from '@/routes/routeRegistry'
 
 interface ApplicationTimeline {
   status: string
@@ -381,7 +382,7 @@ export default function ApplicationStatus() {
     needsPaymentAttention
       ? {
           href: application.status === 'draft'
-            ? '/student/application-wizard'
+            ? studentApplicationResumePath(application.id)
             : `/student/payment?applicationId=${encodeURIComponent(application.id)}`,
           label: application.status === 'draft'
             ? 'Continue draft in wizard'

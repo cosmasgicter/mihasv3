@@ -8,7 +8,7 @@ from apps.applications.withdrawal_service import (
     MAX_REASON_LENGTH, MIN_REASON_LENGTH, WITHDRAWABLE_STATUSES,
     WithdrawalError, WithdrawalService,
 )
-from apps.applications.views import ApplicationWithdrawView
+from apps.applications.student_withdrawal_views import ApplicationWithdrawView
 
 _WS = "apps.applications.withdrawal_service.WithdrawalService.withdraw"
 _AO = "apps.applications.views.Application.objects"

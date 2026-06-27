@@ -13,7 +13,7 @@ from django.test import SimpleTestCase, override_settings
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.documents.payment_service import PaymentInitiationResult
-from apps.documents.views import PaymentInitiateView
+from apps.documents.payment_widget_views import PaymentInitiateView
 
 
 class TestPaymentInitiateContract(SimpleTestCase):

@@ -20,7 +20,7 @@ from apps.accounts.admin_views import (  # noqa: E402
     AdminDashboardView,
     AuditLogSerializer,
 )
-from apps.documents.views import ProgramFeeViewSet  # noqa: E402
+from apps.documents.payment_query_views import ProgramFeeViewSet  # noqa: E402
 
 
 class AdminDashboardOverhaulUnitTests(SimpleTestCase):

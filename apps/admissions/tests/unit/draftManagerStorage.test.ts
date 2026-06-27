@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { hasDraftData } from '@/lib/draftManager'
+import { getWizardDraftStorageKey, isDraftStorageKey, removeDraftStorageEntries } from '@/lib/draftStorageKeys'
 import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 
 describe('draftManager storage detection', () => {
@@ -22,5 +23,22 @@ describe('draftManager storage detection', () => {
     localStorage.setItem('applicationWizardDraft', JSON.stringify({ currentStep: 2 }))
 
     expect(hasDraftData()).toBe(true)
+  })
+
+  it('counts scoped wizard draft keys as active draft data', () => {
+    const key = getWizardDraftStorageKey('user-1', 'draft-1')
+    localStorage.setItem(key, JSON.stringify({ currentStep: 2, userId: 'user-1', applicationId: 'draft-1' }))
+
+    expect(isDraftStorageKey(key)).toBe(true)
+    expect(hasDraftData()).toBe(true)
+  })
+
+  it('removes scoped wizard draft keys during draft cleanup', () => {
+    const key = getWizardDraftStorageKey('user-1', 'draft-1')
+    localStorage.setItem(key, JSON.stringify({ currentStep: 2 }))
+
+    removeDraftStorageEntries(localStorage)
+
+    expect(localStorage.getItem(key)).toBeNull()
   })
 })

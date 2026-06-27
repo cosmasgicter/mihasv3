@@ -5,7 +5,11 @@
  */
 import { applicationService } from '@/services/applications'
 import { ApplicationFormData } from '@/forms/applicationSchema'
-import { removeDraftStorageEntries, isDraftStorageKey } from './draftStorageKeys'
+import {
+  isDraftStorageKey,
+  listWizardDraftStorageKeys,
+  removeDraftStorageEntries,
+} from './draftStorageKeys'
 import { sanitizeForLog, safeJsonParse } from './sanitize'
 import { generateSecureToken } from './security'
 import { logger } from '@/lib/logger'
@@ -179,27 +183,59 @@ class ApplicationSessionManager {
     this.sessionId = generateSecureToken(16)
   }
 
-  private getStoredWizardDraft(): StoredDraftRecord | null {
-    const savedDraft = cachedGetItem('applicationWizardDraft')
-    if (!savedDraft) {
-      return null
+  private getStoredWizardDraft(userId?: string | null, applicationId?: string | null): StoredDraftRecord | null {
+    const candidateKeys = listWizardDraftStorageKeys(localStorage, userId, applicationId)
+    for (const key of candidateKeys) {
+      const savedDraft = cachedGetItem(key)
+      if (!savedDraft) {
+        continue
+      }
+
+      const draft = safeJsonParse<StoredDraftRecord | null>(savedDraft, null)
+      if (!draft) {
+        cachedRemoveItem(key)
+        continue
+      }
+
+      const draftOwnerId = typeof draft.userId === 'string'
+        ? draft.userId
+        : typeof draft.user_id === 'string'
+          ? draft.user_id
+          : null
+      const draftApplicationId = typeof draft.applicationId === 'string'
+        ? draft.applicationId
+        : typeof draft.application_id === 'string'
+          ? draft.application_id
+          : null
+
+      if (userId && draftOwnerId && draftOwnerId !== userId) {
+        continue
+      }
+      if (applicationId && draftApplicationId && draftApplicationId !== applicationId) {
+        continue
+      }
+
+      return draft
     }
 
-    const draft = safeJsonParse<StoredDraftRecord | null>(savedDraft, null)
-    if (!draft) {
-      cachedRemoveItem('applicationWizardDraft')
-      return null
-    }
-
-    return draft
+    return null
   }
 
   getStoredDraft(): StoredDraftRecord | null {
     return this.getStoredWizardDraft()
   }
 
+  private removeStoredWizardDraft(userId?: string | null, applicationId?: string | null): void {
+    listWizardDraftStorageKeys(localStorage, userId, applicationId).forEach((key) => {
+      cachedRemoveItem(key)
+    })
+    listWizardDraftStorageKeys(sessionStorage, userId, applicationId).forEach((key) => {
+      sessionStorage.removeItem(key)
+    })
+  }
+
   private async resolveDraftApplicationId(userId: string): Promise<string | null> {
-    const wizardDraft = this.getStoredWizardDraft()
+    const wizardDraft = this.getStoredWizardDraft(userId)
     const wizardDraftId =
       typeof wizardDraft?.applicationId === 'string'
         ? wizardDraft.applicationId
@@ -252,7 +288,7 @@ class ApplicationSessionManager {
   }
 
   async getLocalWizardDraft(userId?: string): Promise<StoredDraftRecord | null> {
-    const draft = this.getStoredWizardDraft()
+    const draft = this.getStoredWizardDraft(userId)
     if (!draft) {
       return null
     }
@@ -486,7 +522,7 @@ class ApplicationSessionManager {
           return localDraft as unknown as ApplicationDraft
         }
 
-        cachedRemoveItem('applicationWizardDraft')
+        this.removeStoredWizardDraft(userId)
       }
 
       return null

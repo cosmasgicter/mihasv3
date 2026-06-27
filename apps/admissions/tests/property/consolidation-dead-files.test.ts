@@ -29,6 +29,8 @@ const DELETED_FILES = [
   // Deprecated hooks/services (Phase 2)
   'src/hooks/useErrorHandling.ts',
   'src/hooks/useNotificationPreferences.ts',
+  'src/hooks/useDraftManager.ts',
+  'src/hooks/queries/useNotificationQueries.ts',
   'src/stores/toastStore.ts',
   'src/lib/notificationService.ts',
   'src/lib/adminNotifications.ts',
@@ -40,6 +42,7 @@ const DELETED_FILES = [
   'src/components/student/DashboardSkeleton.tsx',
   'src/components/admin/DashboardSkeleton.tsx',
   'src/components/student/StudentDashboardSkeleton.tsx',
+  'src/components/student/StudentNextActionCard.tsx',
   'src/pages/auth/AuthLayout.tsx',
   'src/components/student/NotificationPreferences.tsx',
   // Dead code (Phase 4)

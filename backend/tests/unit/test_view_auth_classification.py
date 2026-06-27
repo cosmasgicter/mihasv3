@@ -227,6 +227,8 @@ _PROTECTED = {
     "apps.applications.student_views.ApplicationConfirmEnrollmentView",
     "apps.applications.student_views.ApplicationAmendmentView",
     "apps.applications.student_views.EmailSlipView",
+    "apps.applications.student_draft_views.ApplicationDraftListView",
+    "apps.applications.student_draft_views.ApplicationDraftDetailView",
     # applications — admin
     "apps.applications.admin_views.ApplicationListCreateView",
     "apps.applications.admin_views.ApplicationReviewView",
@@ -270,7 +272,9 @@ _PROTECTED = {
     "apps.catalog.admin_views.AdminTenantDomainDetailView",
     "apps.catalog.admin_views.AdminTenantDomainListCreateView",
     "apps.catalog.admin_views.AdminTenantListCreateView",
+    "apps.catalog.admin_views.AdminTenantProgramDetailView",
     "apps.catalog.admin_views.AdminTenantProgramListView",
+    "apps.catalog.admin_views.AdminTenantReadinessView",
     "apps.catalog.admin_views.AdminTenantRequiredDocumentDetailView",
     "apps.catalog.admin_views.AdminTenantRequiredDocumentListCreateView",
     "apps.catalog.admin_views.AdminTenantTemplateDetailView",

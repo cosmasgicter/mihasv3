@@ -28,6 +28,7 @@ from rest_framework.test import APIClient
 from apps.accounts.authentication import JWTUser
 from apps.catalog.services import OfferingAssignmentError, OfferingAssignmentService
 from tests.tenant_fixtures import (
+    build_institution_domain,
     build_profile,
     build_tenant_world,
     build_white_label_scenario,
@@ -126,6 +127,42 @@ class TestRoutingSimulateMatchesService:
         assert data["institution_id"] == str(target.id)
         assert data["institution_id"] == str(expected.institution.id)
         assert data["program_offering_id"] == str(expected.offering.id)
+
+    def test_simulate_resolves_white_label_host_like_public_portal(self):
+        """The optional ``host`` input uses ``InstitutionContextService`` so
+        simulator results match the white-label portal's tenant resolution."""
+        scenario = build_white_label_scenario(
+            [
+                [CandidateSpec(offering_priority=10)],
+                [CandidateSpec(offering_priority=10)],
+            ]
+        )
+        target = scenario.scenarios[1].institution
+        build_institution_domain(
+            institution=target,
+            hostname="apply.simulated-school.example",
+            status="active",
+            is_active=True,
+        )
+        superadmin = build_profile(role="super_admin", suffix="sim-host")
+        client = _client_for(superadmin)
+
+        response = client.post(
+            SIMULATE_URL,
+            {
+                "program_id": scenario.canonical_program_id,
+                "intake_id": scenario.intake_id,
+                "host": "APPLY.simulated-school.example:8443",
+            },
+            format="json",
+        )
+
+        assert response.status_code == 200, (response.status_code, response.json())
+        data = response.json()["data"]
+        assert data["assigned"] is True
+        assert data["inputs"]["resolved_institution_id"] == str(target.id)
+        assert data["inputs"]["institution_id"] == str(target.id)
+        assert data["institution_id"] == str(target.id)
 
     def test_unassignable_pair_returns_recoverable_failure(self, tenant_world_factory):
         """An ineligible program + intake returns a recoverable

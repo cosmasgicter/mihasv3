@@ -24,7 +24,7 @@ from django.test import SimpleTestCase  # noqa: E402
 from django.core.files.uploadedfile import SimpleUploadedFile  # noqa: E402
 from rest_framework.test import APIRequestFactory, force_authenticate  # noqa: E402
 
-from apps.documents.views import DocumentExtractView, DocumentUploadView  # noqa: E402
+from apps.documents.document_storage_views import DocumentExtractView, DocumentUploadView  # noqa: E402
 
 
 def _make_auth_user(role="student", user_id=None):

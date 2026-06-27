@@ -5,6 +5,11 @@ production-readiness-hardening spec (task 9). All view classes
 and shared helpers are re-exported here so that existing URL
 configurations and test imports continue to work unchanged.
 
+Compatibility owner: Beanola platform engineering.
+Removal condition: no production module imports this shim, and all tests that
+patch ``apps.applications.views.*`` have moved to the canonical split modules
+named below. Tracked by canonical-multi-tenant-alignment task 29.
+
 Split files:
   - student_views.py   - student-facing CRUD, submission, withdrawal, etc.
   - admin_views.py     - admin review, bulk status, export, assignment, etc.
@@ -30,6 +35,12 @@ from apps.applications._view_helpers import (  # noqa: F401
     _with_payment_summary,
 )
 from apps.common.audit_network import build_audit_network_fields  # noqa: F401
+
+COMPATIBILITY_OWNER = "Beanola platform engineering"
+REMOVAL_CONDITION = (
+    "Remove after tests stop importing or patching apps.applications.views; "
+    "runtime URL routing already imports canonical split modules directly."
+)
 
 # Test patch backward-compat: existing tests use
 # ``@patch("apps.applications.views.X")`` for these symbols.

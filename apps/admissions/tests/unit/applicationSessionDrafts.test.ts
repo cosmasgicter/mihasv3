@@ -98,4 +98,22 @@ describe('applicationSessionManager draft deletion', () => {
     expect(localStorage.getItem('applicationWizardDraft')).toBeNull()
     expect(getByIdMock).toHaveBeenCalledWith('deleted-app')
   })
+
+  it('does not load another user scoped wizard draft', async () => {
+    const { getWizardDraftStorageKey } = await import('@/lib/draftStorageKeys')
+    localStorage.setItem(getWizardDraftStorageKey('user-2', 'draft-2'), JSON.stringify({
+      applicationId: 'draft-2',
+      userId: 'user-2',
+      formData: { full_name: 'Other Student' },
+      currentStep: 2,
+      savedAt: '2026-04-12T00:00:00.000Z',
+      version: 2,
+    }))
+
+    const { applicationSessionManager } = await import('@/lib/applicationSession')
+    const result = await applicationSessionManager.getLocalWizardDraft('user-1')
+
+    expect(result).toBeNull()
+    expect(getByIdMock).not.toHaveBeenCalled()
+  })
 })

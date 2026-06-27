@@ -28,7 +28,7 @@ from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 from rest_framework.exceptions import ValidationError  # noqa: E402
 
-from apps.documents.views import ProgramFeeViewSet  # noqa: E402
+from apps.documents.payment_query_views import ProgramFeeViewSet  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Strategies

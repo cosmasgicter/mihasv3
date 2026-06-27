@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.authentication import JWTUser
-from apps.applications.views import ApplicationAssignView, ApplicationAutoAssignView
+from apps.applications.admin_assignment_views import ApplicationAssignView, ApplicationAutoAssignView
 
 
 _AO = "apps.applications.views.Application.objects"

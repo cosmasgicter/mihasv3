@@ -77,6 +77,7 @@ class OfferingAssignmentService:
         audit_actor_id: str | None = None,
         audit_actor_role: str | None = None,
         audit_application_id: str | None = None,
+        audit_domain_host: str | None = None,
         emit_audit: bool = False,
     ) -> AssignmentResult:
         canonical = CanonicalProgram.objects.get(id=program_id, is_active=True)
@@ -137,6 +138,10 @@ class OfferingAssignmentService:
             raise OfferingAssignmentError("No active school offering is available for this program and intake.")
 
         offering = sorted(eligible, key=lambda item: item[:4])[0][4]
+        selected_program_intake = ProgramIntake.objects.filter(
+            program_id=offering.id,
+            intake_id=intake.id,
+        ).first()
         if emit_audit:
             self._emit_assignment_decided(
                 program_id=program_id,
@@ -146,6 +151,31 @@ class OfferingAssignmentService:
                 country=country,
                 nationality=nationality,
                 white_label_institution_id=institution_id,
+                domain_host=audit_domain_host,
+                decision={
+                    "offering_priority": offering.assignment_priority,
+                    "program_intake_priority": (
+                        selected_program_intake.assignment_priority
+                        if selected_program_intake
+                        else None
+                    ),
+                    "max_capacity": (
+                        selected_program_intake.max_capacity
+                        if selected_program_intake
+                        else None
+                    ),
+                    "current_enrollment": (
+                        selected_program_intake.current_enrollment
+                        if selected_program_intake
+                        else None
+                    ),
+                    "offering_rule_keys": sorted((offering.assignment_rules or {}).keys()),
+                    "program_intake_rule_keys": sorted(
+                        (selected_program_intake.residency_rules or {}).keys()
+                        if selected_program_intake
+                        else []
+                    ),
+                },
                 source=audit_source,
                 actor_id=audit_actor_id,
                 actor_role=audit_actor_role,
@@ -201,10 +231,19 @@ class OfferingAssignmentService:
             return True
         country_value = (country or "").strip().lower()
         nationality_value = (nationality or "").strip().lower()
-        allowed_countries = [str(v).strip().lower() for v in rules.get("countries", [])]
-        blocked_countries = [str(v).strip().lower() for v in rules.get("exclude_countries", [])]
-        allowed_nationalities = [str(v).strip().lower() for v in rules.get("nationalities", [])]
-        blocked_nationalities = [str(v).strip().lower() for v in rules.get("exclude_nationalities", [])]
+
+        def values(*keys: str) -> list[str]:
+            merged: list[str] = []
+            for key in keys:
+                raw = rules.get(key, [])
+                if isinstance(raw, (list, tuple, set)):
+                    merged.extend(str(v).strip().lower() for v in raw)
+            return [value for value in merged if value]
+
+        allowed_countries = values("countries", "allowed_countries")
+        blocked_countries = values("exclude_countries", "blocked_countries")
+        allowed_nationalities = values("nationalities", "allowed_nationalities")
+        blocked_nationalities = values("exclude_nationalities", "blocked_nationalities")
         if country_value and country_value in blocked_countries:
             return False
         if nationality_value and nationality_value in blocked_nationalities:

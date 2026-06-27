@@ -2,7 +2,7 @@
 
 from django.test import SimpleTestCase
 
-from apps.documents.views import _ip_allowed
+from apps.documents.payment_query_views import _ip_allowed
 
 
 class LencoWebhookAllowlistTests(SimpleTestCase):

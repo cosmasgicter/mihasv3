@@ -278,6 +278,7 @@ class ApplicationListCreateView(APIView):
                     audit_source="application_create",
                     audit_actor_id=str(getattr(request.user, "id", "")) or None,
                     audit_actor_role=getattr(request.user, "role", None),
+                    audit_domain_host=host,
                 )
             except Exception as exc:
                 return Response(
@@ -634,111 +635,122 @@ class ApplicationReviewView(APIView):
         force = serializer.validated_data.get("force", False)
         reason = serializer.validated_data.get("reason", "")
 
-        with transaction.atomic():
-            app = Application.objects.select_for_update().get(id=application_id)
+        try:
+            with transaction.atomic():
+                locked_queryset = Application.objects.select_for_update()
+                if not is_super_admin(request.user):
+                    from apps.catalog.services import AccessScopeService
 
-            if new_status == "approved" and not force:
-                # All statuses that mean "payment resolved" - includes legacy (verified, paid) and current (successful, force_approved, deferred)
-                has_verified = (
-                    app.payment_status in RESOLVED_PAYMENT_STATUSES
-                    or Payment.objects.filter(
-                        application_id=application_id,
-                        status__in=RESOLVED_PAYMENT_STATUSES,
-                    ).exists()
-                )
-                if not has_verified:
-                    return Response({"success": False, "error": "Payment must be verified before approval. Set force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)
+                    locked_queryset = AccessScopeService().filter_applications(
+                        locked_queryset,
+                        request.user,
+                    )
+                app = locked_queryset.get(id=application_id)
 
-            raw_ip = self._get_client_ip(request) or ""
-            ip_hash = hashlib.sha256(str(raw_ip).encode("utf-8")).hexdigest()
-            user_agent = str(request.META.get("HTTP_USER_AGENT", "") or "")
+                if new_status == "approved" and not force:
+                    # All statuses that mean "payment resolved" - includes legacy (verified, paid) and current (successful, force_approved, deferred)
+                    has_verified = (
+                        app.payment_status in RESOLVED_PAYMENT_STATUSES
+                        or Payment.objects.filter(
+                            application_id=application_id,
+                            status__in=RESOLVED_PAYMENT_STATUSES,
+                        ).exists()
+                    )
+                    if not has_verified:
+                        return Response({"success": False, "error": "Payment must be verified before approval. Set force=true to override.", "code": "PAYMENT_UNVERIFIED"}, status=status.HTTP_400_BAD_REQUEST)
 
-            if force and new_status == "approved":
-                bypass_notes = f"[FORCE-BYPASS] Payment verification bypassed. Reason: {reason or 'Not provided'}"
-                bypass_changes = {"force_bypass": True, "reason": reason or "Not provided"}
-                logger.warning(
-                    "Force-bypass: app=%s admin=%s status=%s",
-                    app.id, request.user.id, new_status,
-                )
-            else:
-                bypass_notes = notes
-                bypass_changes = None
+                raw_ip = self._get_client_ip(request) or ""
+                ip_hash = hashlib.sha256(str(raw_ip).encode("utf-8")).hexdigest()
+                user_agent = str(request.META.get("HTTP_USER_AGENT", "") or "")
 
-            if new_status == "submitted":
-                try:
-                    locked_app, old_status = submit_application(
+                if force and new_status == "approved":
+                    bypass_notes = f"[FORCE-BYPASS] Payment verification bypassed. Reason: {reason or 'Not provided'}"
+                    bypass_changes = {"force_bypass": True, "reason": reason or "Not provided"}
+                    logger.warning(
+                        "Force-bypass: app=%s admin=%s status=%s",
+                        app.id, request.user.id, new_status,
+                    )
+                else:
+                    bypass_notes = notes
+                    bypass_changes = None
+
+                if new_status == "submitted":
+                    try:
+                        locked_app, old_status = submit_application(
+                            application=app,
+                            changed_by=str(request.user.id),
+                            ip_address=ip_hash,
+                            user_agent=user_agent,
+                            admin_force=True,
+                        )
+                    except ApplicationSubmissionError as exc:
+                        return Response(
+                            {"success": False, "error": exc.message, "code": exc.code},
+                            status=getattr(exc, "status_code", None) or status.HTTP_400_BAD_REQUEST,
+                        )
+                    # R10.5/R10.8: an admin-forced submission is a review decision;
+                    # emit an institution-scoped tenant Audit_Event before the early
+                    # return so this path is observable alongside other review
+                    # decisions. Never blocks the response.
+                    try:
+                        from apps.catalog.tenant_audit_service import TenantAuditService
+
+                        TenantAuditService.record_review_decision(
+                            application_id=locked_app.id,
+                            institution_id=getattr(locked_app, "institution_ref_id", None),
+                            old_status=old_status,
+                            new_status=new_status,
+                            actor_id=getattr(request.user, "id", None),
+                            actor_role=getattr(request.user, "role", None),
+                            reason=reason or notes,
+                            request=request,
+                        )
+                    except Exception:  # pragma: no cover - audit must never block a write
+                        pass
+                    return Response({"success": True, "data": {"message": f"Status updated from {old_status} to {new_status}", "application_id": str(locked_app.id), "old_status": old_status, "new_status": new_status}})
+
+                conditions_payload = request.data.get("conditions") if isinstance(request.data, dict) else None
+                if new_status == "conditionally_approved" and conditions_payload:
+                    from apps.applications.condition_manager import ConditionError, ConditionManager
+
+                    try:
+                        old_status = app.status
+                        ConditionManager.assign_conditions(
+                            application_id=str(application_id),
+                            conditions=conditions_payload,
+                            admin_id=str(request.user.id),
+                        )
+                        app.refresh_from_db()
+                    except ConditionError as exc:
+                        return Response(
+                            {"success": False, "error": exc.message, "code": exc.code},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                else:
+                    try:
+                        old_status = transition_application_status(
+                            application=app,
+                            new_status=new_status,
+                            changed_by=str(request.user.id),
+                            notes=bypass_notes,
+                            ip_address=ip_hash,
+                            user_agent=user_agent,
+                        )
+                    except ValueError as exc:
+                        return Response(
+                            {"success": False, "error": str(exc), "code": "INVALID_TRANSITION"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                if bypass_changes:
+                    history = ApplicationStatusHistory.objects.filter(
                         application=app,
-                        changed_by=str(request.user.id),
-                        ip_address=ip_hash,
-                        user_agent=user_agent,
-                        admin_force=True,
-                    )
-                except ApplicationSubmissionError as exc:
-                    return Response(
-                        {"success": False, "error": exc.message, "code": exc.code},
-                        status=getattr(exc, "status_code", None) or status.HTTP_400_BAD_REQUEST,
-                    )
-                # R10.5/R10.8: an admin-forced submission is a review decision;
-                # emit an institution-scoped tenant Audit_Event before the early
-                # return so this path is observable alongside other review
-                # decisions. Never blocks the response.
-                try:
-                    from apps.catalog.tenant_audit_service import TenantAuditService
-
-                    TenantAuditService.record_review_decision(
-                        application_id=locked_app.id,
-                        institution_id=getattr(locked_app, "institution_ref_id", None),
-                        old_status=old_status,
-                        new_status=new_status,
-                        actor_id=getattr(request.user, "id", None),
-                        actor_role=getattr(request.user, "role", None),
-                        reason=reason or notes,
-                        request=request,
-                    )
-                except Exception:  # pragma: no cover - audit must never block a write
-                    pass
-                return Response({"success": True, "data": {"message": f"Status updated from {old_status} to {new_status}", "application_id": str(locked_app.id), "old_status": old_status, "new_status": new_status}})
-
-            conditions_payload = request.data.get("conditions") if isinstance(request.data, dict) else None
-            if new_status == "conditionally_approved" and conditions_payload:
-                from apps.applications.condition_manager import ConditionError, ConditionManager
-
-                try:
-                    old_status = app.status
-                    ConditionManager.assign_conditions(
-                        application_id=str(application_id),
-                        conditions=conditions_payload,
-                        admin_id=str(request.user.id),
-                    )
-                    app.refresh_from_db()
-                except ConditionError as exc:
-                    return Response(
-                        {"success": False, "error": exc.message, "code": exc.code},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-            else:
-                try:
-                    old_status = transition_application_status(
-                        application=app,
-                        new_status=new_status,
-                        changed_by=str(request.user.id),
-                        notes=bypass_notes,
-                        ip_address=ip_hash,
-                        user_agent=user_agent,
-                    )
-                except ValueError as exc:
-                    return Response(
-                        {"success": False, "error": str(exc), "code": "INVALID_TRANSITION"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-            if bypass_changes:
-                history = ApplicationStatusHistory.objects.filter(
-                    application=app,
-                ).order_by('-created_at').first()
-                if history:
-                    history.changes = bypass_changes
-                    history.save(update_fields=['changes'])
+                    ).order_by('-created_at').first()
+                    if history:
+                        history.changes = bypass_changes
+                        history.save(update_fields=['changes'])
+        except Application.DoesNotExist:
+            return Response({"success": False, "error": "Application not found", "code": "NOT_FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         if new_status == "waitlisted":
             try:

@@ -28,7 +28,7 @@ from django.test import SimpleTestCase  # noqa: E402
 from hypothesis import given, settings  # noqa: E402
 from hypothesis import strategies as st  # noqa: E402
 
-from apps.applications.views import ApplicationBulkStatusView  # noqa: E402
+from apps.applications.admin_bulk_views import ApplicationBulkStatusView  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Strategies

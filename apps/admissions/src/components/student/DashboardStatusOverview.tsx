@@ -25,6 +25,7 @@ import type { Application } from '@/types/database';
 import { sortApplicationsByActivity } from '@/services/applications';
 import { requiresStudentPaymentAction } from '@/lib/paymentStatus';
 import { computeApplicationStats } from '@/lib/applicationStats';
+import { studentApplicationNewPath } from '@/routes/routeRegistry';
 
 interface DashboardStatusOverviewProps {
   applications: Application[];
@@ -258,7 +259,7 @@ export function DashboardStatusOverview({
           <p className="text-xs text-muted-foreground mb-4">
             Start your admissions journey by creating your first application.
           </p>
-          <Link to="/student/application-wizard?new=true">
+          <Link to={studentApplicationNewPath()}>
             <Button variant="primary" size="sm" className="min-h-touch transition-colors duration-150">
               <Plus className="mr-2 h-4 w-4" />
               New Application
