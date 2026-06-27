@@ -128,6 +128,10 @@ def _get_authorized_application(request, view, application_id):
     for School_Staff comes only from ``AccessScopeService`` — never from
     ``role == "admin"`` alone (R5.6).
     """
+    preauthorized = getattr(request, "_authorized_official_document_application", None)
+    if preauthorized is not None and str(getattr(preauthorized, "id", "")) == str(application_id):
+        return preauthorized, None
+
     try:
         application = Application.objects.select_related("institution_ref").get(id=application_id)
     except Application.DoesNotExist:

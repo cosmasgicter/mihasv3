@@ -61,7 +61,14 @@ def _with_deprecation_headers(response: Response, *, canonical_document_type: st
     return response
 
 
-def _delegate_to_official_document(request, application_id, document_type: str) -> Response:
+def _set_authorized_official_document_application(request, application) -> None:
+    """Carry the wrapper's scoped application into the canonical document view."""
+    request._authorized_official_document_application = application
+    if hasattr(request, "_request"):
+        request._request._authorized_official_document_application = application
+
+
+def _delegate_to_official_document(request, application_id, document_type: str, *, application=None) -> Response:
     """Delegate a legacy admin generation route to the canonical official route."""
     legacy_slug = document_type.replace("_", "-")
     idem_key = f"{legacy_slug}:{application_id}"
@@ -91,6 +98,8 @@ def _delegate_to_official_document(request, application_id, document_type: str) 
     request._suppress_official_document_queue_audit = True
     if hasattr(request, "_request"):
         request._request._suppress_official_document_queue_audit = True
+    if application is not None:
+        _set_authorized_official_document_application(request, application)
     response = OfficialDocumentDetailView().post(
         request,
         application_id=application_id,
@@ -313,7 +322,9 @@ class AcceptanceLetterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        return _delegate_to_official_document(request, application_id, "acceptance_letter")
+        return _delegate_to_official_document(
+            request, application_id, "acceptance_letter", application=application
+        )
 
 
 class ApplicationSlipView(APIView):
@@ -341,7 +352,9 @@ class ApplicationSlipView(APIView):
                 {"success": False, "error": "Application not found", "code": "NOT_FOUND"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        return _delegate_to_official_document(request, application_id, "application_slip")
+        return _delegate_to_official_document(
+            request, application_id, "application_slip", application=application
+        )
 
 
 class ConditionalOfferView(APIView):
@@ -375,7 +388,9 @@ class ConditionalOfferView(APIView):
                 {"success": False, "error": "Application is not in a conditional-offer status", "code": "INVALID_STATUS"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        return _delegate_to_official_document(request, application_id, "conditional_offer")
+        return _delegate_to_official_document(
+            request, application_id, "conditional_offer", application=application
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -427,7 +442,9 @@ class FinanceReceiptView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        return _delegate_to_official_document(request, application_id, "finance_receipt")
+        return _delegate_to_official_document(
+            request, application_id, "finance_receipt", application=application
+        )
 
 
 class PaymentReceiptView(APIView):
@@ -464,4 +481,6 @@ class PaymentReceiptView(APIView):
                 {"success": False, "error": "Application must have a completed payment to generate a payment receipt", "code": "PAYMENT_REQUIRED"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        return _delegate_to_official_document(request, application_id, "payment_receipt")
+        return _delegate_to_official_document(
+            request, application_id, "payment_receipt", application=application
+        )
