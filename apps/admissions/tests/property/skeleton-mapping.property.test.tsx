@@ -22,7 +22,7 @@ import { join } from 'path'
 // Constants
 // ---------------------------------------------------------------------------
 
-/** All valid SkeletonType values from routes/config.tsx */
+/** All valid SkeletonType values from routes/routeRegistry.ts */
 const SKELETON_TYPES = ['dashboard', 'auth', 'wizard', 'admin-table', 'detail', 'none'] as const
 type SkeletonType = (typeof SKELETON_TYPES)[number]
 
@@ -52,7 +52,7 @@ const EXPECTED_MAPPING: Record<string, string> = {
 
 const APP_TSX_PATH = join(process.cwd(), 'src', 'components', 'AuthenticatedRouteShell.tsx')
 const SKELETONS_INDEX_PATH = join(process.cwd(), 'src', 'components', 'ui', 'skeletons', 'index.tsx')
-const ROUTES_CONFIG_PATH = join(process.cwd(), 'src', 'routes', 'config.tsx')
+const ROUTES_CONFIG_PATH = join(process.cwd(), 'src', 'routes', 'routeRegistry.ts')
 
 const appTsxContent = readFileSync(APP_TSX_PATH, 'utf-8')
 const skeletonsIndexContent = readFileSync(SKELETONS_INDEX_PATH, 'utf-8')

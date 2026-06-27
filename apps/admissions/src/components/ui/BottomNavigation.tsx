@@ -49,6 +49,8 @@ interface BottomNavigationProps {
   maxPrimaryItems?: number
 }
 
+const MAX_NAV_ITEMS = 4
+
 /** Route-to-import map for prefetching route chunks on hover/focus */
 const routeImports: Record<string, () => Promise<unknown>> = {
   [pathFor('student.dashboard')]: () => import('@/pages/student/Dashboard'),
@@ -206,7 +208,7 @@ export function BottomNavigation({
   isAuthenticated = false,
   isActiveRoute: customIsActiveRoute,
   overflowMode = false,
-  maxPrimaryItems = 4,
+  maxPrimaryItems = MAX_NAV_ITEMS,
 }: BottomNavigationProps) {
   const location = useLocation()
   const { insets } = useSafeArea()
@@ -236,9 +238,10 @@ export function BottomNavigation({
   const isItemActive = (item: BottomNavItem) =>
     item.activeMatchPaths?.some(path => isActiveRoute(path)) ?? isActiveRoute(item.href)
 
-  const shouldOverflow = overflowMode && visibleItems.length > maxPrimaryItems
-  const primaryItems = shouldOverflow ? visibleItems.slice(0, maxPrimaryItems) : visibleItems
-  const overflowItems = shouldOverflow ? visibleItems.slice(maxPrimaryItems) : []
+  const primaryItemLimit = Math.min(maxPrimaryItems, MAX_NAV_ITEMS)
+  const shouldOverflow = visibleItems.length > 5 || (overflowMode && visibleItems.length > primaryItemLimit)
+  const primaryItems = shouldOverflow ? visibleItems.slice(0, 4).slice(0, primaryItemLimit) : visibleItems
+  const overflowItems = shouldOverflow ? visibleItems.slice(primaryItems.length) : []
   const isMoreActive = overflowItems.some(isItemActive)
 
   return (

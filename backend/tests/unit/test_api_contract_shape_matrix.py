@@ -9,7 +9,11 @@ from __future__ import annotations
 
 import pytest
 
-from apps.accounts.admin_user_views import _build_capability_payload
+from apps.accounts.admin_user_views import (
+    CAPABILITY_INSTITUTION_PAYLOAD_KEYS,
+    CAPABILITY_PAYLOAD_KEYS,
+    _build_capability_payload,
+)
 from apps.applications.official_document_views import OfficialDocumentStatusSerializer
 from apps.applications.serializers import ApplicationDraftSerializer
 from apps.catalog.admin_serializers import (
@@ -35,11 +39,15 @@ def _assert_required_fields(serializer_cls, expected: set[str]) -> None:
 def test_capability_and_admin_scope_payload_contract_source():
     """34.1/34.2: capabilities and admin scope share one stable payload shape."""
 
-    code = _build_capability_payload.__code__
-    constants = {value for value in code.co_consts if isinstance(value, str)}
-
-    assert {"role", "is_super_admin", "all_access", "capabilities", "institutions"}.issubset(constants)
-    assert {"id", "code", "name"}.issubset(constants)
+    assert _build_capability_payload
+    assert CAPABILITY_PAYLOAD_KEYS == {
+        "role",
+        "is_super_admin",
+        "all_access",
+        "capabilities",
+        "institutions",
+    }
+    assert CAPABILITY_INSTITUTION_PAYLOAD_KEYS == {"id", "code", "name", "capabilities"}
 
 
 @pytest.mark.parametrize(

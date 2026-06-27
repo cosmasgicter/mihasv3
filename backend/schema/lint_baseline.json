@@ -1,12 +1,12 @@
 {
   "summary": {
-    "total_endpoints": 187,
-    "endpoints_with_issues": 99,
-    "total_issues": 850,
+    "total_endpoints": 195,
+    "endpoints_with_issues": 101,
+    "total_issues": 881,
     "errors": 1,
-    "warnings": 770,
-    "info": 79,
-    "score": 87.17
+    "warnings": 807,
+    "info": 73,
+    "score": 87.16
   },
   "issues": [
     {
@@ -454,6 +454,69 @@
       "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'institution_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/programs/{item_id}/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'item_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/programs/{item_id}/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "url_structure",
+      "message": "Path has excessive nesting (7 levels): /api/v1/admin/institutions/{institution_id}/programs/{item_id}/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/programs/{item_id}/",
+      "suggestion": "Consider flattening the resource hierarchy or using query parameters"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case in GET /api/v1/admin/institutions/{institution_id}/programs/{item_id}/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/programs/{item_id}//get/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'item_id' should use camelCase or kebab-case in GET /api/v1/admin/institutions/{institution_id}/programs/{item_id}/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/programs/{item_id}//get/parameters[1]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case in PATCH /api/v1/admin/institutions/{institution_id}/programs/{item_id}/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/programs/{item_id}//patch/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'item_id' should use camelCase or kebab-case in PATCH /api/v1/admin/institutions/{institution_id}/programs/{item_id}/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/programs/{item_id}//patch/parameters[1]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/readiness/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case in GET /api/v1/admin/institutions/{institution_id}/readiness/",
+      "path": "/paths//api/v1/admin/institutions/{institution_id}/readiness//get/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'institution_id' should use camelCase or kebab-case",
       "path": "/paths//api/v1/admin/institutions/{institution_id}/required-documents/",
       "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
@@ -752,13 +815,6 @@
       "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
     },
     {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 503 for POST /api/v1/applications/{application_id}/acceptance-letter/",
-      "path": "/paths//api/v1/applications/{application_id}/acceptance-letter//post/responses/503",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
       "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/acceptance-letter/",
@@ -850,13 +906,6 @@
       "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
     },
     {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 503 for POST /api/v1/applications/{application_id}/application-slip/",
-      "path": "/paths//api/v1/applications/{application_id}/application-slip//post/responses/503",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
       "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/application-slip/",
@@ -896,13 +945,6 @@
       "category": "responses",
       "message": "Uncommon status code 202 for POST /api/v1/applications/{application_id}/conditional-offer/",
       "path": "/paths//api/v1/applications/{application_id}/conditional-offer//post/responses/202",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 503 for POST /api/v1/applications/{application_id}/conditional-offer/",
-      "path": "/paths//api/v1/applications/{application_id}/conditional-offer//post/responses/503",
       "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
     },
     {
@@ -1078,13 +1120,6 @@
       "category": "responses",
       "message": "Uncommon status code 202 for POST /api/v1/applications/{application_id}/finance-receipt/",
       "path": "/paths//api/v1/applications/{application_id}/finance-receipt//post/responses/202",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 503 for POST /api/v1/applications/{application_id}/finance-receipt/",
-      "path": "/paths//api/v1/applications/{application_id}/finance-receipt//post/responses/503",
       "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
     },
     {
@@ -1277,13 +1312,6 @@
       "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
     },
     {
-      "severity": "info",
-      "category": "responses",
-      "message": "Uncommon status code 503 for POST /api/v1/applications/{application_id}/payment-receipt/",
-      "path": "/paths//api/v1/applications/{application_id}/payment-receipt//post/responses/503",
-      "suggestion": "Consider using standard codes for POST: [200, 201, 400, 409, 422]"
-    },
-    {
       "severity": "warning",
       "category": "naming",
       "message": "Path parameter 'application_id' should use camelCase or kebab-case in POST /api/v1/applications/{application_id}/payment-receipt/",
@@ -1431,18 +1459,39 @@
       "suggestion": "Consider adding requestBody for POST operation or use GET if no data is being sent"
     },
     {
-      "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for GET /api/v1/applications/draft/",
-      "path": "/paths//api/v1/applications/draft//get/description",
-      "suggestion": "Add a detailed description for better API documentation"
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'application_id' should use camelCase or kebab-case",
+      "path": "/paths//api/v1/applications/drafts/{application_id}/",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'application_id' should use camelCase or kebab-case in GET /api/v1/applications/drafts/{application_id}/",
+      "path": "/paths//api/v1/applications/drafts/{application_id}//get/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'application_id' should use camelCase or kebab-case in PATCH /api/v1/applications/drafts/{application_id}/",
+      "path": "/paths//api/v1/applications/drafts/{application_id}//patch/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
       "severity": "info",
-      "category": "documentation",
-      "message": "Missing description for POST /api/v1/applications/draft/",
-      "path": "/paths//api/v1/applications/draft//post/description",
-      "suggestion": "Add a detailed description for better API documentation"
+      "category": "responses",
+      "message": "Uncommon status code 409 for DELETE /api/v1/applications/drafts/{application_id}/",
+      "path": "/paths//api/v1/applications/drafts/{application_id}//delete/responses/409",
+      "suggestion": "Consider using standard codes for DELETE: [200, 204, 404]"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Path parameter 'application_id' should use camelCase or kebab-case in DELETE /api/v1/applications/drafts/{application_id}/",
+      "path": "/paths//api/v1/applications/drafts/{application_id}//delete/parameters[0]/name",
+      "suggestion": "Use camelCase (e.g., 'userId') or kebab-case (e.g., 'user-id')"
     },
     {
       "severity": "info",
@@ -2434,6 +2483,20 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'verification_token' in schema 'AdminInstitutionDomain' should use camelCase",
+      "path": "/components/schemas/AdminInstitutionDomain/properties/verification_token",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'dns_target' in schema 'AdminInstitutionDomain' should use camelCase",
+      "path": "/components/schemas/AdminInstitutionDomain/properties/dns_target",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'verified_at' in schema 'AdminInstitutionDomain' should use camelCase",
       "path": "/components/schemas/AdminInstitutionDomain/properties/verified_at",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -2441,8 +2504,36 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'last_checked_at' in schema 'AdminInstitutionDomain' should use camelCase",
+      "path": "/components/schemas/AdminInstitutionDomain/properties/last_checked_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'last_error' in schema 'AdminInstitutionDomain' should use camelCase",
+      "path": "/components/schemas/AdminInstitutionDomain/properties/last_error",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'created_at' in schema 'AdminInstitutionDomain' should use camelCase",
       "path": "/components/schemas/AdminInstitutionDomain/properties/created_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'created_by_id' in schema 'AdminInstitutionDomain' should use camelCase",
+      "path": "/components/schemas/AdminInstitutionDomain/properties/created_by_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'approved_by_id' in schema 'AdminInstitutionDomain' should use camelCase",
+      "path": "/components/schemas/AdminInstitutionDomain/properties/approved_by_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {
@@ -2954,20 +3045,6 @@
       "category": "naming",
       "message": "Property 'reviewer_id' in schema 'ApplicationAssignRequest' should use camelCase",
       "path": "/components/schemas/ApplicationAssignRequest/properties/reviewer_id",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'task_id' in schema 'ApplicationAsyncTask' should use camelCase",
-      "path": "/components/schemas/ApplicationAsyncTask/properties/task_id",
-      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
-    },
-    {
-      "severity": "warning",
-      "category": "naming",
-      "message": "Property 'application_id' in schema 'ApplicationAsyncTask' should use camelCase",
-      "path": "/components/schemas/ApplicationAsyncTask/properties/application_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {
@@ -4282,6 +4359,20 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'error_code' in schema 'OfficialDocumentStatus' should use camelCase",
+      "path": "/components/schemas/OfficialDocumentStatus/properties/error_code",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'setup_required' in schema 'OfficialDocumentStatus' should use camelCase",
+      "path": "/components/schemas/OfficialDocumentStatus/properties/setup_required",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'new_password' in schema 'PasswordResetConfirm' should use camelCase",
       "path": "/components/schemas/PasswordResetConfirm/properties/new_password",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -4632,6 +4723,20 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'verification_token' in schema 'PatchedAdminInstitutionDomain' should use camelCase",
+      "path": "/components/schemas/PatchedAdminInstitutionDomain/properties/verification_token",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'dns_target' in schema 'PatchedAdminInstitutionDomain' should use camelCase",
+      "path": "/components/schemas/PatchedAdminInstitutionDomain/properties/dns_target",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'verified_at' in schema 'PatchedAdminInstitutionDomain' should use camelCase",
       "path": "/components/schemas/PatchedAdminInstitutionDomain/properties/verified_at",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
@@ -4639,8 +4744,36 @@
     {
       "severity": "warning",
       "category": "naming",
+      "message": "Property 'last_checked_at' in schema 'PatchedAdminInstitutionDomain' should use camelCase",
+      "path": "/components/schemas/PatchedAdminInstitutionDomain/properties/last_checked_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'last_error' in schema 'PatchedAdminInstitutionDomain' should use camelCase",
+      "path": "/components/schemas/PatchedAdminInstitutionDomain/properties/last_error",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
       "message": "Property 'created_at' in schema 'PatchedAdminInstitutionDomain' should use camelCase",
       "path": "/components/schemas/PatchedAdminInstitutionDomain/properties/created_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'created_by_id' in schema 'PatchedAdminInstitutionDomain' should use camelCase",
+      "path": "/components/schemas/PatchedAdminInstitutionDomain/properties/created_by_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'approved_by_id' in schema 'PatchedAdminInstitutionDomain' should use camelCase",
+      "path": "/components/schemas/PatchedAdminInstitutionDomain/properties/approved_by_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {
@@ -5236,6 +5369,90 @@
       "category": "naming",
       "message": "Property 'next_of_kin_phone' in schema 'PatchedProfileUpdate' should use camelCase",
       "path": "/components/schemas/PatchedProfileUpdate/properties/next_of_kin_phone",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'institution_id' in schema 'PatchedProgram' should use camelCase",
+      "path": "/components/schemas/PatchedProgram/properties/institution_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'duration_months' in schema 'PatchedProgram' should use camelCase",
+      "path": "/components/schemas/PatchedProgram/properties/duration_months",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'canonical_program_id' in schema 'PatchedProgram' should use camelCase",
+      "path": "/components/schemas/PatchedProgram/properties/canonical_program_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'assignment_priority' in schema 'PatchedProgram' should use camelCase",
+      "path": "/components/schemas/PatchedProgram/properties/assignment_priority",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'offering_status' in schema 'PatchedProgram' should use camelCase",
+      "path": "/components/schemas/PatchedProgram/properties/offering_status",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'application_fee' in schema 'PatchedProgram' should use camelCase",
+      "path": "/components/schemas/PatchedProgram/properties/application_fee",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'tuition_fee' in schema 'PatchedProgram' should use camelCase",
+      "path": "/components/schemas/PatchedProgram/properties/tuition_fee",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'regulatory_body' in schema 'PatchedProgram' should use camelCase",
+      "path": "/components/schemas/PatchedProgram/properties/regulatory_body",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'accreditation_status' in schema 'PatchedProgram' should use camelCase",
+      "path": "/components/schemas/PatchedProgram/properties/accreditation_status",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'is_active' in schema 'PatchedProgram' should use camelCase",
+      "path": "/components/schemas/PatchedProgram/properties/is_active",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'created_at' in schema 'PatchedProgram' should use camelCase",
+      "path": "/components/schemas/PatchedProgram/properties/created_at",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'updated_at' in schema 'PatchedProgram' should use camelCase",
+      "path": "/components/schemas/PatchedProgram/properties/updated_at",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {

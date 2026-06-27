@@ -208,6 +208,11 @@ def _validate_known_setting_value(key, value):
 # 19.1 - Admin Dashboard
 # ---------------------------------------------------------------------------
 
+CAPABILITY_PAYLOAD_KEYS = frozenset(
+    {"role", "is_super_admin", "all_access", "capabilities", "institutions"}
+)
+CAPABILITY_INSTITUTION_PAYLOAD_KEYS = frozenset({"id", "code", "name", "capabilities"})
+
 
 def _build_capability_payload(user):
     """Build the Capability_Endpoint payload for ``user`` (R2.1, R2.2, R2.3).

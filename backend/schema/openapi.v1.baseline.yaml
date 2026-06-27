@@ -1435,12 +1435,12 @@ paths:
       description: |-
         POST .../domains/<id>/activate/ — activate a verified domain (R7.6, R7.7, R7.14).
 
-        Activation is restricted to Super_Admins (``IsSuperAdmin``, R7.14). A domain
+        Activation is restricted to ``platform.domain.manage`` actors (R7.14). A domain
         may be activated only from ``verified`` (R7.6); any other status is rejected
         with the stable ``DOMAIN_NOT_VERIFIED`` code and the status is left unchanged
         (R7.7). On success the status moves ``verified → active`` (validated through
         the :class:`DomainStatusMachine`) and ``approved_by`` records the activating
-        Super_Admin. A duplicate active hostname (the partial unique index
+        platform actor. A duplicate active hostname (the partial unique index
         ``uq_institution_domains_active_hostname``) is mapped to ``HOSTNAME_CONFLICT``
         with HTTP 409 (R7.10).
       parameters:
@@ -1503,7 +1503,7 @@ paths:
       summary: Submit admin tenant domain activate
   /api/v1/admin/institutions/{institution_id}/programs/:
     get:
-      operationId: api_v1_admin_institutions_programs_retrieve
+      operationId: admin_tenant_programs_list
       description: |-
         GET tenant program offerings scoped through the admin tenant boundary.
 
@@ -1555,7 +1555,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      summary: Retrieve api v1 admin institutions programs
+      summary: List admin tenant programs
     post:
       operationId: api_v1_admin_institutions_programs_create
       description: |-
@@ -1629,6 +1629,180 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Create api v1 admin institutions programs
+  /api/v1/admin/institutions/{institution_id}/programs/{item_id}/:
+    get:
+      operationId: admin_tenant_programs_retrieve
+      description: GET/PATCH tenant program offering through the canonical admin tenant
+        path.
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Program'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve admin tenant programs
+    patch:
+      operationId: api_v1_admin_institutions_programs_partial_update
+      description: GET/PATCH tenant program offering through the canonical admin tenant
+        path.
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProgram'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProgram'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProgram'
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Program'
+          description: ''
+        '400':
+          description: Bad request — validation error. Response body follows the platform
+            error envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update api v1 admin institutions programs partial
+  /api/v1/admin/institutions/{institution_id}/readiness/:
+    get:
+      operationId: admin_tenant_readiness
+      description: GET canonical tenant launch readiness for the onboarding wizard.
+      parameters:
+      - in: path
+        name: institution_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          description: Tenant launch readiness aggregate.
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Get admin tenant readiness
   /api/v1/admin/institutions/{institution_id}/required-documents/:
     get:
       operationId: api_v1_admin_institutions_required_documents_retrieve
@@ -2212,10 +2386,9 @@ paths:
         detail for an operator to understand *why* an offering was (or was not)
         chosen.
 
-        Super-admin gated: routing config spans every school, so only a global
-        actor may probe arbitrary canonical-program/intake/institution combinations.
-        Non-super-admins receive the same FORBIDDEN response used by every other
-        tenant write surface.
+        Gated by ``platform.routing.simulate_all`` because routing config spans
+        every school; unauthorized actors receive the same FORBIDDEN response used
+        by every other tenant write surface.
       tags:
       - admin
       requestBody:
@@ -2897,13 +3070,13 @@ paths:
     get:
       operationId: admin_tenant_audit_list
       description: |-
-        GET /api/v1/admin/tenant-audit/ — Super_Admin operational-review feed (R13.2).
+        GET /api/v1/admin/tenant-audit/ — platform operational-review feed (R13.2).
 
         Returns recent **tenant configuration changes** (``tenant.*`` actions) and
-        **routing failures** (``assignment.failed``) so a Super_Admin can review
-        coverage gaps and config drift in one place. Super-admin only: it spans
-        every school, so it is never exposed to school staff (who use the scoped
-        per-institution view below).
+        **routing failures** (``assignment.failed``) so a platform operator can
+        review coverage gaps and config drift in one place. It is gated by
+        ``platform.audit.read_all`` because it spans every school, so it is never
+        exposed to school staff (who use the scoped per-institution view below).
 
         Optional ``action`` query param filters to an exact action; ``category``
         (``config`` | ``routing_failure``) narrows to one of the two feeds.
@@ -3720,9 +3893,8 @@ paths:
       description: |-
         POST /api/v1/applications/{id}/acceptance-letter/
 
-        Enqueues a Celery task to generate an acceptance letter PDF.
-        Returns 202 immediately with task metadata.
-        Idempotent within a 1-hour window.
+        Deprecated wrapper over
+        /api/v1/applications/{id}/official-documents/acceptance_letter/.
       parameters:
       - in: path
         name: application_id
@@ -3735,12 +3907,19 @@ paths:
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
+      deprecated: true
       responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficialDocumentResponse'
+          description: ''
         '202':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApplicationAsyncTaskResponse'
+                $ref: '#/components/schemas/OfficialDocumentResponse'
           description: ''
         '400':
           content:
@@ -3749,12 +3928,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
         '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-        '503':
           content:
             application/json:
               schema:
@@ -3999,20 +4172,21 @@ paths:
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
+      deprecated: true
       responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficialDocumentResponse'
+          description: ''
         '202':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApplicationAsyncTaskResponse'
+                $ref: '#/components/schemas/OfficialDocumentResponse'
           description: ''
         '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-        '503':
           content:
             application/json:
               schema:
@@ -4134,12 +4308,19 @@ paths:
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
+      deprecated: true
       responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficialDocumentResponse'
+          description: ''
         '202':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApplicationAsyncTaskResponse'
+                $ref: '#/components/schemas/OfficialDocumentResponse'
           description: ''
         '400':
           content:
@@ -4148,12 +4329,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
         '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-        '503':
           content:
             application/json:
               schema:
@@ -4805,9 +4980,8 @@ paths:
       description: |-
         POST /api/v1/applications/{id}/finance-receipt/
 
-        Enqueues a Celery task to generate a finance receipt PDF.
-        Returns 202 immediately with task metadata.
-        Idempotent within a 1-hour window.
+        Deprecated wrapper over
+        /api/v1/applications/{id}/official-documents/finance_receipt/.
       parameters:
       - in: path
         name: application_id
@@ -4820,12 +4994,19 @@ paths:
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
+      deprecated: true
       responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficialDocumentResponse'
+          description: ''
         '202':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApplicationAsyncTaskResponse'
+                $ref: '#/components/schemas/OfficialDocumentResponse'
           description: ''
         '400':
           content:
@@ -4834,12 +5015,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
         '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-        '503':
           content:
             application/json:
               schema:
@@ -5467,12 +5642,19 @@ paths:
       security:
       - jwtBearerAuth: []
       - jwtCookieAuth: []
+      deprecated: true
       responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfficialDocumentResponse'
+          description: ''
         '202':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApplicationAsyncTaskResponse'
+                $ref: '#/components/schemas/OfficialDocumentResponse'
           description: ''
         '400':
           content:
@@ -5481,12 +5663,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
         '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-        '503':
           content:
             application/json:
               schema:
@@ -6135,6 +6311,12 @@ paths:
   /api/v1/applications/draft/:
     get:
       operationId: applications_draft_retrieve
+      description: |-
+        Deprecated compatibility endpoint for latest wizard snapshot payloads.
+
+        Do not use this endpoint for production multi-draft routing. Canonical
+        online drafts are ``Application(status='draft')`` rows exposed through
+        ``/applications/drafts/`` and ``/applications/drafts/{id}/``.
       tags:
       - applications
       security:
@@ -6175,6 +6357,12 @@ paths:
       summary: Retrieve applications draft
     post:
       operationId: applications_draft_save
+      description: |-
+        Deprecated compatibility endpoint for latest wizard snapshot payloads.
+
+        Do not use this endpoint for production multi-draft routing. Canonical
+        online drafts are ``Application(status='draft')`` rows exposed through
+        ``/applications/drafts/`` and ``/applications/drafts/{id}/``.
       tags:
       - applications
       requestBody:
@@ -6237,6 +6425,291 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       summary: Submit applications draft save
+  /api/v1/applications/drafts/:
+    get:
+      operationId: applications_drafts_list
+      description: |-
+        Canonical student draft collection.
+
+        Online drafts are real ``Application`` rows with ``status='draft'``. The
+        historical ``/applications/draft/`` endpoint remains as a compatibility
+        cache for wizard snapshots; this collection exposes the canonical resource
+        the frontend already uses for multi-draft lists.
+      tags:
+      - applications
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationListResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: List applications drafts
+    post:
+      operationId: applications_drafts_create
+      description: |-
+        Create a canonical online draft application.
+
+        Draft creation must follow the same tenant-domain binding, offering
+        assignment, duplicate protection, and fee resolution rules as the
+        canonical application create endpoint. Keep the implementation delegated
+        so `/applications/` and `/applications/drafts/` cannot drift.
+      tags:
+      - applications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ApplicationCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ApplicationCreate'
+        required: true
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Create applications drafts
+  /api/v1/applications/drafts/{application_id}/:
+    get:
+      operationId: applications_drafts_retrieve
+      description: Canonical student draft detail/update/delete for real draft applications.
+      parameters:
+      - in: path
+        name: application_id
+        schema:
+          type: string
+          format: uuid
+        description: Draft application UUID.
+        required: true
+      tags:
+      - applications
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Retrieve applications drafts
+    patch:
+      operationId: applications_drafts_update
+      description: Canonical student draft detail/update/delete for real draft applications.
+      parameters:
+      - in: path
+        name: application_id
+        schema:
+          type: string
+          format: uuid
+        description: Draft application UUID.
+        required: true
+      tags:
+      - applications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedApplication'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedApplication'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedApplication'
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Update applications drafts
+    delete:
+      operationId: applications_drafts_delete
+      description: Canonical student draft detail/update/delete for real draft applications.
+      parameters:
+      - in: path
+        name: application_id
+        schema:
+          type: string
+          format: uuid
+        description: Draft application UUID.
+        required: true
+      tags:
+      - applications
+      security:
+      - jwtBearerAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '204':
+          description: Draft application deleted.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          description: Authentication required — missing or invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — the authenticated user lacks permission for this
+            action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error. Logged to GlitchTip.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      summary: Delete applications drafts delete
   /api/v1/applications/export/:
     get:
       operationId: applications_export
@@ -11656,8 +12129,9 @@ components:
           maxLength: 255
         version:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
         sections: {}
         tokens:
           nullable: true
@@ -11842,9 +12316,44 @@ components:
           type: boolean
         is_active:
           type: boolean
+        status:
+          enum:
+          - pending_dns
+          - pending_review
+          - verified
+          - active
+          - disabled
+          - failed
+          type: string
+          description: |-
+            * `pending_dns` - Pending DNS
+            * `pending_review` - Pending review
+            * `verified` - Verified
+            * `active` - Active
+            * `disabled` - Disabled
+            * `failed` - Failed
+          x-spec-enum-id: a0f01c9f18e4d54c
+          readOnly: true
+        verification_token:
+          type: string
+          readOnly: true
+          nullable: true
+        dns_target:
+          type: string
+          readOnly: true
+          nullable: true
         verified_at:
           type: string
           format: date-time
+          readOnly: true
+          nullable: true
+        last_checked_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        last_error:
+          type: string
           readOnly: true
           nullable: true
         created_at:
@@ -11852,11 +12361,28 @@ components:
           format: date-time
           readOnly: true
           nullable: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        approved_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
       required:
+      - approved_by_id
       - created_at
+      - created_by_id
+      - dns_target
       - hostname
       - id
       - institution_id
+      - last_checked_at
+      - last_error
+      - status
+      - verification_token
       - verified_at
     AdminMembership:
       type: object
@@ -12002,6 +12528,10 @@ components:
           type: string
           format: uuid
           nullable: true
+        host:
+          type: string
+          nullable: true
+          maxLength: 255
       required:
       - intake_id
       - program_id
@@ -12338,8 +12868,9 @@ components:
           maxLength: 20
         eligibility_score:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         eligibility_notes:
           type: string
@@ -12515,30 +13046,6 @@ components:
             role)
       required:
       - reviewer_id
-    ApplicationAsyncTask:
-      type: object
-      properties:
-        task_id:
-          type: string
-        application_id:
-          type: string
-          format: uuid
-        status:
-          type: string
-      required:
-      - application_id
-      - status
-      - task_id
-    ApplicationAsyncTaskResponse:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/ApplicationAsyncTask'
-        success:
-          type: boolean
-          default: true
-      required:
-      - data
     ApplicationBulkStatus:
       type: object
       description: Admin bulk status update.
@@ -12719,7 +13226,7 @@ components:
       - data
     ApplicationDraft:
       type: object
-      description: Draft auto-save serializer.
+      description: Deprecated compatibility serializer for wizard snapshot payloads.
       properties:
         id:
           type: string
@@ -12740,8 +13247,9 @@ components:
           nullable: true
         step_completed:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         is_active:
           type: boolean
@@ -13511,16 +14019,16 @@ components:
           maxLength: 20
         role:
           enum:
-          - super_admin
-          - admin
-          - reviewer
           - student
+          - admin
+          - super_admin
+          - reviewer
           type: string
           description: |-
-            * `super_admin` - super_admin
-            * `admin` - admin
-            * `reviewer` - reviewer
             * `student` - student
+            * `admin` - admin
+            * `super_admin` - super_admin
+            * `reviewer` - reviewer
           x-spec-enum-id: 1a3817a8a61ce783
         password:
           type: string
@@ -13550,8 +14058,9 @@ components:
           nullable: true
         duration_months:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         regulatory_body:
           type: string
@@ -14429,8 +14938,9 @@ components:
           maxLength: 255
         year:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         semester:
           type: string
@@ -14454,13 +14964,15 @@ components:
           nullable: true
         max_capacity:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         current_enrollment:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         is_active:
           type: boolean
@@ -14828,12 +15340,14 @@ components:
           - ready
           - queued
           - failed
+          - setup_required
           type: string
           description: |-
             * `ready` - ready
             * `queued` - queued
             * `failed` - failed
-          x-spec-enum-id: 39ff51f435f1fc59
+            * `setup_required` - setup_required
+          x-spec-enum-id: c1d8376812b4400b
         download_url:
           type: string
         generated_at:
@@ -14847,6 +15361,10 @@ components:
           nullable: true
         task_id:
           type: string
+        error_code:
+          type: string
+        setup_required:
+          type: boolean
       required:
       - document_id
       - document_type
@@ -15028,8 +15546,9 @@ components:
           maxLength: 255
         version:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
         sections: {}
         tokens:
           nullable: true
@@ -15190,9 +15709,44 @@ components:
           type: boolean
         is_active:
           type: boolean
+        status:
+          enum:
+          - pending_dns
+          - pending_review
+          - verified
+          - active
+          - disabled
+          - failed
+          type: string
+          description: |-
+            * `pending_dns` - Pending DNS
+            * `pending_review` - Pending review
+            * `verified` - Verified
+            * `active` - Active
+            * `disabled` - Disabled
+            * `failed` - Failed
+          x-spec-enum-id: a0f01c9f18e4d54c
+          readOnly: true
+        verification_token:
+          type: string
+          readOnly: true
+          nullable: true
+        dns_target:
+          type: string
+          readOnly: true
+          nullable: true
         verified_at:
           type: string
           format: date-time
+          readOnly: true
+          nullable: true
+        last_checked_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        last_error:
+          type: string
           readOnly: true
           nullable: true
         created_at:
@@ -15200,6 +15754,16 @@ components:
           format: date-time
           readOnly: true
           nullable: true
+        created_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        approved_by_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
     PatchedAdminMembership:
       type: object
       properties:
@@ -15477,8 +16041,9 @@ components:
           maxLength: 20
         eligibility_score:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           readOnly: true
           nullable: true
         eligibility_notes:
@@ -15634,8 +16199,9 @@ components:
           maxLength: 255
         year:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         semester:
           type: string
@@ -15659,13 +16225,15 @@ components:
           nullable: true
         max_capacity:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         current_enrollment:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         is_active:
           type: boolean
@@ -15722,6 +16290,81 @@ components:
         next_of_kin_phone:
           type: string
           maxLength: 50
+    PatchedProgram:
+      type: object
+      description: Program serializer with nested institution data.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 50
+        institution:
+          allOf:
+          - $ref: '#/components/schemas/Institution'
+          readOnly: true
+        institution_id:
+          type: string
+          format: uuid
+          readOnly: true
+        duration_months:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+        canonical_program_id:
+          type: string
+          format: uuid
+          readOnly: true
+        assignment_priority:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+        offering_status:
+          type: string
+          nullable: true
+          maxLength: 32
+        application_fee:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+        tuition_fee:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+        requirements:
+          nullable: true
+        regulatory_body:
+          type: string
+          nullable: true
+          maxLength: 100
+        accreditation_status:
+          type: string
+          nullable: true
+          maxLength: 50
+        is_active:
+          type: boolean
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
     PatchedProgramCreateUpdate:
       type: object
       description: Admin CRUD serializer for programs.
@@ -15737,8 +16380,9 @@ components:
           format: uuid
         duration_months:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         canonical_program_id:
           type: string
@@ -15746,8 +16390,9 @@ components:
           nullable: true
         assignment_priority:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         offering_status:
           type: string
@@ -16066,8 +16711,9 @@ components:
           readOnly: true
         duration_months:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         canonical_program_id:
           type: string
@@ -16075,8 +16721,9 @@ components:
           readOnly: true
         assignment_priority:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         offering_status:
           type: string
@@ -16139,8 +16786,9 @@ components:
           format: uuid
         duration_months:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         canonical_program_id:
           type: string
@@ -16148,8 +16796,9 @@ components:
           nullable: true
         assignment_priority:
           type: integer
-          maximum: 2147483647
-          minimum: -2147483648
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
           nullable: true
         offering_status:
           type: string
