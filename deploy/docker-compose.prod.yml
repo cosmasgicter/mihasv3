@@ -22,6 +22,7 @@ x-backend-env: &backend-env
     DB_SSL_REQUIRE: "false"
     REDIS_URL: redis://redis:6379/0
     CELERY_BROKER_URL: redis://redis:6379/0
+    APP_VERSION: ${APP_VERSION:-dev}
 
 services:
   caddy:

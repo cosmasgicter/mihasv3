@@ -156,6 +156,7 @@ jobs:
             # --- Pin both images to this exact build in .env (idempotent upsert). ---
             pin_env BACKEND_IMAGE "${NEW_BACKEND}"
             pin_env FRONTEND_IMAGE "${NEW_FRONTEND}"
+            pin_env APP_VERSION "${{ needs.build-and-push.outputs.sha }}"
             # JOBS_HOST is a required var (compose has a :? guard); upsert a
             # default so the caddy container starts even before manual edits.
             grep -q '^JOBS_HOST=' .env || echo "JOBS_HOST=jobs.beanola.com" >> .env
