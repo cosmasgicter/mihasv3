@@ -2,9 +2,9 @@
   "gate_id": "brand",
   "requirement": "R7",
   "status": "passed",
-  "generated_at": "2026-06-22T11:27:10Z",
+  "generated_at": "2026-06-27T19:35:33Z",
   "generated_by": "ci",
-  "summary": "Brand_Scan_Gate PASSED: scanned 801 active source file(s); 0 hard-brand leaks outside the Brand_Allowlist; 18 allowlist entry(ies) all valid and live.",
+  "summary": "Brand_Scan_Gate PASSED: scanned 800 active source file(s); 0 hard-brand leaks outside the Brand_Allowlist; 17 allowlist entry(ies) all valid and live.",
   "checks": [
     {
       "id": "allowlist-json-valid",
@@ -20,8 +20,8 @@
       "observed": "0 leak(s) outside allowlist",
       "threshold": "0",
       "detail": "",
-      "files_scanned": 801,
-      "total_hits": 46,
+      "files_scanned": 800,
+      "total_hits": 45,
       "leaks_outside_allowlist": 0
     },
     {
@@ -30,7 +30,7 @@
       "observed": "0 invalid entry(ies)",
       "threshold": "0",
       "detail": "",
-      "entry_count": 18
+      "entry_count": 17
     },
     {
       "id": "allowlist-staleness",
