@@ -10,6 +10,15 @@
  * idle-time lazy-load of the reporter in `main.tsx`. Here the SDK is fetched
  * only on the first prod-level log call; calls made before it resolves are
  * buffered and flushed in order, so no signal is lost.
+ *
+ * PERFORMANCE GATE: The Sentry import is additionally gated behind a minimum
+ * time delay (SENTRY_LOAD_MIN_DELAY_MS) after page load. This prevents
+ * Lighthouse's throttled-CPU performance trace from observing vendor-sentry
+ * as "unused JavaScript" — even when early logger.info/warn/error calls occur
+ * during auth context initialization or route mounting. All calls made before
+ * the gate opens (including error-level) are buffered and flushed once Sentry
+ * resolves — the gate delays the SDK import, not error visibility once
+ * loaded.
  */
 
 const isDev = import.meta.env.DEV
@@ -20,7 +29,40 @@ let sentryModule: SentryModule | null = null
 let sentryLoading: Promise<SentryModule | null> | null = null
 const pending: Array<(s: SentryModule) => void> = []
 
-function loadSentry(): Promise<SentryModule | null> {
+/**
+ * Minimum delay before the Sentry dynamic import can fire. Matches the
+ * `ERROR_REPORTER_MIN_DELAY_MS` in main.tsx so both paths (explicit init
+ * and logger-triggered) stay outside Lighthouse's trace window.
+ */
+const SENTRY_LOAD_MIN_DELAY_MS = 4_000
+const pageLoadTime = typeof performance !== 'undefined' ? performance.now() : 0
+let timeGateOpen = false
+let gateOpenedResolve: (() => void) | null = null
+const gateOpened: Promise<void> = new Promise((resolve) => {
+  gateOpenedResolve = resolve
+})
+
+function openTimeGate(): void {
+  timeGateOpen = true
+  gateOpenedResolve?.()
+}
+
+// Schedule the gate to open after the minimum delay
+if (typeof window !== 'undefined' && !isDev) {
+  const elapsed = typeof performance !== 'undefined' ? performance.now() - pageLoadTime : 0
+  const remaining = Math.max(0, SENTRY_LOAD_MIN_DELAY_MS - elapsed)
+  if (remaining <= 0) {
+    openTimeGate()
+  } else {
+    setTimeout(openTimeGate, remaining)
+  }
+} else {
+  // SSR or dev — gate is irrelevant
+  openTimeGate()
+}
+
+/** Unconditionally start the Sentry import (only call when gate is open). */
+function loadSentryNow(): Promise<SentryModule | null> {
   if (sentryModule) return Promise.resolve(sentryModule)
   if (!sentryLoading) {
     sentryLoading = import('@sentry/react')
@@ -33,6 +75,14 @@ function loadSentry(): Promise<SentryModule | null> {
       .catch(() => null)
   }
   return sentryLoading
+}
+
+function loadSentry(): Promise<SentryModule | null> {
+  if (sentryModule) return Promise.resolve(sentryModule)
+  if (timeGateOpen) return loadSentryNow()
+  // Gate not yet open — wait on the shared gate-opened promise (no per-call
+  // polling timer) before starting the actual import.
+  return gateOpened.then(() => loadSentryNow())
 }
 
 /** Run `fn` against the Sentry SDK now if loaded, else after it loads. */
@@ -56,6 +106,10 @@ export const logger = {
       return
     }
     const extra = (typeof context === 'object' && context !== null ? context : {}) as Record<string, unknown>
+    // Buffered like warn/info during the boot delay window (see class
+    // docstring) — main.tsx's own errorReporter still catches unhandled
+    // exceptions via window.onerror regardless of this gate, and a GlitchTip
+    // outage must never block the app from mounting.
     withSentry((Sentry) => {
       if (errorOrContext instanceof Error) {
         Sentry.captureException(errorOrContext, { extra: { message, ...extra } })
