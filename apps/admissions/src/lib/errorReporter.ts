@@ -109,6 +109,11 @@ export async function initErrorReporter(): Promise<void> {
   })
 }
 
+/** In-flight loader promise for the lazy-load fallback below, shared across
+ * concurrent reportError() calls so a burst of calls before initErrorReporter()
+ * has resolved triggers exactly one dynamic import instead of one per call. */
+let _sentryLoading: Promise<typeof SentryTypes> | null = null
+
 /**
  * Report an error directly (e.g. from an error boundary).
  * If Sentry has not been initialized yet (initErrorReporter not called or
@@ -123,8 +128,12 @@ export function reportError(
     _sentry.captureException(error, { extra })
     return
   }
-  // Sentry not loaded yet — attempt lazy load and report
-  void import('@sentry/react').then((Sentry) => {
+  // Sentry not loaded yet — attempt lazy load and report. Share one in-flight
+  // import across concurrent calls (e.g. an error loop firing before
+  // initErrorReporter() resolves) so every call's captureException fires off
+  // the same resolved module rather than each racing its own import().
+  _sentryLoading ??= import('@sentry/react')
+  void _sentryLoading.then((Sentry) => {
     _sentry = Sentry
     Sentry.captureException(error, { extra })
   }).catch(() => {

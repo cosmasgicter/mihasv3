@@ -102,6 +102,15 @@ describe('Feature: application-process-hardening, Property 7: Frontend error ded
             reportError(errorObj)
           }
 
+          // reportError() is deliberately fire-and-forget for callers, but
+          // when Sentry has not been pre-initialized it lazily import()s
+          // @sentry/react once (shared across the whole burst — see
+          // errorReporter.ts _sentryLoading) and delivers every queued
+          // captureException off that same resolution. Await the dynamic
+          // import directly so the test observes the fully-settled state
+          // instead of guessing a microtask-tick count.
+          await import('@sentry/react')
+
           // Sentry captureException is called for each reportError invocation
           expect(mockCaptureException).toHaveBeenCalledTimes(repeatCount)
         },
@@ -135,6 +144,10 @@ describe('Feature: application-process-hardening, Property 7: Frontend error ded
           for (const msg of messages) {
             reportError(new Error(msg))
           }
+
+          // See comment in the identical-errors property above: await the
+          // shared dynamic import directly instead of guessing a tick count.
+          await import('@sentry/react')
 
           expect(mockCaptureException).toHaveBeenCalledTimes(messages.length)
         },
