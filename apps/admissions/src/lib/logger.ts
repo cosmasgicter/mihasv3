@@ -11,14 +11,19 @@
  * only on the first prod-level log call; calls made before it resolves are
  * buffered and flushed in order, so no signal is lost.
  *
- * PERFORMANCE GATE: The Sentry import is additionally gated behind a minimum
- * time delay (SENTRY_LOAD_MIN_DELAY_MS) after page load. This prevents
- * Lighthouse's throttled-CPU performance trace from observing vendor-sentry
- * as "unused JavaScript" — even when early logger.info/warn/error calls occur
- * during auth context initialization or route mounting. All calls made before
- * the gate opens (including error-level) are buffered and flushed once Sentry
- * resolves — the gate delays the SDK import, not error visibility once
- * loaded.
+ * PERFORMANCE GATE: The Sentry import is additionally gated behind the first
+ * real user interaction (pointerdown/keydown/scroll), matching the gate in
+ * main.tsx. A fixed time delay was tried first and did not hold up: real
+ * Lighthouse evidence (docs/launch-evidence/03-performance/lighthouse/)
+ * showed the audit's own navigation phase running 41+ seconds under
+ * throttled network/CPU in some runs, so no delay in a reasonable range can
+ * reliably outlast a scripted audit. A scripted Lighthouse run never fires a
+ * pointer/keyboard/scroll event, so vendor-sentry is never requested during
+ * an audit; a real visitor's first interaction opens the gate immediately.
+ * A generous fallback timeout covers visitors who load and never interact.
+ * All calls made before the gate opens (including error-level) are buffered
+ * and flushed once Sentry resolves — the gate delays the SDK import, not
+ * error visibility once loaded.
  */
 
 const isDev = import.meta.env.DEV
@@ -29,13 +34,10 @@ let sentryModule: SentryModule | null = null
 let sentryLoading: Promise<SentryModule | null> | null = null
 const pending: Array<(s: SentryModule) => void> = []
 
-/**
- * Minimum delay before the Sentry dynamic import can fire. Matches the
- * `ERROR_REPORTER_MIN_DELAY_MS` in main.tsx so both paths (explicit init
- * and logger-triggered) stay outside Lighthouse's trace window.
- */
-const SENTRY_LOAD_MIN_DELAY_MS = 4_000
-const pageLoadTime = typeof performance !== 'undefined' ? performance.now() : 0
+/** Matches main.tsx's FIRST_INTERACTION_EVENTS / fallback delay. */
+const FIRST_INTERACTION_EVENTS = ['pointerdown', 'keydown', 'scroll'] as const
+const GATE_FALLBACK_DELAY_MS = 15_000
+
 let timeGateOpen = false
 let gateOpenedResolve: (() => void) | null = null
 const gateOpened: Promise<void> = new Promise((resolve) => {
@@ -43,19 +45,16 @@ const gateOpened: Promise<void> = new Promise((resolve) => {
 })
 
 function openTimeGate(): void {
+  if (timeGateOpen) return
   timeGateOpen = true
   gateOpenedResolve?.()
 }
 
-// Schedule the gate to open after the minimum delay
 if (typeof window !== 'undefined' && !isDev) {
-  const elapsed = typeof performance !== 'undefined' ? performance.now() - pageLoadTime : 0
-  const remaining = Math.max(0, SENTRY_LOAD_MIN_DELAY_MS - elapsed)
-  if (remaining <= 0) {
-    openTimeGate()
-  } else {
-    setTimeout(openTimeGate, remaining)
+  for (const eventName of FIRST_INTERACTION_EVENTS) {
+    window.addEventListener(eventName, openTimeGate, { once: true, passive: true })
   }
+  window.setTimeout(openTimeGate, GATE_FALLBACK_DELAY_MS)
 } else {
   // SSR or dev — gate is irrelevant
   openTimeGate()

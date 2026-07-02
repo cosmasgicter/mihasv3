@@ -2,9 +2,9 @@
   "gate_id": "bundle-guard",
   "requirement": "R5",
   "status": "passed",
-  "generated_at": "2026-07-02T14:46:43Z",
+  "generated_at": "2026-07-02T23:30:11Z",
   "generated_by": "ci",
-  "summary": "Entry path 143.2 KB gz; 0 forbidden chunk(s) on entry path; first PDF action 766.4 KB gz; vendor-sentry absent on public entry path.",
+  "summary": "Entry path 143.1 KB gz; 0 forbidden chunk(s) on entry path; first PDF action 766.4 KB gz; vendor-sentry absent on public entry path.",
   "checks": [
     {
       "id": "entry-path-exclusions",
@@ -17,10 +17,10 @@
     {
       "id": "entry-gz-budget",
       "result": "pass",
-      "observed": "143.2 KB",
+      "observed": "143.1 KB",
       "threshold": "150.0 KB",
       "detail": "",
-      "entry_gz_bytes": 146591,
+      "entry_gz_bytes": 146557,
       "entry_budget_bytes": 153600
     },
     {

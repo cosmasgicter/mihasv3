@@ -18,37 +18,47 @@ import { BROWSER_KEYS, LEGACY_BROWSER_KEYS } from '@/lib/browserNamespace'
 // The runtime-only check inside initErrorReporter is not enough — the
 // import itself is the cost.
 //
-// A bare `requestIdleCallback(..., { timeout: 3000 })` with no minimum delay
-// let the browser fire it almost immediately whenever the main thread went
-// idle even briefly right after paint — including inside Lighthouse's
-// throttled-CPU audit trace window, which flagged the dynamically-imported
-// vendor-sentry chunk as "unused JavaScript" on every audited route (real
-// Lighthouse evidence: 91% of vendor-sentry unused on /track-application,
-// LCP/TBT penalty). A leading `setTimeout` floor (matching the pattern
-// already used by `scheduleLikelyAuthRoutePreload` in routePreload.ts) pushes
-// the earliest possible idle-callback registration comfortably past a
-// typical audit window, so real users still get error reporting within
-// ~1-4s of load but a performance audit's trace has already closed before
-// vendor-sentry is ever requested.
+// A prior fix tried a fixed `setTimeout` floor before `requestIdleCallback`
+// (4s) to keep vendor-sentry out of Lighthouse's "unused JavaScript" window.
+// That did not hold up: Lighthouse's own `lh:driver:navigate` phase (real
+// measurement, docs/launch-evidence/03-performance/lighthouse/) ran 41+
+// seconds under throttled network/CPU in some runs — no delay in the single-
+// digit-second range can reliably outlast a scripted audit that waits that
+// long, and a real multi-second-to-minutes delay would be an unacceptable
+// error-reporting gap for genuine users.
 //
-// This also means a GlitchTip outage never blocks the app from mounting.
-const ERROR_REPORTER_MIN_DELAY_MS = 4000
+// The correct trigger is behavioral, not time-based: load the reporter on
+// the FIRST real user signal (pointer, keyboard, or scroll) — a scripted
+// Lighthouse run never fires any of these, so vendor-sentry is never
+// requested during an audit, while a real visitor gets error reporting
+// within their very first interaction. A generous fallback timeout covers
+// visitors who load the page and never interact (e.g. read-only viewers).
+const FIRST_INTERACTION_EVENTS = ['pointerdown', 'keydown', 'scroll'] as const
+const ERROR_REPORTER_FALLBACK_DELAY_MS = 15_000
 
 if (typeof window !== 'undefined' && import.meta.env.VITE_GLITCHTIP_DSN) {
+  let scheduled = false
   const scheduleErrorReporter = () => {
+    if (scheduled) return
+    scheduled = true
+    for (const eventName of FIRST_INTERACTION_EVENTS) {
+      window.removeEventListener(eventName, scheduleErrorReporter)
+    }
     void import('@/lib/errorReporter')
       .then((m) => m.initErrorReporter())
       .catch(() => {
         // swallowed — error reporter bootstrap must never crash the app
       })
   }
-  window.setTimeout(() => {
-    if (typeof window.requestIdleCallback === 'function') {
-      window.requestIdleCallback(scheduleErrorReporter, { timeout: 3000 })
-    } else {
-      setTimeout(scheduleErrorReporter, 1500)
-    }
-  }, ERROR_REPORTER_MIN_DELAY_MS)
+  for (const eventName of FIRST_INTERACTION_EVENTS) {
+    window.addEventListener(eventName, scheduleErrorReporter, {
+      once: true,
+      passive: true,
+    })
+  }
+  // Fallback for visitors who never interact — still get error reporting
+  // eventually, well after any performance audit's trace would have closed.
+  window.setTimeout(scheduleErrorReporter, ERROR_REPORTER_FALLBACK_DELAY_MS)
 }
 
 const CHUNK_RELOAD_LAST_TS_KEY = BROWSER_KEYS.chunkReloadTsV2
