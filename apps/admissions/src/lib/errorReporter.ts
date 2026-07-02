@@ -5,9 +5,17 @@
  * Replaces the previous custom batch-and-POST reporter. GlitchTip captures
  * window.onerror, unhandled rejections, and console errors automatically
  * once initialized.
+ *
+ * NOTE: @sentry/react is imported DYNAMICALLY (not at the top level) so that
+ * loading this module does not force the browser to fetch the 459KB
+ * vendor-sentry chunk. The entry and idle-preload paths load errorReporter
+ * lazily — a top-level `import * as Sentry from '@sentry/react'` would defeat
+ * that by making the browser resolve the static ES import as soon as this
+ * module's bytes are parsed. Dynamic import keeps vendor-sentry out of the
+ * critical/preload path entirely.
  */
 
-import * as Sentry from '@sentry/react'
+import type * as SentryTypes from '@sentry/react'
 
 /**
  * In-memory dedup + volume guard so a single repeating error (or an error
@@ -19,7 +27,10 @@ const DEDUP_WINDOW_MS = 60_000
 let sessionEventCount = 0
 const recentSignatures = new Map<string, number>()
 
-function eventSignature(event: Sentry.ErrorEvent): string {
+/** Cached Sentry module once loaded. */
+let _sentry: typeof SentryTypes | null = null
+
+function eventSignature(event: SentryTypes.ErrorEvent): string {
   const ex = event.exception?.values?.[0]
   const type = ex?.type ?? event.message ?? 'unknown'
   const top = ex?.stacktrace?.frames?.at(-1)
@@ -31,11 +42,14 @@ function eventSignature(event: Sentry.ErrorEvent): string {
  * Activate the global error reporter. Call once at app startup.
  * Respects `VITE_GLITCHTIP_DSN` — does nothing when the DSN is absent.
  */
-export function initErrorReporter(): void {
+export async function initErrorReporter(): Promise<void> {
   if (typeof window === 'undefined') return
 
   const dsn = import.meta.env.VITE_GLITCHTIP_DSN
   if (!dsn) return
+
+  const Sentry = await import('@sentry/react')
+  _sentry = Sentry
 
   Sentry.init({
     dsn,
@@ -97,10 +111,23 @@ export function initErrorReporter(): void {
 
 /**
  * Report an error directly (e.g. from an error boundary).
+ * If Sentry has not been initialized yet (initErrorReporter not called or
+ * DSN absent), the report is silently dropped — callers must not depend on
+ * this for control flow.
  */
 export function reportError(
   error: Error,
   extra?: Record<string, unknown>,
 ): void {
-  Sentry.captureException(error, { extra })
+  if (_sentry) {
+    _sentry.captureException(error, { extra })
+    return
+  }
+  // Sentry not loaded yet — attempt lazy load and report
+  void import('@sentry/react').then((Sentry) => {
+    _sentry = Sentry
+    Sentry.captureException(error, { extra })
+  }).catch(() => {
+    // swallowed — error reporting must never crash the app
+  })
 }

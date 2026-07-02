@@ -31,7 +31,7 @@ describe('errorReporter init gating', () => {
     }))
 
     const { initErrorReporter } = await import('@/lib/errorReporter')
-    initErrorReporter()
+    await initErrorReporter()
 
     expect(mockSentryInit).toHaveBeenCalledWith(
       expect.objectContaining({ dsn: 'https://key@glitchtip.example.com/1' })
@@ -47,7 +47,7 @@ describe('errorReporter init gating', () => {
     }))
 
     const { initErrorReporter } = await import('@/lib/errorReporter')
-    initErrorReporter()
+    await initErrorReporter()
 
     const config = mockSentryInit.mock.calls[0]![0]
     // Performance transaction envelopes are an envelope source — must be off.
@@ -80,7 +80,7 @@ describe('errorReporter init gating', () => {
     }))
 
     const { initErrorReporter } = await import('@/lib/errorReporter')
-    initErrorReporter()
+    await initErrorReporter()
 
     expect(mockSentryInit).not.toHaveBeenCalled()
   })

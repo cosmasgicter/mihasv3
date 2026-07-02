@@ -34,7 +34,7 @@ describe('errorReporter DSN gating', () => {
     ;(import.meta.env as Record<string, string | undefined>).VITE_GLITCHTIP_DSN =
       ''
     const mod = await import('@/lib/errorReporter')
-    mod.initErrorReporter()
+    await mod.initErrorReporter()
     expect(initMock).not.toHaveBeenCalled()
   })
 
@@ -42,7 +42,7 @@ describe('errorReporter DSN gating', () => {
     delete (import.meta.env as Record<string, string | undefined>)
       .VITE_GLITCHTIP_DSN
     const mod = await import('@/lib/errorReporter')
-    mod.initErrorReporter()
+    await mod.initErrorReporter()
     expect(initMock).not.toHaveBeenCalled()
   })
 
@@ -50,7 +50,7 @@ describe('errorReporter DSN gating', () => {
     ;(import.meta.env as Record<string, string | undefined>).VITE_GLITCHTIP_DSN =
       'https://key@example.test/1'
     const mod = await import('@/lib/errorReporter')
-    mod.initErrorReporter()
+    await mod.initErrorReporter()
     expect(initMock).toHaveBeenCalledTimes(1)
     expect(initMock).toHaveBeenCalledWith(
       expect.objectContaining({ dsn: 'https://key@example.test/1' }),

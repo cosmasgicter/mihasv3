@@ -252,7 +252,15 @@ export default defineConfig(({ mode, command }) => {
               !dep.includes('vendor-sentry') &&
               !dep.includes('vendor-pdf') &&
               !dep.includes('vendor-react-pdf') &&
-              !dep.includes('vendor-ocr'),
+              !dep.includes('vendor-ocr') &&
+              // vendor-radix-dialog (Dialog/Modal primitive internals, split
+              // out to stop it being co-chunked with vendor-react-pdf — see
+              // the manualChunks comment above) is only needed once a modal
+              // is actually opened. No landing/entry-path component renders
+              // a Dialog on first paint, so it must not compete with first
+              // paint either; it is still fetched normally the moment any
+              // page statically or dynamically imports it.
+              !dep.includes('vendor-radix-dialog'),
           ),
       },
       cssCodeSplit: true,
@@ -324,9 +332,59 @@ export default defineConfig(({ mode, command }) => {
                 return 'vendor-react'
               }
 
+              // Generic Radix primitives used by the entry-eager `Button`
+              // component's `asChild` (Slot) pattern — reachable from the
+              // true app entry (main.tsx -> App -> Button), not just Dialog.
+              // Left unmatched, Rollup's automatic chunking grouped these
+              // small shared utils into the `vendor-radix-dialog` chunk
+              // below (both consume `@radix-ui/react-compose-refs`), which
+              // then put `vendor-radix-dialog` on the eager entry-path
+              // static-import graph and regressed the entry-gz budget.
+              // Pinning them into the already-eager `vendor-react` chunk
+              // keeps them off the Dialog-only chunk without adding a new
+              // eager chunk. Must be checked before the Dialog rule below.
+              if (
+                id.includes('/@radix-ui/react-slot/') ||
+                id.includes('/@radix-ui/react-compose-refs/') ||
+                id.includes('/@radix-ui/react-context/') ||
+                id.includes('/@radix-ui/react-primitive/')
+              ) {
+                return 'vendor-react'
+              }
+
               // PDF libraries — dynamically imported
               if (id.includes('/jspdf/') || id.includes('/jspdf-autotable/') || id.includes('/pdf-lib/')) {
                 return 'vendor-pdf'
+              }
+
+              // @radix-ui/react-dialog + its scroll/focus/portal runtime
+              // deps. Left unmatched, Rollup's automatic chunking co-locates
+              // this shared-everywhere primitive (used by ~29 pages/components
+              // for modals/confirm-dialogs) with whatever else those same
+              // pages import — including @react-pdf/renderer on pages that
+              // also have a PDF/document-download action. That produced a
+              // `Dialog` shared chunk with a bare side-effect
+              // `import "./vendor-react-pdf-*.js"`, which meant every idle-time
+              // `preloadAuthRoutes()` (tracker/signup pages) transitively
+              // fetched the ~470KB-gzipped PDF engine even though no auth
+              // page renders a PDF. Pinning Dialog's own dependency graph
+              // into a dedicated chunk stops Rollup from bundling it
+              // alongside unrelated heavy vendors. This MUST be checked
+              // before the @react-pdf rule below so Radix internals are
+              // never swept into `vendor-react-pdf` by automatic chunking.
+              if (
+                id.includes('/@radix-ui/react-dialog/') ||
+                id.includes('/@radix-ui/react-dismissable-layer/') ||
+                id.includes('/@radix-ui/react-focus-scope/') ||
+                id.includes('/@radix-ui/react-focus-guards/') ||
+                id.includes('/@radix-ui/react-portal/') ||
+                id.includes('/react-remove-scroll/') ||
+                id.includes('/react-remove-scroll-bar/') ||
+                id.includes('/use-sidecar/') ||
+                id.includes('/use-callback-ref/') ||
+                id.includes('/aria-hidden/')
+              ) {
+                return 'vendor-radix-dialog'
               }
 
               // @react-pdf/renderer + its transitive font/layout deps.

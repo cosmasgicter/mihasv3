@@ -69,7 +69,7 @@ describe('Property 8: Frontend error reporter batches and includes metadata', ()
         vi.stubEnv('VITE_GLITCHTIP_DSN', 'https://key@glitchtip.example.com/1')
 
         const { initErrorReporter, reportError } = await import('@/lib/errorReporter')
-        initErrorReporter()
+        await initErrorReporter()
 
         // Fire all errors
         for (const err of errors) {

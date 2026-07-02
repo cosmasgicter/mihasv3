@@ -149,7 +149,7 @@ export function SharedFooter({ className }: SharedFooterProps) {
               href="https://beanola.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-white underline-offset-4 hover:underline"
+              className="inline-flex min-h-touch items-center py-2 -my-2 font-semibold text-white underline-offset-4 hover:underline"
             >
               Beanola Technologies
             </a>

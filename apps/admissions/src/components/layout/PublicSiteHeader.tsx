@@ -56,7 +56,11 @@ export function PublicSiteHeader({ className }: PublicSiteHeaderProps) {
       <header className={cn('sticky top-0 z-50 border-b border-border bg-card shadow-sm', className)}>
         <div className="container-responsive px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-3">
-            <Link to="/" className="inline-flex items-center gap-3 font-semibold text-foreground" aria-label="Beanola Admissions - Home">
+            <Link
+              to="/"
+              className="inline-flex min-h-touch min-w-touch items-center gap-3 font-semibold text-foreground"
+              aria-label="Beanola Admissions - Home"
+            >
               <span className="inline-flex items-center gap-2">
                 <img
                   src="/images/logos/beanolalogo.webp"
