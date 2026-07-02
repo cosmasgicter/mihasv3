@@ -2,9 +2,9 @@
   "gate_id": "bundle-guard",
   "requirement": "R5",
   "status": "passed",
-  "generated_at": "2026-06-22T11:26:37Z",
+  "generated_at": "2026-07-02T14:46:43Z",
   "generated_by": "ci",
-  "summary": "Entry path 139.3 KB gz; 0 forbidden chunk(s) on entry path; first PDF action 757.4 KB gz; vendor-sentry absent on public entry path.",
+  "summary": "Entry path 143.2 KB gz; 0 forbidden chunk(s) on entry path; first PDF action 766.4 KB gz; vendor-sentry absent on public entry path.",
   "checks": [
     {
       "id": "entry-path-exclusions",
@@ -17,19 +17,19 @@
     {
       "id": "entry-gz-budget",
       "result": "pass",
-      "observed": "139.3 KB",
+      "observed": "143.2 KB",
       "threshold": "150.0 KB",
       "detail": "",
-      "entry_gz_bytes": 142676,
+      "entry_gz_bytes": 146591,
       "entry_budget_bytes": 153600
     },
     {
       "id": "pdf-gz-budget",
       "result": "pass",
-      "observed": "757.4 KB",
+      "observed": "766.4 KB",
       "threshold": "772.0 KB",
       "detail": "",
-      "first_pdf_action_gz_bytes": 775544,
+      "first_pdf_action_gz_bytes": 784842,
       "pdf_budget_bytes": 790528
     },
     {

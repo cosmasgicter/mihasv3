@@ -1,0 +1,88 @@
+{
+  "schema": "launch-verification/lighthouse-run-scores@1",
+  "generated_at": "2026-07-02T22:56:26Z",
+  "generated_by": "deployed-target",
+  "base_url": "https://apply.beanola.com",
+  "runs_requested": 3,
+  "min_runs": 3,
+  "lighthouse_available": true,
+  "routes": [
+    {
+      "route": "/",
+      "route_class": "public",
+      "url": "https://apply.beanola.com/",
+      "run_scores": [
+        88,
+        90,
+        92
+      ],
+      "raw_assets": [
+        "lighthouse/root-run1.report.json",
+        "lighthouse/root-run1.report.html",
+        "lighthouse/root-run2.report.json",
+        "lighthouse/root-run2.report.html",
+        "lighthouse/root-run3.report.json",
+        "lighthouse/root-run3.report.html"
+      ],
+      "errors": []
+    },
+    {
+      "route": "/auth/signup",
+      "route_class": "public",
+      "url": "https://apply.beanola.com/auth/signup",
+      "run_scores": [
+        91,
+        87,
+        93
+      ],
+      "raw_assets": [
+        "lighthouse/auth-signup-run1.report.json",
+        "lighthouse/auth-signup-run1.report.html",
+        "lighthouse/auth-signup-run2.report.json",
+        "lighthouse/auth-signup-run2.report.html",
+        "lighthouse/auth-signup-run3.report.json",
+        "lighthouse/auth-signup-run3.report.html"
+      ],
+      "errors": []
+    },
+    {
+      "route": "/track-application",
+      "route_class": "public",
+      "url": "https://apply.beanola.com/track-application",
+      "run_scores": [
+        89,
+        86,
+        93
+      ],
+      "raw_assets": [
+        "lighthouse/track-application-run1.report.json",
+        "lighthouse/track-application-run1.report.html",
+        "lighthouse/track-application-run2.report.json",
+        "lighthouse/track-application-run2.report.html",
+        "lighthouse/track-application-run3.report.json",
+        "lighthouse/track-application-run3.report.html"
+      ],
+      "errors": []
+    },
+    {
+      "route": "/student/dashboard",
+      "route_class": "authenticated",
+      "url": "https://apply.beanola.com/student/dashboard",
+      "run_scores": [],
+      "raw_assets": [],
+      "errors": [
+        "no auth cookie supplied for authenticated route; skipped"
+      ]
+    },
+    {
+      "route": "/admin/dashboard",
+      "route_class": "admin",
+      "url": "https://apply.beanola.com/admin/dashboard",
+      "run_scores": [],
+      "raw_assets": [],
+      "errors": [
+        "no auth cookie supplied for admin route; skipped"
+      ]
+    }
+  ]
+}

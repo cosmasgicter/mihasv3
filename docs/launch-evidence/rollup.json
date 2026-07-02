@@ -1,6 +1,6 @@
 {
   "verdict": "not-production-launch-ready",
-  "generated_at": "2026-06-22T11:27:34Z",
+  "generated_at": "2026-07-02T23:05:03Z",
   "gates": [
     {
       "gate_id": "migration-evidence",
@@ -12,23 +12,23 @@
     {
       "gate_id": "smoke",
       "requirement": "R2",
-      "status": "unknown",
+      "status": "passed",
       "artifact": "02-smoke/smoke-evidence.json",
-      "artifact_readable": false
+      "artifact_readable": true
     },
     {
       "gate_id": "performance",
       "requirement": "R3",
-      "status": "unknown",
+      "status": "failed",
       "artifact": "03-performance/performance-evidence.json",
-      "artifact_readable": false
+      "artifact_readable": true
     },
     {
       "gate_id": "mobile-ui",
       "requirement": "R4",
-      "status": "unknown",
+      "status": "passed",
       "artifact": "04-mobile-ui/mobile-ui-evidence.json",
-      "artifact_readable": false
+      "artifact_readable": true
     },
     {
       "gate_id": "bundle-guard",
@@ -82,16 +82,11 @@
   ],
   "not_passed": [
     "migration-evidence",
-    "smoke",
     "performance",
-    "mobile-ui",
     "onboarding"
   ],
   "missing_or_unreadable": [
     "migration-evidence",
-    "smoke",
-    "performance",
-    "mobile-ui",
     "onboarding"
   ]
 }
