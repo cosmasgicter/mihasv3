@@ -55,8 +55,8 @@ describe('useAdminDashboardPolling', () => {
     it('sets staleTime to half polling interval', () => {
       expect(hookContent).toContain('staleTime: pollingInterval / 2');
     });
-    it('defaults to 30s polling', () => {
-      expect(hookContent).toContain('POLLING_INTERVAL = 30000');
+    it('defaults to 60s polling', () => {
+      expect(hookContent).toContain('POLLING_INTERVAL = 60000');
     });
   });
 

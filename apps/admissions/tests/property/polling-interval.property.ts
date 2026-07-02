@@ -22,8 +22,10 @@ interface PollingConfig {
 const MIN_POLLING_INTERVAL = 10000;  // 10 seconds
 const MAX_POLLING_INTERVAL = 60000;  // 60 seconds
 
-// Recommended polling interval (30 seconds)
-const RECOMMENDED_POLLING_INTERVAL = 30000;
+// Recommended polling interval — admin 60s (to avoid IP-keyed rate limit
+// exhaustion when multiple admins share a NAT), student 30s (lighter budget).
+const RECOMMENDED_ADMIN_POLLING_INTERVAL = 60000;
+const RECOMMENDED_STUDENT_POLLING_INTERVAL = 30000;
 
 // Validate polling configuration
 function isValidPollingConfig(config: PollingConfig): boolean {
@@ -51,9 +53,9 @@ function createPollingConfig(intervalMs: number): PollingConfig {
 
 // Admin dashboard polling config (mirrors useAdminDashboardPolling.ts)
 const ADMIN_DASHBOARD_POLLING_CONFIG: PollingConfig = {
-  refetchInterval: 30000,  // 30 seconds
+  refetchInterval: 60000,  // 60 seconds
   refetchIntervalInBackground: false,
-  staleTime: 25000,  // 25 seconds
+  staleTime: 30000,  // 30 seconds (half of refetch interval)
 };
 
 // Student dashboard polling config (mirrors useStudentDashboardPolling.ts)
@@ -167,12 +169,12 @@ describe('Feature: bun-vercel-migration, Property 8: Polling Interval Configurat
       expect(STUDENT_DASHBOARD_POLLING_CONFIG.refetchInterval).toBeLessThanOrEqual(MAX_POLLING_INTERVAL);
     });
 
-    it('admin dashboard should use recommended 30-second interval', () => {
-      expect(ADMIN_DASHBOARD_POLLING_CONFIG.refetchInterval).toBe(RECOMMENDED_POLLING_INTERVAL);
+    it('admin dashboard should use recommended 60-second interval', () => {
+      expect(ADMIN_DASHBOARD_POLLING_CONFIG.refetchInterval).toBe(RECOMMENDED_ADMIN_POLLING_INTERVAL);
     });
 
     it('student dashboard should use recommended 30-second interval', () => {
-      expect(STUDENT_DASHBOARD_POLLING_CONFIG.refetchInterval).toBe(RECOMMENDED_POLLING_INTERVAL);
+      expect(STUDENT_DASHBOARD_POLLING_CONFIG.refetchInterval).toBe(RECOMMENDED_STUDENT_POLLING_INTERVAL);
     });
 
     it('both dashboards should disable background polling', () => {

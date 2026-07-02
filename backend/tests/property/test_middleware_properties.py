@@ -194,6 +194,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
         expected_mapping = {
             "60/5m": 300,
             "60/10m": 600,
+            "200/10m": 600,
             "20/10m": 600,
             "30/10m": 600,
             "50/10m": 600,
@@ -274,7 +275,7 @@ class TestRateLimitRetryAfterProperty(SimpleTestCase):
             ("/api/v1/auth/register/", "5/5m"),
             ("/api/v1/auth/password-reset/", "5/5m"),
             ("/api/v1/auth/", "60/5m"),
-            ("/api/v1/admin/", "60/10m"),
+            ("/api/v1/admin/", "200/10m"),
             ("/api/v1/documents/", "20/10m"),
             ("/api/v1/applications/bulk-status/", "20/10m"),
             ("/api/v1/applications/track/", "20/10m"),

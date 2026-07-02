@@ -35,7 +35,7 @@ from apps.common.middleware import RateLimitMiddleware
 # where N is between 1 and limit+10 to test both sides of the boundary.
 _scope_configs = [
     ("/api/v1/auth/test/", "60/5m", 60, 300),
-    ("/api/v1/admin/test/", "60/10m", 60, 600),
+    ("/api/v1/admin/test/", "200/10m", 200, 600),
     ("/api/v1/documents/test/", "20/10m", 20, 600),
     ("/api/v1/applications/track/", "20/10m", 20, 600),
     ("/api/v1/sessions/test/", "30/10m", 30, 600),

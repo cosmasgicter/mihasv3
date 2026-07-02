@@ -210,7 +210,7 @@ class RateLimitMiddleware:
       /api/v1/auth/register/       → 5/5m
       /api/v1/auth/password-reset/ → 5/5m
       /api/v1/auth/                → 60/5m
-      /api/v1/admin/               → 60/10m
+      /api/v1/admin/               → 200/10m
       /api/v1/documents/           → 20/10m
       /api/v1/applications/bulk-status/ → 20/10m  (admin bulk state transitions, R4.8)
       /api/v1/applications/track/  → 20/10m
@@ -237,8 +237,14 @@ class RateLimitMiddleware:
         ("/api/v1/auth/password-reset/", "5/5m"),
         # General auth scope
         ("/api/v1/auth/", "60/5m"),
-        # Existing scopes
-        ("/api/v1/admin/", "60/10m"),
+        # Admin scope — budget is IP-keyed and shared across all admins
+        # behind the same NAT/campus network. Dashboard polling alone
+        # consumes ~10 calls/admin/10min (at 60s intervals); 200/10m
+        # comfortably handles up to ~15 concurrent admins per IP without
+        # false 429s during normal navigation + polling. Not a security-
+        # sensitive endpoint (all calls require valid auth cookies); the
+        # true access control is the CapabilityService check per view.
+        ("/api/v1/admin/", "200/10m"),
         ("/api/v1/documents/", "20/10m"),
         ("/api/v1/applications/bulk-status/", "20/10m"),
         ("/api/v1/applications/track/", "20/10m"),

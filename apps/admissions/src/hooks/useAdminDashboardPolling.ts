@@ -2,7 +2,7 @@
  * useAdminDashboardPolling Hook
  *
  * Provides polling-based data fetching for admin dashboard.
- * Polls GET /api/v1/admin/dashboard/ via the admin dashboard service at 30-second intervals.
+ * Polls GET /api/v1/admin/dashboard/ via the admin dashboard service at 60-second intervals.
  *
  * Polling Strategy:
  * - React Query polling against Django REST API
@@ -58,7 +58,7 @@ export interface UseAdminDashboardPollingReturn {
   lastUpdated: Date | null
 }
 
-const POLLING_INTERVAL = 30000
+const POLLING_INTERVAL = 60000
 export { POLLING_INTERVAL }
 
 export function getDashboardRetryDelay(attemptIndex: number): number {
