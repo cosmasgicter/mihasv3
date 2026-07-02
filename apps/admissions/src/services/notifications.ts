@@ -265,6 +265,12 @@ export const notificationService = {
       method: 'GET',
     }),
 
+  /** List notifications newer than a cursor id. Maps to GET /notifications/?after=<id> */
+  listAfter: (afterId: string) =>
+    apiClient.request(`/notifications/?after=${encodeURIComponent(afterId)}`, {
+      method: 'GET',
+    }),
+
   /** Mark a single notification as read. Maps to PUT /notifications/{id}/read/ */
   markRead: (notificationId: string) =>
     apiClient.request(`/notifications/${encodeURIComponent(notificationId)}/read/`, {

@@ -101,13 +101,46 @@ export function useNotificationPolling(
     }
   }, [queryClient, queryKey, user?.id])
 
+  // Track the newest loaded notification id for cursor-based polling (R9, 2.15/2.16).
+  // After the initial full load, subsequent polls use ?after=<newestId> to avoid
+  // issuing a count query and to fetch only new notifications.
+  const newestIdRef = useRef<string | null>(null)
+  const hasInitialLoadRef = useRef(false)
+
   const fetchNotifications = useCallback(async (): Promise<StudentNotification[]> => {
     if (!user?.id) {
       return []
     }
+
+    // After the first successful load, use cursor mode (no count query).
+    if (hasInitialLoadRef.current && newestIdRef.current) {
+      const cursorResult = await notificationService.listAfter(newestIdRef.current)
+      const newItems = normalizeNotificationsResponse(cursorResult)
+      if (newItems.length > 0) {
+        // Merge new items into existing cache, deduplicating by id.
+        const existing = queryClient.getQueryData<StudentNotification[]>(queryKey) ?? []
+        const existingIds = new Set(existing.map(n => n.id))
+        const dedupedNew = newItems.filter(n => !existingIds.has(n.id))
+        if (dedupedNew.length > 0) {
+          const merged = [...dedupedNew, ...existing]
+          // Update the newest id to the most recent notification.
+          newestIdRef.current = merged[0]?.id ?? newestIdRef.current
+          return merged
+        }
+      }
+      // No new items — return existing data unchanged.
+      return queryClient.getQueryData<StudentNotification[]>(queryKey) ?? []
+    }
+
+    // Initial load: full list (page-number mode for backward compatibility).
     const result = await notificationService.list()
-    return normalizeNotificationsResponse(result)
-  }, [user?.id])
+    const notifications = normalizeNotificationsResponse(result)
+    if (notifications.length > 0) {
+      newestIdRef.current = notifications[0]!.id
+      hasInitialLoadRef.current = true
+    }
+    return notifications
+  }, [user?.id, queryClient, queryKey])
 
   const consecutiveErrorsRef = useRef(0)
 
