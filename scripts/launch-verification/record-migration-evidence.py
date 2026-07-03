@@ -185,7 +185,15 @@ def _staging_apply_check(
     missing: List[str] = []
     duplicated: List[str] = []
     for script in scripts:
-        hits = [n for n in entry_names if n == script or (n and n in script) or (script and script in n)]
+        # Exact match only. A prior substring match (`n in script or script in
+        # n`) produced false "duplicated" failures for real, distinct migration
+        # names that happen to share a substring — e.g. the real production
+        # migration_history contains both `normalize_data.sql` and
+        # `seed_and_normalize_data.sql`; "normalize_data.sql" is a literal
+        # substring of the latter, so the old matcher counted 2 hits for
+        # `normalize_data.sql` even though each script has exactly one real
+        # row. Migration script filenames are exact identifiers, not prefixes.
+        hits = [n for n in entry_names if n == script]
         if len(hits) == 1:
             matched.append(script)
         elif len(hits) == 0:

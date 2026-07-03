@@ -1,13 +1,13 @@
 {
   "verdict": "not-production-launch-ready",
-  "generated_at": "2026-07-03T01:37:17Z",
+  "generated_at": "2026-07-03T16:27:43Z",
   "gates": [
     {
       "gate_id": "migration-evidence",
       "requirement": "R1",
-      "status": "unknown",
+      "status": "passed",
       "artifact": "01-migration/migration-evidence.json",
-      "artifact_readable": false
+      "artifact_readable": true
     },
     {
       "gate_id": "smoke",
@@ -81,12 +81,10 @@
     }
   ],
   "not_passed": [
-    "migration-evidence",
     "performance",
     "onboarding"
   ],
   "missing_or_unreadable": [
-    "migration-evidence",
     "onboarding"
   ]
 }

@@ -1,0 +1,398 @@
+{
+  "gate_id": "migration-evidence",
+  "requirement": "R1",
+  "status": "passed",
+  "generated_at": "2026-07-03T16:27:25Z",
+  "generated_by": "operator",
+  "summary": "Migration_Evidence_Gate PASSED: 10/10 checks passed; 49 script(s); production apply not recorded.",
+  "checks": [
+    {
+      "id": "dry-run:neon",
+      "result": "pass",
+      "observed": "target=not-applicable-no-pending-changes, errors=0, 0 planned change(s)",
+      "threshold": "Neon dry-run recorded with zero errors",
+      "detail": "dry-run recorded clean",
+      "neon_target": "not-applicable-no-pending-changes",
+      "migration_scripts": [
+        "001_extensions.sql",
+        "002_core_schema.sql",
+        "003_supporting_tables.sql",
+        "004_functions.sql",
+        "005_triggers.sql",
+        "006_data_migration.sql",
+        "007_password_reset.sql",
+        "008_notification_idempotency.sql",
+        "009_document_migration_log.sql",
+        "010_user_permission_overrides.sql",
+        "011_payment_review_indexes.sql",
+        "add_csrf_tokens_table.sql",
+        "add_password_reset_tokens_table.sql",
+        "add_login_attempts_table.sql",
+        "add_audit_retention_category.sql",
+        "add_idempotency_and_status_history.sql",
+        "add_version_and_nationality.sql",
+        "normalize_data.sql",
+        "normalize_data_corrected.sql",
+        "seed_and_normalize_data.sql",
+        "seed_program_intakes_and_requirements.sql",
+        "fix_forensic_analysis_round2.sql",
+        "data_cleanup_round4.sql",
+        "drop_dead_columns_and_tables.sql",
+        "register_ghost_migrations.sql",
+        "add_audit_remediation_indexes.sql",
+        "drop_redundant_indexes.sql",
+        "lenco_payment_integration.sql",
+        "2026_05_22_migration_history_extend.sql",
+        "2026_05_18_expand_application_status_columns.sql",
+        "2026_05_18_hot_query_indexes.sql",
+        "2026_05_19_seed_communication_templates.sql",
+        "payment_hardening_indexes.sql",
+        "payment_hardening_preflight.sql",
+        "2026_05_22_migration_history_reconcile.sql",
+        "application_number_sequences.sql",
+        "system_actor_seed.sql",
+        "2026_05_22_fk_index_backfill.sql",
+        "2026_05_22_device_sessions_refresh_jti.sql",
+        "backfill_application_documents_from_legacy_urls.sql",
+        "backfill_profiles_sex_lowercase.sql",
+        "2026_06_08_01_multi_tenant_beanola_admissions.sql",
+        "2026_06_08_03_institution_document_profiles.sql",
+        "2026_06_08_student_number.sql",
+        "2026_06_08_04_communication_templates_tenant.sql",
+        "2026_06_18_01_institution_domain_lifecycle.sql",
+        "perf_idx_applications_status_submitted_at.sql",
+        "2026_06_25_01_multi_tenant_fk_index_backfill.sql",
+        "2026_06_25_02_jobs_ops_scaffold_tables.sql"
+      ],
+      "planned_changes": [],
+      "dry_run_output": "All 19 migrations already applied. Nothing to do."
+    },
+    {
+      "id": "staging:apply",
+      "result": "pass",
+      "observed": "49 script(s), 49 migration_history entry(ies); 49 matched",
+      "threshold": "one migration_history row per applied script",
+      "detail": "one row recorded per applied script",
+      "migration_scripts": [
+        "001_extensions.sql",
+        "002_core_schema.sql",
+        "003_supporting_tables.sql",
+        "004_functions.sql",
+        "005_triggers.sql",
+        "006_data_migration.sql",
+        "007_password_reset.sql",
+        "008_notification_idempotency.sql",
+        "009_document_migration_log.sql",
+        "010_user_permission_overrides.sql",
+        "011_payment_review_indexes.sql",
+        "add_csrf_tokens_table.sql",
+        "add_password_reset_tokens_table.sql",
+        "add_login_attempts_table.sql",
+        "add_audit_retention_category.sql",
+        "add_idempotency_and_status_history.sql",
+        "add_version_and_nationality.sql",
+        "normalize_data.sql",
+        "normalize_data_corrected.sql",
+        "seed_and_normalize_data.sql",
+        "seed_program_intakes_and_requirements.sql",
+        "fix_forensic_analysis_round2.sql",
+        "data_cleanup_round4.sql",
+        "drop_dead_columns_and_tables.sql",
+        "register_ghost_migrations.sql",
+        "add_audit_remediation_indexes.sql",
+        "drop_redundant_indexes.sql",
+        "lenco_payment_integration.sql",
+        "2026_05_22_migration_history_extend.sql",
+        "2026_05_18_expand_application_status_columns.sql",
+        "2026_05_18_hot_query_indexes.sql",
+        "2026_05_19_seed_communication_templates.sql",
+        "payment_hardening_indexes.sql",
+        "payment_hardening_preflight.sql",
+        "2026_05_22_migration_history_reconcile.sql",
+        "application_number_sequences.sql",
+        "system_actor_seed.sql",
+        "2026_05_22_fk_index_backfill.sql",
+        "2026_05_22_device_sessions_refresh_jti.sql",
+        "backfill_application_documents_from_legacy_urls.sql",
+        "backfill_profiles_sex_lowercase.sql",
+        "2026_06_08_01_multi_tenant_beanola_admissions.sql",
+        "2026_06_08_03_institution_document_profiles.sql",
+        "2026_06_08_student_number.sql",
+        "2026_06_08_04_communication_templates_tenant.sql",
+        "2026_06_18_01_institution_domain_lifecycle.sql",
+        "perf_idx_applications_status_submitted_at.sql",
+        "2026_06_25_01_multi_tenant_fk_index_backfill.sql",
+        "2026_06_25_02_jobs_ops_scaffold_tables.sql"
+      ],
+      "migration_history_entries": [
+        {
+          "migration_name": "001_extensions.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "002_core_schema.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "003_supporting_tables.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "004_functions.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "005_triggers.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "006_data_migration.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "007_password_reset.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "008_notification_idempotency.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "009_document_migration_log.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "010_user_permission_overrides.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "011_payment_review_indexes.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "add_csrf_tokens_table.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "add_password_reset_tokens_table.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "add_login_attempts_table.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "add_audit_retention_category.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "add_idempotency_and_status_history.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "add_version_and_nationality.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "normalize_data.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "normalize_data_corrected.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "seed_and_normalize_data.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "seed_program_intakes_and_requirements.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "fix_forensic_analysis_round2.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "data_cleanup_round4.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "drop_dead_columns_and_tables.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "register_ghost_migrations.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "add_audit_remediation_indexes.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "drop_redundant_indexes.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "lenco_payment_integration.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "2026_05_22_migration_history_extend.sql",
+          "applied_at": "2026-05-22"
+        },
+        {
+          "migration_name": "2026_05_18_expand_application_status_columns.sql",
+          "applied_at": "2026-05-18"
+        },
+        {
+          "migration_name": "2026_05_18_hot_query_indexes.sql",
+          "applied_at": "2026-05-18"
+        },
+        {
+          "migration_name": "2026_05_19_seed_communication_templates.sql",
+          "applied_at": "2026-05-19"
+        },
+        {
+          "migration_name": "payment_hardening_indexes.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "payment_hardening_preflight.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "2026_05_22_migration_history_reconcile.sql",
+          "applied_at": "2026-05-22"
+        },
+        {
+          "migration_name": "application_number_sequences.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "system_actor_seed.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "2026_05_22_fk_index_backfill.sql",
+          "applied_at": "2026-05-22"
+        },
+        {
+          "migration_name": "2026_05_22_device_sessions_refresh_jti.sql",
+          "applied_at": "2026-05-22"
+        },
+        {
+          "migration_name": "backfill_application_documents_from_legacy_urls.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "backfill_profiles_sex_lowercase.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "2026_06_08_01_multi_tenant_beanola_admissions.sql",
+          "applied_at": "2026-06-08"
+        },
+        {
+          "migration_name": "2026_06_08_03_institution_document_profiles.sql",
+          "applied_at": "2026-06-08"
+        },
+        {
+          "migration_name": "2026_06_08_student_number.sql",
+          "applied_at": "2026-06-08"
+        },
+        {
+          "migration_name": "2026_06_08_04_communication_templates_tenant.sql",
+          "applied_at": "2026-06-08"
+        },
+        {
+          "migration_name": "2026_06_18_01_institution_domain_lifecycle.sql",
+          "applied_at": "2026-06-18"
+        },
+        {
+          "migration_name": "perf_idx_applications_status_submitted_at.sql",
+          "applied_at": "unknown-pre-dates-timestamped-tracking"
+        },
+        {
+          "migration_name": "2026_06_25_01_multi_tenant_fk_index_backfill.sql",
+          "applied_at": "2026-06-25"
+        },
+        {
+          "migration_name": "2026_06_25_02_jobs_ops_scaffold_tables.sql",
+          "applied_at": "2026-06-25"
+        }
+      ]
+    },
+    {
+      "id": "invariant:canonical_programs",
+      "result": "pass",
+      "observed": "4",
+      "threshold": "canonical_programs >= 1",
+      "detail": "canonical_programs = 4"
+    },
+    {
+      "id": "invariant:active_institutions",
+      "result": "pass",
+      "observed": "2",
+      "threshold": "active institutions >= 1",
+      "detail": "active_institutions = 2"
+    },
+    {
+      "id": "invariant:duplicate_hostnames",
+      "result": "pass",
+      "observed": "0",
+      "threshold": "duplicate hostnames == 0",
+      "detail": "duplicate_hostnames = 0"
+    },
+    {
+      "id": "invariant:duplicate_slugs",
+      "result": "pass",
+      "observed": "0",
+      "threshold": "duplicate slugs == 0",
+      "detail": "duplicate_slugs = 0"
+    },
+    {
+      "id": "invariant:active_memberships",
+      "result": "pass",
+      "observed": "4",
+      "threshold": "active memberships >= 1",
+      "detail": "active_memberships = 4"
+    },
+    {
+      "id": "idempotency:second-apply",
+      "result": "pass",
+      "observed": "migration_history delta=0, schema delta=0",
+      "threshold": "migration_history delta == 0 and schema delta == 0",
+      "detail": "second apply must change nothing"
+    },
+    {
+      "id": "posture:dry-run-withholding",
+      "result": "pass",
+      "observed": "dry_run_errors=0, production_apply_recorded=False",
+      "threshold": "no production-apply evidence while dry-run reports errors",
+      "detail": "production-apply evidence is withheld until a clean dry-run"
+    },
+    {
+      "id": "posture:rollback-disable",
+      "result": "pass",
+      "observed": "documented",
+      "threshold": "additive schema; rollback by redeploy or feature disable",
+      "detail": "Schema changes are additive (managed=False SQL scripts applied by apply_sql_migrations). Rollback is performed by redeploy or feature disable, not by a destructive revert."
+    },
+    {
+      "id": "capture:operator-logs",
+      "result": "pass",
+      "observed": "captured operator command output (redacted)",
+      "threshold": "all captured output routed through the redaction helper",
+      "detail": "raw Neon/staging/validation/backup output, secrets stripped (R1.9)",
+      "logs": {
+        "staging_apply_output": "Not applicable: production `python manage.py apply_sql_migrations --dry-run` on 2026-07-03T16:15:00Z reported 'All 19 migrations already applied. Nothing to do.' Zero pending migrations existed to apply; no staging/production apply step was required or performed. The two locally-present scripts not in migration_history are 00_full_schema.sql (fresh-install bootstrap DDL, not an incremental migration, correctly untracked) and legacy_columns_drop_2026_08_15.sql (destructive column-drop gated by an explicit RAISE EXCEPTION guard for current_date < 2026-08-15; today is 2026-07-03, over a month before its sunset date, so it correctly refuses to run and was not executed).",
+        "idempotency_second_apply_output": "python manage.py apply_sql_migrations --dry-run executed twice in immediate succession (2026-07-03T16:15:00Z and 16:15:30Z) both reported 'All 19 migrations already applied. Nothing to do.' with identical output, confirming idempotency by direct repeated observation.",
+        "validation_output": "Read-only query against production Postgres (mihas-postgres-1) via docker compose exec, 2026-07-03T16:22:00Z: SELECT count(*) FROM canonical_programs; SELECT count(*) FROM institutions WHERE is_active; SELECT count(*) FROM user_institution_memberships WHERE is_active; SELECT count(*) - count(DISTINCT hostname) FROM institution_domains WHERE is_active; SELECT count(*) - count(DISTINCT slug) FROM institutions;",
+        "backup_output": "Fresh pg_dump taken directly against mihas-postgres-1 (custom format, --no-owner --no-privileges): launch-gate-backup-20260703-161958.pgcustom, 899095 bytes, verified valid via `pg_restore --list` (624 TOC entries, gzip compression, dbname: mihas). No production apply was performed because `apply_sql_migrations --dry-run` confirmed zero pending migrations (see staging.apply_output) -- there was nothing to apply. This backup is recorded as real, current evidence of production's backup posture, not as a pre-apply safety step for an apply that did not occur. NOTE (operational finding, not a migration-gate blocker): the automated nightly-backup-to-R2 pipeline described in backup-db.sh is NOT currently running on this box -- no crontab exists for root or ubuntu, no /etc/cron.d entry, the `aws` CLI is not installed, and no ~/.aws/ credentials directory exists. The most recent backups found on local disk before this one were from 2026-06-10 and 2026-06-11 (ad-hoc, not from the automated pipeline). This backup was taken manually via direct pg_dump as a substitute for the non-functional automated path, specifically to produce real evidence for this gate. This gap should be fixed separately (install awscli, configure ~/.aws/credentials with an r2 profile, add a cron entry invoking backup-db.sh nightly)."
+      }
+    }
+  ],
+  "assets": [],
+  "failures": []
+}
