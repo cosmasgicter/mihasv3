@@ -2,53 +2,53 @@
   "gate_id": "performance",
   "requirement": "R3",
   "status": "failed",
-  "generated_at": "2026-07-02T23:02:45Z",
+  "generated_at": "2026-07-03T01:35:47Z",
   "generated_by": "deployed-target",
-  "summary": "2/5 Lighthouse routes and 2/12 API surfaces passed.",
+  "summary": "3/5 Lighthouse routes and 1/12 API surfaces passed.",
   "checks": [
     {
       "id": "lighthouse:/",
       "result": "pass",
-      "observed": "90",
+      "observed": "96",
       "threshold": "90.0",
-      "detail": "median of 3 runs (88, 90, 92)",
+      "detail": "median of 3 runs (97, 96, 96)",
       "route": "/",
       "route_class": "public",
-      "lighthouse_median": 90.0,
+      "lighthouse_median": 96.0,
       "run_scores": [
-        88.0,
-        90.0,
-        92.0
+        97.0,
+        96.0,
+        96.0
       ]
     },
     {
       "id": "lighthouse:/auth/signup",
       "result": "pass",
-      "observed": "91",
+      "observed": "96",
       "threshold": "90.0",
-      "detail": "median of 3 runs (91, 87, 93)",
+      "detail": "median of 3 runs (96, 97, 95)",
       "route": "/auth/signup",
       "route_class": "public",
-      "lighthouse_median": 91.0,
+      "lighthouse_median": 96.0,
       "run_scores": [
-        91.0,
-        87.0,
-        93.0
+        96.0,
+        97.0,
+        95.0
       ]
     },
     {
       "id": "lighthouse:/track-application",
-      "result": "fail",
-      "observed": "89",
+      "result": "pass",
+      "observed": "97",
       "threshold": "90.0",
-      "detail": "median of 3 runs (89, 86, 93)",
+      "detail": "median of 3 runs (97, 96, 97)",
       "route": "/track-application",
       "route_class": "public",
-      "lighthouse_median": 89.0,
+      "lighthouse_median": 97.0,
       "run_scores": [
-        89.0,
-        86.0,
-        93.0
+        97.0,
+        96.0,
+        97.0
       ]
     },
     {
@@ -76,24 +76,24 @@
     {
       "id": "api:tenant context",
       "result": "fail",
-      "observed": "p50=708.215 ms, p95=890.522 ms",
+      "observed": "p50=718.037 ms, p95=1022.61 ms",
       "threshold": "p95 <= 300 ms",
       "detail": "100 samples",
       "api_surface": "tenant context",
-      "p50_ms": 708.215,
-      "p95_ms": 890.522,
+      "p50_ms": 718.037,
+      "p95_ms": 1022.605,
       "sample_count": 100,
       "p95_target_ms": 300.0
     },
     {
       "id": "api:catalog offerings",
       "result": "fail",
-      "observed": "p50=690.021 ms, p95=916.303 ms",
+      "observed": "p50=718.163 ms, p95=978.664 ms",
       "threshold": "p95 <= 500 ms",
       "detail": "100 samples",
       "api_surface": "catalog offerings",
-      "p50_ms": 690.021,
-      "p95_ms": 916.303,
+      "p50_ms": 718.163,
+      "p95_ms": 978.664,
       "sample_count": 100,
       "p95_target_ms": 500.0
     },
@@ -124,12 +124,12 @@
     {
       "id": "api:payment init",
       "result": "pass",
-      "observed": "p50=559.833 ms, p95=920.302 ms",
+      "observed": "p50=654.867 ms, p95=921.79 ms",
       "threshold": "p95 <= 2000 ms",
       "detail": "100 samples",
       "api_surface": "payment init",
-      "p50_ms": 559.833,
-      "p95_ms": 920.302,
+      "p50_ms": 654.867,
+      "p95_ms": 921.79,
       "sample_count": 100,
       "p95_target_ms": 2000.0
     },
@@ -148,12 +148,12 @@
     {
       "id": "api:tenant admin list",
       "result": "fail",
-      "observed": "p50=716.671 ms, p95=926.789 ms",
+      "observed": "p50=637.305 ms, p95=922.283 ms",
       "threshold": "p95 <= 800 ms",
       "detail": "100 samples",
       "api_surface": "tenant admin list",
-      "p50_ms": 716.671,
-      "p95_ms": 926.789,
+      "p50_ms": 637.305,
+      "p95_ms": 922.283,
       "sample_count": 100,
       "p95_target_ms": 800.0
     },
@@ -207,13 +207,13 @@
     },
     {
       "id": "api:settlement summary",
-      "result": "pass",
-      "observed": "p50=712.926 ms, p95=995.265 ms",
+      "result": "fail",
+      "observed": "p50=716.322 ms, p95=1023.36 ms",
       "threshold": "p95 <= 1000 ms",
       "detail": "100 samples",
       "api_surface": "settlement summary",
-      "p50_ms": 712.926,
-      "p95_ms": 995.265,
+      "p50_ms": 716.322,
+      "p95_ms": 1023.363,
       "sample_count": 100,
       "p95_target_ms": 1000.0
     }
@@ -240,18 +240,18 @@
     "timings.csv"
   ],
   "failures": [
-    "lighthouse:/track-application median 89 below threshold 90",
     "lighthouse:/student/dashboard not measured (0 run(s); >= 3 required)",
     "lighthouse:/admin/dashboard not measured (0 run(s); >= 3 required)",
-    "api:tenant context p95 890.522 ms exceeds target 300 ms",
-    "api:catalog offerings p95 916.303 ms exceeds target 500 ms",
+    "api:tenant context p95 1022.61 ms exceeds target 300 ms",
+    "api:catalog offerings p95 978.664 ms exceeds target 500 ms",
     "api:draft save p95 10000 ms exceeds target 500 ms",
     "api:application submit p95 10000 ms exceeds target 1500 ms",
     "api:payment status p95 10000 ms exceeds target 500 ms",
-    "api:tenant admin list p95 926.789 ms exceeds target 800 ms",
+    "api:tenant admin list p95 922.283 ms exceeds target 800 ms",
     "api:tenant admin detail p95 10000 ms exceeds target 600 ms",
     "api:official document queue p95 10000 ms exceeds target 800 ms",
     "api:official document status p95 10000 ms exceeds target 500 ms",
-    "api:official document download p95 10000 ms exceeds target 2000 ms"
+    "api:official document download p95 10000 ms exceeds target 2000 ms",
+    "api:settlement summary p95 1023.36 ms exceeds target 1000 ms"
   ]
 }
