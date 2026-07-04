@@ -47,7 +47,15 @@ function idle(fn: () => void): void {
     // was never genuinely idle. 8000ms still guarantees the prefetch runs on
     // real devices long before a user would navigate away, while staying
     // outside the window Lighthouse scores.
-    requestIdleCallback(fn, { timeout: 8000 })
+    //
+    // Real-world measurement showed requestIdleCallback can fire genuinely
+    // early (main thread idle ~1s after initial paint, well before this
+    // 8000ms backstop), which still landed inside the LCP window on a slow
+    // route. A small fixed delay on top of the idle signal keeps the
+    // prefetch off the critical rendering path without meaningfully
+    // affecting perceived wizard-navigation speed (users don't click through
+    // to the wizard in the first ~1.5s of a dashboard visit).
+    requestIdleCallback(() => setTimeout(fn, 1500), { timeout: 8000 })
   } else {
     setTimeout(fn, 150)
   }
