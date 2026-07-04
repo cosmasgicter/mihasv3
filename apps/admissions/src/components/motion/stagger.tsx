@@ -34,8 +34,6 @@ export function StaggerContainer({ children, className, delay = 0 }: StaggerCont
   const contextValue = useMemo(() => {
     counterRef.current = 0;
     return { next: () => counterRef.current++ };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset the
-    // counter only when this container's own identity/children change.
   }, [children]);
 
   if (reduced) return <div className={className}>{children}</div>;
