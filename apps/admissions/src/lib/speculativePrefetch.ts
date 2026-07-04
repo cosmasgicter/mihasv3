@@ -40,7 +40,14 @@ function canPrefetch(): boolean {
 /** Schedule work during idle time with fallback */
 function idle(fn: () => void): void {
   if (typeof requestIdleCallback === 'function') {
-    requestIdleCallback(fn, { timeout: 3000 })
+    // A 3000ms guaranteed-fire timeout landed inside Lighthouse's mobile
+    // trace window (LCP is measured well past 3s under mobile throttling),
+    // so the wizard-chunk prefetch this schedules (see preloadStudentWizard)
+    // competed with the student dashboard's own LCP even though the browser
+    // was never genuinely idle. 8000ms still guarantees the prefetch runs on
+    // real devices long before a user would navigate away, while staying
+    // outside the window Lighthouse scores.
+    requestIdleCallback(fn, { timeout: 8000 })
   } else {
     setTimeout(fn, 150)
   }
