@@ -19,7 +19,8 @@ import {
   stats,
 } from '@/lib/constants/landing'
 
-import { FadeInView, StaggerContainer, StaggerItem as MStaggerItem } from '@/components/motion'
+import { FadeInView } from '@/components/motion'
+import { StaggerContainer, StaggerItem as MStaggerItem } from '@/components/motion/stagger'
 
 /** Motion-enabled wrappers replacing the old passthrough stubs */
 const ScrollReveal = ({ children, className }: { children: React.ReactNode; className?: string }) => <FadeInView className={className}>{children}</FadeInView>

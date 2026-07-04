@@ -2,7 +2,9 @@
  * Motion Primitives Audit Fix — Regression Tests
  *
  * Validates the dual reduced-motion strategy (ADR-009) at the component level:
- * - PageShell honours useReducedMotion for framer-motion suppression
+ * - PageShell uses a CSS-only entrance animation (no framer-motion), which the
+ *   global `prefers-reduced-motion` rule in index.css already neutralises —
+ *   the same pattern ButtonSpinner already established below.
  * - ButtonSpinner uses CSS-only reduced-motion (no AnimatePresence wrapper)
  * - smooth-animations.css contains required utility classes
  */
@@ -11,16 +13,9 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { render } from '@testing-library/react'
 import fs from 'node:fs'
 import path from 'node:path'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 // ─── Mocks (must precede component imports) ────────────────────────────────
-
-let mockReduced = true
-
-vi.mock('@/lib/animation-config', () => ({
-  useReducedMotion: () => mockReduced,
-  prefersReducedMotion: () => mockReduced,
-}))
 
 vi.mock('@/lib/logger', () => ({
   logger: { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() },
@@ -34,12 +29,7 @@ import { ButtonSpinner } from '@/components/ui/ButtonSpinner'
 // ─── Tests ─────────────────────────────────────────────────────────────────
 
 describe('PageShell reduced-motion behaviour', () => {
-  afterEach(() => {
-    mockReduced = true
-  })
-
-  it('renders title and children without mid-animation transform when reduced motion is on', () => {
-    mockReduced = true
+  it('renders title and children as a plain div with the CSS entrance animation class', () => {
     const markup = renderToStaticMarkup(
       <PageShell title="Test Page">
         <p>child content</p>
@@ -48,33 +38,17 @@ describe('PageShell reduced-motion behaviour', () => {
 
     expect(markup).toContain('Test Page')
     expect(markup).toContain('child content')
-    // When reduced motion is active, framer-motion with initial:false should
-    // NOT apply a mid-animation transform style (e.g. translateY(8px))
+    expect(markup).toContain('bottom-nav-content-padding')
+    expect(markup).toContain('animate-page-shell-in')
+    // No framer-motion: the wrapper is a plain <div>, never a mid-animation
+    // inline transform style (framer-motion previously injected one).
+    expect(markup).toMatch(/^<div/)
     expect(markup).not.toMatch(/style="[^"]*translateY\(8px\)/)
   })
 
-  it('renders as a div with bottom-nav-content-padding when reduced motion is off', () => {
-    mockReduced = false
-    const markup = renderToStaticMarkup(
-      <PageShell title="Active Page">
-        <p>visible child</p>
-      </PageShell>
-    )
-
-    expect(markup).toContain('visible child')
-    expect(markup).toContain('bottom-nav-content-padding')
-    // motion.div renders as a plain <div> in the DOM
-    expect(markup).toMatch(/^<div/)
-  })
-
-  it('does NOT remount subtree when reduced-motion preference toggles', () => {
-    // Contract: PageShell uses a single motion.div wrapper whose animation
-    // props change reactively. The subtree identity must be preserved so that
-    // child component state (forms, inputs) is not lost on toggle.
-    //
-    // We verify structural equivalence: both renders produce the same child
-    // content and the same wrapper element type, differing only in motion props.
-    mockReduced = false
+  it('does not remount the subtree across re-renders (form state preserved)', () => {
+    // Contract: PageShell's wrapper is a stable plain div, so re-rendering
+    // never remounts child component state (forms, inputs).
     const { container, rerender } = render(
       <PageShell title="Stable">
         <input data-testid="child-input" defaultValue="keep me" />
@@ -84,10 +58,8 @@ describe('PageShell reduced-motion behaviour', () => {
     const wrapperBefore = container.firstElementChild
     expect(wrapperBefore?.tagName).toBe('DIV')
 
-    // Toggle reduced motion
-    mockReduced = true
     rerender(
-      <PageShell title="Stable">
+      <PageShell title="Stable Renamed">
         <input data-testid="child-input" defaultValue="keep me" />
       </PageShell>
     )

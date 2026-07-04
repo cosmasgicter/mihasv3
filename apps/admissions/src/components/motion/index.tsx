@@ -3,6 +3,7 @@
 import { type ReactNode } from 'react';
 import { motion, AnimatePresence, type Transition } from 'framer-motion';
 import { useReducedMotion } from '@/lib/animation-config';
+export { StaggerContainer, StaggerItem } from './stagger';
 
 const spring = { type: 'spring' as const, stiffness: 400, damping: 17 };
 const ease = [0.4, 0, 0.2, 1] as const;
@@ -67,42 +68,13 @@ export function SlideUp({ children, className, delay = 0 }: MotionProps) {
   );
 }
 
-export function StaggerContainer({ children, className, delay = 0 }: MotionProps) {
-  const reduced = useReducedMotion();
-  if (reduced) return <div className={className}>{children}</div>;
-  return (
-    <motion.div
-      className={className}
-      initial="hidden"
-      animate="visible"
-      variants={{
-        hidden: { opacity: 0 },
-        visible: {
-          opacity: 1,
-          transition: { staggerChildren: 0.08, delayChildren: delay },
-        },
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-export function StaggerItem({ children, className }: Omit<MotionProps, 'delay'>) {
-  const reduced = useReducedMotion();
-  if (reduced) return <div className={className}>{children}</div>;
-  return (
-    <motion.div
-      className={className}
-      variants={{
-        hidden: { opacity: 0, y: 24 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease } },
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-}
+// A per-StaggerContainer counter (via context) assigns each StaggerItem
+// child an increasing index, so siblings receive increasing CSS
+// `animation-delay` values (0.08s apart, matching the previous
+// framer-motion `staggerChildren` value) without any JS animation engine.
+// See `./stagger.tsx` for the implementation and rationale (kept out of this
+// framer-motion-importing module so pages using only Stagger* never pull in
+// the framer-motion bundle).
 
 export function ScaleOnHover({ children, className }: Omit<MotionProps, 'delay'>) {
   const reduced = useReducedMotion();

@@ -180,8 +180,13 @@ module.exports = {
         'toast-in': 'toastIn 300ms ease-out',
         'toast-out': 'toastOut 200ms ease-in',
         'shake': 'shake 0.5s ease-in-out',
+        'page-shell-in': 'pageShellIn 200ms cubic-bezier(0.4,0,0.2,1) both',
       },
       keyframes: {
+        pageShellIn: {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },

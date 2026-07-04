@@ -253,6 +253,12 @@ export default defineConfig(({ mode, command }) => {
               !dep.includes('vendor-pdf') &&
               !dep.includes('vendor-react-pdf') &&
               !dep.includes('vendor-ocr') &&
+              // vendor-framer-motion is a decorative-animation-only engine
+              // (FadeIn/Crossfade/PageTransition/ScaleOnHover). Even a
+              // bare/unused static import of it (see manualChunks comment
+              // below) must never compete with first paint — it is not
+              // needed for any dashboard's initial render.
+              !dep.includes('vendor-framer-motion') &&
               // vendor-radix-dialog (Dialog/Modal primitive internals, split
               // out to stop it being co-chunked with vendor-react-pdf — see
               // the manualChunks comment above) is only needed once a modal
@@ -419,6 +425,21 @@ export default defineConfig(({ mode, command }) => {
               // Charts — recharts, dynamically imported
               if (id.includes('/recharts/') || id.includes('/d3-')) {
                 return 'vendor-charts'
+              }
+
+              // framer-motion — used only by a handful of decorative
+              // primitives in the `@/components/motion` barrel (FadeIn,
+              // Crossfade, PageTransition, ScaleOnHover). Left unpinned,
+              // Rollup's automatic chunking co-located it with unrelated
+              // shared modules (including the CSS-only `stagger.tsx`
+              // primitives, which have zero framer-motion dependency),
+              // which meant pages using ONLY StaggerContainer/StaggerItem
+              // (both dashboards) still statically pulled in the ~110KB
+              // raw framer-motion engine. Pinning it into its own chunk
+              // keeps it out of any page that doesn't actually import from
+              // the framer-motion-backed half of the barrel.
+              if (id.includes('/framer-motion/')) {
+                return 'vendor-framer-motion'
               }
 
             }

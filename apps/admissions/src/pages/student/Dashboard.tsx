@@ -23,7 +23,7 @@ import { PageShell } from '@/components/ui/PageShell'
 import { useStudentDashboardRefresh } from '@/hooks/useManualRefresh'
 import { useStudentDashboardPolling, type StudentDashboardData } from '@/hooks/useStudentDashboardPolling'
 
-import { StaggerContainer, StaggerItem } from '@/components/motion'
+import { StaggerContainer, StaggerItem } from '@/components/motion/stagger'
 import { getDisplayName } from '@/lib/userDisplayName'
 import { Seo } from '@/components/seo/Seo'
 import { applicationSessionManager } from '@/lib/applicationSession'
