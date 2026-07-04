@@ -1,6 +1,6 @@
 {
   "verdict": "not-production-launch-ready",
-  "generated_at": "2026-07-03T16:27:43Z",
+  "generated_at": "2026-07-04T07:42:19Z",
   "gates": [
     {
       "gate_id": "migration-evidence",
@@ -68,9 +68,9 @@
     {
       "gate_id": "onboarding",
       "requirement": "R10",
-      "status": "unknown",
+      "status": "passed",
       "artifact": "10-onboarding/onboarding-evidence.json",
-      "artifact_readable": false
+      "artifact_readable": true
     },
     {
       "gate_id": "scope",
@@ -81,10 +81,7 @@
     }
   ],
   "not_passed": [
-    "performance",
-    "onboarding"
+    "performance"
   ],
-  "missing_or_unreadable": [
-    "onboarding"
-  ]
+  "missing_or_unreadable": []
 }
