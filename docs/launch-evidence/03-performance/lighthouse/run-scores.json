@@ -1,6 +1,6 @@
 {
   "schema": "launch-verification/lighthouse-run-scores@1",
-  "generated_at": "2026-07-03T01:29:27Z",
+  "generated_at": "2026-07-04T22:03:21Z",
   "generated_by": "deployed-target",
   "base_url": "https://apply.beanola.com",
   "runs_requested": 3,
@@ -13,8 +13,8 @@
       "url": "https://apply.beanola.com/",
       "run_scores": [
         97,
-        96,
-        96
+        95,
+        97
       ],
       "raw_assets": [
         "lighthouse/root-run1.report.json",
@@ -31,9 +31,9 @@
       "route_class": "public",
       "url": "https://apply.beanola.com/auth/signup",
       "run_scores": [
-        96,
         97,
-        95
+        87,
+        94
       ],
       "raw_assets": [
         "lighthouse/auth-signup-run1.report.json",
@@ -50,9 +50,9 @@
       "route_class": "public",
       "url": "https://apply.beanola.com/track-application",
       "run_scores": [
+        98,
         97,
-        96,
-        97
+        98
       ],
       "raw_assets": [
         "lighthouse/track-application-run1.report.json",
@@ -68,21 +68,39 @@
       "route": "/student/dashboard",
       "route_class": "authenticated",
       "url": "https://apply.beanola.com/student/dashboard",
-      "run_scores": [],
-      "raw_assets": [],
-      "errors": [
-        "no auth cookie supplied for authenticated route; skipped"
-      ]
+      "run_scores": [
+        87,
+        89,
+        89
+      ],
+      "raw_assets": [
+        "lighthouse/student-dashboard-run1.report.json",
+        "lighthouse/student-dashboard-run1.report.html",
+        "lighthouse/student-dashboard-run2.report.json",
+        "lighthouse/student-dashboard-run2.report.html",
+        "lighthouse/student-dashboard-run3.report.json",
+        "lighthouse/student-dashboard-run3.report.html"
+      ],
+      "errors": []
     },
     {
       "route": "/admin/dashboard",
       "route_class": "admin",
       "url": "https://apply.beanola.com/admin/dashboard",
-      "run_scores": [],
-      "raw_assets": [],
-      "errors": [
-        "no auth cookie supplied for admin route; skipped"
-      ]
+      "run_scores": [
+        97,
+        98,
+        94
+      ],
+      "raw_assets": [
+        "lighthouse/admin-dashboard-run1.report.json",
+        "lighthouse/admin-dashboard-run1.report.html",
+        "lighthouse/admin-dashboard-run2.report.json",
+        "lighthouse/admin-dashboard-run2.report.html",
+        "lighthouse/admin-dashboard-run3.report.json",
+        "lighthouse/admin-dashboard-run3.report.html"
+      ],
+      "errors": []
     }
   ]
 }

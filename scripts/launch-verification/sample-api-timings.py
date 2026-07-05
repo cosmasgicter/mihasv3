@@ -94,13 +94,26 @@ SURFACE_ENDPOINTS: Dict[str, Tuple[str, str]] = {
     "draft save": ("PATCH", "/api/v1/applications/{application_id}/"),
     "application submit": ("POST", "/api/v1/applications/{application_id}/submit/"),
     "payment init": ("POST", "/api/v1/payments/initiate/"),
-    "payment status": ("GET", "/api/v1/payments/{payment_id}/"),
+    # NOTE: there is no bare `GET /api/v1/payments/{payment_id}/` route (see
+    # backend/apps/documents/urls.py — payment_urlpatterns only registers
+    # `/receipt/`, `/verify/`, `/correct/` under `<uuid:payment_id>/`).
+    # `/receipt/` is the closest same-shape read (PaymentReceiptView).
+    "payment status": ("GET", "/api/v1/payments/{payment_id}/receipt/"),
     "tenant admin list": ("GET", "/api/v1/applications/"),
     "tenant admin detail": ("GET", "/api/v1/applications/{application_id}/"),
     "official document queue": ("GET", "/api/v1/applications/{application_id}/documents/"),
-    "official document status": ("GET", "/api/v1/documents/{document_id}/"),
+    # NOTE: there is no bare `GET /api/v1/documents/{document_id}/` route
+    # (see backend/apps/documents/urls.py — document_urlpatterns only
+    # registers `/extract/`, `/signed-url/`, `/download/`, `/info/`,
+    # `/delete/`, `/versions/` under `<uuid:document_id>/`). `/info/`
+    # (DocumentInfoView) is the real read-only status/metadata endpoint.
+    "official document status": ("GET", "/api/v1/documents/{document_id}/info/"),
     "official document download": ("GET", "/api/v1/documents/{document_id}/download/"),
-    "settlement summary": ("GET", "/api/v1/analytics/funnel/"),
+    # NOTE: `/api/v1/analytics/funnel/` is jobs-ops scaffolding (seeded sample
+    # data), not an admissions payment surface. `/api/v1/payments/settlements/`
+    # (PaymentSettlementSummaryView) is the real tenant-scoped, admin-only
+    # settlement grouping this surface name refers to.
+    "settlement summary": ("GET", "/api/v1/payments/settlements/"),
 }
 
 #: Documented per-surface p95 budgets in milliseconds (Requirement 3.4/3.5).
@@ -151,6 +164,7 @@ def _one_request_latency(
     method: str,
     headers: Dict[str, str],
     timeout_s: float,
+    body: Optional[bytes] = None,
 ) -> Tuple[float, int]:
     """Issue a single request and return (latency_ms, http_status).
 
@@ -158,13 +172,14 @@ def _one_request_latency(
     failing surface degrades toward *fail*, never a silent pass. Only ever
     called from the live ``collect_samples`` path — never in the sandbox.
     """
-    req = urllib.request.Request(url, method=method, headers=headers)
+    req = urllib.request.Request(url, method=method, headers=headers, data=body)
     start = time.perf_counter()
     try:
         with urllib.request.urlopen(req, timeout=timeout_s) as resp:  # noqa: S310
             resp.read()
             status = resp.status
     except urllib.error.HTTPError as exc:
+        exc.read()  # drain the error body so the connection can be reused
         status = exc.code
     except (urllib.error.URLError, TimeoutError, OSError):
         status = 0
@@ -179,6 +194,8 @@ def collect_samples(
     endpoints: Optional[Dict[str, Tuple[str, str]]] = None,
     samples_per_surface: int = perf.MIN_API_SAMPLES,
     headers: Optional[Dict[str, str]] = None,
+    surface_headers: Optional[Dict[str, Dict[str, str]]] = None,
+    surface_bodies: Optional[Dict[str, dict]] = None,
     path_params: Optional[Dict[str, str]] = None,
     timeout_s: float = 10.0,
 ) -> List[SampleRow]:
@@ -189,9 +206,23 @@ def collect_samples(
     Surfaces whose path still contains an unresolved ``{...}`` placeholder are
     recorded with a 0-status sentinel reading so they surface as not-measurable
     rather than silently passing.
+
+    ``headers`` is the default header set applied to every surface (e.g. a
+    Cookie for one auth session). ``surface_headers`` optionally overrides the
+    header set for a specific surface name — several surfaces require a
+    *different* actor's session (e.g. ``tenant admin list`` needs an admin
+    cookie while ``draft save`` needs the owning student's cookie), so a single
+    flat header set cannot correctly authenticate every surface at once.
+    ``surface_bodies`` optionally supplies a JSON-serialisable body for
+    POST/PATCH surfaces (``draft save``, ``application submit``,
+    ``payment init``); a surface without a configured body sends none, which
+    is fine for surfaces expected to fail validation fast (latency is still a
+    real, honest measurement of the guard-check path).
     """
     endpoints = endpoints or SURFACE_ENDPOINTS
     headers = dict(headers or {})
+    surface_headers = surface_headers or {}
+    surface_bodies = surface_bodies or {}
     path_params = path_params or {}
     rows: List[SampleRow] = []
 
@@ -202,9 +233,16 @@ def collect_samples(
             path = path.replace("{" + key + "}", value)
         resolvable = path and "{" not in path
         url = base_url.rstrip("/") + path
+        request_headers = dict(surface_headers.get(surface, headers))
+        body_bytes: Optional[bytes] = None
+        if surface in surface_bodies:
+            body_bytes = json.dumps(surface_bodies[surface]).encode("utf-8")
+            request_headers.setdefault("Content-Type", "application/json")
         for i in range(samples_per_surface):
             if resolvable:
-                latency_ms, status = _one_request_latency(url, method, headers, timeout_s)
+                latency_ms, status = _one_request_latency(
+                    url, method, request_headers, timeout_s, body=body_bytes
+                )
             else:
                 latency_ms, status = (float(timeout_s * 1000.0), 0)
             rows.append(
@@ -433,6 +471,46 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Optional JSON file overriding per-surface p95 targets (ms).",
     )
     parser.add_argument(
+        "--path-params",
+        type=Path,
+        default=None,
+        help=(
+            "JSON file mapping path placeholder names (e.g. application_id, "
+            "payment_id, document_id) to real resource ids to substitute into "
+            "SURFACE_ENDPOINTS templates before sampling."
+        ),
+    )
+    parser.add_argument(
+        "--surface-auth",
+        type=Path,
+        default=None,
+        help=(
+            "JSON file mapping a surface name to a header dict (e.g. "
+            '{"tenant admin list": {"Cookie": "..."}}) to override the default '
+            "--auth-cookie for surfaces that need a different actor's session."
+        ),
+    )
+    parser.add_argument(
+        "--surface-bodies",
+        type=Path,
+        default=None,
+        help=(
+            "JSON file mapping a surface name to a request body dict for "
+            'POST/PATCH surfaces (e.g. {"payment init": {"application_id": '
+            '"..."}}). A surface without an entry sends no body.'
+        ),
+    )
+    parser.add_argument(
+        "--auth-cookie",
+        default=os.environ.get("LV_AUTH_COOKIE", ""),
+        help="Default Cookie header applied to every surface unless overridden by --surface-auth.",
+    )
+    parser.add_argument(
+        "--csrf-token",
+        default=os.environ.get("LV_CSRF_TOKEN", ""),
+        help="X-CSRF-Token header applied alongside --auth-cookie for state-changing surfaces.",
+    )
+    parser.add_argument(
         "--synthetic",
         action="store_true",
         help="Dry-run over small synthetic inputs (no live calls); proves the envelope.",
@@ -479,7 +557,32 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     "live sampling; pass --samples-csv or --synthetic otherwise.\n"
                 )
                 return 2
-            rows = collect_samples(args.base_url, samples_per_surface=args.samples)
+            path_params: Dict[str, str] = {}
+            if args.path_params is not None:
+                path_params = json.loads(args.path_params.read_text(encoding="utf-8"))
+            default_headers: Dict[str, str] = {}
+            if args.auth_cookie:
+                default_headers["Cookie"] = args.auth_cookie
+            if args.csrf_token:
+                default_headers["X-CSRF-Token"] = args.csrf_token
+            surface_headers: Dict[str, Dict[str, str]] = {}
+            if args.surface_auth is not None:
+                raw_surface_auth = json.loads(args.surface_auth.read_text(encoding="utf-8"))
+                for surface, override in raw_surface_auth.items():
+                    merged = dict(default_headers)
+                    merged.update(override)
+                    surface_headers[surface] = merged
+            surface_bodies: Dict[str, dict] = {}
+            if args.surface_bodies is not None:
+                surface_bodies = json.loads(args.surface_bodies.read_text(encoding="utf-8"))
+            rows = collect_samples(
+                args.base_url,
+                samples_per_surface=args.samples,
+                headers=default_headers,
+                surface_headers=surface_headers,
+                surface_bodies=surface_bodies,
+                path_params=path_params,
+            )
             write_timings_csv(rows, csv_path)
         grouped = group_latencies(rows)
         assets = list(lh_assets) + ["timings.csv"]

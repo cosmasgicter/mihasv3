@@ -1,1201 +1,1201 @@
 surface,method,path,sample_index,latency_ms,http_status
-tenant context,GET,/api/v1/meta/platform/,0,369.115,200
-tenant context,GET,/api/v1/meta/platform/,1,447.277,200
-tenant context,GET,/api/v1/meta/platform/,2,395.955,200
-tenant context,GET,/api/v1/meta/platform/,3,449.979,200
-tenant context,GET,/api/v1/meta/platform/,4,455.798,200
-tenant context,GET,/api/v1/meta/platform/,5,619.242,200
-tenant context,GET,/api/v1/meta/platform/,6,614.487,200
-tenant context,GET,/api/v1/meta/platform/,7,573.642,200
-tenant context,GET,/api/v1/meta/platform/,8,861.344,200
-tenant context,GET,/api/v1/meta/platform/,9,920.965,200
-tenant context,GET,/api/v1/meta/platform/,10,818.596,200
-tenant context,GET,/api/v1/meta/platform/,11,1126.544,200
-tenant context,GET,/api/v1/meta/platform/,12,994.342,200
-tenant context,GET,/api/v1/meta/platform/,13,1221.97,200
-tenant context,GET,/api/v1/meta/platform/,14,753.197,200
-tenant context,GET,/api/v1/meta/platform/,15,819.218,200
-tenant context,GET,/api/v1/meta/platform/,16,613.041,200
-tenant context,GET,/api/v1/meta/platform/,17,1023.71,200
-tenant context,GET,/api/v1/meta/platform/,18,717.824,200
-tenant context,GET,/api/v1/meta/platform/,19,570.209,200
-tenant context,GET,/api/v1/meta/platform/,20,862.528,200
-tenant context,GET,/api/v1/meta/platform/,21,453.422,200
-tenant context,GET,/api/v1/meta/platform/,22,672.62,200
-tenant context,GET,/api/v1/meta/platform/,23,486.534,200
-tenant context,GET,/api/v1/meta/platform/,24,368.106,200
-tenant context,GET,/api/v1/meta/platform/,25,635.57,200
-tenant context,GET,/api/v1/meta/platform/,26,501.273,200
-tenant context,GET,/api/v1/meta/platform/,27,875.762,200
-tenant context,GET,/api/v1/meta/platform/,28,732.183,200
-tenant context,GET,/api/v1/meta/platform/,29,383.74,200
-tenant context,GET,/api/v1/meta/platform/,30,622.846,200
-tenant context,GET,/api/v1/meta/platform/,31,614.958,200
-tenant context,GET,/api/v1/meta/platform/,32,818.983,200
-tenant context,GET,/api/v1/meta/platform/,33,908.077,200
-tenant context,GET,/api/v1/meta/platform/,34,832.642,200
-tenant context,GET,/api/v1/meta/platform/,35,819.634,200
-tenant context,GET,/api/v1/meta/platform/,36,918.474,200
-tenant context,GET,/api/v1/meta/platform/,37,616.382,200
-tenant context,GET,/api/v1/meta/platform/,38,614.617,200
-tenant context,GET,/api/v1/meta/platform/,39,822.303,200
-tenant context,GET,/api/v1/meta/platform/,40,764.609,200
-tenant context,GET,/api/v1/meta/platform/,41,870.357,200
-tenant context,GET,/api/v1/meta/platform/,42,715.369,200
-tenant context,GET,/api/v1/meta/platform/,43,760.33,200
-tenant context,GET,/api/v1/meta/platform/,44,549.827,200
-tenant context,GET,/api/v1/meta/platform/,45,840.717,200
-tenant context,GET,/api/v1/meta/platform/,46,718.037,200
-tenant context,GET,/api/v1/meta/platform/,47,614.676,200
-tenant context,GET,/api/v1/meta/platform/,48,751.946,200
-tenant context,GET,/api/v1/meta/platform/,49,886.237,200
-tenant context,GET,/api/v1/meta/platform/,50,715.368,200
-tenant context,GET,/api/v1/meta/platform/,51,627.26,200
-tenant context,GET,/api/v1/meta/platform/,52,310.356,200
-tenant context,GET,/api/v1/meta/platform/,53,770.816,200
-tenant context,GET,/api/v1/meta/platform/,54,544.124,200
-tenant context,GET,/api/v1/meta/platform/,55,923.731,200
-tenant context,GET,/api/v1/meta/platform/,56,817.484,200
-tenant context,GET,/api/v1/meta/platform/,57,921.763,200
-tenant context,GET,/api/v1/meta/platform/,58,867.27,200
-tenant context,GET,/api/v1/meta/platform/,59,873.042,200
-tenant context,GET,/api/v1/meta/platform/,60,915.856,200
-tenant context,GET,/api/v1/meta/platform/,61,721.524,200
-tenant context,GET,/api/v1/meta/platform/,62,613.528,200
-tenant context,GET,/api/v1/meta/platform/,63,615.037,200
-tenant context,GET,/api/v1/meta/platform/,64,614.707,200
-tenant context,GET,/api/v1/meta/platform/,65,823.22,200
-tenant context,GET,/api/v1/meta/platform/,66,713.352,200
-tenant context,GET,/api/v1/meta/platform/,67,716.329,200
-tenant context,GET,/api/v1/meta/platform/,68,921.191,200
-tenant context,GET,/api/v1/meta/platform/,69,1228.887,200
-tenant context,GET,/api/v1/meta/platform/,70,818.239,200
-tenant context,GET,/api/v1/meta/platform/,71,615.301,200
-tenant context,GET,/api/v1/meta/platform/,72,1022.605,200
-tenant context,GET,/api/v1/meta/platform/,73,824.908,200
-tenant context,GET,/api/v1/meta/platform/,74,712.26,200
-tenant context,GET,/api/v1/meta/platform/,75,716.105,200
-tenant context,GET,/api/v1/meta/platform/,76,548.35,200
-tenant context,GET,/api/v1/meta/platform/,77,885.179,200
-tenant context,GET,/api/v1/meta/platform/,78,613.277,200
-tenant context,GET,/api/v1/meta/platform/,79,718.205,200
-tenant context,GET,/api/v1/meta/platform/,80,818.817,200
-tenant context,GET,/api/v1/meta/platform/,81,798.901,200
-tenant context,GET,/api/v1/meta/platform/,82,598.237,200
-tenant context,GET,/api/v1/meta/platform/,83,1265.776,200
-tenant context,GET,/api/v1/meta/platform/,84,818.281,200
-tenant context,GET,/api/v1/meta/platform/,85,820.238,200
-tenant context,GET,/api/v1/meta/platform/,86,390.389,200
-tenant context,GET,/api/v1/meta/platform/,87,733.895,200
-tenant context,GET,/api/v1/meta/platform/,88,615.031,200
-tenant context,GET,/api/v1/meta/platform/,89,877.947,200
-tenant context,GET,/api/v1/meta/platform/,90,864.006,200
-tenant context,GET,/api/v1/meta/platform/,91,509.898,200
-tenant context,GET,/api/v1/meta/platform/,92,615.157,200
-tenant context,GET,/api/v1/meta/platform/,93,716.332,200
-tenant context,GET,/api/v1/meta/platform/,94,429.88,200
-tenant context,GET,/api/v1/meta/platform/,95,698.653,200
-tenant context,GET,/api/v1/meta/platform/,96,509.268,200
-tenant context,GET,/api/v1/meta/platform/,97,900.065,200
-tenant context,GET,/api/v1/meta/platform/,98,753.907,200
-tenant context,GET,/api/v1/meta/platform/,99,598.397,200
-catalog offerings,GET,/api/v1/catalog/programs/,0,922.349,200
-catalog offerings,GET,/api/v1/catalog/programs/,1,716.32,200
-catalog offerings,GET,/api/v1/catalog/programs/,2,921.241,200
-catalog offerings,GET,/api/v1/catalog/programs/,3,613.916,200
-catalog offerings,GET,/api/v1/catalog/programs/,4,718.163,200
-catalog offerings,GET,/api/v1/catalog/programs/,5,791.756,200
-catalog offerings,GET,/api/v1/catalog/programs/,6,717.068,200
-catalog offerings,GET,/api/v1/catalog/programs/,7,845.172,200
-catalog offerings,GET,/api/v1/catalog/programs/,8,510.734,200
-catalog offerings,GET,/api/v1/catalog/programs/,9,922.587,200
-catalog offerings,GET,/api/v1/catalog/programs/,10,921.656,200
-catalog offerings,GET,/api/v1/catalog/programs/,11,613.143,200
-catalog offerings,GET,/api/v1/catalog/programs/,12,614.625,200
-catalog offerings,GET,/api/v1/catalog/programs/,13,717.523,200
-catalog offerings,GET,/api/v1/catalog/programs/,14,613.348,200
-catalog offerings,GET,/api/v1/catalog/programs/,15,614.29,200
-catalog offerings,GET,/api/v1/catalog/programs/,16,718.821,200
-catalog offerings,GET,/api/v1/catalog/programs/,17,715.066,200
-catalog offerings,GET,/api/v1/catalog/programs/,18,715.495,200
-catalog offerings,GET,/api/v1/catalog/programs/,19,718.435,200
-catalog offerings,GET,/api/v1/catalog/programs/,20,823.868,429
-catalog offerings,GET,/api/v1/catalog/programs/,21,507.522,429
-catalog offerings,GET,/api/v1/catalog/programs/,22,715.305,429
-catalog offerings,GET,/api/v1/catalog/programs/,23,623.923,429
-catalog offerings,GET,/api/v1/catalog/programs/,24,395.233,429
-catalog offerings,GET,/api/v1/catalog/programs/,25,722.109,429
-catalog offerings,GET,/api/v1/catalog/programs/,26,614.774,429
-catalog offerings,GET,/api/v1/catalog/programs/,27,831.687,429
-catalog offerings,GET,/api/v1/catalog/programs/,28,1011.581,429
-catalog offerings,GET,/api/v1/catalog/programs/,29,909.998,429
-catalog offerings,GET,/api/v1/catalog/programs/,30,830.322,429
-catalog offerings,GET,/api/v1/catalog/programs/,31,675.592,429
-catalog offerings,GET,/api/v1/catalog/programs/,32,602.708,429
-catalog offerings,GET,/api/v1/catalog/programs/,33,515.125,429
-catalog offerings,GET,/api/v1/catalog/programs/,34,559.626,429
-catalog offerings,GET,/api/v1/catalog/programs/,35,526.083,429
-catalog offerings,GET,/api/v1/catalog/programs/,36,600.374,429
-catalog offerings,GET,/api/v1/catalog/programs/,37,820.459,429
-catalog offerings,GET,/api/v1/catalog/programs/,38,818.779,429
-catalog offerings,GET,/api/v1/catalog/programs/,39,436.595,429
-catalog offerings,GET,/api/v1/catalog/programs/,40,484.944,429
-catalog offerings,GET,/api/v1/catalog/programs/,41,613.024,429
-catalog offerings,GET,/api/v1/catalog/programs/,42,614.104,429
-catalog offerings,GET,/api/v1/catalog/programs/,43,614.188,429
-catalog offerings,GET,/api/v1/catalog/programs/,44,614.518,429
-catalog offerings,GET,/api/v1/catalog/programs/,45,615.278,429
-catalog offerings,GET,/api/v1/catalog/programs/,46,612.836,429
-catalog offerings,GET,/api/v1/catalog/programs/,47,582.779,429
-catalog offerings,GET,/api/v1/catalog/programs/,48,1019.507,429
-catalog offerings,GET,/api/v1/catalog/programs/,49,856.69,429
-catalog offerings,GET,/api/v1/catalog/programs/,50,818.663,429
-catalog offerings,GET,/api/v1/catalog/programs/,51,696.981,429
-catalog offerings,GET,/api/v1/catalog/programs/,52,838.678,429
-catalog offerings,GET,/api/v1/catalog/programs/,53,819.676,429
-catalog offerings,GET,/api/v1/catalog/programs/,54,817.77,429
-catalog offerings,GET,/api/v1/catalog/programs/,55,600.263,429
-catalog offerings,GET,/api/v1/catalog/programs/,56,526.394,429
-catalog offerings,GET,/api/v1/catalog/programs/,57,818.359,429
-catalog offerings,GET,/api/v1/catalog/programs/,58,942.205,429
-catalog offerings,GET,/api/v1/catalog/programs/,59,739.567,429
-catalog offerings,GET,/api/v1/catalog/programs/,60,543.42,429
-catalog offerings,GET,/api/v1/catalog/programs/,61,589.213,429
-catalog offerings,GET,/api/v1/catalog/programs/,62,579.257,429
-catalog offerings,GET,/api/v1/catalog/programs/,63,614.717,429
-catalog offerings,GET,/api/v1/catalog/programs/,64,614.024,429
-catalog offerings,GET,/api/v1/catalog/programs/,65,614.554,429
-catalog offerings,GET,/api/v1/catalog/programs/,66,701.407,429
-catalog offerings,GET,/api/v1/catalog/programs/,67,712.181,429
-catalog offerings,GET,/api/v1/catalog/programs/,68,824.568,429
-catalog offerings,GET,/api/v1/catalog/programs/,69,1242.505,429
-catalog offerings,GET,/api/v1/catalog/programs/,70,882.942,429
-catalog offerings,GET,/api/v1/catalog/programs/,71,535.836,429
-catalog offerings,GET,/api/v1/catalog/programs/,72,573.613,429
-catalog offerings,GET,/api/v1/catalog/programs/,73,697.829,429
-catalog offerings,GET,/api/v1/catalog/programs/,74,981.72,429
-catalog offerings,GET,/api/v1/catalog/programs/,75,930.396,429
-catalog offerings,GET,/api/v1/catalog/programs/,76,912.834,429
-catalog offerings,GET,/api/v1/catalog/programs/,77,978.664,429
-catalog offerings,GET,/api/v1/catalog/programs/,78,761.791,429
-catalog offerings,GET,/api/v1/catalog/programs/,79,920.185,429
-catalog offerings,GET,/api/v1/catalog/programs/,80,821.087,429
-catalog offerings,GET,/api/v1/catalog/programs/,81,939.454,429
-catalog offerings,GET,/api/v1/catalog/programs/,82,594.801,429
-catalog offerings,GET,/api/v1/catalog/programs/,83,614.974,429
-catalog offerings,GET,/api/v1/catalog/programs/,84,920.625,429
-catalog offerings,GET,/api/v1/catalog/programs/,85,820.039,429
-catalog offerings,GET,/api/v1/catalog/programs/,86,1047.762,429
-catalog offerings,GET,/api/v1/catalog/programs/,87,795.421,429
-catalog offerings,GET,/api/v1/catalog/programs/,88,786.197,429
-catalog offerings,GET,/api/v1/catalog/programs/,89,543.629,429
-catalog offerings,GET,/api/v1/catalog/programs/,90,819.671,429
-catalog offerings,GET,/api/v1/catalog/programs/,91,921.781,429
-catalog offerings,GET,/api/v1/catalog/programs/,92,819.203,429
-catalog offerings,GET,/api/v1/catalog/programs/,93,974.011,429
-catalog offerings,GET,/api/v1/catalog/programs/,94,869.574,429
-catalog offerings,GET,/api/v1/catalog/programs/,95,921.628,429
-catalog offerings,GET,/api/v1/catalog/programs/,96,818.536,429
-catalog offerings,GET,/api/v1/catalog/programs/,97,623.497,429
-catalog offerings,GET,/api/v1/catalog/programs/,98,810.354,429
-catalog offerings,GET,/api/v1/catalog/programs/,99,921.44,429
-draft save,PATCH,/api/v1/applications/{application_id}/,0,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,1,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,2,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,3,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,4,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,5,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,6,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,7,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,8,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,9,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,10,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,11,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,12,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,13,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,14,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,15,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,16,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,17,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,18,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,19,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,20,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,21,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,22,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,23,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,24,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,25,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,26,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,27,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,28,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,29,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,30,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,31,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,32,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,33,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,34,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,35,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,36,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,37,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,38,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,39,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,40,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,41,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,42,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,43,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,44,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,45,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,46,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,47,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,48,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,49,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,50,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,51,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,52,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,53,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,54,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,55,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,56,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,57,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,58,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,59,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,60,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,61,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,62,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,63,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,64,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,65,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,66,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,67,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,68,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,69,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,70,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,71,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,72,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,73,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,74,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,75,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,76,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,77,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,78,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,79,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,80,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,81,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,82,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,83,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,84,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,85,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,86,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,87,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,88,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,89,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,90,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,91,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,92,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,93,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,94,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,95,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,96,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,97,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,98,10000.0,0
-draft save,PATCH,/api/v1/applications/{application_id}/,99,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,0,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,1,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,2,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,3,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,4,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,5,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,6,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,7,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,8,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,9,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,10,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,11,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,12,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,13,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,14,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,15,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,16,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,17,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,18,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,19,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,20,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,21,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,22,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,23,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,24,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,25,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,26,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,27,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,28,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,29,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,30,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,31,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,32,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,33,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,34,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,35,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,36,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,37,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,38,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,39,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,40,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,41,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,42,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,43,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,44,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,45,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,46,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,47,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,48,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,49,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,50,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,51,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,52,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,53,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,54,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,55,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,56,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,57,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,58,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,59,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,60,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,61,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,62,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,63,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,64,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,65,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,66,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,67,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,68,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,69,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,70,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,71,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,72,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,73,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,74,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,75,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,76,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,77,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,78,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,79,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,80,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,81,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,82,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,83,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,84,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,85,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,86,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,87,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,88,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,89,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,90,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,91,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,92,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,93,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,94,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,95,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,96,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,97,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,98,10000.0,0
-application submit,POST,/api/v1/applications/{application_id}/submit/,99,10000.0,0
-payment init,POST,/api/v1/payments/initiate/,0,612.683,401
-payment init,POST,/api/v1/payments/initiate/,1,717.418,401
-payment init,POST,/api/v1/payments/initiate/,2,921.772,401
-payment init,POST,/api/v1/payments/initiate/,3,921.79,401
-payment init,POST,/api/v1/payments/initiate/,4,818.955,401
-payment init,POST,/api/v1/payments/initiate/,5,613.876,401
-payment init,POST,/api/v1/payments/initiate/,6,716.124,401
-payment init,POST,/api/v1/payments/initiate/,7,818.371,401
-payment init,POST,/api/v1/payments/initiate/,8,922.799,401
-payment init,POST,/api/v1/payments/initiate/,9,819.376,401
-payment init,POST,/api/v1/payments/initiate/,10,714.73,401
-payment init,POST,/api/v1/payments/initiate/,11,776.952,401
-payment init,POST,/api/v1/payments/initiate/,12,862.83,401
-payment init,POST,/api/v1/payments/initiate/,13,921.513,401
-payment init,POST,/api/v1/payments/initiate/,14,716.043,401
-payment init,POST,/api/v1/payments/initiate/,15,521.079,401
-payment init,POST,/api/v1/payments/initiate/,16,604.605,401
-payment init,POST,/api/v1/payments/initiate/,17,512.019,401
-payment init,POST,/api/v1/payments/initiate/,18,409.93,401
-payment init,POST,/api/v1/payments/initiate/,19,506.481,401
-payment init,POST,/api/v1/payments/initiate/,20,571.782,401
-payment init,POST,/api/v1/payments/initiate/,21,663.044,401
-payment init,POST,/api/v1/payments/initiate/,22,817.937,401
-payment init,POST,/api/v1/payments/initiate/,23,614.082,401
-payment init,POST,/api/v1/payments/initiate/,24,615.9,401
-payment init,POST,/api/v1/payments/initiate/,25,921.203,401
-payment init,POST,/api/v1/payments/initiate/,26,715.465,401
-payment init,POST,/api/v1/payments/initiate/,27,563.136,401
-payment init,POST,/api/v1/payments/initiate/,28,563.507,401
-payment init,POST,/api/v1/payments/initiate/,29,820.035,401
-payment init,POST,/api/v1/payments/initiate/,30,921.021,401
-payment init,POST,/api/v1/payments/initiate/,31,980.65,401
-payment init,POST,/api/v1/payments/initiate/,32,760.683,401
-payment init,POST,/api/v1/payments/initiate/,33,757.246,401
-payment init,POST,/api/v1/payments/initiate/,34,396.915,401
-payment init,POST,/api/v1/payments/initiate/,35,355.621,401
-payment init,POST,/api/v1/payments/initiate/,36,536.232,401
-payment init,POST,/api/v1/payments/initiate/,37,511.812,401
-payment init,POST,/api/v1/payments/initiate/,38,671.218,401
-payment init,POST,/api/v1/payments/initiate/,39,768.478,401
-payment init,POST,/api/v1/payments/initiate/,40,972.151,401
-payment init,POST,/api/v1/payments/initiate/,41,763.638,401
-payment init,POST,/api/v1/payments/initiate/,42,818.797,401
-payment init,POST,/api/v1/payments/initiate/,43,613.106,401
-payment init,POST,/api/v1/payments/initiate/,44,511.924,401
-payment init,POST,/api/v1/payments/initiate/,45,474.987,401
-payment init,POST,/api/v1/payments/initiate/,46,857.647,401
-payment init,POST,/api/v1/payments/initiate/,47,714.655,401
-payment init,POST,/api/v1/payments/initiate/,48,718.552,401
-payment init,POST,/api/v1/payments/initiate/,49,921.549,401
-payment init,POST,/api/v1/payments/initiate/,50,921.36,401
-payment init,POST,/api/v1/payments/initiate/,51,817.738,401
-payment init,POST,/api/v1/payments/initiate/,52,923.284,401
-payment init,POST,/api/v1/payments/initiate/,53,818.787,401
-payment init,POST,/api/v1/payments/initiate/,54,628.53,401
-payment init,POST,/api/v1/payments/initiate/,55,496.997,401
-payment init,POST,/api/v1/payments/initiate/,56,514.69,401
-payment init,POST,/api/v1/payments/initiate/,57,406.633,401
-payment init,POST,/api/v1/payments/initiate/,58,406.852,401
-payment init,POST,/api/v1/payments/initiate/,59,407.425,401
-payment init,POST,/api/v1/payments/initiate/,60,414.787,401
-payment init,POST,/api/v1/payments/initiate/,61,510.834,401
-payment init,POST,/api/v1/payments/initiate/,62,614.335,401
-payment init,POST,/api/v1/payments/initiate/,63,537.733,401
-payment init,POST,/api/v1/payments/initiate/,64,690.611,401
-payment init,POST,/api/v1/payments/initiate/,65,615.961,401
-payment init,POST,/api/v1/payments/initiate/,66,921.257,401
-payment init,POST,/api/v1/payments/initiate/,67,511.738,401
-payment init,POST,/api/v1/payments/initiate/,68,408.868,401
-payment init,POST,/api/v1/payments/initiate/,69,819.323,401
-payment init,POST,/api/v1/payments/initiate/,70,714.186,401
-payment init,POST,/api/v1/payments/initiate/,71,719.631,401
-payment init,POST,/api/v1/payments/initiate/,72,614.293,401
-payment init,POST,/api/v1/payments/initiate/,73,817.694,401
-payment init,POST,/api/v1/payments/initiate/,74,796.732,401
-payment init,POST,/api/v1/payments/initiate/,75,842.202,401
-payment init,POST,/api/v1/payments/initiate/,76,2683.916,401
-payment init,POST,/api/v1/payments/initiate/,77,430.677,401
-payment init,POST,/api/v1/payments/initiate/,78,412.45,401
-payment init,POST,/api/v1/payments/initiate/,79,446.582,401
-payment init,POST,/api/v1/payments/initiate/,80,461.38,401
-payment init,POST,/api/v1/payments/initiate/,81,329.455,401
-payment init,POST,/api/v1/payments/initiate/,82,344.529,401
-payment init,POST,/api/v1/payments/initiate/,83,523.653,401
-payment init,POST,/api/v1/payments/initiate/,84,875.014,401
-payment init,POST,/api/v1/payments/initiate/,85,864.719,401
-payment init,POST,/api/v1/payments/initiate/,86,715.124,401
-payment init,POST,/api/v1/payments/initiate/,87,615.082,401
-payment init,POST,/api/v1/payments/initiate/,88,471.193,401
-payment init,POST,/api/v1/payments/initiate/,89,654.867,401
-payment init,POST,/api/v1/payments/initiate/,90,717.698,401
-payment init,POST,/api/v1/payments/initiate/,91,609.994,401
-payment init,POST,/api/v1/payments/initiate/,92,815.312,401
-payment init,POST,/api/v1/payments/initiate/,93,518.624,401
-payment init,POST,/api/v1/payments/initiate/,94,402.836,401
-payment init,POST,/api/v1/payments/initiate/,95,518.574,401
-payment init,POST,/api/v1/payments/initiate/,96,512.059,401
-payment init,POST,/api/v1/payments/initiate/,97,476.238,401
-payment init,POST,/api/v1/payments/initiate/,98,751.863,401
-payment init,POST,/api/v1/payments/initiate/,99,430.881,401
-payment status,GET,/api/v1/payments/{payment_id}/,0,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,1,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,2,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,3,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,4,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,5,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,6,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,7,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,8,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,9,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,10,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,11,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,12,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,13,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,14,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,15,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,16,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,17,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,18,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,19,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,20,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,21,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,22,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,23,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,24,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,25,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,26,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,27,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,28,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,29,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,30,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,31,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,32,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,33,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,34,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,35,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,36,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,37,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,38,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,39,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,40,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,41,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,42,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,43,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,44,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,45,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,46,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,47,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,48,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,49,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,50,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,51,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,52,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,53,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,54,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,55,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,56,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,57,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,58,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,59,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,60,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,61,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,62,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,63,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,64,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,65,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,66,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,67,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,68,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,69,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,70,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,71,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,72,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,73,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,74,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,75,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,76,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,77,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,78,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,79,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,80,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,81,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,82,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,83,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,84,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,85,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,86,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,87,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,88,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,89,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,90,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,91,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,92,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,93,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,94,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,95,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,96,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,97,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,98,10000.0,0
-payment status,GET,/api/v1/payments/{payment_id}/,99,10000.0,0
-tenant admin list,GET,/api/v1/applications/,0,509.791,401
-tenant admin list,GET,/api/v1/applications/,1,445.972,401
-tenant admin list,GET,/api/v1/applications/,2,426.261,401
-tenant admin list,GET,/api/v1/applications/,3,602.667,401
-tenant admin list,GET,/api/v1/applications/,4,641.377,401
-tenant admin list,GET,/api/v1/applications/,5,641.888,401
-tenant admin list,GET,/api/v1/applications/,6,394.312,401
-tenant admin list,GET,/api/v1/applications/,7,543.603,401
-tenant admin list,GET,/api/v1/applications/,8,688.255,401
-tenant admin list,GET,/api/v1/applications/,9,921.543,401
-tenant admin list,GET,/api/v1/applications/,10,818.547,401
-tenant admin list,GET,/api/v1/applications/,11,613.591,401
-tenant admin list,GET,/api/v1/applications/,12,616.236,401
-tenant admin list,GET,/api/v1/applications/,13,818.11,401
-tenant admin list,GET,/api/v1/applications/,14,818.802,401
-tenant admin list,GET,/api/v1/applications/,15,921.853,401
-tenant admin list,GET,/api/v1/applications/,16,613.175,401
-tenant admin list,GET,/api/v1/applications/,17,718.256,401
-tenant admin list,GET,/api/v1/applications/,18,574.627,401
-tenant admin list,GET,/api/v1/applications/,19,551.506,401
-tenant admin list,GET,/api/v1/applications/,20,495.123,401
-tenant admin list,GET,/api/v1/applications/,21,486.582,401
-tenant admin list,GET,/api/v1/applications/,22,449.948,401
-tenant admin list,GET,/api/v1/applications/,23,716.858,401
-tenant admin list,GET,/api/v1/applications/,24,716.749,401
-tenant admin list,GET,/api/v1/applications/,25,563.415,401
-tenant admin list,GET,/api/v1/applications/,26,871.711,401
-tenant admin list,GET,/api/v1/applications/,27,485.292,401
-tenant admin list,GET,/api/v1/applications/,28,742.332,401
-tenant admin list,GET,/api/v1/applications/,29,716.171,401
-tenant admin list,GET,/api/v1/applications/,30,576.536,401
-tenant admin list,GET,/api/v1/applications/,31,959.806,401
-tenant admin list,GET,/api/v1/applications/,32,655.287,401
-tenant admin list,GET,/api/v1/applications/,33,573.591,401
-tenant admin list,GET,/api/v1/applications/,34,715.118,401
-tenant admin list,GET,/api/v1/applications/,35,592.743,401
-tenant admin list,GET,/api/v1/applications/,36,637.305,401
-tenant admin list,GET,/api/v1/applications/,37,584.597,401
-tenant admin list,GET,/api/v1/applications/,38,648.113,401
-tenant admin list,GET,/api/v1/applications/,39,391.183,401
-tenant admin list,GET,/api/v1/applications/,40,409.128,401
-tenant admin list,GET,/api/v1/applications/,41,525.763,401
-tenant admin list,GET,/api/v1/applications/,42,408.549,401
-tenant admin list,GET,/api/v1/applications/,43,495.319,401
-tenant admin list,GET,/api/v1/applications/,44,360.024,401
-tenant admin list,GET,/api/v1/applications/,45,569.782,401
-tenant admin list,GET,/api/v1/applications/,46,520.787,401
-tenant admin list,GET,/api/v1/applications/,47,834.854,401
-tenant admin list,GET,/api/v1/applications/,48,702.084,401
-tenant admin list,GET,/api/v1/applications/,49,921.871,401
-tenant admin list,GET,/api/v1/applications/,50,920.822,401
-tenant admin list,GET,/api/v1/applications/,51,922.283,401
-tenant admin list,GET,/api/v1/applications/,52,818.156,401
-tenant admin list,GET,/api/v1/applications/,53,518.438,401
-tenant admin list,GET,/api/v1/applications/,54,544.002,401
-tenant admin list,GET,/api/v1/applications/,55,872.096,401
-tenant admin list,GET,/api/v1/applications/,56,932.446,401
-tenant admin list,GET,/api/v1/applications/,57,872.296,401
-tenant admin list,GET,/api/v1/applications/,58,764.688,401
-tenant admin list,GET,/api/v1/applications/,59,923.61,401
-tenant admin list,GET,/api/v1/applications/,60,543.39,401
-tenant admin list,GET,/api/v1/applications/,61,478.726,401
-tenant admin list,GET,/api/v1/applications/,62,522.642,401
-tenant admin list,GET,/api/v1/applications/,63,500.952,401
-tenant admin list,GET,/api/v1/applications/,64,312.842,401
-tenant admin list,GET,/api/v1/applications/,65,608.545,401
-tenant admin list,GET,/api/v1/applications/,66,614.152,401
-tenant admin list,GET,/api/v1/applications/,67,614.647,401
-tenant admin list,GET,/api/v1/applications/,68,818.988,401
-tenant admin list,GET,/api/v1/applications/,69,613.666,401
-tenant admin list,GET,/api/v1/applications/,70,820.509,401
-tenant admin list,GET,/api/v1/applications/,71,921.305,401
-tenant admin list,GET,/api/v1/applications/,72,904.031,401
-tenant admin list,GET,/api/v1/applications/,73,735.341,401
-tenant admin list,GET,/api/v1/applications/,74,828.09,401
-tenant admin list,GET,/api/v1/applications/,75,470.122,401
-tenant admin list,GET,/api/v1/applications/,76,542.796,401
-tenant admin list,GET,/api/v1/applications/,77,512.059,401
-tenant admin list,GET,/api/v1/applications/,78,613.804,401
-tenant admin list,GET,/api/v1/applications/,79,473.879,401
-tenant admin list,GET,/api/v1/applications/,80,800.852,401
-tenant admin list,GET,/api/v1/applications/,81,696.054,401
-tenant admin list,GET,/api/v1/applications/,82,379.538,401
-tenant admin list,GET,/api/v1/applications/,83,371.367,401
-tenant admin list,GET,/api/v1/applications/,84,658.014,401
-tenant admin list,GET,/api/v1/applications/,85,915.121,401
-tenant admin list,GET,/api/v1/applications/,86,813.314,401
-tenant admin list,GET,/api/v1/applications/,87,934.155,401
-tenant admin list,GET,/api/v1/applications/,88,760.25,401
-tenant admin list,GET,/api/v1/applications/,89,1083.262,401
-tenant admin list,GET,/api/v1/applications/,90,612.335,401
-tenant admin list,GET,/api/v1/applications/,91,922.245,401
-tenant admin list,GET,/api/v1/applications/,92,877.31,401
-tenant admin list,GET,/api/v1/applications/,93,863.971,401
-tenant admin list,GET,/api/v1/applications/,94,715.272,401
-tenant admin list,GET,/api/v1/applications/,95,614.126,401
-tenant admin list,GET,/api/v1/applications/,96,614.198,401
-tenant admin list,GET,/api/v1/applications/,97,820.843,401
-tenant admin list,GET,/api/v1/applications/,98,817.677,401
-tenant admin list,GET,/api/v1/applications/,99,717.567,401
-tenant admin detail,GET,/api/v1/applications/{application_id}/,0,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,1,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,2,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,3,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,4,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,5,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,6,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,7,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,8,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,9,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,10,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,11,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,12,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,13,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,14,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,15,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,16,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,17,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,18,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,19,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,20,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,21,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,22,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,23,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,24,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,25,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,26,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,27,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,28,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,29,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,30,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,31,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,32,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,33,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,34,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,35,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,36,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,37,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,38,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,39,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,40,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,41,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,42,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,43,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,44,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,45,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,46,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,47,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,48,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,49,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,50,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,51,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,52,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,53,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,54,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,55,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,56,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,57,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,58,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,59,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,60,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,61,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,62,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,63,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,64,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,65,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,66,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,67,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,68,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,69,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,70,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,71,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,72,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,73,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,74,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,75,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,76,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,77,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,78,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,79,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,80,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,81,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,82,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,83,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,84,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,85,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,86,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,87,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,88,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,89,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,90,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,91,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,92,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,93,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,94,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,95,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,96,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,97,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,98,10000.0,0
-tenant admin detail,GET,/api/v1/applications/{application_id}/,99,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,0,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,1,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,2,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,3,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,4,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,5,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,6,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,7,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,8,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,9,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,10,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,11,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,12,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,13,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,14,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,15,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,16,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,17,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,18,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,19,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,20,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,21,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,22,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,23,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,24,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,25,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,26,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,27,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,28,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,29,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,30,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,31,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,32,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,33,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,34,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,35,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,36,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,37,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,38,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,39,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,40,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,41,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,42,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,43,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,44,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,45,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,46,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,47,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,48,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,49,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,50,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,51,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,52,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,53,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,54,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,55,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,56,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,57,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,58,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,59,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,60,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,61,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,62,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,63,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,64,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,65,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,66,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,67,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,68,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,69,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,70,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,71,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,72,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,73,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,74,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,75,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,76,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,77,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,78,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,79,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,80,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,81,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,82,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,83,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,84,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,85,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,86,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,87,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,88,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,89,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,90,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,91,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,92,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,93,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,94,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,95,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,96,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,97,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,98,10000.0,0
-official document queue,GET,/api/v1/applications/{application_id}/documents/,99,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,0,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,1,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,2,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,3,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,4,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,5,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,6,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,7,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,8,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,9,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,10,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,11,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,12,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,13,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,14,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,15,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,16,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,17,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,18,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,19,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,20,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,21,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,22,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,23,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,24,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,25,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,26,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,27,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,28,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,29,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,30,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,31,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,32,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,33,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,34,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,35,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,36,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,37,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,38,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,39,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,40,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,41,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,42,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,43,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,44,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,45,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,46,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,47,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,48,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,49,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,50,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,51,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,52,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,53,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,54,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,55,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,56,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,57,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,58,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,59,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,60,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,61,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,62,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,63,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,64,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,65,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,66,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,67,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,68,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,69,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,70,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,71,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,72,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,73,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,74,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,75,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,76,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,77,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,78,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,79,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,80,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,81,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,82,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,83,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,84,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,85,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,86,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,87,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,88,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,89,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,90,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,91,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,92,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,93,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,94,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,95,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,96,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,97,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,98,10000.0,0
-official document status,GET,/api/v1/documents/{document_id}/,99,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,0,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,1,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,2,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,3,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,4,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,5,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,6,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,7,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,8,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,9,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,10,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,11,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,12,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,13,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,14,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,15,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,16,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,17,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,18,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,19,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,20,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,21,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,22,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,23,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,24,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,25,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,26,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,27,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,28,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,29,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,30,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,31,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,32,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,33,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,34,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,35,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,36,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,37,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,38,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,39,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,40,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,41,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,42,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,43,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,44,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,45,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,46,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,47,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,48,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,49,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,50,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,51,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,52,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,53,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,54,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,55,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,56,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,57,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,58,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,59,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,60,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,61,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,62,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,63,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,64,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,65,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,66,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,67,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,68,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,69,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,70,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,71,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,72,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,73,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,74,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,75,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,76,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,77,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,78,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,79,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,80,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,81,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,82,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,83,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,84,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,85,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,86,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,87,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,88,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,89,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,90,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,91,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,92,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,93,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,94,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,95,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,96,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,97,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,98,10000.0,0
-official document download,GET,/api/v1/documents/{document_id}/download/,99,10000.0,0
-settlement summary,GET,/api/v1/analytics/funnel/,0,838.011,404
-settlement summary,GET,/api/v1/analytics/funnel/,1,902.844,404
-settlement summary,GET,/api/v1/analytics/funnel/,2,920.909,404
-settlement summary,GET,/api/v1/analytics/funnel/,3,613.679,404
-settlement summary,GET,/api/v1/analytics/funnel/,4,614.536,404
-settlement summary,GET,/api/v1/analytics/funnel/,5,614.264,404
-settlement summary,GET,/api/v1/analytics/funnel/,6,614.844,404
-settlement summary,GET,/api/v1/analytics/funnel/,7,921.204,404
-settlement summary,GET,/api/v1/analytics/funnel/,8,613.85,404
-settlement summary,GET,/api/v1/analytics/funnel/,9,716.039,404
-settlement summary,GET,/api/v1/analytics/funnel/,10,820.569,404
-settlement summary,GET,/api/v1/analytics/funnel/,11,921.095,404
-settlement summary,GET,/api/v1/analytics/funnel/,12,921.422,404
-settlement summary,GET,/api/v1/analytics/funnel/,13,870.181,404
-settlement summary,GET,/api/v1/analytics/funnel/,14,971.991,404
-settlement summary,GET,/api/v1/analytics/funnel/,15,736.557,404
-settlement summary,GET,/api/v1/analytics/funnel/,16,594.936,404
-settlement summary,GET,/api/v1/analytics/funnel/,17,605.812,404
-settlement summary,GET,/api/v1/analytics/funnel/,18,622.365,404
-settlement summary,GET,/api/v1/analytics/funnel/,19,527.655,404
-settlement summary,GET,/api/v1/analytics/funnel/,20,906.799,429
-settlement summary,GET,/api/v1/analytics/funnel/,21,716.633,429
-settlement summary,GET,/api/v1/analytics/funnel/,22,819.288,429
-settlement summary,GET,/api/v1/analytics/funnel/,23,995.553,429
-settlement summary,GET,/api/v1/analytics/funnel/,24,744.962,429
-settlement summary,GET,/api/v1/analytics/funnel/,25,715.49,429
-settlement summary,GET,/api/v1/analytics/funnel/,26,718.338,429
-settlement summary,GET,/api/v1/analytics/funnel/,27,921.852,429
-settlement summary,GET,/api/v1/analytics/funnel/,28,610.356,429
-settlement summary,GET,/api/v1/analytics/funnel/,29,616.571,429
-settlement summary,GET,/api/v1/analytics/funnel/,30,671.12,429
-settlement summary,GET,/api/v1/analytics/funnel/,31,660.814,429
-settlement summary,GET,/api/v1/analytics/funnel/,32,613.237,429
-settlement summary,GET,/api/v1/analytics/funnel/,33,614.186,429
-settlement summary,GET,/api/v1/analytics/funnel/,34,614.121,429
-settlement summary,GET,/api/v1/analytics/funnel/,35,614.839,429
-settlement summary,GET,/api/v1/analytics/funnel/,36,614.948,429
-settlement summary,GET,/api/v1/analytics/funnel/,37,716.322,429
-settlement summary,GET,/api/v1/analytics/funnel/,38,811.196,429
-settlement summary,GET,/api/v1/analytics/funnel/,39,724.766,429
-settlement summary,GET,/api/v1/analytics/funnel/,40,819.615,429
-settlement summary,GET,/api/v1/analytics/funnel/,41,921.085,429
-settlement summary,GET,/api/v1/analytics/funnel/,42,715.833,429
-settlement summary,GET,/api/v1/analytics/funnel/,43,614.229,429
-settlement summary,GET,/api/v1/analytics/funnel/,44,561.56,429
-settlement summary,GET,/api/v1/analytics/funnel/,45,447.29,429
-settlement summary,GET,/api/v1/analytics/funnel/,46,527.351,429
-settlement summary,GET,/api/v1/analytics/funnel/,47,296.51,429
-settlement summary,GET,/api/v1/analytics/funnel/,48,396.605,429
-settlement summary,GET,/api/v1/analytics/funnel/,49,639.148,429
-settlement summary,GET,/api/v1/analytics/funnel/,50,1023.188,429
-settlement summary,GET,/api/v1/analytics/funnel/,51,818.313,429
-settlement summary,GET,/api/v1/analytics/funnel/,52,819.733,429
-settlement summary,GET,/api/v1/analytics/funnel/,53,936.45,429
-settlement summary,GET,/api/v1/analytics/funnel/,54,364.472,429
-settlement summary,GET,/api/v1/analytics/funnel/,55,468.567,429
-settlement summary,GET,/api/v1/analytics/funnel/,56,686.42,429
-settlement summary,GET,/api/v1/analytics/funnel/,57,717.607,429
-settlement summary,GET,/api/v1/analytics/funnel/,58,613.596,429
-settlement summary,GET,/api/v1/analytics/funnel/,59,1141.976,429
-settlement summary,GET,/api/v1/analytics/funnel/,60,708.636,429
-settlement summary,GET,/api/v1/analytics/funnel/,61,505.29,429
-settlement summary,GET,/api/v1/analytics/funnel/,62,703.893,429
-settlement summary,GET,/api/v1/analytics/funnel/,63,1445.947,429
-settlement summary,GET,/api/v1/analytics/funnel/,64,562.627,429
-settlement summary,GET,/api/v1/analytics/funnel/,65,1076.117,429
-settlement summary,GET,/api/v1/analytics/funnel/,66,915.641,429
-settlement summary,GET,/api/v1/analytics/funnel/,67,801.445,429
-settlement summary,GET,/api/v1/analytics/funnel/,68,616.521,429
-settlement summary,GET,/api/v1/analytics/funnel/,69,736.989,429
-settlement summary,GET,/api/v1/analytics/funnel/,70,1000.835,429
-settlement summary,GET,/api/v1/analytics/funnel/,71,321.624,429
-settlement summary,GET,/api/v1/analytics/funnel/,72,929.998,429
-settlement summary,GET,/api/v1/analytics/funnel/,73,2252.425,429
-settlement summary,GET,/api/v1/analytics/funnel/,74,263.699,429
-settlement summary,GET,/api/v1/analytics/funnel/,75,862.77,429
-settlement summary,GET,/api/v1/analytics/funnel/,76,520.623,429
-settlement summary,GET,/api/v1/analytics/funnel/,77,1014.805,429
-settlement summary,GET,/api/v1/analytics/funnel/,78,923.022,429
-settlement summary,GET,/api/v1/analytics/funnel/,79,511.123,429
-settlement summary,GET,/api/v1/analytics/funnel/,80,512.344,429
-settlement summary,GET,/api/v1/analytics/funnel/,81,782.898,429
-settlement summary,GET,/api/v1/analytics/funnel/,82,1060.403,429
-settlement summary,GET,/api/v1/analytics/funnel/,83,900.2,429
-settlement summary,GET,/api/v1/analytics/funnel/,84,838.908,429
-settlement summary,GET,/api/v1/analytics/funnel/,85,717.038,429
-settlement summary,GET,/api/v1/analytics/funnel/,86,614.159,429
-settlement summary,GET,/api/v1/analytics/funnel/,87,788.104,429
-settlement summary,GET,/api/v1/analytics/funnel/,88,901.148,429
-settlement summary,GET,/api/v1/analytics/funnel/,89,768.697,429
-settlement summary,GET,/api/v1/analytics/funnel/,90,1023.363,429
-settlement summary,GET,/api/v1/analytics/funnel/,91,820.264,429
-settlement summary,GET,/api/v1/analytics/funnel/,92,606.422,429
-settlement summary,GET,/api/v1/analytics/funnel/,93,725.039,429
-settlement summary,GET,/api/v1/analytics/funnel/,94,347.341,429
-settlement summary,GET,/api/v1/analytics/funnel/,95,579.788,429
-settlement summary,GET,/api/v1/analytics/funnel/,96,606.688,429
-settlement summary,GET,/api/v1/analytics/funnel/,97,304.881,429
-settlement summary,GET,/api/v1/analytics/funnel/,98,551.525,429
-settlement summary,GET,/api/v1/analytics/funnel/,99,885.166,429
+tenant context,GET,/api/v1/meta/platform/,0,716.251,200
+tenant context,GET,/api/v1/meta/platform/,1,400.774,200
+tenant context,GET,/api/v1/meta/platform/,2,632.642,200
+tenant context,GET,/api/v1/meta/platform/,3,894.198,200
+tenant context,GET,/api/v1/meta/platform/,4,487.186,200
+tenant context,GET,/api/v1/meta/platform/,5,502.452,200
+tenant context,GET,/api/v1/meta/platform/,6,622.209,200
+tenant context,GET,/api/v1/meta/platform/,7,882.959,200
+tenant context,GET,/api/v1/meta/platform/,8,688.346,200
+tenant context,GET,/api/v1/meta/platform/,9,872.886,200
+tenant context,GET,/api/v1/meta/platform/,10,526.948,200
+tenant context,GET,/api/v1/meta/platform/,11,612.883,200
+tenant context,GET,/api/v1/meta/platform/,12,511.34,200
+tenant context,GET,/api/v1/meta/platform/,13,428.09,200
+tenant context,GET,/api/v1/meta/platform/,14,595.192,200
+tenant context,GET,/api/v1/meta/platform/,15,615.09,200
+tenant context,GET,/api/v1/meta/platform/,16,614.298,200
+tenant context,GET,/api/v1/meta/platform/,17,454.002,200
+tenant context,GET,/api/v1/meta/platform/,18,530.456,200
+tenant context,GET,/api/v1/meta/platform/,19,756.9,200
+tenant context,GET,/api/v1/meta/platform/,20,954.881,200
+tenant context,GET,/api/v1/meta/platform/,21,681.835,200
+tenant context,GET,/api/v1/meta/platform/,22,717.46,200
+tenant context,GET,/api/v1/meta/platform/,23,512.453,200
+tenant context,GET,/api/v1/meta/platform/,24,921.544,200
+tenant context,GET,/api/v1/meta/platform/,25,676.855,200
+tenant context,GET,/api/v1/meta/platform/,26,387.571,200
+tenant context,GET,/api/v1/meta/platform/,27,328.577,200
+tenant context,GET,/api/v1/meta/platform/,28,391.033,200
+tenant context,GET,/api/v1/meta/platform/,29,335.596,200
+tenant context,GET,/api/v1/meta/platform/,30,336.591,200
+tenant context,GET,/api/v1/meta/platform/,31,444.36,200
+tenant context,GET,/api/v1/meta/platform/,32,295.332,200
+tenant context,GET,/api/v1/meta/platform/,33,368.854,200
+tenant context,GET,/api/v1/meta/platform/,34,482.252,200
+tenant context,GET,/api/v1/meta/platform/,35,799.905,200
+tenant context,GET,/api/v1/meta/platform/,36,988.915,200
+tenant context,GET,/api/v1/meta/platform/,37,818.924,200
+tenant context,GET,/api/v1/meta/platform/,38,621.096,200
+tenant context,GET,/api/v1/meta/platform/,39,503.831,200
+tenant context,GET,/api/v1/meta/platform/,40,614.323,200
+tenant context,GET,/api/v1/meta/platform/,41,490.607,200
+tenant context,GET,/api/v1/meta/platform/,42,635.636,200
+tenant context,GET,/api/v1/meta/platform/,43,717.726,200
+tenant context,GET,/api/v1/meta/platform/,44,667.887,200
+tenant context,GET,/api/v1/meta/platform/,45,868.259,200
+tenant context,GET,/api/v1/meta/platform/,46,818.306,200
+tenant context,GET,/api/v1/meta/platform/,47,489.598,200
+tenant context,GET,/api/v1/meta/platform/,48,841.181,200
+tenant context,GET,/api/v1/meta/platform/,49,614.331,200
+tenant context,GET,/api/v1/meta/platform/,50,399.694,200
+tenant context,GET,/api/v1/meta/platform/,51,623.605,200
+tenant context,GET,/api/v1/meta/platform/,52,614.289,200
+tenant context,GET,/api/v1/meta/platform/,53,520.241,200
+tenant context,GET,/api/v1/meta/platform/,54,709.595,200
+tenant context,GET,/api/v1/meta/platform/,55,920.982,200
+tenant context,GET,/api/v1/meta/platform/,56,678.897,200
+tenant context,GET,/api/v1/meta/platform/,57,652.21,200
+tenant context,GET,/api/v1/meta/platform/,58,818.177,200
+tenant context,GET,/api/v1/meta/platform/,59,425.194,200
+tenant context,GET,/api/v1/meta/platform/,60,598.086,200
+tenant context,GET,/api/v1/meta/platform/,61,500.892,200
+tenant context,GET,/api/v1/meta/platform/,62,501.821,200
+tenant context,GET,/api/v1/meta/platform/,63,637.025,200
+tenant context,GET,/api/v1/meta/platform/,64,920.021,200
+tenant context,GET,/api/v1/meta/platform/,65,813.177,200
+tenant context,GET,/api/v1/meta/platform/,66,621.303,200
+tenant context,GET,/api/v1/meta/platform/,67,717.495,200
+tenant context,GET,/api/v1/meta/platform/,68,817.299,200
+tenant context,GET,/api/v1/meta/platform/,69,870.275,200
+tenant context,GET,/api/v1/meta/platform/,70,594.726,200
+tenant context,GET,/api/v1/meta/platform/,71,493.279,200
+tenant context,GET,/api/v1/meta/platform/,72,609.161,200
+tenant context,GET,/api/v1/meta/platform/,73,709.887,200
+tenant context,GET,/api/v1/meta/platform/,74,692.387,200
+tenant context,GET,/api/v1/meta/platform/,75,458.192,200
+tenant context,GET,/api/v1/meta/platform/,76,896.591,200
+tenant context,GET,/api/v1/meta/platform/,77,717.367,200
+tenant context,GET,/api/v1/meta/platform/,78,613.597,200
+tenant context,GET,/api/v1/meta/platform/,79,614.727,200
+tenant context,GET,/api/v1/meta/platform/,80,715.513,200
+tenant context,GET,/api/v1/meta/platform/,81,662.761,200
+tenant context,GET,/api/v1/meta/platform/,82,874.094,200
+tenant context,GET,/api/v1/meta/platform/,83,571.251,200
+tenant context,GET,/api/v1/meta/platform/,84,759.862,200
+tenant context,GET,/api/v1/meta/platform/,85,819.789,200
+tenant context,GET,/api/v1/meta/platform/,86,715.875,200
+tenant context,GET,/api/v1/meta/platform/,87,921.579,200
+tenant context,GET,/api/v1/meta/platform/,88,556.558,200
+tenant context,GET,/api/v1/meta/platform/,89,747.8,200
+tenant context,GET,/api/v1/meta/platform/,90,947.731,200
+tenant context,GET,/api/v1/meta/platform/,91,542.538,200
+tenant context,GET,/api/v1/meta/platform/,92,891.141,200
+tenant context,GET,/api/v1/meta/platform/,93,709.148,200
+tenant context,GET,/api/v1/meta/platform/,94,621.633,200
+tenant context,GET,/api/v1/meta/platform/,95,656.708,200
+tenant context,GET,/api/v1/meta/platform/,96,810.08,200
+tenant context,GET,/api/v1/meta/platform/,97,969.296,200
+tenant context,GET,/api/v1/meta/platform/,98,635.899,200
+tenant context,GET,/api/v1/meta/platform/,99,482.03,200
+catalog offerings,GET,/api/v1/catalog/programs/,0,746.39,200
+catalog offerings,GET,/api/v1/catalog/programs/,1,819.803,200
+catalog offerings,GET,/api/v1/catalog/programs/,2,614.491,200
+catalog offerings,GET,/api/v1/catalog/programs/,3,817.465,200
+catalog offerings,GET,/api/v1/catalog/programs/,4,820.422,200
+catalog offerings,GET,/api/v1/catalog/programs/,5,423.433,200
+catalog offerings,GET,/api/v1/catalog/programs/,6,468.646,200
+catalog offerings,GET,/api/v1/catalog/programs/,7,848.147,200
+catalog offerings,GET,/api/v1/catalog/programs/,8,542.296,200
+catalog offerings,GET,/api/v1/catalog/programs/,9,582.526,200
+catalog offerings,GET,/api/v1/catalog/programs/,10,614.782,200
+catalog offerings,GET,/api/v1/catalog/programs/,11,580.617,200
+catalog offerings,GET,/api/v1/catalog/programs/,12,632.964,200
+catalog offerings,GET,/api/v1/catalog/programs/,13,637.648,429
+catalog offerings,GET,/api/v1/catalog/programs/,14,605.275,429
+catalog offerings,GET,/api/v1/catalog/programs/,15,615.561,429
+catalog offerings,GET,/api/v1/catalog/programs/,16,715.276,429
+catalog offerings,GET,/api/v1/catalog/programs/,17,742.024,429
+catalog offerings,GET,/api/v1/catalog/programs/,18,555.72,429
+catalog offerings,GET,/api/v1/catalog/programs/,19,751.188,429
+catalog offerings,GET,/api/v1/catalog/programs/,20,782.935,429
+catalog offerings,GET,/api/v1/catalog/programs/,21,552.264,429
+catalog offerings,GET,/api/v1/catalog/programs/,22,472.71,429
+catalog offerings,GET,/api/v1/catalog/programs/,23,368.096,429
+catalog offerings,GET,/api/v1/catalog/programs/,24,628.408,429
+catalog offerings,GET,/api/v1/catalog/programs/,25,884.098,429
+catalog offerings,GET,/api/v1/catalog/programs/,26,900.548,429
+catalog offerings,GET,/api/v1/catalog/programs/,27,433.805,429
+catalog offerings,GET,/api/v1/catalog/programs/,28,761.298,429
+catalog offerings,GET,/api/v1/catalog/programs/,29,768.928,429
+catalog offerings,GET,/api/v1/catalog/programs/,30,498.565,429
+catalog offerings,GET,/api/v1/catalog/programs/,31,618.293,429
+catalog offerings,GET,/api/v1/catalog/programs/,32,455.38,429
+catalog offerings,GET,/api/v1/catalog/programs/,33,402.621,429
+catalog offerings,GET,/api/v1/catalog/programs/,34,317.295,429
+catalog offerings,GET,/api/v1/catalog/programs/,35,890.347,429
+catalog offerings,GET,/api/v1/catalog/programs/,36,392.378,429
+catalog offerings,GET,/api/v1/catalog/programs/,37,499.884,429
+catalog offerings,GET,/api/v1/catalog/programs/,38,405.42,429
+catalog offerings,GET,/api/v1/catalog/programs/,39,638.323,429
+catalog offerings,GET,/api/v1/catalog/programs/,40,921.004,429
+catalog offerings,GET,/api/v1/catalog/programs/,41,819.998,429
+catalog offerings,GET,/api/v1/catalog/programs/,42,818.299,429
+catalog offerings,GET,/api/v1/catalog/programs/,43,431.933,429
+catalog offerings,GET,/api/v1/catalog/programs/,44,449.138,429
+catalog offerings,GET,/api/v1/catalog/programs/,45,552.08,429
+catalog offerings,GET,/api/v1/catalog/programs/,46,715.842,429
+catalog offerings,GET,/api/v1/catalog/programs/,47,572.112,429
+catalog offerings,GET,/api/v1/catalog/programs/,48,657.516,429
+catalog offerings,GET,/api/v1/catalog/programs/,49,818.641,429
+catalog offerings,GET,/api/v1/catalog/programs/,50,614.853,429
+catalog offerings,GET,/api/v1/catalog/programs/,51,613.414,429
+catalog offerings,GET,/api/v1/catalog/programs/,52,512.148,429
+catalog offerings,GET,/api/v1/catalog/programs/,53,583.274,429
+catalog offerings,GET,/api/v1/catalog/programs/,54,628.461,429
+catalog offerings,GET,/api/v1/catalog/programs/,55,631.465,429
+catalog offerings,GET,/api/v1/catalog/programs/,56,682.764,429
+catalog offerings,GET,/api/v1/catalog/programs/,57,373.089,429
+catalog offerings,GET,/api/v1/catalog/programs/,58,724.093,429
+catalog offerings,GET,/api/v1/catalog/programs/,59,882.364,429
+catalog offerings,GET,/api/v1/catalog/programs/,60,613.47,429
+catalog offerings,GET,/api/v1/catalog/programs/,61,614.773,429
+catalog offerings,GET,/api/v1/catalog/programs/,62,832.761,429
+catalog offerings,GET,/api/v1/catalog/programs/,63,834.757,429
+catalog offerings,GET,/api/v1/catalog/programs/,64,892.164,429
+catalog offerings,GET,/api/v1/catalog/programs/,65,559.978,429
+catalog offerings,GET,/api/v1/catalog/programs/,66,546.105,429
+catalog offerings,GET,/api/v1/catalog/programs/,67,839.305,429
+catalog offerings,GET,/api/v1/catalog/programs/,68,955.577,429
+catalog offerings,GET,/api/v1/catalog/programs/,69,606.845,429
+catalog offerings,GET,/api/v1/catalog/programs/,70,809.797,429
+catalog offerings,GET,/api/v1/catalog/programs/,71,699.363,429
+catalog offerings,GET,/api/v1/catalog/programs/,72,716.996,429
+catalog offerings,GET,/api/v1/catalog/programs/,73,596.781,429
+catalog offerings,GET,/api/v1/catalog/programs/,74,528.618,429
+catalog offerings,GET,/api/v1/catalog/programs/,75,613.527,429
+catalog offerings,GET,/api/v1/catalog/programs/,76,614.222,429
+catalog offerings,GET,/api/v1/catalog/programs/,77,819.859,429
+catalog offerings,GET,/api/v1/catalog/programs/,78,921.671,429
+catalog offerings,GET,/api/v1/catalog/programs/,79,549.772,429
+catalog offerings,GET,/api/v1/catalog/programs/,80,884.184,429
+catalog offerings,GET,/api/v1/catalog/programs/,81,920.496,429
+catalog offerings,GET,/api/v1/catalog/programs/,82,492.118,429
+catalog offerings,GET,/api/v1/catalog/programs/,83,606.883,429
+catalog offerings,GET,/api/v1/catalog/programs/,84,391.872,429
+catalog offerings,GET,/api/v1/catalog/programs/,85,863.867,429
+catalog offerings,GET,/api/v1/catalog/programs/,86,715.482,429
+catalog offerings,GET,/api/v1/catalog/programs/,87,614.985,429
+catalog offerings,GET,/api/v1/catalog/programs/,88,479.043,429
+catalog offerings,GET,/api/v1/catalog/programs/,89,647.137,429
+catalog offerings,GET,/api/v1/catalog/programs/,90,512.328,429
+catalog offerings,GET,/api/v1/catalog/programs/,91,613.794,429
+catalog offerings,GET,/api/v1/catalog/programs/,92,425.971,429
+catalog offerings,GET,/api/v1/catalog/programs/,93,906.528,429
+catalog offerings,GET,/api/v1/catalog/programs/,94,778.735,429
+catalog offerings,GET,/api/v1/catalog/programs/,95,550.246,429
+catalog offerings,GET,/api/v1/catalog/programs/,96,614.98,429
+catalog offerings,GET,/api/v1/catalog/programs/,97,717.684,429
+catalog offerings,GET,/api/v1/catalog/programs/,98,819.589,429
+catalog offerings,GET,/api/v1/catalog/programs/,99,921.095,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,0,672.127,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,1,555.818,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,2,921.773,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,3,621.823,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,4,867.136,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,5,413.145,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,6,657.039,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,7,613.545,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,8,717.998,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,9,510.868,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,10,447.132,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,11,778.561,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,12,517.773,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,13,406.661,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,14,624.469,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,15,489.53,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,16,523.734,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,17,661.613,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,18,977.365,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,19,652.855,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,20,575.863,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,21,921.715,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,22,614.473,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,23,632.311,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,24,427.431,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,25,723.615,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,26,878.457,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,27,921.308,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,28,494.791,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,29,836.481,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,30,577.651,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,31,855.768,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,32,634.623,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,33,634.529,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,34,412.434,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,35,776.681,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,36,814.265,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,37,514.625,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,38,511.812,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,39,791.869,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,40,540.282,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,41,717.012,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,42,614.89,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,43,390.127,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,44,396.038,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,45,464.99,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,46,414.898,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,47,418.993,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,48,367.299,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,49,394.836,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,50,529.598,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,51,818.678,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,52,509.566,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,53,616.83,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,54,614.164,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,55,477.955,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,56,751.504,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,57,819.171,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,58,590.155,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,59,637.503,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,60,615.044,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,61,819.754,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,62,716.083,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,63,819.18,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,64,539.621,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,65,690.736,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,66,611.655,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,67,465.935,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,68,787.053,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,69,1001.293,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,70,369.284,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,71,441.297,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,72,346.568,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,73,802.453,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,74,446.755,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,75,869.946,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,76,851.918,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,77,580.54,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,78,921.435,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,79,524.926,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,80,908.845,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,81,818.695,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,82,716.344,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,83,583.102,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,84,893.474,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,85,878.821,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,86,819.49,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,87,575.26,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,88,755.246,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,89,819.671,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,90,511.659,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,91,576.864,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,92,650.699,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,93,686.057,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,94,542.307,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,95,614.314,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,96,674.243,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,97,862.532,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,98,818.164,429
+draft save,PATCH,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,99,513.468,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,0,612.608,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,1,615.027,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,2,536.998,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,3,538.799,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,4,766.653,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,5,595.875,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,6,611.557,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,7,681.052,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,8,415.885,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,9,665.359,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,10,715.853,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,11,614.779,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,12,443.362,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,13,406.877,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,14,730.347,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,15,734.117,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,16,887.135,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,17,721.951,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,18,492.411,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,19,497.625,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,20,351.755,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,21,528.704,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,22,368.954,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,23,369.225,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,24,532.586,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,25,612.926,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,26,607.281,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,27,595.202,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,28,948.601,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,29,469.159,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,30,397.507,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,31,594.145,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,32,462.141,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,33,799.418,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,34,552.724,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,35,614.637,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,36,569.554,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,37,556.601,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,38,614.329,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,39,614.17,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,40,388.199,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,41,393.242,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,42,651.658,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,43,613.849,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,44,460.728,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,45,461.04,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,46,333.143,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,47,382.564,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,48,531.753,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,49,402.062,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,50,416.913,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,51,507.292,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,52,285.337,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,53,724.824,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,54,923.464,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,55,734.994,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,56,387.316,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,57,615.198,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,58,522.479,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,59,571.353,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,60,711.061,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,61,492.647,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,62,856.148,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,63,601.597,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,64,646.399,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,65,654.033,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,66,280.152,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,67,567.19,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,68,751.817,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,69,613.881,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,70,512.582,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,71,717.931,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,72,647.374,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,73,889.288,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,74,544.101,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,75,688.86,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,76,550.123,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,77,876.671,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,78,459.815,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,79,871.762,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,80,530.068,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,81,460.404,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,82,416.496,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,83,639.633,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,84,511.86,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,85,552.277,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,86,471.357,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,87,512.866,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,88,760.147,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,89,467.711,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,90,614.021,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,91,614.446,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,92,499.073,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,93,803.784,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,94,949.955,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,95,528.422,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,96,596.467,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,97,922.825,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,98,512.466,429
+application submit,POST,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/submit/,99,852.365,429
+payment init,POST,/api/v1/payments/initiate/,0,792.508,201
+payment init,POST,/api/v1/payments/initiate/,1,555.988,201
+payment init,POST,/api/v1/payments/initiate/,2,767.025,201
+payment init,POST,/api/v1/payments/initiate/,3,709.751,201
+payment init,POST,/api/v1/payments/initiate/,4,724.27,201
+payment init,POST,/api/v1/payments/initiate/,5,716.771,201
+payment init,POST,/api/v1/payments/initiate/,6,819.322,429
+payment init,POST,/api/v1/payments/initiate/,7,817.861,429
+payment init,POST,/api/v1/payments/initiate/,8,614.106,429
+payment init,POST,/api/v1/payments/initiate/,9,501.131,429
+payment init,POST,/api/v1/payments/initiate/,10,625.692,429
+payment init,POST,/api/v1/payments/initiate/,11,679.473,429
+payment init,POST,/api/v1/payments/initiate/,12,691.318,429
+payment init,POST,/api/v1/payments/initiate/,13,779.069,429
+payment init,POST,/api/v1/payments/initiate/,14,613.647,429
+payment init,POST,/api/v1/payments/initiate/,15,494.848,429
+payment init,POST,/api/v1/payments/initiate/,16,631.511,429
+payment init,POST,/api/v1/payments/initiate/,17,717.594,429
+payment init,POST,/api/v1/payments/initiate/,18,685.884,429
+payment init,POST,/api/v1/payments/initiate/,19,950.796,429
+payment init,POST,/api/v1/payments/initiate/,20,819.22,429
+payment init,POST,/api/v1/payments/initiate/,21,614.642,429
+payment init,POST,/api/v1/payments/initiate/,22,1024.914,429
+payment init,POST,/api/v1/payments/initiate/,23,540.714,429
+payment init,POST,/api/v1/payments/initiate/,24,522.42,429
+payment init,POST,/api/v1/payments/initiate/,25,369.129,429
+payment init,POST,/api/v1/payments/initiate/,26,571.334,429
+payment init,POST,/api/v1/payments/initiate/,27,393.919,429
+payment init,POST,/api/v1/payments/initiate/,28,351.433,429
+payment init,POST,/api/v1/payments/initiate/,29,384.479,429
+payment init,POST,/api/v1/payments/initiate/,30,448.151,429
+payment init,POST,/api/v1/payments/initiate/,31,614.361,429
+payment init,POST,/api/v1/payments/initiate/,32,502.831,429
+payment init,POST,/api/v1/payments/initiate/,33,931.863,429
+payment init,POST,/api/v1/payments/initiate/,34,511.258,429
+payment init,POST,/api/v1/payments/initiate/,35,614.968,429
+payment init,POST,/api/v1/payments/initiate/,36,613.202,429
+payment init,POST,/api/v1/payments/initiate/,37,614.159,429
+payment init,POST,/api/v1/payments/initiate/,38,713.867,429
+payment init,POST,/api/v1/payments/initiate/,39,404.162,429
+payment init,POST,/api/v1/payments/initiate/,40,680.525,429
+payment init,POST,/api/v1/payments/initiate/,41,728.982,429
+payment init,POST,/api/v1/payments/initiate/,42,558.893,429
+payment init,POST,/api/v1/payments/initiate/,43,614.283,429
+payment init,POST,/api/v1/payments/initiate/,44,614.917,429
+payment init,POST,/api/v1/payments/initiate/,45,666.623,429
+payment init,POST,/api/v1/payments/initiate/,46,561.7,429
+payment init,POST,/api/v1/payments/initiate/,47,677.01,429
+payment init,POST,/api/v1/payments/initiate/,48,526.308,429
+payment init,POST,/api/v1/payments/initiate/,49,542.504,429
+payment init,POST,/api/v1/payments/initiate/,50,594.653,429
+payment init,POST,/api/v1/payments/initiate/,51,580.535,429
+payment init,POST,/api/v1/payments/initiate/,52,411.902,429
+payment init,POST,/api/v1/payments/initiate/,53,850.939,429
+payment init,POST,/api/v1/payments/initiate/,54,612.146,429
+payment init,POST,/api/v1/payments/initiate/,55,717.272,429
+payment init,POST,/api/v1/payments/initiate/,56,597.275,429
+payment init,POST,/api/v1/payments/initiate/,57,763.037,429
+payment init,POST,/api/v1/payments/initiate/,58,585.274,429
+payment init,POST,/api/v1/payments/initiate/,59,615.158,429
+payment init,POST,/api/v1/payments/initiate/,60,509.973,429
+payment init,POST,/api/v1/payments/initiate/,61,555.805,429
+payment init,POST,/api/v1/payments/initiate/,62,879.349,429
+payment init,POST,/api/v1/payments/initiate/,63,677.15,429
+payment init,POST,/api/v1/payments/initiate/,64,551.419,429
+payment init,POST,/api/v1/payments/initiate/,65,613.025,429
+payment init,POST,/api/v1/payments/initiate/,66,614.8,429
+payment init,POST,/api/v1/payments/initiate/,67,567.286,429
+payment init,POST,/api/v1/payments/initiate/,68,584.235,429
+payment init,POST,/api/v1/payments/initiate/,69,473.773,429
+payment init,POST,/api/v1/payments/initiate/,70,422.556,429
+payment init,POST,/api/v1/payments/initiate/,71,512.722,429
+payment init,POST,/api/v1/payments/initiate/,72,371.665,429
+payment init,POST,/api/v1/payments/initiate/,73,548.37,429
+payment init,POST,/api/v1/payments/initiate/,74,420.087,429
+payment init,POST,/api/v1/payments/initiate/,75,499.464,429
+payment init,POST,/api/v1/payments/initiate/,76,514.957,429
+payment init,POST,/api/v1/payments/initiate/,77,714.904,429
+payment init,POST,/api/v1/payments/initiate/,78,840.745,429
+payment init,POST,/api/v1/payments/initiate/,79,902.158,429
+payment init,POST,/api/v1/payments/initiate/,80,618.104,429
+payment init,POST,/api/v1/payments/initiate/,81,544.638,429
+payment init,POST,/api/v1/payments/initiate/,82,459.011,429
+payment init,POST,/api/v1/payments/initiate/,83,731.677,429
+payment init,POST,/api/v1/payments/initiate/,84,673.187,429
+payment init,POST,/api/v1/payments/initiate/,85,348.11,429
+payment init,POST,/api/v1/payments/initiate/,86,718.351,429
+payment init,POST,/api/v1/payments/initiate/,87,717.177,429
+payment init,POST,/api/v1/payments/initiate/,88,512.699,429
+payment init,POST,/api/v1/payments/initiate/,89,526.979,429
+payment init,POST,/api/v1/payments/initiate/,90,582.989,429
+payment init,POST,/api/v1/payments/initiate/,91,496.627,429
+payment init,POST,/api/v1/payments/initiate/,92,573.278,429
+payment init,POST,/api/v1/payments/initiate/,93,412.296,429
+payment init,POST,/api/v1/payments/initiate/,94,561.71,429
+payment init,POST,/api/v1/payments/initiate/,95,560.131,429
+payment init,POST,/api/v1/payments/initiate/,96,584.757,429
+payment init,POST,/api/v1/payments/initiate/,97,614.367,429
+payment init,POST,/api/v1/payments/initiate/,98,871.816,201
+payment init,POST,/api/v1/payments/initiate/,99,868.989,201
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,0,716.079,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,1,505.799,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,2,620.853,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,3,504.43,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,4,621.427,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,5,717.536,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,6,819.089,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,7,695.702,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,8,633.591,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,9,615.119,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,10,596.005,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,11,409.483,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,12,708.558,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,13,455.104,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,14,575.576,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,15,531.319,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,16,584.083,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,17,785.178,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,18,412.667,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,19,1084.966,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,20,713.938,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,21,822.556,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,22,912.936,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,23,621.38,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,24,676.871,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,25,646.815,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,26,433.334,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,27,418.053,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,28,726.956,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,29,623.807,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,30,484.062,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,31,350.192,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,32,816.085,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,33,464.18,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,34,709.146,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,35,509.393,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,36,436.47,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,37,487.176,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,38,612.312,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,39,614.552,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,40,658.149,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,41,980.379,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,42,833.763,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,43,437.466,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,44,878.465,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,45,751.4,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,46,368.094,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,47,620.319,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,48,614.82,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,49,483.701,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,50,465.647,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,51,414.77,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,52,329.578,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,53,385.464,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,54,361.463,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,55,295.52,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,56,536.99,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,57,412.173,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,58,710.756,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,59,620.268,400
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,60,614.771,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,61,597.562,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,62,389.328,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,63,856.756,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,64,754.261,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,65,478.071,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,66,608.729,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,67,704.781,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,68,524.461,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,69,922.425,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,70,857.046,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,71,493.522,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,72,902.114,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,73,565.006,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,74,363.114,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,75,311.815,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,76,491.788,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,77,316.371,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,78,294.065,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,79,420.628,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,80,537.768,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,81,355.907,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,82,418.592,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,83,561.982,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,84,390.503,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,85,601.309,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,86,614.471,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,87,931.447,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,88,986.234,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,89,513.106,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,90,846.221,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,91,716.832,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,92,572.074,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,93,656.444,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,94,817.876,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,95,511.812,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,96,406.828,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,97,822.86,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,98,1125.779,429
+payment status,GET,/api/v1/payments/abaaa851-176d-4ca1-88fa-413579d981e4/receipt/,99,512.152,429
+tenant admin list,GET,/api/v1/applications/,0,512.67,429
+tenant admin list,GET,/api/v1/applications/,1,456.37,429
+tenant admin list,GET,/api/v1/applications/,2,667.801,429
+tenant admin list,GET,/api/v1/applications/,3,409.57,429
+tenant admin list,GET,/api/v1/applications/,4,611.942,429
+tenant admin list,GET,/api/v1/applications/,5,515.764,429
+tenant admin list,GET,/api/v1/applications/,6,407.51,429
+tenant admin list,GET,/api/v1/applications/,7,822.044,429
+tenant admin list,GET,/api/v1/applications/,8,512.995,429
+tenant admin list,GET,/api/v1/applications/,9,408.109,429
+tenant admin list,GET,/api/v1/applications/,10,818.202,429
+tenant admin list,GET,/api/v1/applications/,11,959.962,429
+tenant admin list,GET,/api/v1/applications/,12,357.218,429
+tenant admin list,GET,/api/v1/applications/,13,410.939,429
+tenant admin list,GET,/api/v1/applications/,14,625.594,429
+tenant admin list,GET,/api/v1/applications/,15,555.702,429
+tenant admin list,GET,/api/v1/applications/,16,563.089,429
+tenant admin list,GET,/api/v1/applications/,17,324.853,429
+tenant admin list,GET,/api/v1/applications/,18,390.579,429
+tenant admin list,GET,/api/v1/applications/,19,450.152,429
+tenant admin list,GET,/api/v1/applications/,20,354.184,429
+tenant admin list,GET,/api/v1/applications/,21,333.799,429
+tenant admin list,GET,/api/v1/applications/,22,508.521,429
+tenant admin list,GET,/api/v1/applications/,23,615.304,429
+tenant admin list,GET,/api/v1/applications/,24,483.675,429
+tenant admin list,GET,/api/v1/applications/,25,538.617,429
+tenant admin list,GET,/api/v1/applications/,26,614.838,429
+tenant admin list,GET,/api/v1/applications/,27,511.001,429
+tenant admin list,GET,/api/v1/applications/,28,408.409,429
+tenant admin list,GET,/api/v1/applications/,29,496.793,429
+tenant admin list,GET,/api/v1/applications/,30,438.522,429
+tenant admin list,GET,/api/v1/applications/,31,499.416,429
+tenant admin list,GET,/api/v1/applications/,32,379.526,429
+tenant admin list,GET,/api/v1/applications/,33,645.559,429
+tenant admin list,GET,/api/v1/applications/,34,759.032,429
+tenant admin list,GET,/api/v1/applications/,35,596.742,429
+tenant admin list,GET,/api/v1/applications/,36,793.697,429
+tenant admin list,GET,/api/v1/applications/,37,907.766,429
+tenant admin list,GET,/api/v1/applications/,38,526.51,429
+tenant admin list,GET,/api/v1/applications/,39,612.107,429
+tenant admin list,GET,/api/v1/applications/,40,513.296,429
+tenant admin list,GET,/api/v1/applications/,41,525.865,429
+tenant admin list,GET,/api/v1/applications/,42,598.935,429
+tenant admin list,GET,/api/v1/applications/,43,614.838,429
+tenant admin list,GET,/api/v1/applications/,44,614.483,429
+tenant admin list,GET,/api/v1/applications/,45,558.188,429
+tenant admin list,GET,/api/v1/applications/,46,875.952,429
+tenant admin list,GET,/api/v1/applications/,47,834.989,429
+tenant admin list,GET,/api/v1/applications/,48,495.211,429
+tenant admin list,GET,/api/v1/applications/,49,614.25,429
+tenant admin list,GET,/api/v1/applications/,50,614.182,429
+tenant admin list,GET,/api/v1/applications/,51,511.982,429
+tenant admin list,GET,/api/v1/applications/,52,820.338,429
+tenant admin list,GET,/api/v1/applications/,53,848.824,429
+tenant admin list,GET,/api/v1/applications/,54,377.467,429
+tenant admin list,GET,/api/v1/applications/,55,615.471,429
+tenant admin list,GET,/api/v1/applications/,56,613.982,429
+tenant admin list,GET,/api/v1/applications/,57,485.582,429
+tenant admin list,GET,/api/v1/applications/,58,741.189,429
+tenant admin list,GET,/api/v1/applications/,59,924.692,429
+tenant admin list,GET,/api/v1/applications/,60,615.239,429
+tenant admin list,GET,/api/v1/applications/,61,715.743,429
+tenant admin list,GET,/api/v1/applications/,62,901.546,429
+tenant admin list,GET,/api/v1/applications/,63,530.899,429
+tenant admin list,GET,/api/v1/applications/,64,613.378,429
+tenant admin list,GET,/api/v1/applications/,65,615.114,429
+tenant admin list,GET,/api/v1/applications/,66,391.938,429
+tenant admin list,GET,/api/v1/applications/,67,631.835,429
+tenant admin list,GET,/api/v1/applications/,68,484.81,429
+tenant admin list,GET,/api/v1/applications/,69,731.373,429
+tenant admin list,GET,/api/v1/applications/,70,934.9,429
+tenant admin list,GET,/api/v1/applications/,71,921.97,429
+tenant admin list,GET,/api/v1/applications/,72,612.654,429
+tenant admin list,GET,/api/v1/applications/,73,383.131,429
+tenant admin list,GET,/api/v1/applications/,74,846.202,429
+tenant admin list,GET,/api/v1/applications/,75,613.776,429
+tenant admin list,GET,/api/v1/applications/,76,447.969,429
+tenant admin list,GET,/api/v1/applications/,77,678.271,429
+tenant admin list,GET,/api/v1/applications/,78,417.343,429
+tenant admin list,GET,/api/v1/applications/,79,505.183,429
+tenant admin list,GET,/api/v1/applications/,80,612.894,429
+tenant admin list,GET,/api/v1/applications/,81,525.093,429
+tenant admin list,GET,/api/v1/applications/,82,394.298,429
+tenant admin list,GET,/api/v1/applications/,83,308.4,429
+tenant admin list,GET,/api/v1/applications/,84,304.543,429
+tenant admin list,GET,/api/v1/applications/,85,287.873,429
+tenant admin list,GET,/api/v1/applications/,86,445.748,429
+tenant admin list,GET,/api/v1/applications/,87,405.73,429
+tenant admin list,GET,/api/v1/applications/,88,270.439,429
+tenant admin list,GET,/api/v1/applications/,89,846.544,429
+tenant admin list,GET,/api/v1/applications/,90,922.031,429
+tenant admin list,GET,/api/v1/applications/,91,716.501,429
+tenant admin list,GET,/api/v1/applications/,92,716.106,429
+tenant admin list,GET,/api/v1/applications/,93,884.118,429
+tenant admin list,GET,/api/v1/applications/,94,650.948,429
+tenant admin list,GET,/api/v1/applications/,95,614.626,429
+tenant admin list,GET,/api/v1/applications/,96,613.367,429
+tenant admin list,GET,/api/v1/applications/,97,780.922,429
+tenant admin list,GET,/api/v1/applications/,98,859.561,429
+tenant admin list,GET,/api/v1/applications/,99,583.224,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,0,745.538,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,1,615.84,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,2,543.743,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,3,560.196,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,4,640.752,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,5,609.753,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,6,511.267,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,7,591.796,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,8,841.211,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,9,512.266,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,10,614.256,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,11,614.36,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,12,573.366,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,13,554.471,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,14,921.55,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,15,714.935,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,16,763.864,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,17,615.152,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,18,669.781,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,19,715.455,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,20,512.553,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,21,571.042,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,22,760.33,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,23,818.44,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,24,615.093,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,25,909.324,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,26,756.694,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,27,442.221,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,28,370.994,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,29,695.395,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,30,646.995,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,31,317.111,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,32,672.538,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,33,658.824,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,34,391.732,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,35,361.22,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,36,701.373,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,37,805.21,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,38,415.854,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,39,762.014,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,40,696.754,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,41,462.932,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,42,727.533,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,43,773.366,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,44,513.567,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,45,714.792,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,46,717.499,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,47,592.992,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,48,529.979,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,49,414.521,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,50,432.362,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,51,291.92,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,52,399.873,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,53,444.267,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,54,353.218,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,55,532.502,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,56,407.498,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,57,458.507,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,58,631.182,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,59,732.921,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,60,386.969,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,61,557.557,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,62,922.001,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,63,467.015,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,64,864.333,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,65,856.017,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,66,884.294,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,67,792.743,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,68,371.644,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,69,295.069,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,70,399.972,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,71,699.721,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,72,534.768,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,73,434.831,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,74,293.968,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,75,379.91,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,76,607.857,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,77,513.015,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,78,613.578,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,79,615.933,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,80,439.262,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,81,584.221,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,82,818.995,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,83,643.69,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,84,482.16,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,85,513.418,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,86,713.708,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,87,786.963,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,88,851.697,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,89,921.247,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,90,429.61,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,91,903.262,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,92,665.528,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,93,1483.721,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,94,613.709,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,95,819.234,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,96,874.71,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,97,866.371,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,98,1133.866,429
+tenant admin detail,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/,99,707.808,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,0,614.866,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,1,588.283,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,2,439.55,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,3,610.549,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,4,716.243,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,5,512.398,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,6,312.332,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,7,396.231,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,8,300.541,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,9,378.73,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,10,460.396,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,11,306.364,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,12,423.514,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,13,492.756,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,14,762.312,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,15,743.383,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,16,596.698,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,17,868.311,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,18,818.583,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,19,893.284,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,20,448.216,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,21,602.311,429
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,22,819.227,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,23,718.335,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,24,818.78,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,25,920.225,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,26,921.95,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,27,812.229,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,28,519.698,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,29,716.508,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,30,669.05,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,31,866.162,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,32,919.999,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,33,615.762,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,34,719.035,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,35,611.056,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,36,540.84,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,37,691.597,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,38,610.977,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,39,921.654,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,40,613.5,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,41,1081.649,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,42,864.32,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,43,613.659,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,44,505.983,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,45,517.643,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,46,445.89,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,47,857.856,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,48,876.823,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,49,891.973,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,50,614.183,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,51,716.328,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,52,716.801,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,53,600.97,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,54,628.066,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,55,819.16,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,56,716.113,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,57,679.601,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,58,630.309,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,59,429.493,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,60,614.819,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,61,511.818,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,62,570.27,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,63,338.528,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,64,422.572,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,65,613.771,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,66,611.49,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,67,515.483,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,68,818.388,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,69,614.182,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,70,458.358,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,71,873.277,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,72,851.258,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,73,889.281,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,74,975.211,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,75,764.333,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,76,697.459,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,77,733.319,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,78,514.638,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,79,614.269,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,80,513.033,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,81,613.236,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,82,464.214,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,83,867.752,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,84,614.37,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,85,860.575,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,86,817.374,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,87,881.309,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,88,863.201,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,89,479.75,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,90,498.89,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,91,614.738,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,92,512.475,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,93,716.918,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,94,810.516,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,95,826.533,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,96,922.587,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,97,885.172,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,98,701.052,200
+official document queue,GET,/api/v1/applications/c0ac1753-0905-44e7-ad6b-91fa137d0083/documents/,99,593.796,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,0,481.069,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,1,543.128,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,2,684.889,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,3,683.136,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,4,854.111,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,5,715.361,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,6,772.936,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,7,559.943,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,8,921.052,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,9,429.502,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,10,479.931,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,11,344.936,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,12,344.477,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,13,378.18,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,14,349.032,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,15,314.157,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,16,337.035,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,17,707.666,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,18,810.41,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,19,521.359,200
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,20,920.827,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,21,504.523,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,22,405.056,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,23,625.216,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,24,717.208,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,25,615.116,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,26,986.902,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,27,668.509,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,28,698.964,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,29,819.087,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,30,715.602,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,31,511.726,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,32,614.391,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,33,1139.046,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,34,741.234,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,35,706.7,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,36,603.231,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,37,660.734,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,38,976.872,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,39,830.122,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,40,585.056,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,41,967.995,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,42,548.776,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,43,583.891,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,44,605.59,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,45,795.223,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,46,673.222,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,47,552.795,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,48,874.174,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,49,583.559,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,50,575.564,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,51,551.107,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,52,394.739,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,53,487.471,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,54,355.423,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,55,345.36,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,56,424.115,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,57,421.258,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,58,369.039,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,59,644.811,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,60,716.208,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,61,877.625,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,62,759.401,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,63,614.685,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,64,819.62,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,65,511.84,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,66,613.737,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,67,614.331,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,68,415.447,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,69,608.253,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,70,614.254,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,71,607.343,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,72,519.476,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,73,525.763,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,74,371.354,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,75,600.218,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,76,1062.908,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,77,714.508,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,78,922.263,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,79,614.879,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,80,819.539,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,81,716.501,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,82,613.64,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,83,452.417,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,84,646.528,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,85,380.891,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,86,362.72,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,87,330.79,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,88,350.86,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,89,343.136,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,90,510.533,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,91,285.139,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,92,431.314,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,93,369.035,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,94,758.47,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,95,921.904,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,96,716.279,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,97,612.842,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,98,729.578,429
+official document status,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/info/,99,703.76,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,0,614.981,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,1,580.292,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,2,853.155,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,3,546.454,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,4,822.704,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,5,577.391,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,6,613.3,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,7,310.683,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,8,341.001,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,9,398.532,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,10,381.877,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,11,512.288,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,12,409.841,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,13,298.208,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,14,463.999,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,15,672.084,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,16,921.368,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,17,526.554,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,18,550.992,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,19,791.851,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,20,420.156,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,21,679.566,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,22,715.96,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,23,606.531,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,24,520.955,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,25,818.09,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,26,730.55,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,27,401.404,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,28,813.372,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,29,706.427,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,30,531.599,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,31,412.705,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,32,290.398,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,33,579.562,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,34,653.763,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,35,566.03,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,36,587.176,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,37,481.128,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,38,616.704,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,39,614.495,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,40,588.242,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,41,725.655,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,42,633.337,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,43,338.927,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,44,581.451,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,45,613.659,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,46,614.298,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,47,579.519,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,48,443.453,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,49,614.027,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,50,313.633,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,51,408.449,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,52,382.011,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,53,331.123,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,54,510.431,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,55,322.643,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,56,343.419,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,57,299.897,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,58,983.496,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,59,645.552,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,60,466.934,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,61,828.947,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,62,568.579,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,63,966.456,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,64,584.769,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,65,678.345,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,66,672.443,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,67,602.663,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,68,832.754,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,69,840.14,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,70,807.095,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,71,938.786,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,72,595.787,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,73,614.4,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,74,575.072,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,75,643.539,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,76,623.529,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,77,565.993,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,78,311.706,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,79,864.786,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,80,639.436,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,81,496.607,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,82,911.013,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,83,771.508,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,84,560.502,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,85,920.218,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,86,819.911,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,87,393.198,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,88,603.749,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,89,741.596,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,90,534.922,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,91,423.706,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,92,291.317,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,93,323.586,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,94,576.657,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,95,511.973,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,96,504.963,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,97,608.758,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,98,524.682,429
+official document download,GET,/api/v1/documents/f3213a6c-f9c1-454f-85f9-f1bf4bfd876c/download/,99,922.184,429
+settlement summary,GET,/api/v1/payments/settlements/,0,735.963,200
+settlement summary,GET,/api/v1/payments/settlements/,1,492.471,200
+settlement summary,GET,/api/v1/payments/settlements/,2,478.201,200
+settlement summary,GET,/api/v1/payments/settlements/,3,509.254,200
+settlement summary,GET,/api/v1/payments/settlements/,4,376.119,200
+settlement summary,GET,/api/v1/payments/settlements/,5,412.766,200
+settlement summary,GET,/api/v1/payments/settlements/,6,680.06,200
+settlement summary,GET,/api/v1/payments/settlements/,7,614.044,200
+settlement summary,GET,/api/v1/payments/settlements/,8,455.327,200
+settlement summary,GET,/api/v1/payments/settlements/,9,343.82,200
+settlement summary,GET,/api/v1/payments/settlements/,10,410.677,200
+settlement summary,GET,/api/v1/payments/settlements/,11,735.082,200
+settlement summary,GET,/api/v1/payments/settlements/,12,615.395,200
+settlement summary,GET,/api/v1/payments/settlements/,13,512.081,200
+settlement summary,GET,/api/v1/payments/settlements/,14,716.268,200
+settlement summary,GET,/api/v1/payments/settlements/,15,544.744,200
+settlement summary,GET,/api/v1/payments/settlements/,16,887.659,200
+settlement summary,GET,/api/v1/payments/settlements/,17,923.105,200
+settlement summary,GET,/api/v1/payments/settlements/,18,817.027,200
+settlement summary,GET,/api/v1/payments/settlements/,19,718.125,200
+settlement summary,GET,/api/v1/payments/settlements/,20,719.178,200
+settlement summary,GET,/api/v1/payments/settlements/,21,610.94,200
+settlement summary,GET,/api/v1/payments/settlements/,22,613.882,200
+settlement summary,GET,/api/v1/payments/settlements/,23,1025.427,200
+settlement summary,GET,/api/v1/payments/settlements/,24,582.248,200
+settlement summary,GET,/api/v1/payments/settlements/,25,850.757,200
+settlement summary,GET,/api/v1/payments/settlements/,26,511.217,200
+settlement summary,GET,/api/v1/payments/settlements/,27,512.493,200
+settlement summary,GET,/api/v1/payments/settlements/,28,921.862,200
+settlement summary,GET,/api/v1/payments/settlements/,29,818.287,200
+settlement summary,GET,/api/v1/payments/settlements/,30,639.6,200
+settlement summary,GET,/api/v1/payments/settlements/,31,691.494,200
+settlement summary,GET,/api/v1/payments/settlements/,32,613.399,200
+settlement summary,GET,/api/v1/payments/settlements/,33,921.409,200
+settlement summary,GET,/api/v1/payments/settlements/,34,556.439,200
+settlement summary,GET,/api/v1/payments/settlements/,35,348.763,200
+settlement summary,GET,/api/v1/payments/settlements/,36,528.186,200
+settlement summary,GET,/api/v1/payments/settlements/,37,614.526,200
+settlement summary,GET,/api/v1/payments/settlements/,38,819.663,200
+settlement summary,GET,/api/v1/payments/settlements/,39,818.895,200
+settlement summary,GET,/api/v1/payments/settlements/,40,818.361,200
+settlement summary,GET,/api/v1/payments/settlements/,41,849.787,200
+settlement summary,GET,/api/v1/payments/settlements/,42,562.901,200
+settlement summary,GET,/api/v1/payments/settlements/,43,662.716,200
+settlement summary,GET,/api/v1/payments/settlements/,44,588.209,200
+settlement summary,GET,/api/v1/payments/settlements/,45,920.894,200
+settlement summary,GET,/api/v1/payments/settlements/,46,715.931,200
+settlement summary,GET,/api/v1/payments/settlements/,47,513.313,200
+settlement summary,GET,/api/v1/payments/settlements/,48,771.155,200
+settlement summary,GET,/api/v1/payments/settlements/,49,763.932,200
+settlement summary,GET,/api/v1/payments/settlements/,50,715.851,200
+settlement summary,GET,/api/v1/payments/settlements/,51,613.991,200
+settlement summary,GET,/api/v1/payments/settlements/,52,542.311,200
+settlement summary,GET,/api/v1/payments/settlements/,53,637.329,200
+settlement summary,GET,/api/v1/payments/settlements/,54,560.668,200
+settlement summary,GET,/api/v1/payments/settlements/,55,602.901,200
+settlement summary,GET,/api/v1/payments/settlements/,56,523.747,200
+settlement summary,GET,/api/v1/payments/settlements/,57,614.591,200
+settlement summary,GET,/api/v1/payments/settlements/,58,449.798,200
+settlement summary,GET,/api/v1/payments/settlements/,59,779.318,200
+settlement summary,GET,/api/v1/payments/settlements/,60,716.437,429
+settlement summary,GET,/api/v1/payments/settlements/,61,913.664,429
+settlement summary,GET,/api/v1/payments/settlements/,62,621.786,429
+settlement summary,GET,/api/v1/payments/settlements/,63,511.087,429
+settlement summary,GET,/api/v1/payments/settlements/,64,613.944,429
+settlement summary,GET,/api/v1/payments/settlements/,65,512.437,429
+settlement summary,GET,/api/v1/payments/settlements/,66,410.013,429
+settlement summary,GET,/api/v1/payments/settlements/,67,287.768,429
+settlement summary,GET,/api/v1/payments/settlements/,68,320.31,429
+settlement summary,GET,/api/v1/payments/settlements/,69,343.629,429
+settlement summary,GET,/api/v1/payments/settlements/,70,686.144,429
+settlement summary,GET,/api/v1/payments/settlements/,71,554.687,429
+settlement summary,GET,/api/v1/payments/settlements/,72,879.404,429
+settlement summary,GET,/api/v1/payments/settlements/,73,717.003,429
+settlement summary,GET,/api/v1/payments/settlements/,74,856.623,429
+settlement summary,GET,/api/v1/payments/settlements/,75,473.308,429
+settlement summary,GET,/api/v1/payments/settlements/,76,534.323,429
+settlement summary,GET,/api/v1/payments/settlements/,77,880.131,429
+settlement summary,GET,/api/v1/payments/settlements/,78,798.037,429
+settlement summary,GET,/api/v1/payments/settlements/,79,320.136,429
+settlement summary,GET,/api/v1/payments/settlements/,80,640.872,429
+settlement summary,GET,/api/v1/payments/settlements/,81,614.822,429
+settlement summary,GET,/api/v1/payments/settlements/,82,629.56,429
+settlement summary,GET,/api/v1/payments/settlements/,83,700.998,429
+settlement summary,GET,/api/v1/payments/settlements/,84,524.112,429
+settlement summary,GET,/api/v1/payments/settlements/,85,529.46,429
+settlement summary,GET,/api/v1/payments/settlements/,86,371.738,429
+settlement summary,GET,/api/v1/payments/settlements/,87,621.281,429
+settlement summary,GET,/api/v1/payments/settlements/,88,466.343,429
+settlement summary,GET,/api/v1/payments/settlements/,89,614.923,429
+settlement summary,GET,/api/v1/payments/settlements/,90,968.088,429
+settlement summary,GET,/api/v1/payments/settlements/,91,922.005,429
+settlement summary,GET,/api/v1/payments/settlements/,92,451.133,429
+settlement summary,GET,/api/v1/payments/settlements/,93,879.494,429
+settlement summary,GET,/api/v1/payments/settlements/,94,845.879,429
+settlement summary,GET,/api/v1/payments/settlements/,95,894.158,429
+settlement summary,GET,/api/v1/payments/settlements/,96,766.58,429
+settlement summary,GET,/api/v1/payments/settlements/,97,582.356,429
+settlement summary,GET,/api/v1/payments/settlements/,98,902.6,429
+settlement summary,GET,/api/v1/payments/settlements/,99,616.065,429

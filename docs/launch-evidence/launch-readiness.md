@@ -2,7 +2,7 @@
 
 > **Verdict: `not-production-launch-ready`**
 >
-> Generated at: `2026-07-04T07:42:19Z`
+> Generated at: `2026-07-05T16:02:47Z`
 
 Launch is **NOT approved**. Launch is approved only when the verdict is `production-launch-ready`, which requires every one of the eleven gates to have an explicit `passed` status with a present, readable Evidence_Artifact (Requirement 12).
 
