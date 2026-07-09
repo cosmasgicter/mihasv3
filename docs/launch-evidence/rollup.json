@@ -1,6 +1,6 @@
 {
   "verdict": "not-production-launch-ready",
-  "generated_at": "2026-07-05T16:02:47Z",
+  "generated_at": "2026-07-05T16:16:27Z",
   "gates": [
     {
       "gate_id": "migration-evidence",
