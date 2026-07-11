@@ -20,6 +20,12 @@ ALLOWED_HOSTS = ["*"]
 # Use a default secret key for local development
 SECRET_KEY = os.environ.get("SECRET_KEY", "insecure-dev-key-change-me")  # noqa: F405
 
+# Keep every JWT issuer and verifier on the same key in development. The token
+# helper already uses this fallback, but middleware reads SIMPLE_JWT directly.
+SIMPLE_JWT["SIGNING_KEY"] = (  # noqa: F405
+    os.environ.get("JWT_SIGNING_KEY") or "insecure-dev-signing-key"
+)
+
 # Relax security for local development
 SECURE_HSTS_SECONDS = 0
 SECURE_SSL_REDIRECT = False

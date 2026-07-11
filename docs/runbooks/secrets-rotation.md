@@ -4,7 +4,43 @@
 
 This runbook defines how to rotate production secrets without guessing under pressure.
 
+## Rotation Log
+
+| Date | Secret | Reason | Operator action taken |
+|------|--------|--------|------------------------|
+| 2026-07-05 | Super-admin password (`cosmas@beanola.com`) | Password was pasted in an AI chat session (Kiro CLI) across multiple prior turns — treated as compromised per this repo's safety guardrails. | Rotated directly via a `profiles.password_hash` update (raw bcrypt, matching `apps/accounts/services.py:verify_password`'s `$2`-prefix check — **not** Django's `make_password`, which produces an incompatible `bcrypt_sha256$$` prefix this platform's login path does not recognize). Verified via a real login call (`POST /api/v1/auth/login/` → 200, `role: super_admin`). All 184 pre-existing `device_sessions` rows for this user were invalidated (`is_active=false`) to force re-authentication everywhere. **The new password is not recorded in this file or in git** — it was communicated to the account owner out of band. |
+
+**Full remediation status** (per `.kiro/specs/full-platform-remediation-2026-07/`):
+- [x] Super-admin password rotated (2026-07-05) — task 1.1.
+- [ ] Full inventory rotation (SECRET_KEY, JWT_SIGNING_KEY, LENCO keys, RESEND_API_KEY,
+  S3/R2 keys, ZOHO_SMTP_PASSWORD, GLITCHTIP_DSN, DATABASE_URL/REDIS_URL creds) — task 1.2,
+  still pending. Each of these lives at a third-party provider dashboard or requires a
+  backend restart with a maintenance window; they are **operator-gated** and are not
+  rotated by an agent session. See the inventory below for the exact steps per secret.
+- [ ] Git history purge of any committed `.env` files — task 1.3, **irreversible**,
+  requires coordinating with all clones first. Not run in this session.
+
 ## Rotation Inventory
+
+### Super-admin / staff application passwords
+
+- Stored as `profiles.password_hash` (raw bcrypt, `$2b$...` — verified by
+  `apps/accounts/services.py:verify_password`, which explicitly rejects
+  Django's own `make_password` output because it does not start with `$2`).
+- Rotate via a direct `UPDATE profiles SET password_hash = '<bcrypt hash>',
+  password_changed_at = NOW() WHERE email = '<email>'` against the production
+  Postgres container (see `.kiro/steering/infrastructure.md` for the
+  `docker compose exec postgres psql` access pattern). There is no
+  `POST /api/v1/auth/change-password/` endpoint yet — only the email-based
+  `password-reset/` flow — so a direct DB rotation is the correct
+  operator-gated path when the account owner does not have inbox access to
+  the reset flow in the moment.
+- After rotation, invalidate all existing sessions for that user:
+  `UPDATE device_sessions SET is_active=false WHERE user_id = (SELECT id FROM
+  profiles WHERE email = '<email>');` — access tokens still expire naturally
+  within 30 minutes, but this forces immediate re-authentication everywhere.
+- Validate: a real `POST /api/v1/auth/login/` call with the new password
+  returns `200` and the expected `role`.
 
 ### `SECRET_KEY`
 

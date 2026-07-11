@@ -204,11 +204,35 @@ aws configure --profile r2   # access key, secret, region=auto
 #   endpoint_url = https://<accountid>.r2.cloudflarestorage.com
 ```
 
-The backup script is at `deploy/backup-db.sh`. Install the cron:
+The backup script is at `deploy/backup-db.sh`. Install it and the automation
+around it using the idempotent setup scripts (safe to re-run — they replace
+their own crontab entry by marker instead of appending duplicates):
 
 ```bash
 cp deploy/backup-db.sh ~/mihas/backup-db.sh && chmod +x ~/mihas/backup-db.sh
-( crontab -l 2>/dev/null; echo "30 2 * * * cd ~/mihas && ./backup-db.sh >> ~/mihas/backup.log 2>&1" ) | crontab -
+scp deploy/configure-r2-profile.sh deploy/setup-backup-cron.sh deploy/setup-image-prune-cron.sh \
+  ubuntu@<box>:~/mihas/deploy/
+
+# 1. Configures the `r2` aws-cli profile from the R2 creds already in .env
+#    (the same ones django-storages uses for document storage), installs
+#    awscli if missing, and creates BACKUP_BUCKET if it doesn't exist yet.
+bash deploy/configure-r2-profile.sh
+
+# 2. Installs the nightly backup cron (02:00 UTC daily) with failure
+#    alerting to ERROR_ALERT_EMAIL and a rotating log at backup-cron.log.
+bash deploy/setup-backup-cron.sh
+
+# 3. Installs a weekly Docker image-prune cron (Sundays 03:00 UTC,
+#    `--filter until=72h`) — prevents the disk-usage incident documented in
+#    the scaling playbook's "Docker Disk Hygiene" section.
+bash deploy/setup-image-prune-cron.sh
+```
+
+Manual one-liner install (if the scripts are unavailable) — **not idempotent,
+re-running duplicates the crontab entry**:
+
+```bash
+( crontab -l 2>/dev/null; echo "0 2 * * * cd ~/mihas && ./backup-db.sh >> ~/mihas/backup.log 2>&1" ) | crontab -
 ```
 
 Restore from a backup = the `pg_restore` step in section 3 against a dump pulled

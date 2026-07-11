@@ -348,8 +348,22 @@ Do not:
 
 ## 8. Disk Cleanup And Docker Prune
 
-Use when disk is high, deploy fails with no space left, or before large image
-deploys on the single EC2 host.
+**Automated prevention (installed 2026-07-11):** a weekly cron
+(`docker image prune -a -f --filter until=72h`, Sundays 03:00 UTC) is
+installed via `deploy/setup-image-prune-cron.sh` (idempotent, safe to re-run).
+It only removes images unreferenced by any running container and older than
+72 hours — never the 5 currently-running images. Log:
+`~/mihas/image-prune-cron.log`. Verify it's installed: `crontab -l | grep
+mihas-weekly-image-prune`.
+
+**Deploy-time gate:** `deploy/disk_gate.sh` halts `.github/workflows/deploy.yml`
+if root disk usage is at or above the `DISK_THRESHOLD` Actions variable
+(default 85%, clamped 50–95) — a deploy fails loudly at the gate instead of
+failing obscurely mid-pull with a disk-full box.
+
+Use this manual section when disk is high **right now** (the weekly cron
+hasn't run yet, or usage climbed faster than expected), deploy fails with no
+space left, or before large image deploys on the single EC2 host.
 
 Check:
 
@@ -387,11 +401,13 @@ After cleanup:
 Use during slow dashboards, stuck documents, payment polling delays, login
 failures, or degraded readiness.
 
-Postgres checks:
+Postgres checks (run from `~/mihas` on the EC2 box — the compose file lives
+directly there, not under a `deploy/` subdirectory; the service is named
+`postgres`, not `db`):
 
 ```bash
-docker compose -f deploy/docker-compose.prod.yml exec db pg_isready
-docker compose -f deploy/docker-compose.prod.yml exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select now();"
+docker compose -f docker-compose.prod.yml exec postgres pg_isready
+docker compose -f docker-compose.prod.yml exec postgres bash -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select now();"'
 ```
 
 Investigate:
@@ -402,11 +418,11 @@ Investigate:
 - table/index bloat after large writes
 - dashboard/catalog query pressure
 
-Redis checks:
+Redis checks (service is named `redis`):
 
 ```bash
-docker compose -f deploy/docker-compose.prod.yml exec redis redis-cli ping
-docker compose -f deploy/docker-compose.prod.yml exec redis redis-cli info memory
+docker compose -f docker-compose.prod.yml exec redis redis-cli ping
+docker compose -f docker-compose.prod.yml exec redis redis-cli info memory
 ```
 
 Investigate:
@@ -416,12 +432,13 @@ Investigate:
 - eviction policy
 - cache key isolation by tenant/scope
 
-Celery checks:
+Celery checks (worker service is named `celery`, scheduler is `beat`):
 
 ```bash
-docker compose -f deploy/docker-compose.prod.yml logs --tail=200 worker
-docker compose -f deploy/docker-compose.prod.yml exec worker celery -A config inspect ping
-docker compose -f deploy/docker-compose.prod.yml exec worker celery -A config inspect active
+docker compose -f docker-compose.prod.yml logs --tail=200 celery
+docker compose -f docker-compose.prod.yml exec celery celery -A config inspect ping
+docker compose -f docker-compose.prod.yml exec celery celery -A config inspect active
+docker compose -f docker-compose.prod.yml logs --tail=200 beat
 ```
 
 Investigate:

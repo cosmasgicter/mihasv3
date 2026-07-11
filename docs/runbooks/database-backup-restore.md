@@ -96,12 +96,23 @@ Run once per quarter:
 ## Production Backup Script (`deploy/backup-db.sh`)
 
 The self-hosted production stack backs up the `mihas-postgres-1` container
-nightly to Cloudflare R2. The script lives at `deploy/backup-db.sh` and is
-installed as a cron job on the EC2 box (see `deploy/RUNBOOK.md` §6):
+nightly to Cloudflare R2. The script lives at `deploy/backup-db.sh`. Setup
+(R2 profile + both cron jobs) is scripted and idempotent — see
+`deploy/RUNBOOK.md` §6 and the three `deploy/setup-*.sh` / `deploy/configure-*.sh`
+scripts. **Status as of 2026-07-11: verified live** — the R2 profile is
+configured, the backup bucket (`mihas-backups`) exists and is reachable, a
+real end-to-end backup ran successfully (dump → R2 upload → local cleanup,
+978KB), and both cron jobs are installed on the box:
 
 ```
-30 2 * * * cd ~/mihas && ./backup-db.sh >> ~/mihas/backup.log 2>&1
+0 2 * * * cd /home/ubuntu/mihas && bash backup-db.sh >> /home/ubuntu/mihas/backup-cron.log 2>&1 || { ...failure alert... }  # mihas-nightly-backup
+0 3 * * 0 docker image prune -a -f --filter 'until=72h' >> /home/ubuntu/mihas/image-prune-cron.log 2>&1  # mihas-weekly-image-prune
 ```
+
+This closes a previously-documented gap: earlier audits of this box found
+`BACKUP_BUCKET` set in `.env` but no `awscli`, no `~/.aws/` profile, and no
+crontab entry at all — meaning no automated backup had ever actually run.
+The gap is now closed and re-verifiable via `crontab -l` on the box.
 
 What it does, in order:
 
