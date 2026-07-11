@@ -262,6 +262,7 @@ _PROTECTED = {
     "apps.catalog.admin_views.AdminInstitutionAuditView",
     "apps.catalog.admin_views.AdminMembershipDetailView",
     "apps.catalog.admin_views.AdminMembershipListCreateView",
+    "apps.catalog.admin_program_intake_views.AdminProgramIntakeCreateView",
     "apps.catalog.admin_views.AdminRoutingSimulateView",
     "apps.catalog.admin_views.AdminTenantAssetDetailView",
     "apps.catalog.admin_views.AdminTenantAssetListCreateView",

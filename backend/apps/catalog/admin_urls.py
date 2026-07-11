@@ -2,6 +2,7 @@
 
 from django.urls import path
 
+from apps.catalog.admin_program_intake_views import AdminProgramIntakeCreateView
 from apps.catalog.admin_views import (
     AdminAccessGrantDetailView,
     AdminAccessGrantListCreateView,
@@ -64,4 +65,5 @@ urlpatterns = [
     path("access-grants/<uuid:grant_id>/", AdminAccessGrantDetailView.as_view(), name="admin-tenant-access-grant-detail"),
     path("routing/simulate/", AdminRoutingSimulateView.as_view(), name="admin-routing-simulate"),
     path("tenant-audit/", AdminTenantAuditView.as_view(), name="admin-tenant-audit"),
+    path("program-intakes/", AdminProgramIntakeCreateView.as_view(), name="admin-program-intake-create"),
 ]

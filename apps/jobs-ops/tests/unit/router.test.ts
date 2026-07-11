@@ -212,80 +212,35 @@ describe('Router — all defined routes resolve to components', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests: protected routes redirect unauthenticated users
+// Tests: ProtectedRoute renders standalone regardless of auth state
 // ---------------------------------------------------------------------------
+//
+// jobs-ops renders standalone (see ProtectedRoute.tsx docstring): read
+// endpoints are public scaffold routes (AllowAny on the backend) and risky
+// write actions stay backend-policy-gated, so the shell must never hard-
+// redirect an unauthenticated visitor away from the dashboard UI. This
+// replaces an earlier version of this test suite that asserted the opposite
+// (a hard redirect to a sign-in page) — that assertion predated the
+// intentional architecture change to a no-op ProtectedRoute and was never
+// updated to match, leaving these two tests failing against current,
+// correct behavior.
 
-describe('Router — protected routes redirect unauthenticated users', () => {
-  let originalLocation: Location;
-
-  beforeAll(() => {
-    originalLocation = window.location;
-  });
-
-  afterEach(() => {
-    // Restore window.location after each test
-    Object.defineProperty(window, 'location', {
-      value: originalLocation,
-      writable: true,
-      configurable: true,
-    });
-  });
-
-  it('redirects to sign-in when user is not authenticated', async () => {
-    // Spy on window.location.href assignment
-    let capturedHref = '';
-    const locationMock = {
-      ...window.location,
-      get href() {
-        return capturedHref || 'http://localhost:3000/';
-      },
-      set href(url: string) {
-        capturedHref = url;
-      },
-      pathname: '/',
-    };
-    Object.defineProperty(window, 'location', {
-      value: locationMock,
-      writable: true,
-      configurable: true,
-    });
-
+describe('Router — ProtectedRoute renders standalone (no redirect)', () => {
+  it('renders page content at "/" when unauthenticated', async () => {
     renderRoute('/', { authenticated: false });
 
     await waitFor(() => {
-      expect(capturedHref).toContain('signin');
+      expect(screen.getByTestId('page-overview')).toBeInTheDocument();
     });
-
-    // Should include a redirect param pointing back to the original path
-    expect(capturedHref).toContain('redirect=');
+    expect(screen.getByTestId('shell')).toBeInTheDocument();
   });
 
-  it('does not render page content when unauthenticated', async () => {
-    let capturedHref = '';
-    const locationMock = {
-      ...window.location,
-      get href() {
-        return capturedHref || 'http://localhost:3000/jobs';
-      },
-      set href(url: string) {
-        capturedHref = url;
-      },
-      pathname: '/jobs',
-    };
-    Object.defineProperty(window, 'location', {
-      value: locationMock,
-      writable: true,
-      configurable: true,
-    });
-
+  it('renders page content at "/jobs" when unauthenticated', async () => {
     renderRoute('/jobs', { authenticated: false });
 
     await waitFor(() => {
-      expect(capturedHref).toContain('signin');
+      expect(screen.getByTestId('page-jobs')).toBeInTheDocument();
     });
-
-    // The shell and page content should NOT be rendered
-    expect(screen.queryByTestId('page-jobs')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('shell')).not.toBeInTheDocument();
+    expect(screen.getByTestId('shell')).toBeInTheDocument();
   });
 });

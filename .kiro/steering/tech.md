@@ -510,7 +510,7 @@ These findings are documented but not yet fixed:
 - `IsAuthenticatedOrDebug` permission class bypasses auth when `DEBUG=True`.
 - `AuditMiddleware` does not populate `entity_id` from URL path segments.
 - `ReadOnlyMiddleware` queries the database on every write request when the env var is not set.
-- Jobs-ops frontend has no auth refresh interceptor or session management.
+- ~~Jobs-ops frontend has no auth refresh interceptor or session management.~~ **Resolved (2026-07-11).** `apps/jobs-ops/src/services/api/client.ts` already implements a 401-triggered token refresh with single-retry, in-memory CSRF token storage attached to state-changing requests, and CSRF-error recovery via `?refresh_csrf=1`. `apps/jobs-ops/src/auth/AuthContext.tsx` bootstraps the session and revalidates on tab-visibility regain (`useVisibilityRevalidation`). Verified via `apps/jobs-ops/tests/unit/apiClient.test.ts` and `authContext.test.ts` (31 tests passing). Fixed two stale tests in `router.test.ts` that asserted a hard sign-in redirect — `ProtectedRoute` is an intentional no-op passthrough (jobs-ops renders standalone; reads are public scaffold routes, writes are backend-policy-gated), and those tests predated that architecture decision.
 - 7 SQL scripts in `backend/scripts/` are fully applied and stale (safe to archive).
 - `idempotency_redesign.sql` contains a `DROP TABLE` without a re-run guard.
 

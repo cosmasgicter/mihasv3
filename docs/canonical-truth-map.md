@@ -143,9 +143,28 @@ Mounted at `/api/v1/admin/` (`backend/apps/catalog/admin_urls.py`):
 (+ `document-profiles/<id>/`, `document-profiles/<id>/clone/`),
 `institutions/<id>/required-documents/` (+ `required-documents/<id>/`),
 `memberships/` (+ `memberships/<id>/`), `access-grants/`
-(+ `access-grants/<id>/`), `routing/simulate/`, `tenant-audit/`. Capability +
-scope endpoints (`backend/apps/accounts/admin_user_views.py`):
+(+ `access-grants/<id>/`), `routing/simulate/`, `tenant-audit/`,
+`program-intakes/`. Capability + scope endpoints
+(`backend/apps/accounts/admin_user_views.py`):
 `GET /api/v1/admin/capabilities/`, extended `GET /api/v1/admin/scope/`.
+
+### ProgramIntake (Intake_Offering) create API (R8.1-R8.4)
+
+`POST /api/v1/admin/program-intakes/`
+(`backend/apps/catalog/admin_program_intake_views.py:AdminProgramIntakeCreateView`)
+creates the `ProgramIntake` junction row (`program_intakes` table) linking a
+tenant's `Program` offering to a global `Intake` — the **Intake_Offering**
+concept named in `.kiro/steering/enterprise-tenancy.md` -> "Program Offering
+Model". Gated by `HasPlatformCapability("platform.intake.manage")`, exactly
+like the legacy `IntakeListCreateView`/`IntakeDetailView` write paths, because
+intakes (and their offering links) are global/platform-managed. Request body:
+`program_id` (UUID, must be an existing active `Program`), `intake_id` (UUID,
+must be an existing active `Intake`). Errors: `PROGRAM_NOT_FOUND` /
+`INTAKE_NOT_FOUND` (404), `ALREADY_LINKED` (409 — no DB unique constraint
+exists on `(program_id, intake_id)`, so the pair is checked at the application
+layer). Emits a `tenant.program_intake.created` Audit_Event via
+`TenantAuditService`, scoped to the offering's institution. Tests:
+`backend/tests/unit/test_admin_program_intake_create.py`.
 
 ### Domain context endpoint
 

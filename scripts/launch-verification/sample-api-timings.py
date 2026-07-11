@@ -186,18 +186,41 @@ def _one_request_latency(
     A transport error is recorded as a 0-status, high-latency reading so a
     failing surface degrades toward *fail*, never a silent pass. Only ever
     called from the live ``collect_samples`` path — never in the sandbox.
+
+    ``urllib.error.HTTPError`` is itself a response-like object wrapping a
+    real ``http.client.HTTPResponse`` and its underlying socket. It MUST be
+    closed explicitly on every code path (success, non-2xx, or a mid-read
+    failure) — earlier versions of this function only called ``exc.read()``
+    without a ``finally``/``close()``, which leaked the connection whenever
+    ``exc.read()`` itself raised. Across ~1000 sequential samples in a real
+    run this manifested as a handful of leaked sockets that eventually
+    starved later, completely unrelated surfaces with instant
+    ``OSError``/connection-refused failures (status 0, near-zero latency) —
+    a client-side sampler bug, not a backend defect. Always closing the
+    response object (success or error path) prevents this.
     """
     req = urllib.request.Request(url, method=method, headers=headers, data=body)
     start = time.perf_counter()
+    resp_or_exc = None
     try:
         with urllib.request.urlopen(req, timeout=timeout_s) as resp:  # noqa: S310
             resp.read()
             status = resp.status
     except urllib.error.HTTPError as exc:
-        exc.read()  # drain the error body so the connection can be reused
+        resp_or_exc = exc
+        try:
+            exc.read()  # drain the error body so the connection can be reused
+        except Exception:  # noqa: BLE001 - draining is best-effort, never fatal
+            pass
         status = exc.code
     except (urllib.error.URLError, TimeoutError, OSError):
         status = 0
+    finally:
+        if resp_or_exc is not None:
+            try:
+                resp_or_exc.close()
+            except Exception:  # noqa: BLE001 - closing is best-effort, never fatal
+                pass
     latency_ms = (time.perf_counter() - start) * 1000.0
     return latency_ms, status
 

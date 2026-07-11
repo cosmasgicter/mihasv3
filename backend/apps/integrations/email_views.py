@@ -33,10 +33,13 @@ class ZohoConnectView(APIView):
     def post(self, request):
         return Response(
             {
-                "id": uuid.uuid4(),
-                "provider": "zoho",
-                "email": "operator@example.com",
-                "status": "connected",
+                "success": True,
+                "data": {
+                    "id": uuid.uuid4(),
+                    "provider": "zoho",
+                    "email": "operator@example.com",
+                    "status": "connected",
+                },
             },
             status=status.HTTP_201_CREATED,
         )
@@ -81,4 +84,7 @@ class EmailDeliveryWebhookView(APIView):
             if not provided or provided != expected:
                 return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
 
-        return Response(build_action_payload(uuid.uuid4(), "Email delivery webhook scaffold accepted.", "accepted"))
+        return Response({
+            "success": True,
+            "data": build_action_payload(uuid.uuid4(), "Email delivery webhook scaffold accepted.", "accepted"),
+        })
