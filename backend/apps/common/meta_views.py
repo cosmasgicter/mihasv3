@@ -38,7 +38,7 @@ class PlatformMetaView(APIView):
 
     @extend_schema(operation_id="meta_platform", tags=["meta"], auth=[], responses={200: OpenApiResponse(response=PLATFORM_META_RESPONSE)})
     def get(self, request):
-        return Response(
+        response = Response(
             {
                 "product": "Beanola Admissions Platform",
                 "creator": {"name": "Cosmas Kanchepa"},
@@ -47,3 +47,12 @@ class PlatformMetaView(APIView):
                 "status": "production_ready",
             }
         )
+        # This payload is a static dict with zero database access — safe to
+        # cache at any intermediary (CDN, browser) that respects the header.
+        # Added 2026-07-11 (full-platform-remediation-2026-07, R4.2) so a
+        # future CDN/edge cache in front of Caddy can serve this without any
+        # backend involvement. stale-while-revalidate lets a cache keep
+        # serving a slightly-stale copy while it revalidates in the
+        # background, rather than blocking on a fresh fetch.
+        response["Cache-Control"] = "public, max-age=86400, stale-while-revalidate=3600"
+        return response
