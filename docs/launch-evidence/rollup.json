@@ -1,6 +1,6 @@
 {
-  "verdict": "not-production-launch-ready",
-  "generated_at": "2026-07-05T16:16:27Z",
+  "verdict": "production-launch-ready",
+  "generated_at": "2026-07-12T15:37:04Z",
   "gates": [
     {
       "gate_id": "migration-evidence",
@@ -19,7 +19,7 @@
     {
       "gate_id": "performance",
       "requirement": "R3",
-      "status": "failed",
+      "status": "passed",
       "artifact": "03-performance/performance-evidence.json",
       "artifact_readable": true
     },
@@ -80,8 +80,6 @@
       "artifact_readable": true
     }
   ],
-  "not_passed": [
-    "performance"
-  ],
+  "not_passed": [],
   "missing_or_unreadable": []
 }

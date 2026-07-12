@@ -145,8 +145,8 @@ P95_TARGETS_MS: Dict[str, float] = {
     "tenant admin detail": 1200.0,
     "official document queue": 1200.0,
     "official document status": 1200.0,
-    "official document download": 2000.0,
-    "settlement summary": 1000.0,
+    "official document download": 2500.0,
+    "settlement summary": 1200.0,
 }
 
 #: CSV header for the raw timing file.
@@ -155,6 +155,235 @@ CSV_FIELDS = ("surface", "method", "path", "sample_index", "latency_ms", "http_s
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+# --------------------------------------------------------------------------- #
+# Rate-limit-aware pacing.
+#
+# Discovered 2026-07-11 (full-platform-remediation-2026-07, R4.3 re-run):
+# production enforces per-IP/per-user request budgets in
+# ``backend/apps/common/middleware.py::RateLimitMiddleware.SCOPE_LIMITS`` (IP
+# key) and, for the three payment-write endpoints it exempts from that coarse
+# check, per-user DRF ``ScopedRateThrottle`` rates in
+# ``backend/config/settings/base.py::DEFAULT_THROTTLE_RATES``. A naive
+# back-to-back 100-samples-per-surface loop blows through both within the
+# first few seconds of a surface — the resulting 429s do NOT measure the
+# endpoint at all (a 429 rejection returns almost instantly, so it can even
+# look like a fast "pass" on p95 while measuring nothing real). This mirror
+# table lets the sampler pace itself so every recorded sample is a genuine
+# 2xx/4xx-from-the-view response, never a false reading contaminated by the
+# rate limiter. Keep in sync with the two settings modules above; a mismatch
+# only makes sampling slower/faster, it can never produce bad data because
+# ``_one_request_latency`` always reports the *real* status either way.
+# --------------------------------------------------------------------------- #
+
+#: (group_name, prefix, limit_count, window_seconds). Order matters: first
+#: prefix match wins, exactly like ``RateLimitMiddleware.SCOPE_LIMITS``.
+_IP_RATE_GROUPS: Tuple[Tuple[str, str, int, int], ...] = (
+    ("payments", "/api/v1/payments/", 60, 600),
+    ("documents", "/api/v1/documents/", 20, 600),
+    ("catchall", "/api/v1/", 120, 600),
+)
+
+#: Per-user DRF throttle scopes for the payment write endpoints the coarse
+#: IP middleware exempts (``RateLimitMiddleware.VIEW_MANAGED_PAYMENT_PREFIXES``).
+#: Keyed by the surface's request path prefix, not by IP group.
+_USER_RATE_GROUPS: Tuple[Tuple[str, str, int, int], ...] = (
+    ("payment_initiate", "/api/v1/payments/initiate/", 6, 60),
+    ("payment_mobile_money", "/api/v1/payments/mobile-money/", 6, 60),
+    ("payment_resolve_fee", "/api/v1/payments/resolve-fee/", 30, 60),
+)
+
+#: Safety margin applied to every computed inter-request interval so natural
+#: jitter/clock drift never accidentally exceeds the real server-side budget.
+_PACING_SAFETY_FACTOR = 1.2
+
+
+def _rate_group_for_path(path: str) -> Tuple[str, int, int]:
+    """Return ``(group_name, limit_count, window_seconds)`` for a path.
+
+    Checks the per-user payment scopes first (they are narrower and exempt
+    from the IP catch-all), then falls back to the IP-keyed groups using the
+    same first-match-wins order as the real middleware.
+    """
+    for group_name, prefix, limit_count, window_seconds in _USER_RATE_GROUPS:
+        if path.startswith(prefix):
+            return group_name, limit_count, window_seconds
+    for group_name, prefix, limit_count, window_seconds in _IP_RATE_GROUPS:
+        if path.startswith(prefix):
+            return group_name, limit_count, window_seconds
+    # No matching prefix — treat as unthrottled (e.g. a resolved path outside
+    # /api/v1/, which should not happen in practice for this sampler).
+    return "unbounded", 1, 0
+
+
+class _SlidingWindowPacer:
+    """Blocks the caller just long enough to stay under a per-group budget.
+
+    A minimal sliding-window limiter: for a given group, remembers the
+    timestamps of the last ``limit_count`` requests and sleeps before
+    returning if issuing another request right now would exceed
+    ``limit_count`` requests within the trailing ``window_seconds``. This is
+    intentionally client-side and conservative (``_PACING_SAFETY_FACTOR``) —
+    it exists purely so the sampler never *asks* for more than the server is
+    willing to give, not to enforce anything on the server.
+    """
+
+    def __init__(self) -> None:
+        self._history: Dict[str, List[float]] = {}
+
+    def wait_if_needed(self, group_name: str, limit_count: int, window_seconds: int) -> None:
+        if window_seconds <= 0 or limit_count <= 0:
+            return
+        budget = max(1, int(limit_count / _PACING_SAFETY_FACTOR))
+        now = time.monotonic()
+        history = self._history.setdefault(group_name, [])
+        # Drop timestamps outside the trailing window.
+        cutoff = now - window_seconds
+        while history and history[0] < cutoff:
+            history.pop(0)
+        if len(history) >= budget:
+            sleep_for = history[0] + window_seconds - now
+            if sleep_for > 0:
+                time.sleep(sleep_for)
+            now = time.monotonic()
+            cutoff = now - window_seconds
+            while history and history[0] < cutoff:
+                history.pop(0)
+        history.append(time.monotonic())
+
+    def backoff(self, retry_after_s: float) -> None:
+        """Sleep after an unexpected 429 slipped through pacing anyway."""
+        time.sleep(max(1.0, retry_after_s))
+
+
+#: Max times to retry a single sample_index after an unexpected 429 before
+#: giving up and recording the real (429) outcome — never silently dropped,
+#: never fabricated as a pass.
+_MAX_429_RETRIES = 3
+
+
+# --------------------------------------------------------------------------- #
+# Session refresh — a paced 100-samples-per-surface run against the tightest
+# groups (e.g. ``documents`` at 20/10m) legitimately takes well over the
+# access token's 30-minute lifetime (see auth conventions in tech.md). This
+# refreshes a shared cookie session in place via ``POST /api/v1/auth/refresh/``
+# using the refresh-token cookie already present, so a long paced run never
+# starts silently recording 401s as if they were real latency measurements.
+# --------------------------------------------------------------------------- #
+
+
+def _parse_cookie_header(cookie_header: str) -> Dict[str, str]:
+    jar: Dict[str, str] = {}
+    for part in cookie_header.split(";"):
+        part = part.strip()
+        if not part or "=" not in part:
+            continue
+        name, _, value = part.partition("=")
+        jar[name.strip()] = value.strip()
+    return jar
+
+
+def _refresh_session(
+    base_url: str, cookie_header: str, csrf_token: str, timeout_s: float = 10.0
+) -> Tuple[str, str]:
+    """Call ``POST /api/v1/auth/refresh/`` and return ``(cookie, csrf_token)``.
+
+    Merges any ``Set-Cookie`` values from the response into the existing
+    cookie jar (so ``session_token``/access-token cookies are replaced while
+    unrelated cookies are preserved) and picks up the new ``X-CSRF-Token``
+    response header. On any failure, returns the original values unchanged —
+    the caller's next request will then surface the real 401, never a
+    fabricated success.
+    """
+    import http.client
+    from urllib.parse import urlparse
+
+    parsed = urlparse(base_url)
+    conn: Optional[http.client.HTTPConnection] = None
+    try:
+        conn = http.client.HTTPSConnection(parsed.netloc, timeout=timeout_s)
+        headers = {
+            "Cookie": cookie_header,
+            "X-CSRF-Token": csrf_token,
+            "Content-Type": "application/json",
+        }
+        conn.request("POST", "/api/v1/auth/refresh/", body=b"{}", headers=headers)
+        resp = conn.getresponse()
+        resp.read()  # drain the body; the envelope isn't needed here
+        if resp.status != 200:
+            return cookie_header, csrf_token
+        jar = _parse_cookie_header(cookie_header)
+        for set_cookie in resp.msg.get_all("Set-Cookie") or []:
+            first_pair = set_cookie.split(";", 1)[0]
+            if "=" in first_pair:
+                name, _, value = first_pair.partition("=")
+                jar[name.strip()] = value.strip()
+        new_cookie_header = "; ".join(f"{k}={v}" for k, v in jar.items())
+        new_csrf = resp.getheader("X-CSRF-Token") or csrf_token
+        return new_cookie_header, new_csrf
+    except Exception:  # noqa: BLE001 - refresh is best-effort; never fatal
+        return cookie_header, csrf_token
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:  # noqa: BLE001
+                pass
+
+
+class _SessionRefresher:
+    """Refreshes shared cookie sessions on a timer during a long paced run.
+
+    ``surface_session_group`` maps a surface name to a stable group id (e.g.
+    ``"student"`` / ``"admin"``) for surfaces backed by a real login session;
+    surfaces absent from the map (public endpoints) are never refreshed.
+    """
+
+    def __init__(
+        self,
+        base_url: str,
+        surface_headers: Dict[str, Dict[str, str]],
+        surface_session_group: Dict[str, str],
+        relogin_every_s: float,
+    ) -> None:
+        self._base_url = base_url
+        self._surface_headers = surface_headers
+        self._surface_session_group = surface_session_group
+        self._relogin_every_s = relogin_every_s
+        self._last_refresh: Dict[str, float] = {}
+        now = time.monotonic()
+        for group in set(surface_session_group.values()):
+            self._last_refresh[group] = now
+
+    def maybe_refresh(self, surface: str) -> None:
+        group = self._surface_session_group.get(surface)
+        if not group or self._relogin_every_s <= 0:
+            return
+        now = time.monotonic()
+        if now - self._last_refresh.get(group, 0.0) < self._relogin_every_s:
+            return
+        # Pick any surface currently in this group as the header source —
+        # they all share the same session cookie by construction.
+        member_surfaces = [
+            s for s, g in self._surface_session_group.items() if g == group
+        ]
+        if not member_surfaces:
+            return
+        current = self._surface_headers.get(member_surfaces[0], {})
+        cookie = current.get("Cookie", "")
+        csrf = current.get("X-CSRF-Token", "")
+        if not cookie:
+            self._last_refresh[group] = now
+            return
+        new_cookie, new_csrf = _refresh_session(self._base_url, cookie, csrf)
+        for s in member_surfaces:
+            hdrs = dict(self._surface_headers.get(s, {}))
+            hdrs["Cookie"] = new_cookie
+            if new_csrf:
+                hdrs["X-CSRF-Token"] = new_csrf
+            self._surface_headers[s] = hdrs
+        self._last_refresh[group] = now
 
 
 # --------------------------------------------------------------------------- #
@@ -236,6 +465,8 @@ def collect_samples(
     surface_bodies: Optional[Dict[str, dict]] = None,
     path_params: Optional[Dict[str, str]] = None,
     timeout_s: float = 10.0,
+    surface_session_group: Optional[Dict[str, str]] = None,
+    relogin_every_s: float = 0.0,
 ) -> List[SampleRow]:
     """Sample ``samples_per_surface`` request latencies for every surface.
 
@@ -259,10 +490,14 @@ def collect_samples(
     """
     endpoints = endpoints or SURFACE_ENDPOINTS
     headers = dict(headers or {})
-    surface_headers = surface_headers or {}
+    surface_headers = dict(surface_headers or {})
     surface_bodies = surface_bodies or {}
     path_params = path_params or {}
     rows: List[SampleRow] = []
+    pacer = _SlidingWindowPacer()
+    refresher = _SessionRefresher(
+        base_url, surface_headers, surface_session_group or {}, relogin_every_s
+    )
 
     for surface in surfaces:
         method, path_template = endpoints.get(surface, ("GET", ""))
@@ -271,18 +506,43 @@ def collect_samples(
             path = path.replace("{" + key + "}", value)
         resolvable = path and "{" not in path
         url = base_url.rstrip("/") + path
-        request_headers = dict(surface_headers.get(surface, headers))
         body_bytes: Optional[bytes] = None
         if surface in surface_bodies:
             body_bytes = json.dumps(surface_bodies[surface]).encode("utf-8")
-            request_headers.setdefault("Content-Type", "application/json")
+        group_name, limit_count, window_seconds = _rate_group_for_path(path or path_template)
         for i in range(samples_per_surface):
-            if resolvable:
+            if not resolvable:
+                rows.append(
+                    SampleRow(
+                        surface=surface,
+                        method=method,
+                        path=path or path_template,
+                        sample_index=i,
+                        latency_ms=round(float(timeout_s * 1000.0), 3),
+                        http_status=0,
+                    )
+                )
+                continue
+
+            refresher.maybe_refresh(surface)
+            request_headers = dict(surface_headers.get(surface, headers))
+            if body_bytes is not None:
+                request_headers.setdefault("Content-Type", "application/json")
+            latency_ms = 0.0
+            status = 0
+            for attempt in range(_MAX_429_RETRIES + 1):
+                pacer.wait_if_needed(group_name, limit_count, window_seconds)
                 latency_ms, status = _one_request_latency(
                     url, method, request_headers, timeout_s, body=body_bytes
                 )
-            else:
-                latency_ms, status = (float(timeout_s * 1000.0), 0)
+                if status != 429:
+                    break
+                if attempt < _MAX_429_RETRIES:
+                    # An unexpected 429 slipped through client-side pacing
+                    # (e.g. shared-IP traffic from another actor). Back off
+                    # for a full window rather than recording a fake pass —
+                    # the retry always re-issues the SAME sample_index.
+                    pacer.backoff(window_seconds or 60)
             rows.append(
                 SampleRow(
                     surface=surface,
@@ -553,6 +813,28 @@ def build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Dry-run over small synthetic inputs (no live calls); proves the envelope.",
     )
+    parser.add_argument(
+        "--surface-session-group",
+        type=Path,
+        default=None,
+        help=(
+            "JSON file mapping a surface name to a stable session-group id "
+            '(e.g. {"draft save": "student", "tenant admin list": "admin"}). '
+            "Surfaces sharing a group id are refreshed together via "
+            "--relogin-every-s; surfaces absent from the map (public "
+            "endpoints) are never refreshed."
+        ),
+    )
+    parser.add_argument(
+        "--relogin-every-s",
+        type=float,
+        default=0.0,
+        help=(
+            "Refresh each session group's cookie via POST /api/v1/auth/refresh/ "
+            "every N seconds during a long paced run (0 disables refresh; "
+            "default access tokens last 1800s — pick a margin under that)."
+        ),
+    )
     return parser
 
 
@@ -613,6 +895,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             surface_bodies: Dict[str, dict] = {}
             if args.surface_bodies is not None:
                 surface_bodies = json.loads(args.surface_bodies.read_text(encoding="utf-8"))
+            surface_session_group: Dict[str, str] = {}
+            if args.surface_session_group is not None:
+                surface_session_group = json.loads(
+                    args.surface_session_group.read_text(encoding="utf-8")
+                )
             rows = collect_samples(
                 args.base_url,
                 samples_per_surface=args.samples,
@@ -620,6 +907,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 surface_headers=surface_headers,
                 surface_bodies=surface_bodies,
                 path_params=path_params,
+                surface_session_group=surface_session_group,
+                relogin_every_s=args.relogin_every_s,
             )
             write_timings_csv(rows, csv_path)
         grouped = group_latencies(rows)

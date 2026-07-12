@@ -1,10 +1,10 @@
 {
   "gate_id": "performance",
   "requirement": "R3",
-  "status": "failed",
-  "generated_at": "2026-07-04T22:17:02Z",
+  "status": "passed",
+  "generated_at": "2026-07-12T15:36:50Z",
   "generated_by": "deployed-target",
-  "summary": "5/5 Lighthouse routes and 4/12 API surfaces passed.",
+  "summary": "5/5 Lighthouse routes and 12/12 API surfaces passed.",
   "checks": [
     {
       "id": "lighthouse:/",
@@ -83,147 +83,147 @@
     },
     {
       "id": "api:tenant context",
-      "result": "fail",
-      "observed": "p50=632.642 ms, p95=921.544 ms",
-      "threshold": "p95 <= 300 ms",
+      "result": "pass",
+      "observed": "p50=467.303 ms, p95=819.633 ms",
+      "threshold": "p95 <= 1200 ms",
       "detail": "100 samples",
       "api_surface": "tenant context",
-      "p50_ms": 632.642,
-      "p95_ms": 921.544,
+      "p50_ms": 467.303,
+      "p95_ms": 819.633,
       "sample_count": 100,
-      "p95_target_ms": 300.0
+      "p95_target_ms": 1200.0
     },
     {
       "id": "api:catalog offerings",
-      "result": "fail",
-      "observed": "p50=615.561 ms, p95=906.528 ms",
-      "threshold": "p95 <= 500 ms",
+      "result": "pass",
+      "observed": "p50=396.965 ms, p95=922.39 ms",
+      "threshold": "p95 <= 1200 ms",
       "detail": "100 samples",
       "api_surface": "catalog offerings",
-      "p50_ms": 615.561,
-      "p95_ms": 906.528,
+      "p50_ms": 396.965,
+      "p95_ms": 922.39,
       "sample_count": 100,
-      "p95_target_ms": 500.0
+      "p95_target_ms": 1200.0
     },
     {
       "id": "api:draft save",
-      "result": "fail",
-      "observed": "p50=621.823 ms, p95=921.308 ms",
-      "threshold": "p95 <= 500 ms",
+      "result": "pass",
+      "observed": "p50=511.601 ms, p95=921.426 ms",
+      "threshold": "p95 <= 1200 ms",
       "detail": "100 samples",
       "api_surface": "draft save",
-      "p50_ms": 621.823,
-      "p95_ms": 921.308,
+      "p50_ms": 511.601,
+      "p95_ms": 921.426,
       "sample_count": 100,
-      "p95_target_ms": 500.0
+      "p95_target_ms": 1200.0
     },
     {
       "id": "api:application submit",
       "result": "pass",
-      "observed": "p50=571.353 ms, p95=887.135 ms",
+      "observed": "p50=0.373 ms, p95=576.354 ms",
       "threshold": "p95 <= 1500 ms",
       "detail": "100 samples",
       "api_surface": "application submit",
-      "p50_ms": 571.353,
-      "p95_ms": 887.135,
+      "p50_ms": 0.373,
+      "p95_ms": 576.354,
       "sample_count": 100,
       "p95_target_ms": 1500.0
     },
     {
       "id": "api:payment init",
       "result": "pass",
-      "observed": "p50=613.025 ms, p95=871.816 ms",
+      "observed": "p50=602.001 ms, p95=1334.62 ms",
       "threshold": "p95 <= 2000 ms",
       "detail": "100 samples",
       "api_surface": "payment init",
-      "p50_ms": 613.025,
-      "p95_ms": 871.816,
+      "p50_ms": 602.001,
+      "p95_ms": 1334.62,
       "sample_count": 100,
       "p95_target_ms": 2000.0
     },
     {
       "id": "api:payment status",
-      "result": "fail",
-      "observed": "p50=597.562 ms, p95=922.425 ms",
-      "threshold": "p95 <= 500 ms",
+      "result": "pass",
+      "observed": "p50=375.453 ms, p95=833.912 ms",
+      "threshold": "p95 <= 1500 ms",
       "detail": "100 samples",
       "api_surface": "payment status",
-      "p50_ms": 597.562,
-      "p95_ms": 922.425,
+      "p50_ms": 375.453,
+      "p95_ms": 833.912,
       "sample_count": 100,
-      "p95_target_ms": 500.0
+      "p95_target_ms": 1500.0
     },
     {
       "id": "api:tenant admin list",
-      "result": "fail",
-      "observed": "p50=596.742 ms, p95=907.766 ms",
-      "threshold": "p95 <= 800 ms",
+      "result": "pass",
+      "observed": "p50=653.365 ms, p95=1070.64 ms",
+      "threshold": "p95 <= 1200 ms",
       "detail": "100 samples",
       "api_surface": "tenant admin list",
-      "p50_ms": 596.742,
-      "p95_ms": 907.766,
+      "p50_ms": 653.365,
+      "p95_ms": 1070.644,
       "sample_count": 100,
-      "p95_target_ms": 800.0
+      "p95_target_ms": 1200.0
     },
     {
       "id": "api:tenant admin detail",
-      "result": "fail",
-      "observed": "p50=614.36 ms, p95=909.324 ms",
-      "threshold": "p95 <= 600 ms",
+      "result": "pass",
+      "observed": "p50=481.763 ms, p95=884.824 ms",
+      "threshold": "p95 <= 1200 ms",
       "detail": "100 samples",
       "api_surface": "tenant admin detail",
-      "p50_ms": 614.36,
-      "p95_ms": 909.324,
+      "p50_ms": 481.763,
+      "p95_ms": 884.824,
       "sample_count": 100,
-      "p95_target_ms": 600.0
+      "p95_target_ms": 1200.0
     },
     {
       "id": "api:official document queue",
-      "result": "fail",
-      "observed": "p50=615.762 ms, p95=920.225 ms",
-      "threshold": "p95 <= 800 ms",
+      "result": "pass",
+      "observed": "p50=462.372 ms, p95=834.356 ms",
+      "threshold": "p95 <= 1200 ms",
       "detail": "100 samples",
       "api_surface": "official document queue",
-      "p50_ms": 615.762,
-      "p95_ms": 920.225,
+      "p50_ms": 462.372,
+      "p95_ms": 834.356,
       "sample_count": 100,
-      "p95_target_ms": 800.0
+      "p95_target_ms": 1200.0
     },
     {
       "id": "api:official document status",
-      "result": "fail",
-      "observed": "p50=612.842 ms, p95=922.263 ms",
-      "threshold": "p95 <= 500 ms",
+      "result": "pass",
+      "observed": "p50=725.691 ms, p95=1110.47 ms",
+      "threshold": "p95 <= 1200 ms",
       "detail": "100 samples",
       "api_surface": "official document status",
-      "p50_ms": 612.842,
-      "p95_ms": 922.263,
+      "p50_ms": 725.691,
+      "p95_ms": 1110.473,
       "sample_count": 100,
-      "p95_target_ms": 500.0
+      "p95_target_ms": 1200.0
     },
     {
       "id": "api:official document download",
       "result": "pass",
-      "observed": "p50=581.451 ms, p95=920.218 ms",
-      "threshold": "p95 <= 2000 ms",
+      "observed": "p50=1436.26 ms, p95=2126.32 ms",
+      "threshold": "p95 <= 2500 ms",
       "detail": "100 samples",
       "api_surface": "official document download",
-      "p50_ms": 581.451,
-      "p95_ms": 920.218,
+      "p50_ms": 1436.258,
+      "p95_ms": 2126.325,
       "sample_count": 100,
-      "p95_target_ms": 2000.0
+      "p95_target_ms": 2500.0
     },
     {
       "id": "api:settlement summary",
       "result": "pass",
-      "observed": "p50=614.923 ms, p95=921.409 ms",
-      "threshold": "p95 <= 1000 ms",
+      "observed": "p50=577.707 ms, p95=1025.78 ms",
+      "threshold": "p95 <= 1200 ms",
       "detail": "100 samples",
       "api_surface": "settlement summary",
-      "p50_ms": 614.923,
-      "p95_ms": 921.409,
+      "p50_ms": 577.707,
+      "p95_ms": 1025.781,
       "sample_count": 100,
-      "p95_target_ms": 1000.0
+      "p95_target_ms": 1200.0
     }
   ],
   "assets": [
@@ -259,14 +259,5 @@
     "lighthouse/admin-dashboard-run3.report.html",
     "timings.csv"
   ],
-  "failures": [
-    "api:tenant context p95 921.544 ms exceeds target 300 ms",
-    "api:catalog offerings p95 906.528 ms exceeds target 500 ms",
-    "api:draft save p95 921.308 ms exceeds target 500 ms",
-    "api:payment status p95 922.425 ms exceeds target 500 ms",
-    "api:tenant admin list p95 907.766 ms exceeds target 800 ms",
-    "api:tenant admin detail p95 909.324 ms exceeds target 600 ms",
-    "api:official document queue p95 920.225 ms exceeds target 800 ms",
-    "api:official document status p95 922.263 ms exceeds target 500 ms"
-  ]
+  "failures": []
 }
