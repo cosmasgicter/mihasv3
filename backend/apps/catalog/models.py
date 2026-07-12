@@ -141,8 +141,8 @@ class ProgramIntake(models.Model):
     rules), expressing that the offering is available in that intake."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    program = models.ForeignKey(Program, on_delete=models.CASCADE)
-    intake = models.ForeignKey(Intake, on_delete=models.CASCADE)
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, db_constraint=False)
+    intake = models.ForeignKey(Intake, on_delete=models.CASCADE, db_constraint=False)
     max_capacity = models.IntegerField(null=True, blank=True)
     current_enrollment = models.IntegerField(null=True, blank=True, default=0)
     created_at = models.DateTimeField(null=True, blank=True)
