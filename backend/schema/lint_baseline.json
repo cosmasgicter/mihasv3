@@ -1,12 +1,12 @@
 {
   "summary": {
-    "total_endpoints": 195,
+    "total_endpoints": 196,
     "endpoints_with_issues": 101,
-    "total_issues": 881,
+    "total_issues": 883,
     "errors": 1,
-    "warnings": 807,
+    "warnings": 809,
     "info": 73,
-    "score": 87.16
+    "score": 87.19
   },
   "issues": [
     {
@@ -2569,6 +2569,20 @@
       "category": "naming",
       "message": "Property 'created_by_id' in schema 'AdminMembership' should use camelCase",
       "path": "/components/schemas/AdminMembership/properties/created_by_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'program_id' in schema 'AdminProgramIntakeCreateInput' should use camelCase",
+      "path": "/components/schemas/AdminProgramIntakeCreateInput/properties/program_id",
+      "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
+    },
+    {
+      "severity": "warning",
+      "category": "naming",
+      "message": "Property 'intake_id' in schema 'AdminProgramIntakeCreateInput' should use camelCase",
+      "path": "/components/schemas/AdminProgramIntakeCreateInput/properties/intake_id",
       "suggestion": "Use camelCase for property names (e.g., 'firstName', 'createdAt')"
     },
     {
