@@ -59,21 +59,8 @@ LEGACY_DEPRECATED_COLUMNS = {
         },
     },
     "profiles": {
-        "refresh_token_hash": {
-            "sunset_date": SUNSET_DATE,
-            "reason": "Refresh tokens use Redis JTI blacklisting; hash column is unused",
-            "replacement": "Redis JTI store",
-        },
-        "failed_login_attempts": {
-            "sunset_date": SUNSET_DATE,
-            "reason": "Rate limiting handled by DRF throttling; column is unused",
-            "replacement": "DRF throttle classes",
-        },
-        "locked_until": {
-            "sunset_date": SUNSET_DATE,
-            "reason": "Account locking handled by DRF throttling; column is unused",
-            "replacement": "DRF throttle classes",
-        },
+        # refresh_token_hash, failed_login_attempts, locked_until — DROPPED
+        # in schema_cleanup_drop_stale_columns.sql (Phase 5, July 2026).
     },
     "error_logs": {
         "__entire_table__": {

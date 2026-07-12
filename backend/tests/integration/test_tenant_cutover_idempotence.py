@@ -261,6 +261,7 @@ class TestCutoverDryRunAndRunnerIdempotence:
             "--migrations-dir",
             str(DEFAULT_MIGRATIONS_DIR),
             "--dry-run",
+            "--allow-non-additive",
             stdout=out,
             stderr=StringIO(),
         )

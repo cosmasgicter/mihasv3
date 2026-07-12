@@ -131,8 +131,7 @@ class SessionRevokeView(APIView):
         session.is_active = False
         session.save(update_fields=["is_active"])
 
-        # Try to blacklist the refresh token jti by finding it from cookies
-        # The session stores refresh_token_hash, not the jti directly.
+        # Try to blacklist the refresh token jti from cookies.
         # We blacklist via the refresh token if available in the request cookies.
         _try_blacklist_refresh_for_session(request, session)
 
