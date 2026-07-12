@@ -153,6 +153,7 @@ class ProgramIntake(models.Model):
     class Meta:
         managed = False
         db_table = 'program_intakes'
+        unique_together = [('program', 'intake')]
 
     def __str__(self):
         return f"{self.program_id} × {self.intake_id}"
